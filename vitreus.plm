@@ -956,11 +956,6 @@ scene Vitreus {
     prop pbounce = 0 ~splash          // the strip's edge bouncing when the thread breaks
     prop prip = 1 ~1100ms              // the ripple that runs along the strip's edge, 0 just born, 1 gone
     prop pstray = 0 ~700ms            // the small drop that is left hanging from the edge
-    //  One for each monitor's copy: the panel's top depends on that monitor's height.
-    prop pw_y0 = 20 ~90ms
-    prop pw_y1 = 20 ~90ms
-    prop pw_y2 = 20 ~90ms
-    prop pw_y3 = 20 ~90ms
     prop rand_spin = 0 ~pop
     prop set_pg = 0 ~calm
     prop set_pgd = 0 ~calm
@@ -2593,7 +2588,7 @@ scene Vitreus {
     let bar.y0 = 8 + bar.h / 2
     //  Down the left the panels come out of the strip at the height of their button: `pw_y` is where the open panel's top is (see `lp.top`), and
     //  the bar's "middle line" is half a bar above it, so that the first plate keeps the 12 it has under a panel's top (`bar.y` + 32).
-    let bar.y = mix(bar.y0, pick(screen.index, pw_y0, pw_y1, pw_y2, pw_y3) - bar.h / 2, lm)
+    let bar.y = bar.y0
     let bar.rad = 14 * u                 // the bar's corner when shut: the same as the plates', not a full pill
     //  The bar's pieces sit in a row in the order Settings > Bar gives them (`bo.*`), 16 in from each end and
     //  `bar.gap` apart. Each one is as wide as what it draws (`fw.*`) and takes that and a gap (`bw.*`: less while
@@ -2919,11 +2914,6 @@ scene Vitreus {
     let lp.top = lp.cy - lp.hd / 2
     //  Sitting on the bottom frame the glass reaches 14 into it, so the two are one piece and not two edges side by side (the content stays where it was).
     let lp.ext = 14 * u * lm * clamp((lp.cy + lp.hd / 2 - (vb - lf.t - 14 * u)) / (14 * u), 0, 1)
-    //  Each copy moves only its own: the one whose index it is follows its panel's top, the others keep what they have.
-    follow pw_y0 = if(screen.index == 0, lp.top, pw_y0)
-    follow pw_y1 = if(screen.index == 1, lp.top, pw_y1)
-    follow pw_y2 = if(screen.index == 2, lp.top, pw_y2)
-    follow pw_y3 = if(screen.index == 3, lp.top, pw_y3)
     on change panel {
         pq_sw = lm > 0.5 and pcur != none and panel != none and panel != pcur
         pending = if(pq_sw, panel, if(panel != none and panel != pending, none, pending))
@@ -3430,7 +3420,7 @@ scene Vitreus {
     on change dm > 0.5 while dm > 0.5 and panel == player { lp_k = 6; lp_w = 312 }
     //  Where the contents hang from: the panel's old middle, so they keep their
     //  place when the panel grows to make room for the player.
-    let cy = bar.y + bar.h / 2 + (6 + 125 * mix(drop, 1, lm)) * ku + lp.dy
+    let cy = mix(bar.y + bar.h / 2, lp.top, lm) + (6 + 125 * mix(drop, 1, lm)) * ku + lp.dy
     //  The controls' content hangs from here: 127 above `cy`, so the volume plate starts 12 under the
     //  bar and the drawer is only as tall as its two plates and their margins.
     let ck = cy - 127 * ku
