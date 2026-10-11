@@ -1,6 +1,6 @@
 -- The desktop menu's logic. A row is said to Vitreus (`pleamar --say vitreus "emit <event>"`), which does it (it knows how to start a desktop card that is not running, and
 -- where the camera lives). When the menu opens, what its switches show is asked: each scene is asked whether it is shown (a scene that is not running does not answer, which is "off").
-local ROWS = { "desk_edit", "cam_toggle", "dclock_toggle", "dsys_toggle", "sticky_new" }
+local ROWS = { "desk_edit", "cam_toggle", "dclock_toggle", "dsys_toggle", "dcava_toggle", "sticky_new" }
 
 local function edit_widgets(on)
     for _, name in ipairs({ "desktopclock", "desktopsysmon" }) do
@@ -42,6 +42,7 @@ local function refresh()
     shown_of("webcam", "cam_on")
     shown_of("desktopclock", "clock_on")
     shown_of("desktopsysmon", "sys_on")
+    shown_of("desktopcava", "cava_on")
 end
 -- It fires for what the scene sets (the press that opens the menu).
 on("fact:open", function(v) if v then refresh() end end)

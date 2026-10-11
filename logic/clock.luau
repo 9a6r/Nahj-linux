@@ -25,7 +25,18 @@ return function()
             local n = tonumber(trim(r[2])); if n then fact.sy_cl = n end
         end)
     end
-    on("fact:set_page", function(v) if v == "pg_clock" then refresh(); refresh_sy() end end)
+    -- And the desktop audio visualiser (desktopcava/).
+    local function say_cv(cmd, fn) run("pleamar", { "--say", "desktopcava", cmd }, fn or function() end) end
+    local function refresh_cv()
+        say_many("desktopcava", { "get shown", "get sty", "get pos", "get siz", "get cm" }, function(r)
+            if not r then fact.cv_ok = false return end
+            fact.cv_ok = true
+            fact.cv_on = trim(r[1]):match("true") ~= nil
+            local function num(i, key) local n = tonumber(trim(r[i])); if n then fact[key] = n end end
+            num(2, "cv_sty"); num(3, "cv_pos"); num(4, "cv_siz"); num(5, "cv_cm")
+        end)
+    end
+    on("fact:set_page", function(v) if v == "pg_clock" then refresh(); refresh_sy(); refresh_cv() end end)
 
     on("ck_toggle", function()
         local b = not fact.ck_on
@@ -147,4 +158,28 @@ return function()
         fact.sy_cl = v
         say_sy("fact cli " .. v)
     end)
+
+    on("cv_toggle", function()
+        local b = not fact.cv_on
+        fact.cv_on = b
+        say_cv("fact shown " .. tostring(b), function(_, code)
+            if code ~= 0 and b then
+                exec_on_desktop('pleamar --scene "$HOME/.config/pleamar/shells/vitreus/desktopcava/desktopcava.plm" --no-hud')
+                after(2500, function() say_cv("fact shown true"); refresh_cv() end)
+            else
+                refresh_cv()
+            end
+        end)
+    end)
+    local function setter(event, key, fkey, hi)
+        on(event, function(i)
+            local v = math.max(0, math.min(hi, math.floor(i + 0.5)))
+            fact[key] = v
+            say_cv("fact " .. fkey .. " " .. v)
+        end)
+    end
+    setter("cv_sty_set", "cv_sty", "sty", 5)
+    setter("cv_pos_set", "cv_pos", "pos", 4)
+    setter("cv_siz_set", "cv_siz", "siz", 2)
+    setter("cv_cm_set", "cv_cm", "cm", 3)
 end

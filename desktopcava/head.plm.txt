@@ -1,0 +1,50 @@
+language 0.1
+import "../palette.plm"
+
+//  The desktop audio visualiser: what is playing, drawn by cava, on the bottom layer (above the wallpaper, under every window). Six styles (bars, mirror, wave, line, dots, radial),
+//  five places (the bottom, the top, the left and right edges, the middle), three sizes and four looks (the shell's glass, the accent, light, or warm).
+//  It listens only while it is shown, and fades out by itself while nothing plays.
+//
+//  Turn it on or off with   pleamar --say desktopcava "fact shown true"   (or false); Settings > Widgets has the switch and the rest, and so has the desktop's right-click menu.
+//  Its settings are kept in desktopcava.json, in ~/.local/share/pleamar/desktopcava (see desktopcava.luau).
+
+scene DesktopCava {
+    surface { size: full, full; anchor: top_left; margin: 0; level: bottom; screens: all; reserve: -1; rate: 60 }
+
+    permissions {
+        services: "files", "files.write"
+        run: "cava", "printenv", "pleamar"
+    }
+
+    fact shown = false     // the logic sets it from desktopcava.json
+    fact sty = 0           // 0 bars, 1 mirror, 2 wave, 3 line, 4 dots, 5 radial
+    fact pos = 0           // 0 bottom, 1 top, 2 left, 3 right, 4 middle
+    fact siz = 1           // 0 small, 1 medium, 2 large
+    fact cm = 0            // 0 glass, 1 accent, 2 light, 3 warm
+    fact live = false      // something is playing (the logic: the bars have been above the floor lately)
+    fact demo = false      // for finding faults: made-up bars instead of cava's (`pleamar --say desktopcava "fact demo true"`)
+    fact obs = false       // Vitreus has its glass off: flat obsidian (Vitreus says so with `fact obs true`)
+
+    model bars max 48 { v: number }     // cava's bars, 0..1
+    model pts max 96 { v: number }      // the same, smoothed between, for the wave and the line
+
+    prop sh = 0 ~calm
+    follow sh = if(shown, 1, 0)
+    prop lv = 0 ~calm
+    follow lv = if(live, 1, 0)
+    prop ob = 0 ~calm
+    follow ob = if(obs, 1, 0)
+    let vis = sh * lv
+
+    //  Where it goes: a frame of `len` by `thk` pixels centred on (cx, cy), turned so that its bottom is against the edge it sits at. Everything below is drawn in
+    //  that frame as if it sat at the bottom of the screen; the group at the end turns it.
+    let gm = 40
+    let along = if(pos == 2 or pos == 3, screen.height, screen.width)
+    let len = (along - 2 * gm) * pick(siz, 0.4, 0.6, 0.85)
+    let thk = pick(siz, 110, 200, 320)
+    let cx = pick(pos, screen.width / 2, screen.width / 2, gm + thk / 2, screen.width - gm - thk / 2, screen.width / 2)
+    let cy = pick(pos, screen.height - gm - thk / 2, gm + thk / 2, screen.height / 2, screen.height / 2, screen.height / 2)
+    let ang = pick(pos, 0, 180, 90, -90, 0)
+    let x0 = cx - len / 2
+    let y0 = cy + thk / 2
+

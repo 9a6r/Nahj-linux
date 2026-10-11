@@ -124,6 +124,10 @@ if [ "$action" = uninstall ]; then
         run sed -i '/vitreus\/desktopsysmon\/desktopsysmon\.plm/d' "$autostart"
         say "removed the desktop system monitor's line from $autostart"
     fi
+    if [ -f "$autostart" ] && grep -q 'vitreus/desktopcava/desktopcava.plm' "$autostart"; then
+        run sed -i '/vitreus\/desktopcava\/desktopcava\.plm/d' "$autostart"
+        say "removed the desktop audio visualiser's line from $autostart"
+    fi
     if [ -f "$autostart" ] && grep -q 'vitreus/desktopnotes/desktopnotes.plm' "$autostart"; then
         run sed -i '/vitreus\/desktopnotes\/desktopnotes\.plm/d' "$autostart"
         say "removed the desktop notes' line from $autostart"
@@ -427,6 +431,7 @@ lockline="vitreus-keep $dest/lockscreen/lockscreen.plm"
 transline="vitreus-keep $dest/wptrans/wptrans.plm"
 clockline="vitreus-keep $dest/desktopclock/desktopclock.plm"
 sysmonline="vitreus-keep $dest/desktopsysmon/desktopsysmon.plm"
+cavaline="vitreus-keep $dest/desktopcava/desktopcava.plm"
 if $do_autostart; then
     # Lines from before the keeper started the scenes straight, once: they go through it now.
     if [ -f "$autostart" ] && grep -q "^pleamar --scene $dest/.*\.plm --no-hud\$" "$autostart"; then
@@ -470,6 +475,13 @@ if $do_autostart; then
     else
         if $dry; then echo "    would add to $autostart: $sysmonline"; else printf '%s\n' "$sysmonline" >> "$autostart"; fi
         say "the desktop system monitor starts with the desktop too, hidden (a line in $autostart); \"Desktop system monitor: toggle\" in the launcher shows it"
+    fi
+    # The desktop audio visualiser (cava's bars on the bottom layer) is a scene of its own too; it starts hidden, and "Desktop audio visualiser: toggle" in the launcher, the desktop's menu or Settings > Widgets shows it.
+    if [ -f "$autostart" ] && grep -q 'desktopcava/desktopcava.plm' "$autostart"; then
+        say "the desktop audio visualiser is already in $autostart"
+    else
+        if $dry; then echo "    would add to $autostart: $cavaline"; else printf '%s\n' "$cavaline" >> "$autostart"; fi
+        say "the desktop audio visualiser starts with the desktop too, hidden (a line in $autostart); \"Desktop audio visualiser: toggle\" in the launcher shows it"
     fi
     # The desktop stickers and the desktop's right-click menu are scenes of their own too, but Vitreus starts them itself (see vitreus.luau), so they have no line here.
 fi

@@ -3303,6 +3303,7 @@ function glass.push_obs()
     local v = glass.obsidian and "true" or "false"
     run("pleamar", { "--say", "desktopclock", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopsysmon", "fact obs " .. v }, function() end)
+    run("pleamar", { "--say", "desktopcava", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopnotes", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopmenu", "fact obs " .. v }, function() end)
 end
@@ -4924,6 +4925,7 @@ end
     end)
     on("dclock_toggle", function() toggle_scene("desktopclock", "desktopclock") end)
     on("dsys_toggle", function() toggle_scene("desktopsysmon", "desktopsysmon") end)
+    on("dcava_toggle", function() toggle_scene("desktopcava", "desktopcava") end)
 
     -- ── commands ──
     local function open_settings(page)
@@ -4951,7 +4953,7 @@ end
         { "Random wallpaper", "action", function() local f = wp_random_pick(); if f then wp_apply(f) end end, "shuffle background change surprise" },
         { "Lock session", "action", function() spawn('pleamar --say lockscreen "fact locked true"') end, "lockscreen lock screen secure away password" },
         { "Settings: Theme", "open", open_settings("pg_theme"), "colours colors palette preset tokyo night catppuccin gruvbox nord rose pine dracula iris accent monochrome wallpaper" },
-        { "Settings: Widgets", "open", open_settings("pg_clock"), "widgets clock system monitor desktop clock glass digits time wallpaper layout inline stacked staggered hero position corner size weight tint 12 24 hour" },
+        { "Settings: Widgets", "open", open_settings("pg_clock"), "widgets clock system monitor audio visualiser visualizer cava desktop clock glass digits time wallpaper layout inline stacked staggered hero position corner size weight tint 12 24 hour" },
         { "Settings: Weather location", "open", open_settings("pg_vpn"), "weather forecast location city zip code place celsius fahrenheit units vpn calendar temperature" },
         { "Desktop clock: toggle", "action", function()
             run("pleamar", { "--say", "desktopclock", "get shown" }, function(out)
@@ -4971,6 +4973,7 @@ end
                 run("pleamar", { "--say", "desktopsysmon", "fact shown " .. (on and "false" or "true") }, function() end)
             end)
         end, "system monitor desktop widget card cpu memory gpu network show hide on off" },
+        { "Desktop audio visualiser: toggle", "action", function() spawn('pleamar --say vitreus "emit dcava_toggle"') end, "audio visualiser visualizer cava spectrum music bars wave equalizer desktop widget show hide on off" },
         { "Webcam: toggle", "action", function() spawn('pleamar --say vitreus "emit cam_toggle"') end, "webcam camera self view mirror face round window record screen show hide on off" },
         { "Webcam: mirror on/off", "action", function() spawn('pleamar --say webcam "emit cam_mirror"') end, "webcam camera mirror flip self view" },
         { "Desktop menu: start", "action", function()

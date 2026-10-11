@@ -313,6 +313,7 @@ scene Vitreus {
     fact sn_y = -1
     event dclock_toggle ->          // the desktop clock
     event dsys_toggle ->            // the desktop system monitor
+    event dcava_toggle ->           // the desktop audio visualiser
     event launch_open ->
     event launch_move ->            // -1 up, +1 down
     event launch_pick ->            // a row, by place
@@ -1196,6 +1197,20 @@ scene Vitreus {
     follow sy_pill = if(sy_on, 1, 0)
     event sy_toggle ->
     event sy_cl_set ->                 // 0 to 2
+    //  The desktop audio visualiser (desktopcava/), under the system monitor on the same page: its own scene too.
+    fact cv_on = false
+    fact cv_ok = true
+    fact cv_sty = 0                    // 0 bars, 1 mirror, 2 wave, 3 line, 4 dots, 5 radial
+    fact cv_pos = 0                    // 0 bottom, 1 top, 2 left, 3 right, 4 middle
+    fact cv_siz = 1                    // 0 small, 1 medium, 2 large
+    fact cv_cm = 0                     // 0 glass, 1 accent, 2 light, 3 warm
+    prop cv_pill = 0 ~pop
+    follow cv_pill = if(cv_on, 1, 0)
+    event cv_toggle ->
+    event cv_sty_set ->
+    event cv_pos_set ->
+    event cv_siz_set ->
+    event cv_cm_set ->
     fact ck_scroll_to = 0              // the page scrolls like Lock screen's
     prop ck_scroll = 0 ~quick
     follow ck_scroll = ck_scroll_to
@@ -2830,7 +2845,7 @@ scene Vitreus {
     let vpn.ab = vpn.pb + vpn.pbh + 12
     let vpn.fh = if(vpn_mode == vpm_wg, 180, if(vpn_mode == vpm_ovpn, 144, 276))
     let wm.h = 782                     // the Pleamar-WM page: to the bottom of its last card
-    let ck.h = 712                     // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
+    let ck.h = 922                     // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
     let gl.h = 554                     // the Glass page: to the bottom of its last card
     let lk.h = 806                     // the Lock screen page: its cards, to the bottom of the last
     //  The Notifications page: the apps card has a row for each app (up to 14), and the rules card is there while one is open.
