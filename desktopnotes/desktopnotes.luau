@@ -28,6 +28,7 @@ local function trim(s) return ((s or ""):gsub("^%s+", ""):gsub("%s+$", "")) end
 -- `hyprctl monitors -j`: each one's top left and size in the layout (logical pixels: the size over its scale, turned about when it is rotated a quarter), in the order Hyprland
 -- numbers them, which is the order the scene's copies are in (`screen.index`).
 local mons = { { x = 0, y = 0, w = 1920, h = 1080 } }
+local focused = nil   -- the index (1-based) of the monitor that has the focus, the one the user is on
 local function refresh_monitors(done)
     run("hyprctl", { "monitors", "-j" }, function(out, code)
         if code == 0 and out then
@@ -35,11 +36,13 @@ local function refresh_monitors(done)
             if ok and type(list) == "table" and #list > 0 then
                 table.sort(list, function(a, b) return (a.id or 0) < (b.id or 0) end)
                 local m = {}
+                focused = nil
                 for i, d in ipairs(list) do
                     if i > 4 then break end
                     local sc = tonumber(d.scale) or 1
                     local w, h = (tonumber(d.width) or 1920) / sc, (tonumber(d.height) or 1080) / sc
                     if (tonumber(d.transform) or 0) % 2 == 1 then w, h = h, w end
+                    if d.focused then focused = i end
                     m[i] = { x = tonumber(d.x) or 0, y = tonumber(d.y) or 0, w = math.floor(w + 0.5), h = math.floor(h + 0.5) }
                 end
                 mons = m
@@ -112,7 +115,7 @@ on("note_new", function()
     for k = 0, MAX - 1 do if not slots[k] then free = k break end end
     if not free then return end
     refresh_monitors(function()
-        local mi = math.max(1, math.min(#mons, math.floor((tonumber(fact.nmon) or 0) + 0.5) + 1))
+        local mi = focused or math.max(1, math.min(#mons, math.floor((tonumber(fact.nmon) or 0) + 0.5) + 1))  -- the monitor the user is on, else the one asked for
         local m = mons[mi]
         local px, py = tonumber(fact.nx) or -1, tonumber(fact.ny) or -1
         local x, y
