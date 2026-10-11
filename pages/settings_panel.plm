@@ -5,7 +5,7 @@ part SettingsPanel {
     //  first (and, for now, only) page.
     group {
         clip inset 2 box { at: mix(pcx, ds.gx, lm), mix(bar.y + ss.hh / 2, lp.cy, lm); size: mix(ss.w, ds.gw, lm), mix(ss.hh, ds.gh, lm); corner: 26 * pu }
-        opacity: fs
+        opacity: fs * pown
         move: 0, (1 - fs) * 12 * pu
         let hy = ck + 26 * pu                              // the header's middle
         let sby = ck + 52 * pu                              // the top of the sidebar and the page

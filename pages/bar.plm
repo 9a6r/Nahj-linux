@@ -115,7 +115,7 @@ part Bar {
                 let ccy = chy + chh / 2
                 let lit = if(dragging, 1, 0)
                 let ink2 = mix(ink, mint, lit)
-                box { from: chx, chy; size: chw, chh; corner: 9 * pu; color: mix(ink, mint, lit); opacity: if(lit > 0, 24%, 8% + 10% * bchip.$i.hover) }
+                box { from: chx, chy; size: chw, chh; corner: 9 * pu; color: mix(ink, mint, lit); opacity: if(lit > 0, 24%, 8%) }
                 box { from: chx, chy; size: chw, chh; corner: 9 * pu; stroke: 1.5 * pu; color: mint; opacity: 100% * lit }
                 //  What each one is, drawn small, as it is on the bar.
                 group {

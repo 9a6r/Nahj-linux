@@ -2,6 +2,7 @@ part Player {
     //  The player's panel: it hangs from the window title, not from the middle of the bar, in
     //  the same glass as the bar. Its content is clipped to the drawer's shape.
     group {
+        opacity: pown
         clip inset 2 box { at: mix(pcx, dm.gx, lm), mix(bar.y + dm.hh / 2, lp.cy, lm); size: mix(dm.w, dm.gw, lm), mix(dm.hh, dm.gh, lm); corner: 26 * cu }
         //  Down the left it comes out of the strip: what is inside grows with the drawer's shape (`dm.lf`), from the strip's edge at the panel's middle, as the calendar's and the controls' do.
         group {

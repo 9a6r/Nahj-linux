@@ -1,6 +1,7 @@
 part ControlsDrawer {
     //  The controls' content is clipped to the drawer's shape.
     group {
+        opacity: pown
         clip inset 2 box { at: mix(pcx, dk.gx, lm), mix(bar.y + dk.hh / 2, lp.cy, lm); size: mix(dk.w, dk.gw, lm), mix(dk.hh, dk.gh, lm); corner: 26 * cu }
         //  Down the left it comes out of the strip: what is inside grows with the drawer's shape (`dk.lf`), from the strip's edge at the panel's middle, instead of waiting still under the clip.
         group {

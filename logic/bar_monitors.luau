@@ -71,7 +71,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
         show()
         with_dirs(function(d)
             local plm = d.conf .. "/vitreus.plm"
-            local value = to == "all" and "all" or ('"' .. to .. '"')
+            local value = to == "all" and "each max 2" or ('"' .. to .. '"')
             run("sed", { "-i", "-E", "/^    surface \\{/s/screens: [^;]*;/screens: " .. value .. ";/", plm }, function(_, code)
                 if code ~= 0 then
                     B.busy = false

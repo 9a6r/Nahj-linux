@@ -222,7 +222,7 @@ listen = function()
         if #b < 2 then return end
         local bass = math.min(1, (b[1] + b[2] + (b[3] or 0)) / 3)
         -- the equalizer in the media card: only worth sending while that panel is showing
-        if watching or eq_float() then
+        if watching or eq_float() or fact.panel == "calendar" then
             for i = 1, 24 do
                 local v = math.min(1, b[i] or 0)
                 if math.abs(v - (spec_last[i] or 0)) > 0.02 then
@@ -256,7 +256,7 @@ end
 -- monitor's rate for as long as music played. (Globals: this chunk is at Luau's limit of locals.)
 cava_playing = false
 function cava_want()
-    if cava_playing and (fact.bar_anchor == "top" or watching or eq_float()) then listen() else hush() end
+    if cava_playing and (fact.bar_anchor == "top" or watching or eq_float() or fact.panel == "calendar") then listen() else hush() end
 end
 
 -- The cover. Every player publishes it the same way (MPRIS `mpris:artUrl`), and
@@ -481,7 +481,10 @@ local function nt_render()
     local rows = {}
     for i, h in ipairs(nt_hist) do
         if i > 30 then break end
-        rows[i] = { title = h.title, sub = h.body ~= "" and (h.app .. "  ·  " .. h.body) or h.app, when = nt_when(h.t) }
+        -- one line each: a body with line breaks (a list) would otherwise spill over the row under it
+        local title = ((h.title or ""):gsub("%s+", " "))
+        local body = ((h.body or ""):gsub("%s+", " "))
+        rows[i] = { title = title, sub = body ~= "" and (h.app .. "  ·  " .. body) or h.app, when = nt_when(h.t) }
     end
     model.nt_hist = rows
 end
@@ -6441,7 +6444,7 @@ end)()
     end
 
     local function refresh()
-        local want = fact.panel == "settings" and fact.set_page == "pg_sys"
+        local want = (fact.panel == "settings" and fact.set_page == "pg_sys") or fact.panel == "calendar"
         if want and not proc then
             hist = {}
             local mine
@@ -6902,3 +6905,6 @@ require("logic/ask")()
 require("logic/clipboard")(with_dirs)
 -- the charger, read from the kernel instead of pleamar's 20 s battery poll: see logic/charger.luau
 require("logic/charger")()
+
+-- the dashboard's spectrum: cava runs while the calendar's drawer is out (and only then)
+on("fact:panel", function() cava_want() end)
