@@ -31,6 +31,8 @@
 > [!WARNING]
 > **Vitreus is in active development.** Features, settings and behaviour can change at any time, and things may break
 > between updates.
+>
+> **AI Disclosure:** Vitreus was built with AI tools
 
 > **vit·re·us** _(Latin)_ — *of glass; glassy, transparent.*
 
