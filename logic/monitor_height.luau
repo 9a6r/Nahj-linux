@@ -5,21 +5,41 @@
 -- It also restarts the shell when the monitors change (a new mode, scale or rotation, one plugged or unplugged): the surface keeps the size it
 -- had, so the bar and the panels were left laid out for the old screen. The restart is the keeper's (bin/vitreus-keep starts the scene again when
 -- it stops), and the new run takes the monitors as they are as its starting point, so it does not go round again.
+-- A change that is on trial (Settings > Display: "Keep these display settings?") does not restart anything: the shell stays as it is while the
+-- question is open, so that the page and its Keep button do not vanish under the pointer. Keep restarts it (a moment later); Revert puts the monitors
+-- back to what the shell is laid out for, and there is nothing to restart.
 return function()
-    local seen = nil
+    local base = nil      -- the monitors the shell is laid out for
+    local latest = nil    -- the monitors as they are now
+    local function trial_on()
+        if (tonumber(fact.disp_trial) or 0) > 0 then return true end
+        -- the trial is written down before the mode is sent (and cleared by Keep, Revert or a refusal), so this also covers the moment
+        -- between the mode changing and the page's countdown starting
+        local ok, t = pcall(sys.ask, "files.read", "display-trial.json", "json")
+        return ok and type(t) == "table" and type(t.before) == "table" and next(t.before) ~= nil
+    end
+    local calm = 0        -- how many looks in a row found the monitors changed and no trial open (Revert clears the trial a moment before the monitors go back)
+    local function maybe_restart()
+        if not base or not latest or latest == base or trial_on() then
+            calm = 0
+            return
+        end
+        calm = calm + 1
+        if calm < 2 then return end
+        calm = 0
+        base = latest
+        -- a moment first, for the mode switch to finish (Hyprland can report two steps in a row)
+        exec_on_desktop("sleep 1.5; pkill -f '^pleamar --scene .*/vitreus/vitreus.plm'")
+    end
     local function check_change(list)
         local parts = {}
         for _, m in ipairs(list) do
             parts[#parts + 1] = table.concat({ tostring(m.name), tostring(m.width), tostring(m.height), tostring(m.scale), tostring(m.transform) }, ",")
         end
         table.sort(parts)
-        local sig = table.concat(parts, ";")
-        if seen and sig ~= seen then
-            seen = sig
-            -- a moment first, for the mode switch to finish (Hyprland can report two steps in a row)
-            exec_on_desktop("sleep 1.5; pkill -f '^pleamar --scene .*/vitreus/vitreus.plm'")
-        end
-        seen = seen or sig
+        latest = table.concat(parts, ";")
+        base = base or latest
+        maybe_restart()
     end
     local function sync()
         hypr_monitors(4, function(out, code)
@@ -52,4 +72,6 @@ return function()
     end
     sync()
     every(4000, sync)
+    -- while a change waits for its answer, look often, so that Keep restarts the shell at once
+    every(1000, function() if base and latest ~= base then sync() end end)
 end
