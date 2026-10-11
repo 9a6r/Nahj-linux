@@ -5,10 +5,11 @@
 -- `desktopsysmon.json`, in this scene's own folder (~/.local/share/pleamar/desktopsysmon): what is missing from it is the default below, and a
 -- file that is not there is written so that there is one to edit. It is read when the scene starts.
 --   shown      whether the card is on the desktop
+--   gx, gy     the cell of its top left corner on the 16 x 9 grid of the desktop (-1: not chosen yet, `position` says)
 --   position   "top_left", "top", "top_right", "left", "center", "right", "bottom_left", "bottom" or "bottom_right"
 --   clarity    the glass: 0 clear, 1 soft, 2 full
 local POSITIONS = { top_left = true, top = true, top_right = true, left = true, center = true, right = true, bottom_left = true, bottom = true, bottom_right = true }
-local cfg = { shown = false, position = "bottom_right", clarity = 1 }
+local cfg = { shown = false, position = "bottom_right", gx = -1, gy = -1, clarity = 1 }
 local function clampi(v, lo, hi) return math.max(lo, math.min(hi, math.floor(v + 0.5))) end
 do
     local ok, saved = pcall(sys.ask, "files.read", "desktopsysmon.json", "json")
@@ -25,6 +26,8 @@ end
 local function save() pcall(sys.call, "files.write", "desktopsysmon.json", cfg) end
 
 fact.where = cfg.position
+fact.gx = cfg.gx
+fact.gy = cfg.gy
 fact.cli = cfg.clarity
 fact.shown = cfg.shown
 
@@ -152,6 +155,8 @@ refresh()
 -- What the Settings page tells it (it does not fire for what is set from here).
 on("fact:shown", function(v) cfg.shown = v and true or false; save(); refresh(); if cfg.shown and not aur_checked then check_aur() end end)
 on("fact:where", function(v) if POSITIONS[v] then cfg.position = v; save() end end)
+on("fact:gx", function(v) if type(v) == "number" then cfg.gx = v; save() end end)
+on("fact:gy", function(v) if type(v) == "number" then cfg.gy = v; save() end end)
 on("fact:cli", function(v) if type(v) == "number" then cfg.clarity = clampi(v, 0, 2); save() end end)
 
 -- Whether Vitreus has its glass off (then this is flat obsidian): asked of it when this starts (it says so itself when it changes), and again a

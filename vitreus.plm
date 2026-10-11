@@ -1154,7 +1154,6 @@ scene Vitreus {
     //  for them when it opens (`ck_ok` is false when it does not answer, which is when it is not running) and tells it each change.
     fact ck_on = false
     fact ck_lay = 0                    // the layout: 0 pipe, 1 rule, 2 tower, 3 digital, 4 slash, 5 hero
-    fact ck_pos = 4                    // where it sits, row by row: 0 top left, 1 top, 2 top right, 3 left, 4 centre, 5 right, 6 bottom left, 7 bottom, 8 bottom right
     fact ck_px = 220                   // the digits' height: 140, 220, 280 or 340
     fact ck_12h = true
     fact ck_wt = 1                     // the strokes: 0 thin, 1 regular, 2 bold
@@ -1162,13 +1161,8 @@ scene Vitreus {
     fact ck_ok = true
     prop ck_pill = 0 ~pop
     follow ck_pill = if(ck_on, 1, 0)
-    prop ck_mx = 1 ~quick              // the marker on the position grid: column and row, 0 to 2
-    prop ck_my = 1 ~quick
-    follow ck_mx = if(ck_pos == 0 or ck_pos == 3 or ck_pos == 6, 0, if(ck_pos == 2 or ck_pos == 5 or ck_pos == 8, 2, 1))
-    follow ck_my = if(ck_pos < 3, 0, if(ck_pos < 6, 1, 2))
     event ck_toggle ->
     event ck_lay_set ->                // 0 to 5, as above
-    event ck_pos_set ->                // 0 to 8, as above
     event ck_size_set ->               // 0 small, 1 medium, 2 large, 3 extra large
     event ck_12h_set ->                // 1 twelve hours, 0 twenty-four
     //  The clock's hours, minutes and divider, each with a style of its own (Widgets page): the one picked (0 hours, 1 minutes, 2 divider) and its weight, size and tint
@@ -1196,17 +1190,11 @@ scene Vitreus {
     event gl_reset_all ->
     //  The desktop system monitor, further down the same page (the Widgets page): the same way, with its own scene (desktopsysmon/).
     fact sy_on = false
-    fact sy_pos = 8                    // where it sits, row by row, as the clock's
     fact sy_cl = 1                     // the glass: 0 clear, 1 soft, 2 full
     fact sy_ok = true
     prop sy_pill = 0 ~pop
     follow sy_pill = if(sy_on, 1, 0)
-    prop sy_mx = 1 ~quick
-    prop sy_my = 1 ~quick
-    follow sy_mx = if(sy_pos == 0 or sy_pos == 3 or sy_pos == 6, 0, if(sy_pos == 2 or sy_pos == 5 or sy_pos == 8, 2, 1))
-    follow sy_my = if(sy_pos < 3, 0, if(sy_pos < 6, 1, 2))
     event sy_toggle ->
-    event sy_pos_set ->                // 0 to 8
     event sy_cl_set ->                 // 0 to 2
     fact ck_scroll_to = 0              // the page scrolls like Lock screen's
     prop ck_scroll = 0 ~quick
@@ -2521,22 +2509,6 @@ scene Vitreus {
         on press del_z { emit del(h.index) }
     }
 
-    //  The same, wide and 46 tall, in the dashboard under the calendar: the title and when it came, then the app and what it said.
-    component NtDashRow(h: record, del: event) {
-        size: 426 * cu, 46
-        zone box touch { from: 0, 0; size: 426 * cu, 46; corner: 12 * cu }
-        box { from: 0, 0; size: 426 * cu, 46; corner: 12 * cu; color: ink; opacity: 7% * touch.hover }
-        box { from: 3 * cu, 11; size: 3 * cu, 24; corner: 1.5 * cu; color: mint; opacity: if(h.index == 0, 100%, 38%) }
-        box { from: 14 * cu, 45; size: 398 * cu, 1; color: ink; opacity: 7% }
-        text h.title { at: floor(16 * cu + 0.5), 15; anchor: left center; size: 14; weight: 700; width: 320 * cu; lines: 1; color: ink; family: "Space Grotesk" }
-        text h.sub { at: floor(16 * cu + 0.5), 33; anchor: left center; size: 12; width: 380 * cu; lines: 1; color: faint; family: "Space Grotesk" }
-        text h.when { at: floor(414 * cu + 0.5), 15; anchor: right center; size: 11.5; color: faint; opacity: 100% - 100% * touch.hover; family: "Space Grotesk" }
-        line { from: floor(408 * cu + 0.5) - 3.2 * cu, 15 - 3.2 * cu; to: floor(408 * cu + 0.5) + 3.2 * cu, 15 + 3.2 * cu; width: 1.6 * cu; color: if(del_z.hover, alert, ink); opacity: 80% * touch.hover }
-        line { from: floor(408 * cu + 0.5) + 3.2 * cu, 15 - 3.2 * cu; to: floor(408 * cu + 0.5) - 3.2 * cu, 15 + 3.2 * cu; width: 1.6 * cu; color: if(del_z.hover, alert, ink); opacity: 80% * touch.hover }
-        zone box del_z { at: floor(408 * cu + 0.5), 15; size: 24 * cu, 24 * cu; corner: 12 * cu; cursor: pointer }
-        on press del_z { emit del(h.index) }
-    }
-
     let cx = screen.width / 2
     //  The bar down the left: a strip `lf.w` wide on the left and a frame `lf.t` thick round the other three edges, in the same glass. `lm` is how
     //  far over it is (the panels follow: `pcx` is where they are centred, with their left edge `lf.w` and a little in from the strip).
@@ -2902,7 +2874,7 @@ scene Vitreus {
     //  `lp.dy` and the drawer made `lp.dd` taller to make them 18.5 all round (Settings included).
     let lp.dy = if(lp_k == 1, 4.5, if(lp_k == 2 or lp_k == 3 or lp_k == 5 or lp_k == 6 or lp_k == 7 or lp_k == 8, 6.5, if(lp_k == 4, -0.5, 0))) * ku * lm
     let lp.dd = if(lp_k == 1, 11, if(lp_k == 2, 11, if(lp_k == 3 or lp_k == 5 or lp_k == 6 or lp_k == 7 or lp_k == 8, 13, if(lp_k == 4, 6, 0)))) * ku * lm
-    let lp.hd = (if(lp_k == 1, (8 + 36 + 8 + set.h + 16) * pu, if(lp_k == 2, (172 + lr * 44) * pu, if(lp_k == 3, (content_bot + 16) * cu, if(lp_k == 4, (373 + 132 * lm) * cu, if(lp_k == 5 or lp_k == 6, (if(dm_mode == dmm_tray, tm_bot, panel_bot) + 16) * cu, if(lp_k == 9, dsk_h, (8 + osd_h + 16) * u))))))) + lp.dd
+    let lp.hd = (if(lp_k == 1, (8 + 36 + 8 + set.h + 16) * pu, if(lp_k == 2, (172 + lr * 44) * pu, if(lp_k == 3, (content_bot + 16) * cu, if(lp_k == 4, 373 * cu, if(lp_k == 5 or lp_k == 6, (if(dm_mode == dmm_tray, tm_bot, panel_bot) + 16) * cu, if(lp_k == 9, dsk_h, (8 + osd_h + 16) * u))))))) + lp.dd
     //  Where it settles, as drawn (`ty`): Settings low, the launcher high, a good way from the middle, and clear of the frame; then back to the panel's
     //  own coordinates (the contents are scaled about the middle of the screen).
     let lp.ty = if(lp_k == 1, min(vc + 190 * u, vb - lf.t - 24 * u - lp.hd / 2), max(vc - 210 * u, yo + lf.t + 24 * u + lp.hd / 2))
@@ -2922,12 +2894,12 @@ scene Vitreus {
         //  Which panel was opened last, and how wide it is: where the panels sit down the left follows it (see `lp.top`, `pcx`). Here, in the
         //  scene, not in the logic (its own popups, volume and notifications, set `panel` itself and nothing told it), and only once the panel
         //  is really being opened: a switch from one to another leaves the open one in its own shape until it has gone.
-        lp_w = if(panel == settings, 620, if(panel == controls or panel == player or panel == tray, 312, if(panel == volume or panel == notif, 340, if(panel == calendar, if(lm > 0.5, 820, 450), if(panel == launch, 450, if(panel == desk, 340, lp_w))))))
+        lp_w = if(panel == settings, 620, if(panel == controls or panel == player or panel == tray, 312, if(panel == volume or panel == notif, 340, if(panel == calendar or panel == launch, 450, if(panel == desk, 340, lp_w)))))
         lp_k = if(panel == settings, 1, if(panel == launch, 2, if(panel == controls, 3, if(panel == calendar, 4, if(panel == tray, 5, if(panel == player, 6, if(panel == volume, 7, if(panel == notif, 8, if(panel == desk, 9, lp_k)))))))))
     }
     //  Whatever happened on the way (a hover that bounced between the two), the drawer that is coming out is the one whose shape and width the strip uses.
     on change dk > 0.5 while dk > 0.5 { lp_k = 3; lp_w = 312 }
-    on change dc > 0.5 while dc > 0.5 { lp_k = 4; lp_w = if(lm > 0.5, 820, 450) }
+    on change dc > 0.5 while dc > 0.5 { lp_k = 4; lp_w = 450 }
     //  ...and the waiting one opens once the drop of the one before has gone back in (its `dtrav` is back to nothing). It is the compound that is
     //  watched, so that it also fires when the wait begins with the strip already at rest.
     //  `pq.at` is how far back in the closing drop has to be: 0 would wait until it is gone, 1 would not wait at all. Half way, the next panel
@@ -2973,9 +2945,9 @@ scene Vitreus {
     let dk.ey = mix(bar.y + dk.hh / 2, lp.cy + if(lp_k == 3, lp.ext * dk.lf, 0) / 2, lm)
     let dc.gl = mix(min(dtrav, dc0), dc0, att)
     let dc.lf = mix(min(1, dc0 * 1.6) + max(0, dc0 - 1) * 0.6, min(1, dc.gl * 1.6) + max(0, dc.gl - 1) * 0.6, lm)
-    let dc.rt = mix(2 * (225 + 6.5) * cu, (lf.w - lf.x) + (463 + 370 * lm) * cu, att)
+    let dc.rt = mix(2 * (225 + 6.5) * cu, (lf.w - lf.x) + 463 * cu, att)
     let dc.gw = max(0.1, dc.rt * dc.lf)
-    let dc.gh = (((373 + 132 * lm) * cu) + lp.dd + max(0, sag)) * dc.lf
+    let dc.gh = ((373 * cu) + lp.dd + max(0, sag)) * dc.lf
     let dc.gx = mix(lp.xl + dc.gw / 2, ccx, edg)
     let dc.er = if(lp_k == 4, 14 * u * lm * clamp((dc.gx + dc.gw / 2 - (screen.width - lf.t - 14 * u)) / (14 * u), 0, 1), 0) * dc.lf
     let dc.ew = mix(dc.w, dc.gw + dc.er, lm)
@@ -3603,7 +3575,6 @@ scene Vitreus {
     }
 
     include "pages/panel_frame.plm"
-    include "pages/dashboard.plm"
     include "pages/controls_drawer.plm"
     include "pages/player.plm"
     include "pages/media_float.plm"

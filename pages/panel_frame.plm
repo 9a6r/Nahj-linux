@@ -14,7 +14,7 @@ part PanelFrame {
         //  on the left and the one on the right share a top and a bottom.
         group {
             opacity: f1
-            move: -185 * cu * lm, (1 - f1) * 12 * cu + floor(68 * cu + 0.5)
+            move: 0, (1 - f1) * 12 * cu + floor(68 * cu + 0.5)
             //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
             body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * cu, 7 * cu, 40%, #000000; show: obs > 0.004; box { at: pcx - 130 * cu, cy - 76 * cu; size: 166 * cu, 72 * cu; corner: 14 * cu } }
             box { at: pcx - 130 * cu, cy - 76 * cu; size: 166 * cu, 72 * cu; corner: 14 * cu; color: ink; opacity: (veil) * (1 - obs) }
@@ -44,7 +44,7 @@ part PanelFrame {
         }
         group {
             opacity: f4
-            move: -185 * cu * lm, (1 - f4) * 12 * cu
+            move: 0, (1 - f4) * 12 * cu
             let cal.cw = 33 * cu
             let cal.ch = 27 * cu
             let cal.gx = pcx - 13 * cu                 // the middle of the first column

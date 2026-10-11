@@ -2,13 +2,9 @@
 -- them when it opens (`pleamar --say desktopclock "get ..."`) and tells it each change (`fact`), and it saves them. `ck_ok` is false when it does not
 -- answer, which is when it is not running; the switch then starts it.
 return function()
-    local POS = { "top_left", "top", "top_right", "left", "center", "right", "bottom_left", "bottom", "bottom_right" }
-    local POS_BACK = {}
-    for i, n in ipairs(POS) do POS_BACK[n] = i - 1 end
     local SIZES = { 140, 220, 280, 340 }
     local function say(cmd, fn) run("pleamar", { "--say", "desktopclock", cmd }, fn or function() end) end
     local function trim(s) return ((s or ""):gsub("%s+$", "")) end
-
     local function refresh()
         say_many("desktopclock", { "get shown", "get lay", "get px", "get wti", "get cli", "get where", "get h12" }, function(r)
             if not r then fact.ck_ok = false return end
@@ -16,7 +12,6 @@ return function()
             fact.ck_on = trim(r[1]):match("true") ~= nil
             local function num(i, key) local n = tonumber(trim(r[i])); if n then fact[key] = n end end
             num(2, "ck_lay"); num(3, "ck_px"); num(4, "ck_wt"); num(5, "ck_cl")
-            local pos = POS_BACK[trim(r[6])]; if pos then fact.ck_pos = pos end
             fact.ck_12h = trim(r[7]):match("true") ~= nil
         end)
     end
@@ -28,7 +23,6 @@ return function()
             fact.sy_ok = true
             fact.sy_on = trim(r[1]):match("true") ~= nil
             local n = tonumber(trim(r[2])); if n then fact.sy_cl = n end
-            local pos = POS_BACK[trim(r[3])]; if pos then fact.sy_pos = pos end
         end)
     end
     on("fact:set_page", function(v) if v == "pg_clock" then refresh(); refresh_sy() end end)
@@ -57,10 +51,6 @@ return function()
     pick("ck_lay_set", "ck_lay", "lay", 5)
     pick("ck_wt_set", "ck_wt", "wti", 2)
     pick("ck_cl_set", "ck_cl", "cli", 2)
-    on("ck_pos_set", function(i)
-        local k = math.floor(i + 0.5)
-        if POS[k + 1] then fact.ck_pos = k; say("fact where " .. POS[k + 1]) end
-    end)
     on("ck_12h_set", function(i)
         local b = i >= 0.5
         fact.ck_12h = b
@@ -151,10 +141,6 @@ return function()
                 refresh_sy()
             end
         end)
-    end)
-    on("sy_pos_set", function(i)
-        local k = math.floor(i + 0.5)
-        if POS[k + 1] then fact.sy_pos = k; say_sy("fact where " .. POS[k + 1]) end
     end)
     on("sy_cl_set", function(i)
         local v = math.max(0, math.min(2, math.floor(i + 0.5)))

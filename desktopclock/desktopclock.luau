@@ -7,13 +7,14 @@
 --   use_12_hour  12 or 24 hour clock
 --   size         the digits' height in pixels (100 to 340)
 --   layout       0 pipe (12 | 34), 1 rule (a line between the hour and the minutes), 2 tower (a column), 3 digital (12:34), 4 slash, 5 hero
+--   gx, gy       the cell of its top left corner on the 16 x 9 grid of the desktop (-1: not chosen yet, `position` says)
 --   position     "top_left", "top", "top_right", "left", "center", "right", "bottom_left", "bottom" or "bottom_right"
 --   weight       the strokes: 0 thin, 1 regular, 2 bold
 --   clarity      the glass: 0 clear, 1 soft, 2 full
 --   glyphs       a style for the hours ("h"), the minutes ("m") and the divider ("s"): { w = weight multiplier, z = size multiplier, c = tint }, tint 0 the shell's glass,
 --                1 mint, 2 light, 3 rose, 4 grey. What is not there is the normal style (1, 1, 0)
 local POSITIONS = { top_left = true, top = true, top_right = true, left = true, center = true, right = true, bottom_left = true, bottom = true, bottom_right = true }
-local cfg = { shown = true, use_12_hour = true, size = 220, layout = 0, position = "center", weight = 1, clarity = 1 }
+local cfg = { shown = true, use_12_hour = true, size = 220, layout = 0, position = "center", gx = -1, gy = -1, weight = 1, clarity = 1 }
 local GL = { "h", "m", "s" }
 local glyphs = {}
 for _, g in ipairs(GL) do glyphs[g] = { w = 1, z = 1, c = 0 } end
@@ -52,6 +53,8 @@ fact.px = cfg.size
 fact.h12 = cfg.use_12_hour
 fact.lay = cfg.layout
 fact.where = cfg.position
+fact.gx = cfg.gx
+fact.gy = cfg.gy
 fact.wti = cfg.weight
 fact.cli = cfg.clarity
 fact.shown = cfg.shown
@@ -90,6 +93,8 @@ on("fact:shown", function(v) cfg.shown = v and true or false; save() end)
 on("fact:px", function(v) if type(v) == "number" then cfg.size = math.max(100, math.min(340, v)); save() end end)
 on("fact:lay", function(v) if type(v) == "number" then cfg.layout = clampi(v, 0, 5); save() end end)
 on("fact:where", function(v) if POSITIONS[v] then cfg.position = v; save() end end)
+on("fact:gx", function(v) if type(v) == "number" then cfg.gx = v; save() end end)
+on("fact:gy", function(v) if type(v) == "number" then cfg.gy = v; save() end end)
 on("fact:wti", function(v) if type(v) == "number" then cfg.weight = clampi(v, 0, 2); save() end end)
 on("fact:cli", function(v) if type(v) == "number" then cfg.clarity = clampi(v, 0, 2); save() end end)
 for _, g in ipairs(GL) do

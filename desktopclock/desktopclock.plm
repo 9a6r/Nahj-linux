@@ -11,13 +11,19 @@ import "clockface_styled.plm"
 //  Its settings are kept in desktopclock.json, in ~/.local/share/pleamar/desktopclock (see desktopclock.luau).
 
 scene DesktopClock {
-    surface { size: 1500, 1100; anchor: where; margin: 40; level: bottom; screens: all; reserve: -1 }
+    surface { size: full, full; anchor: top_left; margin: 0; level: bottom; screens: all; reserve: -1 }
 
     permissions { services: "clock", "files", "files.write"; run: "pleamar" }
 
     service clock as now { hour: number }
 
     fact where: top_left | top | top_right | left | center | right | bottom_left | bottom | bottom_right = center
+    fact gx = -1           // the cell of its top left corner, 0 to 15 (-1: not chosen yet, `where` says)
+    fact gy = -1           // and the row, 0 to 8
+    fact edit = false      // Edit, from the desktop's right-click menu: the widget shows the cells it takes and can be dragged to others (desktopmenu/ says so)
+    fact g0x = 0           // while it is dragged: the cell it was at when it was pressed
+    fact g0y = 0
+    fact dragging = false
     fact shown = false     // the logic sets it from desktopclock.json (so that `sh` follows it from nothing)
     fact lay = 0           // 0 pipe, 1 rule, 2 tower, 3 digital, 4 slash, 5 hero (see clockface.plm)
     fact h12 = true        // a 12 hour clock (the logic turns it into the digits); the Settings page reads it
@@ -58,8 +64,47 @@ scene DesktopClock {
     let isr = if(where == top_right or where == right or where == bottom_right, 1, 0)
     let ist = if(where == top_left or where == top or where == top_right, 1, 0)
     let isb = if(where == bottom_left or where == bottom or where == bottom_right, 1, 0)
-    let fx = if(isl > 0.5, 40 + hw, if(isr > 0.5, 1500 - 40 - hw, 750))
-    let fy = if(ist > 0.5, 40 + hh, if(isb > 0.5, 1100 - 40 - hh, 550))
+    //  The desktop is a grid of 16 columns and 9 rows, inside a 40 px margin; the settings put a widget on it by the cell of its top left corner (`gx`, `gy`) and it
+    //  takes as many cells as it needs (`cfw`, `cfh`, which Settings > Widgets asks for). Against an edge of the grid it sits against that edge, between them it is centred in its cells.
+    //  `gx` and `gy` below 0 are an older settings file: it is put where `where` says (one of the nine places, which is what the cells are made of).
+    let gm = 40
+    let gw = (screen.width - 2 * gm) / 16
+    let gh = (screen.height - 2 * gm) / 9
+    let fw = clamp(ceil(2 * hw / gw), 1, 16)
+    let fh = clamp(ceil(2 * hh / gh), 1, 9)
+    let ex0 = clamp(if(gx < 0, if(isl > 0.5, 0, if(isr > 0.5, 16 - fw, (16 - fw) / 2)), gx), 0, 16 - fw)
+    let ey0 = clamp(if(gy < 0, if(ist > 0.5, 0, if(isb > 0.5, 9 - fh, (9 - fh) / 2)), gy), 0, 9 - fh)
+    //  In Edit mode what is drawn follows the cell with a spring (`erx`, `ery`); otherwise it is the cell.
+    prop erx = 0 ~quick
+    prop ery = 0 ~quick
+    follow erx = ex0
+    follow ery = ey0
+    let ex = mix(ex0, erx, edp)
+    let ey = mix(ey0, ery, edp)
+    //  Against the grid's edge the face is against the edge, between them it is in the middle of its cells, and in between it moves from one to the other (so that it never jumps).
+    let cxm = gm + (ex + fw / 2) * gw
+    let cym = gm + (ey + fh / 2) * gh
+    let fx = cxm + (gm + hw - cxm) * clamp(1 - ex, 0, 1) + (screen.width - gm - hw - cxm) * clamp(ex + fw - 15, 0, 1)
+    let fy = cym + (gm + hh - cym) * clamp(1 - ey, 0, 1) + (screen.height - gm - hh - cym) * clamp(ey + fh - 8, 0, 1)
+    //  Edit mode: the cells it takes are outlined, and a press on them takes the widget; it moves a whole cell at a time under the pointer, and keeps its place (the settings
+    //  file is written for each cell it lands on). The zone stays where the press was while it is dragged, as a zone that moves itself would lose the drag.
+    prop edp = 0 ~calm
+    follow edp = if(edit, 1, 0)
+    prop dgp = 0 ~quick
+    follow dgp = if(dragging, 1, 0)
+    let zx = gm + if(dragging, g0x, ex0) * gw
+    let zy = gm + if(dragging, g0y, ey0) * gh
+    zone box edz { from: zx, zy; size: fw * gw, fh * gh; cursor: pointer; active: edit; label: "Move clock" }
+    on press edz { g0x = ex0; g0y = ey0; dragging = true }
+    on drag edz { gx = clamp(floor(g0x + drag.dx / gw + 0.5), 0, 16 - fw); gy = clamp(floor(g0y + drag.dy / gh + 0.5), 0, 9 - fh) }
+    on release edz { dragging = false }
+    group {
+        show: edp > 0.01
+        opacity: edp
+        box { from: gm + ex * gw, gm + ey * gh; size: fw * gw, fh * gh; corner: 16; color: mint; opacity: 7% + 9% * dgp }
+        box { from: gm + ex * gw, gm + ey * gh; size: fw * gw, fh * gh; corner: 16; stroke: 1.6; color: mint; opacity: 55% + 45% * dgp }
+        text "Clock" { at: gm + ex * gw + 14, gm + ey * gh + 16; anchor: left center; size: 12; weight: 700; color: mint; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
+    }
 
     ClockFaceStyled(k, lay, d0, d1, d2, d3, fx, fy, tint, 1, 0.4, sh * clr, wt, mint, ink, alert, faint, ob)
 }

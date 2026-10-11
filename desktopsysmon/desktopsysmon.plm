@@ -9,7 +9,7 @@ import "../palette.plm"
 //  Its settings are kept in desktopsysmon.json, in ~/.local/share/pleamar/desktopsysmon (see desktopsysmon.luau).
 
 scene DesktopSysmon {
-    surface { size: 400, 280; anchor: where; margin: 40; level: bottom; screens: all; reserve: -1; rate: 10 }
+    surface { size: full, full; anchor: top_left; margin: 0; level: bottom; screens: all; reserve: -1; rate: 10 }
 
     permissions {
         services: "files", "files.write"
@@ -17,6 +17,12 @@ scene DesktopSysmon {
     }
 
     fact where: top_left | top | top_right | left | center | right | bottom_left | bottom | bottom_right = bottom_right
+    fact gx = -1           // the cell of its top left corner, 0 to 15 (-1: not chosen yet, `where` says)
+    fact gy = -1           // and the row, 0 to 8
+    fact edit = false      // Edit, from the desktop's right-click menu: the widget shows the cells it takes and can be dragged to others (desktopmenu/ says so)
+    fact g0x = 0           // while it is dragged: the cell it was at when it was pressed
+    fact g0y = 0
+    fact dragging = false
     fact shown = false     // the logic sets it from desktopsysmon.json (so that `sh` follows it from nothing)
     fact cli = 1           // the glass: 0 clear, 1 soft, 2 full
 
@@ -63,8 +69,54 @@ scene DesktopSysmon {
     let g0 = if(gpu_on, 85, 135)
     let g1 = if(gpu_on, 200, 265)
     let g2 = 315
+    //  The desktop is a grid of 16 columns and 9 rows, inside a 40 px margin; the settings put a widget on it by the cell of its top left corner (`gx`, `gy`) and it
+    //  takes as many cells as it needs (`cfw`, `cfh`, which Settings > Widgets asks for). Against an edge of the grid it sits against that edge, between them it is centred in its cells.
+    //  `gx` and `gy` below 0 are an older settings file: it is put where `where` says (one of the nine places, which is what the cells are made of).
+    let gm = 40
+    let gw = (screen.width - 2 * gm) / 16
+    let gh = (screen.height - 2 * gm) / 9
+    let fw = clamp(ceil(400 / gw), 1, 16)
+    let fh = clamp(ceil(280 / gh), 1, 9)
+    let isl = if(where == top_left or where == left or where == bottom_left, 1, 0)
+    let isr = if(where == top_right or where == right or where == bottom_right, 1, 0)
+    let ist = if(where == top_left or where == top or where == top_right, 1, 0)
+    let isb = if(where == bottom_left or where == bottom or where == bottom_right, 1, 0)
+    let ex0 = clamp(if(gx < 0, if(isl > 0.5, 0, if(isr > 0.5, 16 - fw, (16 - fw) / 2)), gx), 0, 16 - fw)
+    let ey0 = clamp(if(gy < 0, if(ist > 0.5, 0, if(isb > 0.5, 9 - fh, (9 - fh) / 2)), gy), 0, 9 - fh)
+    //  In Edit mode what is drawn follows the cell with a spring (`erx`, `ery`); otherwise it is the cell.
+    prop erx = 0 ~quick
+    prop ery = 0 ~quick
+    follow erx = ex0
+    follow ery = ey0
+    let ex = mix(ex0, erx, edp)
+    let ey = mix(ey0, ery, edp)
+    //  Where the card's top left corner is: against the grid's edge, or in the middle of its cells, and in between it moves from one to the other.
+    let cxm = gm + (ex + fw / 2) * gw - 200
+    let cym = gm + (ey + fh / 2) * gh - 140
+    let cx0 = cxm + (gm - cxm) * clamp(1 - ex, 0, 1) + (screen.width - gm - 400 - cxm) * clamp(ex + fw - 15, 0, 1)
+    let cy0 = cym + (gm - cym) * clamp(1 - ey, 0, 1) + (screen.height - gm - 280 - cym) * clamp(ey + fh - 8, 0, 1)
+    //  Edit mode: the cells it takes are outlined, and a press on them takes the widget; it moves a whole cell at a time under the pointer, and keeps its place (the settings
+    //  file is written for each cell it lands on). The zone stays where the press was while it is dragged, as a zone that moves itself would lose the drag.
+    prop edp = 0 ~calm
+    follow edp = if(edit, 1, 0)
+    prop dgp = 0 ~quick
+    follow dgp = if(dragging, 1, 0)
+    let zx = gm + if(dragging, g0x, ex0) * gw
+    let zy = gm + if(dragging, g0y, ey0) * gh
+    zone box edz { from: zx, zy; size: fw * gw, fh * gh; cursor: pointer; active: edit; label: "Move system" }
+    on press edz { g0x = ex0; g0y = ey0; dragging = true }
+    on drag edz { gx = clamp(floor(g0x + drag.dx / gw + 0.5), 0, 16 - fw); gy = clamp(floor(g0y + drag.dy / gh + 0.5), 0, 9 - fh) }
+    on release edz { dragging = false }
+    group {
+        show: edp > 0.01
+        opacity: edp
+        box { from: gm + ex * gw, gm + ey * gh; size: fw * gw, fh * gh; corner: 16; color: mint; opacity: 7% + 9% * dgp }
+        box { from: gm + ex * gw, gm + ey * gh; size: fw * gw, fh * gh; corner: 16; stroke: 1.6; color: mint; opacity: 55% + 45% * dgp }
+        text "System" { at: gm + ex * gw + 14, gm + ey * gh + 16; anchor: left center; size: 12; weight: 700; color: mint; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
+    }
     let ry = 92
     group {
+        move: cx0, cy0
         show: sh > 0.01
         body {
             color: tint
