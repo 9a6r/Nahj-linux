@@ -1,6 +1,6 @@
 -- The desktop menu's logic. A row is said to Vitreus (`pleamar --say vitreus "emit <event>"`), which does it (it knows how to start a desktop card that is not running, and
 -- where the camera lives). When the menu opens, what its switches show is asked: each scene is asked whether it is shown (a scene that is not running does not answer, which is "off").
-local ROWS = { "cam_toggle", "dclock_toggle", "dsys_toggle", "sticky_new", "desk_edit" }
+local ROWS = { "desk_edit", "cam_toggle", "dclock_toggle", "dsys_toggle", "sticky_new" }
 
 local function edit_widgets(on)
     for _, name in ipairs({ "desktopclock", "desktopsysmon" }) do

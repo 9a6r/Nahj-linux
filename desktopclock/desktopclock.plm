@@ -24,6 +24,8 @@ scene DesktopClock {
     fact g0x = 0           // while it is dragged: the cell it was at when it was pressed
     fact g0y = 0
     fact dragging = false
+    fact zpx = 0           // while it is dragged: where the middle of the face was when it was pressed (the zone stays there)
+    fact zpy = 0
     fact shown = false     // the logic sets it from desktopclock.json (so that `sh` follows it from nothing)
     fact lay = 0           // 0 pipe, 1 rule, 2 tower, 3 digital, 4 slash, 5 hero (see clockface.plm)
     fact h12 = true        // a 12 hour clock (the logic turns it into the digits); the Settings page reads it
@@ -58,8 +60,18 @@ scene DesktopClock {
     let wt = if(wti == 0, 0.62, if(wti == 2, 1.4, 1))
     let clr = if(cli == 0, 55%, if(cli == 1, 80%, 100%))
     //  Where the middle of the face is, in the surface: the middle of it, or against the edge or corner it sits in (half the face, and its stroke).
-    let hw = (if(lay == 0, 149, if(lay == 1 or lay == 5, 61, if(lay == 2, 31, if(lay == 3, 152, 130)))) + 6.5 * wt) * k
-    let hh = (if(lay == 0, 59, if(lay == 1, 111, if(lay == 2, 131, if(lay == 3, 44, if(lay == 4, 112, 84))))) + 6.5 * wt) * k
+    //  What the style of the parts adds to the face (the same sums as in clockface_styled.plm and in the Settings page): how far each part grows past its normal size, so that
+    //  the cells the clock takes (and the outline of them in Edit mode) hold all of it and not only the normal face.
+    let pm1 = if(lay == 2, 0.6, 1)
+    let pm2 = if(lay == 2, 0.6, if(lay == 5, 0.5, 1))
+    let ugeh = max(0, 1.4 * pm1 * (ghz * (23 + 6.5 * wt * ghw) - (23 + 6.5 * wt)))
+    let ugev = max(0, 1.4 * pm1 * (ghz * (44 + 6.5 * wt * ghw) - (44 + 6.5 * wt)))
+    let umeh = max(0, 1.4 * pm2 * (gmz * (23 + 6.5 * wt * gmw) - (23 + 6.5 * wt)))
+    let umev = max(0, 1.4 * pm2 * (gmz * (44 + 6.5 * wt * gmw) - (44 + 6.5 * wt)))
+    let udv = max(0, 4.2 * wt * (gsw * gsz - 1))
+    let udc = max(0, 9.8 * wt * (gsw * gsz - 1))
+    let hw = (if(lay == 0, 149, if(lay == 1 or lay == 5, 61, if(lay == 2, 31, if(lay == 3, 152, 130)))) + 6.5 * wt + 2 * max(ugeh, umeh) + 1.5 * max(udv, udc)) * k
+    let hh = (if(lay == 0, 59, if(lay == 1, 111, if(lay == 2, 131, if(lay == 3, 44, if(lay == 4, 112, 84))))) + 6.5 * wt + 2.2 * max(ugev, umev) + 1.5 * udv) * k
     let isl = if(where == top_left or where == left or where == bottom_left, 1, 0)
     let isr = if(where == top_right or where == right or where == bottom_right, 1, 0)
     let ist = if(where == top_left or where == top or where == top_right, 1, 0)
@@ -92,18 +104,20 @@ scene DesktopClock {
     follow edp = if(edit, 1, 0)
     prop dgp = 0 ~quick
     follow dgp = if(dragging, 1, 0)
-    let zx = gm + if(dragging, g0x, ex0) * gw
-    let zy = gm + if(dragging, g0y, ey0) * gh
-    zone box edz { from: zx, zy; size: fw * gw, fh * gh; cursor: pointer; active: edit; label: "Move clock" }
-    on press edz { g0x = ex0; g0y = ey0; dragging = true }
+    //  The outline hugs the face (a little margin round it) instead of the cells it takes, and the face is in the middle of it.
+    let pad = 10
+    let zx = if(dragging, zpx, fx) - hw - pad
+    let zy = if(dragging, zpy, fy) - hh - pad
+    zone box edz { from: zx, zy; size: 2 * (hw + pad), 2 * (hh + pad); corner: 16; cursor: pointer; active: edit; label: "Move clock" }
+    on press edz { g0x = ex0; g0y = ey0; zpx = fx; zpy = fy; dragging = true }
     on drag edz { gx = clamp(floor(g0x + drag.dx / gw + 0.5), 0, 16 - fw); gy = clamp(floor(g0y + drag.dy / gh + 0.5), 0, 9 - fh) }
     on release edz { dragging = false }
     group {
         show: edp > 0.01
         opacity: edp
-        box { from: gm + ex * gw, gm + ey * gh; size: fw * gw, fh * gh; corner: 16; color: mint; opacity: 7% + 9% * dgp }
-        box { from: gm + ex * gw, gm + ey * gh; size: fw * gw, fh * gh; corner: 16; stroke: 1.6; color: mint; opacity: 55% + 45% * dgp }
-        text "Clock" { at: gm + ex * gw + 14, gm + ey * gh + 16; anchor: left center; size: 12; weight: 700; color: mint; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
+        box { from: fx - hw - pad, fy - hh - pad; size: 2 * (hw + pad), 2 * (hh + pad); corner: 16; color: mint; opacity: 7% + 9% * dgp }
+        box { from: fx - hw - pad, fy - hh - pad; size: 2 * (hw + pad), 2 * (hh + pad); corner: 16; stroke: 1.6; color: mint; opacity: 55% + 45% * dgp }
+        text "Clock" { at: fx - hw - pad + 14, fy - hh - pad + 16; anchor: left center; size: 12; weight: 700; color: mint; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
     }
 
     ClockFaceStyled(k, lay, d0, d1, d2, d3, fx, fy, tint, 1, 0.4, sh * clr, wt, mint, ink, alert, faint, ob)
