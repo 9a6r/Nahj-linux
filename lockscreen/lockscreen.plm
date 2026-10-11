@@ -221,8 +221,8 @@ scene Lockscreen {
                 scale: 1 / st_c, st_c
 
                 //  The clock, with its glow, and the AM/PM pill beside it.
-                //  The clock sits 28 left of the middle to make room for the pill, and in the middle when there is no pill.
-                let ck_x = cx - if(show_ampm, 28, 0)
+                //  The clock is in the middle of the screen whether or not there is a pill: the pill hangs off its right edge and does not count.
+                let ck_x = cx
                 group {
                     glow: 18, 70%, acc
                     //  Bold beyond the font's heaviest weight: the same text again around it, 3 px out in twelve directions. (A text
@@ -244,7 +244,7 @@ scene Lockscreen {
                     //  Its width, measured at 200 and not seen: the pill goes where the clock ends, whichever size is shown.
                     text clock_time { at: ck_x, ckc; anchor: center; size: 200; weight: 700; color: ink; family: "Space Grotesk"; measure: ck_w; opacity: 0 }
                 }
-                let ap_x = floor(cx + ck_w.width * clock_px / 400 + 4 + 0.5)
+                let ap_x = floor(cx + ck_w.width * clock_px / 400 + 32 + 0.5)
                 box { at: ap_x, ckc; size: 48, 28; corner: 14; color: acc; opacity: 18%; show: show_ampm }
                 box { at: ap_x, ckc; size: 48, 28; corner: 14; color: acc; opacity: 0%; stroke: 1; show: show_ampm }
                 text clock_ampm { at: ap_x, ckc; anchor: center; size: 11; weight: 700; color: acc; family: "Space Grotesk"; show: show_ampm }
