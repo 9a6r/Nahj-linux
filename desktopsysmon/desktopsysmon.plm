@@ -154,8 +154,8 @@ scene DesktopSysmon {
         }
         group {
             opacity: sh
-            text host { at: 30, 30; anchor: left center; size: 17; weight: 700; width: 190; lines: 1; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
-            text up { at: 370, 30; anchor: right center; size: 13; weight: 600; width: 120; lines: 1; color: ink; family: "Space Grotesk"; align: right; opacity: 80%; shadow: 0, 1, 5, 70% }
+            text host { at: 30, 30; anchor: left center; size: 17; weight: 700; width: 190; lines: 1; color: wink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
+            text up { at: 370, 30; anchor: right center; size: 13; weight: 600; width: 120; lines: 1; color: wink; family: "Space Grotesk"; align: right; opacity: 80%; shadow: 0, 1, 5, 70% }
             text aur_txt { at: 212, 30; anchor: center center; size: 12; weight: 600; width: 150; lines: 1; color: mint; opacity: 90%; family: "Space Grotesk"; align: center; show: aur_on; shadow: 0, 1, 5, 70% }
 
             group {
@@ -164,19 +164,19 @@ scene DesktopSysmon {
                 arc { at: g1, ry; radius: 36; span: (270 * clamp(mem_p, 0.004, 1)) * 1deg; width: 8; color: mix(mint, alert, clamp((mem_p - 0.85) / 0.15, 0, 1)); rotate: (-135 + 135 * clamp(mem_p, 0.004, 1)) * 1deg }
                 arc { at: g2, ry; radius: 36; span: (270 * clamp(gpu_p, 0.004, 1)) * 1deg; width: 8; color: mix(mint, alert, clamp((gpu_p - 0.85) / 0.15, 0, 1)); rotate: (-135 + 135 * clamp(gpu_p, 0.004, 1)) * 1deg; show: gpu_on }
             }
-            text cpu_txt { at: g0, ry - 4; anchor: center center; size: 20; weight: 700; width: 60; lines: 1; color: ink; family: "Space Grotesk"; align: center; shadow: 0, 1, 6, 70% }
-            text "CPU" { at: g0, ry + 13; anchor: center center; size: 10; weight: 700; color: ink; opacity: 75%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
-            text cpu_meta { at: g0, 146; anchor: center center; size: 11.5; weight: 600; width: 112; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; align: center; shadow: 0, 1, 5, 70% }
-            text mem_txt { at: g1, ry - 4; anchor: center center; size: 20; weight: 700; width: 60; lines: 1; color: ink; family: "Space Grotesk"; align: center; shadow: 0, 1, 6, 70% }
-            text "MEMORY" { at: g1, ry + 13; anchor: center center; size: 10; weight: 700; color: ink; opacity: 75%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
-            text mem_meta { at: g1, 146; anchor: center center; size: 11.5; weight: 600; width: 112; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; align: center; shadow: 0, 1, 5, 70% }
-            text gpu_txt { at: g2, ry - 4; anchor: center center; size: 20; weight: 700; width: 60; lines: 1; color: ink; family: "Space Grotesk"; align: center; show: gpu_on; shadow: 0, 1, 6, 70% }
-            text "GRAPHICS" { at: g2, ry + 13; anchor: center center; size: 10; weight: 700; color: ink; opacity: 75%; family: "Space Grotesk"; show: gpu_on; shadow: 0, 1, 5, 70% }
-            text gpu_meta { at: g2, 146; anchor: center center; size: 11.5; weight: 600; width: 112; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; align: center; show: gpu_on; shadow: 0, 1, 5, 70% }
+            text cpu_txt { at: g0, ry - 4; anchor: center center; size: 20; weight: 700; width: 60; lines: 1; color: wink; family: "Space Grotesk"; align: center; shadow: 0, 1, 6, 70% }
+            text "CPU" { at: g0, ry + 13; anchor: center center; size: 10; weight: 700; color: wink; opacity: 75%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
+            text cpu_meta { at: g0, 146; anchor: center center; size: 11.5; weight: 600; width: 112; lines: 1; color: wink; opacity: 85%; family: "Space Grotesk"; align: center; shadow: 0, 1, 5, 70% }
+            text mem_txt { at: g1, ry - 4; anchor: center center; size: 20; weight: 700; width: 60; lines: 1; color: wink; family: "Space Grotesk"; align: center; shadow: 0, 1, 6, 70% }
+            text "MEMORY" { at: g1, ry + 13; anchor: center center; size: 10; weight: 700; color: wink; opacity: 75%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
+            text mem_meta { at: g1, 146; anchor: center center; size: 11.5; weight: 600; width: 112; lines: 1; color: wink; opacity: 85%; family: "Space Grotesk"; align: center; shadow: 0, 1, 5, 70% }
+            text gpu_txt { at: g2, ry - 4; anchor: center center; size: 20; weight: 700; width: 60; lines: 1; color: wink; family: "Space Grotesk"; align: center; show: gpu_on; shadow: 0, 1, 6, 70% }
+            text "GRAPHICS" { at: g2, ry + 13; anchor: center center; size: 10; weight: 700; color: wink; opacity: 75%; family: "Space Grotesk"; show: gpu_on; shadow: 0, 1, 5, 70% }
+            text gpu_meta { at: g2, 146; anchor: center center; size: 11.5; weight: 600; width: 112; lines: 1; color: wink; opacity: 85%; family: "Space Grotesk"; align: center; show: gpu_on; shadow: 0, 1, 5, 70% }
 
-            text "NETWORK" { at: 30, 172; anchor: left center; size: 11; weight: 700; color: ink; opacity: 75%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
-            text rx_txt { at: 140, 172; anchor: left center; size: 12.5; weight: 700; width: 112; lines: 1; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
-            text tx_txt { at: 370, 172; anchor: right center; size: 12.5; weight: 700; width: 112; lines: 1; color: mix(mint, ink, 0.4); family: "Space Grotesk"; align: right; shadow: 0, 1, 5, 70% }
+            text "NETWORK" { at: 30, 172; anchor: left center; size: 11; weight: 700; color: wink; opacity: 75%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
+            text rx_txt { at: 140, 172; anchor: left center; size: 12.5; weight: 700; width: 112; lines: 1; color: wink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
+            text tx_txt { at: 370, 172; anchor: right center; size: 12.5; weight: 700; width: 112; lines: 1; color: mix(mint, wink, 0.4); family: "Space Grotesk"; align: right; shadow: 0, 1, 5, 70% }
             //  The columns are close enough (and smoothed in the logic) to read as one curve; the whole graph slides left as each sample arrives.
             //  The slide is linear, a sample's width in a second, and the newest sample comes in from beyond the edge (clipped), so it never pops in.
             group {
@@ -188,7 +188,7 @@ scene DesktopSysmon {
                         let dh = max(1.2, clamp(net_h.$i.rx, 0, 1) * 26)
                         let uh = max(1.2, clamp(net_h.$i.tx, 0, 1) * 22)
                         box { at: 31.4 + (k + 0.5) * 2.835, 205 - dh / 2; size: 2.6, dh; corner: 1.2; color: mint; opacity: (25% + 70% * k / 120); show: i < net_h.count }
-                        box { at: 31.4 + (k + 0.5) * 2.835, 208 + uh / 2; size: 2.6, uh; corner: 1.2; color: mix(mint, ink, 0.4); opacity: (20% + 55% * k / 120); show: i < net_h.count }
+                        box { at: 31.4 + (k + 0.5) * 2.835, 208 + uh / 2; size: 2.6, uh; corner: 1.2; color: mix(mint, wink, 0.4); opacity: (20% + 55% * k / 120); show: i < net_h.count }
                     }
                 }
             }

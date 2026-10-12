@@ -6,6 +6,7 @@ part PanelFrame {
         clip inset 2 box { at: mix(pcx, dc.gx, lm), mix(bar.y + dc.hh / 2, lp.cy, lm); size: mix(dc.w, dc.gw, lm), mix(dc.hh, dc.gh, lm); corner: 26 * cu * (1 - 0.73 * cas_k) }
         //  Down the left it comes out of the strip: what is inside grows with the drawer's shape (`dc.lf`), from the strip's edge at the panel's middle, instead of waiting still under the clip.
         group {
+            shader: pixelate, px.dc
             pivot: lp.xl, lp.cy
             scale: mix(1, max(dc.lf, 0.05), lm * att)
         //  ── the calendar panel ──
@@ -82,10 +83,8 @@ part PanelFrame {
                     scale: 1 + 0.08 * cal.pick.$k
                     ellipse { at: dx, dy; radius: 12 * cu; color: ink; opacity: 9% * cal_cell.$k.hover * (1 - cal.pick.$k) }
                     ellipse { at: dx, dy; radius: 12 * cu; color: mint; opacity: cal.pick.$k * 100% }
-                    group {
-                        glow: 5 * cu, 60%, mint
-                        ellipse { at: dx, dy; radius: 13 * cu; stroke: 1.5 * cu; color: mint; show: cal.today.$k }
-                    }
+                    ellipse { at: dx, dy; radius: 13 * cu; stroke: 4.5 * cu; color: mint; opacity: 22%; show: cal.today.$k }
+                    ellipse { at: dx, dy; radius: 13 * cu; stroke: 1.5 * cu; color: mint; show: cal.today.$k }
                     ellipse { at: dx, dy + 8.5 * cu; radius: 1.5 * cu; color: mix(mint, onmint, cal.pick.$k); opacity: if(cal.n.$k > 0, 100%, 0) }
                 }
                 //  The day's number is not inside the group that grows when it is picked: a scaled text is resampled and comes out soft, so it

@@ -29,10 +29,8 @@ part Sysmon {
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 96 * pu + 0.5); text "PROCESSOR" { at: floor(spx + 14 * pu + 0.5), floor(sby + 96 * pu + 0.5); anchor: left center; size: 12; weight: 700; color: faint; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 96 * pu + 0.5); text sm_cpu_meta { at: floor(spx + 424 * pu + 0.5), floor(sby + 96 * pu + 0.5); anchor: right center; size: 13.5; weight: 500; width: (260 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk"; align: right } }
             arc { at: spx + 74 * pu, sby + 174 * pu; radius: 44 * pu; span: 270deg; width: 9 * pu; color: ink; opacity: 9%; rotate: 0deg }
-            group {
-                glow: 7, 26%
-                arc { at: spx + 74 * pu, sby + 174 * pu; radius: 44 * pu; span: (270 * clamp(sm_cpu_p, 0.004, 1)) * 1deg; width: 9 * pu; color: mix(mint, alert, clamp((sm_cpu_p - 0.75) / 0.25, 0, 1)); rotate: (-135 + 135 * clamp(sm_cpu_p, 0.004, 1)) * 1deg }
-            }
+            arc { at: spx + 74 * pu, sby + 174 * pu; radius: 44 * pu; span: (270 * clamp(sm_cpu_p, 0.004, 1)) * 1deg; width: (9 * pu) * 2.1; opacity: 0.13; color: mix(mint, alert, clamp((sm_cpu_p - 0.75) / 0.25, 0, 1)); rotate: (-135 + 135 * clamp(sm_cpu_p, 0.004, 1)) * 1deg }
+            arc { at: spx + 74 * pu, sby + 174 * pu; radius: 44 * pu; span: (270 * clamp(sm_cpu_p, 0.004, 1)) * 1deg; width: 9 * pu; color: mix(mint, alert, clamp((sm_cpu_p - 0.75) / 0.25, 0, 1)); rotate: (-135 + 135 * clamp(sm_cpu_p, 0.004, 1)) * 1deg }
             group { scale: rs; pivot: floor(spx + 74 * pu + 0.5), floor(sby + 169 * pu + 0.5); text sm_cpu_txt { at: floor(spx + 74 * pu + 0.5), floor(sby + 169 * pu + 0.5); anchor: center center; size: 29.5; weight: 700; width: (80 * pu) / rs; lines: 1; color: ink; family: "Space Grotesk"; align: center } }
             group { scale: rs; pivot: floor(spx + 74 * pu + 0.5), floor(sby + 191 * pu + 0.5); text "CPU" { at: floor(spx + 74 * pu + 0.5), floor(sby + 191 * pu + 0.5); anchor: center center; size: 11.5; weight: 700; color: faint; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(spx + 74 * pu + 0.5), floor(sby + 250 * pu + 0.5); text sm_threads { at: floor(spx + 74 * pu + 0.5), floor(sby + 250 * pu + 0.5); anchor: center center; size: 13.5; weight: 500; width: (110 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk"; align: center } }
@@ -62,11 +60,10 @@ part Sysmon {
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 292 * pu + 0.5); text "MEMORY" { at: floor(spx + 14 * pu + 0.5), floor(sby + 292 * pu + 0.5); anchor: left center; size: 12; weight: 700; color: faint; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 292 * pu + 0.5); text sm_mem_total { at: floor(spx + 424 * pu + 0.5), floor(sby + 292 * pu + 0.5); anchor: right center; size: 13.5; weight: 500; width: (200 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk"; align: right } }
             arc { at: spx + 74 * pu, sby + 360 * pu; radius: 40 * pu; span: 359deg; width: 11 * pu; color: ink; opacity: 9%; rotate: 0deg }
-            group {
-                glow: 7, 24%
+            arc { at: spx + 74 * pu, sby + 360 * pu; radius: 40 * pu; span: (360 * clamp(sm_cache_p, 0.004, 1)) * 1deg; width: (11 * pu) * 2.1; color: mint; opacity: (42%) * 0.12; rotate: (360 * clamp(sm_mem_p, 0, 1) + 180 * clamp(sm_cache_p, 0.004, 1)) * 1deg }
             arc { at: spx + 74 * pu, sby + 360 * pu; radius: 40 * pu; span: (360 * clamp(sm_cache_p, 0.004, 1)) * 1deg; width: 11 * pu; color: mint; opacity: 42%; rotate: (360 * clamp(sm_mem_p, 0, 1) + 180 * clamp(sm_cache_p, 0.004, 1)) * 1deg }
+            arc { at: spx + 74 * pu, sby + 360 * pu; radius: 40 * pu; span: (360 * clamp(sm_mem_p, 0.004, 1)) * 1deg; width: (11 * pu) * 2.1; opacity: 0.12; color: mix(mint, alert, clamp((sm_mem_p - 0.85) / 0.15000000000000002, 0, 1)); rotate: (180 * clamp(sm_mem_p, 0.004, 1)) * 1deg }
             arc { at: spx + 74 * pu, sby + 360 * pu; radius: 40 * pu; span: (360 * clamp(sm_mem_p, 0.004, 1)) * 1deg; width: 11 * pu; color: mix(mint, alert, clamp((sm_mem_p - 0.85) / 0.15000000000000002, 0, 1)); rotate: (180 * clamp(sm_mem_p, 0.004, 1)) * 1deg }
-            }
             group { scale: rs; pivot: floor(spx + 74 * pu + 0.5), floor(sby + 356 * pu + 0.5); text sm_mem_pct { at: floor(spx + 74 * pu + 0.5), floor(sby + 356 * pu + 0.5); anchor: center center; size: 27; weight: 700; width: (80 * pu) / rs; lines: 1; color: ink; family: "Space Grotesk"; align: center } }
             group { scale: rs; pivot: floor(spx + 74 * pu + 0.5), floor(sby + 375 * pu + 0.5); text "IN USE" { at: floor(spx + 74 * pu + 0.5), floor(sby + 375 * pu + 0.5); anchor: center center; size: 11.5; weight: 700; color: faint; family: "Space Grotesk" } }
             ellipse { at: spx + 148 * pu, sby + 312 * pu; radius: 3.2 * pu; color: mint; opacity: 100% }
@@ -97,15 +94,11 @@ part Sysmon {
             group {
                 show: sm_gpu_on
             arc { at: spx + 74 * pu, sby + 532 * pu; radius: 44 * pu; span: 270deg; width: 8 * pu; color: ink; opacity: 9%; rotate: 0deg }
-            group {
-                glow: 7, 26%
-                arc { at: spx + 74 * pu, sby + 532 * pu; radius: 44 * pu; span: (270 * clamp(sm_gpu_p, 0.004, 1)) * 1deg; width: 8 * pu; color: mix(mint, alert, clamp((sm_gpu_p - 0.8) / 0.19999999999999996, 0, 1)); rotate: (-135 + 135 * clamp(sm_gpu_p, 0.004, 1)) * 1deg }
-            }
+            arc { at: spx + 74 * pu, sby + 532 * pu; radius: 44 * pu; span: (270 * clamp(sm_gpu_p, 0.004, 1)) * 1deg; width: (8 * pu) * 2.1; opacity: 0.13; color: mix(mint, alert, clamp((sm_gpu_p - 0.8) / 0.19999999999999996, 0, 1)); rotate: (-135 + 135 * clamp(sm_gpu_p, 0.004, 1)) * 1deg }
+            arc { at: spx + 74 * pu, sby + 532 * pu; radius: 44 * pu; span: (270 * clamp(sm_gpu_p, 0.004, 1)) * 1deg; width: 8 * pu; color: mix(mint, alert, clamp((sm_gpu_p - 0.8) / 0.19999999999999996, 0, 1)); rotate: (-135 + 135 * clamp(sm_gpu_p, 0.004, 1)) * 1deg }
             arc { at: spx + 74 * pu, sby + 532 * pu; radius: 30 * pu; span: 270deg; width: 6 * pu; color: ink; opacity: 8%; rotate: 0deg }
-            group {
-                glow: 7, 26%
-                arc { at: spx + 74 * pu, sby + 532 * pu; radius: 30 * pu; span: (270 * clamp(sm_vram_p, 0.004, 1)) * 1deg; width: 6 * pu; color: mix(mint, ink, 0.25); rotate: (-135 + 135 * clamp(sm_vram_p, 0.004, 1)) * 1deg }
-            }
+            arc { at: spx + 74 * pu, sby + 532 * pu; radius: 30 * pu; span: (270 * clamp(sm_vram_p, 0.004, 1)) * 1deg; width: (6 * pu) * 2.1; opacity: 0.13; color: mix(mint, ink, 0.25); rotate: (-135 + 135 * clamp(sm_vram_p, 0.004, 1)) * 1deg }
+            arc { at: spx + 74 * pu, sby + 532 * pu; radius: 30 * pu; span: (270 * clamp(sm_vram_p, 0.004, 1)) * 1deg; width: 6 * pu; color: mix(mint, ink, 0.25); rotate: (-135 + 135 * clamp(sm_vram_p, 0.004, 1)) * 1deg }
             group { scale: rs; pivot: floor(spx + 74 * pu + 0.5), floor(sby + 529 * pu + 0.5); text sm_gpu_txt { at: floor(spx + 74 * pu + 0.5), floor(sby + 529 * pu + 0.5); anchor: center center; size: 23; weight: 700; width: (64 * pu) / rs; lines: 1; color: ink; family: "Space Grotesk"; align: center } }
             group { scale: rs; pivot: floor(spx + 74 * pu + 0.5), floor(sby + 546 * pu + 0.5); text "GPU" { at: floor(spx + 74 * pu + 0.5), floor(sby + 546 * pu + 0.5); anchor: center center; size: 11.5; weight: 700; color: faint; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(spx + 148 * pu + 0.5), floor(sby + 478 * pu + 0.5); text "VRAM" { at: floor(spx + 148 * pu + 0.5), floor(sby + 478 * pu + 0.5); anchor: left center; size: 11.5; weight: 700; color: faint; family: "Space Grotesk" } }

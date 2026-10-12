@@ -18,4 +18,5 @@ library Palette {
     let deep   = #0b0e11   // sunken tracks, and shadows
     let off    = #3a4048   // a toggle that is off, a muted fill
     let alert  = #ef4444   // urgent, close, muted (Iris: red)
+    let wink   = #e1e0e0   // the writing the desktop widgets put on the wallpaper: the ink, or a near-white when the palette is a light one
 }

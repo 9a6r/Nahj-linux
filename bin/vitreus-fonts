@@ -2,7 +2,7 @@
 """vitreus-fonts DATADIR: which typeface the shell is drawn in. pleamar draws every text in "Space Grotesk" (a name fixed in the scenes), so any other
 typeface is shown by starting the shell with a font setup in which that name is the typeface wanted: copies of its files with the family renamed, and
 the real Space Grotesk left out. The choice is the Theme page's (`fonts.json`: {"glass": name, "retro": name}); with none, Glass keeps Space Grotesk
-and Retro uses Better VCR. Prints the path of the fontconfig file to start pleamar with, or nothing (the shell keeps its own font)."""
+and Retro uses Audiowide. Prints the path of the fontconfig file to start pleamar with, or nothing (the shell keeps its own font)."""
 import glob, json, os, shutil, struct, subprocess, sys
 
 data = sys.argv[1]
@@ -16,14 +16,15 @@ def load(name):
         return {}
     return got if isinstance(got, dict) else {}      # pleamar writes an empty table as []
 
-retro = load("iris.json").get("preset") == 8
-choice = load("fonts.json").get("retro" if retro else "glass")
-family = choice or ("Better VCR-JP" if retro else None)
+preset = load("iris.json").get("preset")
+theme = "retro" if preset == 8 else "uwu" if preset == 9 else "glass"
+choice = load("fonts.json").get(theme)
+family = choice or {"retro": "Audiowide", "uwu": "Mochiy Pop One"}.get(theme)
 if not family or family == "Space Grotesk":
     sys.exit(0)
 
 # Typefaces that run wide are drawn a little smaller, so the shell's fixed-width labels still fit.
-SCALE = {"Better VCR-JP": 1.15}.get(family, 1.0)
+SCALE = {"Audiowide": 1.1, "Bitcount Prop Single": 0.95, "Press Start 2P": 1.7, "DotGothic16": 1.0, "SUPER-VCR MONO": 1.1, "Better VCR-JP": 1.15, "Mochiy Pop One": 1.08, "Cherry Bomb One": 1.12}.get(family, 1.0)
 WEIGHTS = ((300, "Light"), (400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold"))
 
 def faces():

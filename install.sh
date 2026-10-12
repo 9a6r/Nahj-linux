@@ -16,7 +16,8 @@
 #                                      on any other distribution it lists what to install by hand).
 #                                      hyprsunset is required on Hyprland (Night mode): without it, this stops
 #   2. pleamar, the runtime           (its own installer, into your home; a few minutes to build)
-#   3. the Space Grotesk font         (into ~/.local/share/fonts, no sudo)
+#   3. the fonts                      (Space Grotesk, and the two the Retro and UwU themes are drawn in: Audiowide and Mochiy Pop One;
+#                                      into ~/.local/share/fonts, no sudo)
 #   4. the shell                      (into ~/.config/pleamar/shells/vitreus: cloned, or updated)
 #   5. your palette, autostart entry  (made once and never written over)
 #   5b. the helpers                  (bin/vitreus-clipimg, vitreus-polkit-agent, vitreus-sysmon and vitreus-term, linked into ~/.local/bin)
@@ -31,15 +32,22 @@ set -eu
 repo="${VITREUS_REPO:-https://github.com/natepayn3/Vitreus.git}"
 pleamar_installer="${PLEAMAR_INSTALLER:-https://raw.githubusercontent.com/k4ditano/pleamar/main/install.sh}"
 font_url="https://github.com/google/fonts/raw/main/ofl/spacegrotesk/SpaceGrotesk%5Bwght%5D.ttf"
+# The Retro theme's typeface, Audiowide (a rounded sci-fi face), and the UwU theme's (both Google Fonts, OFL).
+# Both are optional: without one, that theme keeps Space Grotesk.
+dot_url="https://github.com/google/fonts/raw/main/ofl/audiowide/Audiowide-Regular.ttf"
+dot_licence_url="https://github.com/google/fonts/raw/main/ofl/audiowide/OFL.txt"
+mochiy_url="https://github.com/google/fonts/raw/main/ofl/mochiypopone/MochiyPopOne-Regular.ttf"
 
 conf="${XDG_CONFIG_HOME:-$HOME/.config}"
 data="${XDG_DATA_HOME:-$HOME/.local/share}"
 dest="$conf/pleamar/shells/vitreus"
 autostart="$conf/pleamar/autostart"
 fonts="$data/fonts/SpaceGrotesk"
+fonts_dot="$data/fonts/Audiowide"
+fonts_mochiy="$data/fonts/MochiyPopOne"
 
 # Official-repo packages, then AUR ones: what each is for is in the README.
-pacman_pkgs="git curl fontconfig imagemagick cava playerctl networkmanager bluez bluez-utils brightnessctl hypridle hyprsunset libnotify xdg-user-dirs xdg-utils wl-clipboard cliphist awww ffmpeg grim slurp wf-recorder power-profiles-daemon polkit python-gobject python-pyte ttf-space-mono-nerd pipewire-audio sound-theme-freedesktop tesseract tesseract-data-eng"
+pacman_pkgs="git curl python fontconfig imagemagick cava playerctl networkmanager bluez bluez-utils brightnessctl hypridle hyprsunset libnotify xdg-user-dirs xdg-utils wl-clipboard cliphist awww ffmpeg grim slurp wf-recorder power-profiles-daemon polkit python-gobject python-pyte ttf-space-mono-nerd pipewire-audio sound-theme-freedesktop tesseract tesseract-data-eng"
 aur_pkgs="iris-colors mpvpaper"
 
 assume_yes=false
@@ -234,6 +242,8 @@ if $deps; then
     libnotify       calendar reminders (notify-send)
     xdg-user-dirs   finding your Pictures folder
     git, fontconfig
+    python          the font setup of the Retro and UwU themes and the font picker (bin/vitreus-fonts)
+    Audiowide, Mochiy Pop One  the typefaces of the Retro and UwU themes (Space Grotesk's neighbours, installed into ~/.local/share/fonts)
 LIST
     fi
     # On Hyprland hyprsunset is not optional: Night mode is driven by it. Without it the shell would have to fall back to a Hyprland
@@ -278,6 +288,31 @@ LIST
             mkdir -p "$fonts"
             curl -fsSL "$font_url" -o "$fonts/SpaceGrotesk[wght].ttf" || warn "could not download the font: install Space Grotesk yourself"
             have fc-cache && fc-cache -f "$fonts" > /dev/null 2>&1 || true
+        fi
+    fi
+    # The Retro theme's Audiowide and the UwU theme's Mochiy Pop One: what Settings > Theme draws the shell in on those themes (the font picker can
+    # choose any other). Without them the theme keeps Space Grotesk.
+    if have fc-list && fc-list 2> /dev/null | grep -qi 'audiowide'; then
+        say "the Audiowide font is installed"
+    elif ask "install the Audiowide font, for the Retro theme (into $fonts_dot)?"; then
+        if $dry; then
+            echo "    would download $dot_url"
+        else
+            mkdir -p "$fonts_dot"
+            curl -fsSL "$dot_url" -o "$fonts_dot/Audiowide-Regular.ttf" || warn "could not download Audiowide: the Retro theme will use Space Grotesk until you install it"
+            curl -fsSL "$dot_licence_url" -o "$fonts_dot/OFL.txt" 2> /dev/null || true
+            have fc-cache && fc-cache -f "$fonts_dot" > /dev/null 2>&1 || true
+        fi
+    fi
+    if have fc-list && fc-list 2> /dev/null | grep -qi 'mochiy pop one'; then
+        say "the Mochiy Pop One font is installed"
+    elif ask "install the Mochiy Pop One font, for the UwU theme (into $fonts_mochiy)?"; then
+        if $dry; then
+            echo "    would download $mochiy_url"
+        else
+            mkdir -p "$fonts_mochiy"
+            curl -fsSL "$mochiy_url" -o "$fonts_mochiy/MochiyPopOne-Regular.ttf" || warn "could not download Mochiy Pop One: the UwU theme will use Space Grotesk until you install it"
+            have fc-cache && fc-cache -f "$fonts_mochiy" > /dev/null 2>&1 || true
         fi
     fi
 fi

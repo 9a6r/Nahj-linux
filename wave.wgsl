@@ -7,6 +7,8 @@
 //       travelled (0 just born, 1 gone) · s.a.z where the packet starts, as a
 //       fraction of the box's width
 // s.b.x how far it bends things, in px, at most · s.b.y how far the front goes
+// s.b.z the Retro's pixelation: the side of a square, in px, that what the screen's opening holds is seen through (1.5 or less: none)
+// s.a.w the strip's width and s.b.w the frame's thickness: where the opening starts
 
 fn shade(s: Shader) -> vec4<f32> {
     let pulse = s.a.x;
@@ -30,5 +32,15 @@ fn shade(s: Shader) -> vec4<f32> {
 
     let dy = amp * (crest + pulse * 0.35 * tremble);
     let dx = amp * 0.4 * crest * side;
-    return inside(s, vec2<f32>(p.x + dx, p.y + dy));
+    var q = vec2<f32>(p.x + dx, p.y + dy);
+    // The Retro's pixelation: only inside the screen's opening, and a square's width away from its edge, so the frame itself stays still while a drawer
+    // turns into squares (the group's box is the whole surface then: bar_glass.plm puts a barely visible box over it).
+    let k = s.b.z;
+    if (k > 1.5) {
+        let inner = p.x > s.a.w + k && p.x < s.size.x - s.b.w - k && p.y > s.b.w + k && p.y < s.size.y - s.b.w - k;
+        if (inner) {
+            q = (floor(q / k) + vec2<f32>(0.5, 0.5)) * k;
+        }
+    }
+    return inside(s, q);
 }

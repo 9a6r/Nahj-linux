@@ -1,7 +1,9 @@
 part BarGlass {
     //  The whole bar, glass and all, is one group so the wave can bend it as one thing.
     group {
-        shader: wave, pv, mix(clamp(ring, 0, 1), 1, lm), mix((mc - (pcx - bar.w / 2)) / bar.w, 0.5, clamp(ring_mid, 0, 1)), 0, 2.6 * u * (1 - min(1, drop * 2)) * (1 - lm), bar.w, 0, 0
+        shader: wave, pv, mix(clamp(ring, 0, 1), 1, lm), mix((mc - (pcx - bar.w / 2)) / bar.w, 0.5, clamp(ring_mid, 0, 1)), lf.w, 2.6 * u * (1 - min(1, drop * 2)) * (1 - lm), bar.w, pxa, lf.t
+        //  With the Retro on, a barely visible box over the whole surface makes the group's box the surface, so the pixelation (wave.wgsl) knows where the opening is.
+        box { from: 0, 0; size: screen.width, screen.height; color: deep; opacity: 1.2% * cas_k }
         // ── the liquid ───────────────────────────────────────────────
         body {
             color: tint
@@ -43,7 +45,7 @@ part BarGlass {
             refraction: 0%
             dispersion: 0%
             shine: 9000, 9000
-            opacity: obs * 0.34 * (1 - cas_k)
+            opacity: obs * 0.34 * (1 - pk)
             show: obs > 0.97
             include "bar_shapes.plm"
         }
@@ -51,7 +53,7 @@ part BarGlass {
             color: obsidian
             rim: 0%
             opacity: obs * (1 - 0.4 * clamp(hy_blur, 0, 1))
-            shadow: 0, 3 + 6 * drop + 3 * pv, 14 + 14 * drop + 8 * pv, (30% + 16% * drop + 8% * pv) * (1 - cas_k), #000000
+            shadow: 0, 3 + 6 * drop + 3 * pv, 14 + 14 * drop + 8 * pv, (30% + 16% * drop + 8% * pv) * (1 - pk), #000000
             show: obs > 0.004
             include "bar_shapes.plm"
         }
@@ -65,6 +67,16 @@ part BarGlass {
             show: cas_k > 0.004
             include "bar_shapes.plm"
         }
+        //  The UwU's candy plastic over it: a pastel gradient across the whole screen (pink, lilac, sky, mint), a thick grape outline, a lit lip and a hard pink shadow.
+        body {
+            gradient: 0, 0 to screen.width, screen.height, #ffcfe8, #e6d6ff 38%, #cfeaff 68%, #d2fff0
+            rim: 55% * uwu_k
+            border: 3 * u * uwu_k, deep
+            shadow: 4 * u * uwu_k, 5 * u * uwu_k, 0, 90% * uwu_k, mix(deep, #ff6ec7, 0.75)
+            opacity: uwu_k
+            show: uwu_k > 0.004
+            include "bar_shapes.plm"
+        }
         //  The Cassette's detail on each drawer, only while it is plastic and the drawer is out: an accent-coloured tab at the top left (opposite the grips) (a console's button), a row of straight vertical grip slots in the bottom right
         //  corner (like the vents of a handheld: dark, with a lit edge) that run a few pixels past the drawer's bottom edge as if they wrapped round the base, and a screw in the bottom left.
         //  Inside the drawer they stay in its margin, so they never touch what it holds.
@@ -74,7 +86,7 @@ part BarGlass {
             let gdk.l = dk.ex - dk.ew / 2
             let gdk.r = dk.ex + dk.ew / 2
             let gdk.t = dk.ey - dk.eh / 2
-            let gdk.b = dk.ey + dk.eh / 2
+            let gdk.b = min(dk.ey + dk.eh / 2, vb - lf.t - 1)
             box { at: gdk.l + 58.5 * u + 2, gdk.t + 9 + 3; size: 58 * u, 24; corner: 5; color: deep; opacity: 38% }
             box { at: gdk.l + 58.5 * u, gdk.t + 9; size: 58 * u, 24; corner: 5; color: mintlo }
             box { at: gdk.l + 58.5 * u, gdk.t + 9 - 2.5; size: 58 * u, 24 - 5; corner: 5; color: mint }
@@ -84,9 +96,9 @@ part BarGlass {
                 line { from: gdk.r - 20 * u - k * 11 * u, gdk.b + 4; to: gdk.r - 20 * u - k * 11 * u, gdk.b - 18; width: 6; color: mix(deep, #ffffff, 6%) }
                 line { from: gdk.r - 20 * u - k * 11 * u + 3.6, gdk.b + 4; to: gdk.r - 20 * u - k * 11 * u + 3.6, gdk.b - 18; width: 1.2; color: #ffffff; opacity: 45% }
             }
-            ellipse { at: gdk.l + 11 * u, gdk.b - 9; radius: 3.6; color: mix(deep, #ffffff, 38%) }
-            ellipse { at: gdk.l + 11 * u, gdk.b - 9; radius: 3.6; stroke: 1.1; color: deep }
-            line { from: gdk.l + 11 * u - 2, gdk.b - 7; to: gdk.l + 11 * u + 2, gdk.b - 11; width: 1.3; color: deep }
+            ellipse { at: gdk.l + 12, gdk.b - 12; radius: 3.6; color: mix(deep, #ffffff, 38%) }
+            ellipse { at: gdk.l + 12, gdk.b - 12; radius: 3.6; stroke: 1.1; color: deep }
+            line { from: gdk.l + 10, gdk.b - 10; to: gdk.l + 14, gdk.b - 14; width: 1.3; color: deep }
         }
         group {
             show: cas_k > 0.01 and dc0 > 0.9
@@ -94,7 +106,7 @@ part BarGlass {
             let gdc.l = dc.ex - dc.ew / 2
             let gdc.r = dc.ex + dc.ew / 2
             let gdc.t = dc.ey - dc.eh / 2
-            let gdc.b = dc.ey + dc.eh / 2
+            let gdc.b = min(dc.ey + dc.eh / 2, vb - lf.t - 1)
             box { at: gdc.l + 58.5 * u + 2, gdc.t + 9 + 3; size: 58 * u, 24; corner: 5; color: deep; opacity: 38% }
             box { at: gdc.l + 58.5 * u, gdc.t + 9; size: 58 * u, 24; corner: 5; color: mintlo }
             box { at: gdc.l + 58.5 * u, gdc.t + 9 - 2.5; size: 58 * u, 24 - 5; corner: 5; color: mint }
@@ -104,9 +116,9 @@ part BarGlass {
                 line { from: gdc.r - 20 * u - k * 11 * u, gdc.b + 4; to: gdc.r - 20 * u - k * 11 * u, gdc.b - 18; width: 6; color: mix(deep, #ffffff, 6%) }
                 line { from: gdc.r - 20 * u - k * 11 * u + 3.6, gdc.b + 4; to: gdc.r - 20 * u - k * 11 * u + 3.6, gdc.b - 18; width: 1.2; color: #ffffff; opacity: 45% }
             }
-            ellipse { at: gdc.l + 11 * u, gdc.b - 9; radius: 3.6; color: mix(deep, #ffffff, 38%) }
-            ellipse { at: gdc.l + 11 * u, gdc.b - 9; radius: 3.6; stroke: 1.1; color: deep }
-            line { from: gdc.l + 11 * u - 2, gdc.b - 7; to: gdc.l + 11 * u + 2, gdc.b - 11; width: 1.3; color: deep }
+            ellipse { at: gdc.l + 12, gdc.b - 12; radius: 3.6; color: mix(deep, #ffffff, 38%) }
+            ellipse { at: gdc.l + 12, gdc.b - 12; radius: 3.6; stroke: 1.1; color: deep }
+            line { from: gdc.l + 10, gdc.b - 10; to: gdc.l + 14, gdc.b - 14; width: 1.3; color: deep }
         }
         group {
             show: cas_k > 0.01 and ds0 > 0.9
@@ -114,7 +126,7 @@ part BarGlass {
             let gds.l = ds.ex - ds.ew / 2
             let gds.r = ds.ex + ds.ew / 2
             let gds.t = ds.ey - ds.eh / 2
-            let gds.b = ds.ey + ds.eh / 2
+            let gds.b = min(ds.ey + ds.eh / 2, vb - lf.t - 1)
             box { at: gds.l + 58.5 * u + 2, gds.t + 9 + 3; size: 58 * u, 24; corner: 5; color: deep; opacity: 38% }
             box { at: gds.l + 58.5 * u, gds.t + 9; size: 58 * u, 24; corner: 5; color: mintlo }
             box { at: gds.l + 58.5 * u, gds.t + 9 - 2.5; size: 58 * u, 24 - 5; corner: 5; color: mint }
@@ -124,9 +136,9 @@ part BarGlass {
                 line { from: gds.r - 20 * u - k * 11 * u, gds.b + 4; to: gds.r - 20 * u - k * 11 * u, gds.b - 18; width: 6; color: mix(deep, #ffffff, 6%) }
                 line { from: gds.r - 20 * u - k * 11 * u + 3.6, gds.b + 4; to: gds.r - 20 * u - k * 11 * u + 3.6, gds.b - 18; width: 1.2; color: #ffffff; opacity: 45% }
             }
-            ellipse { at: gds.l + 11 * u, gds.b - 9; radius: 3.6; color: mix(deep, #ffffff, 38%) }
-            ellipse { at: gds.l + 11 * u, gds.b - 9; radius: 3.6; stroke: 1.1; color: deep }
-            line { from: gds.l + 11 * u - 2, gds.b - 7; to: gds.l + 11 * u + 2, gds.b - 11; width: 1.3; color: deep }
+            ellipse { at: gds.l + 12, gds.b - 12; radius: 3.6; color: mix(deep, #ffffff, 38%) }
+            ellipse { at: gds.l + 12, gds.b - 12; radius: 3.6; stroke: 1.1; color: deep }
+            line { from: gds.l + 10, gds.b - 10; to: gds.l + 14, gds.b - 14; width: 1.3; color: deep }
         }
         group {
             show: cas_k > 0.01 and dl0 > 0.9
@@ -134,7 +146,7 @@ part BarGlass {
             let gdl.l = dl.ex - dl.ew / 2
             let gdl.r = dl.ex + dl.ew / 2
             let gdl.t = dl.ey - dl.eh / 2
-            let gdl.b = dl.ey + dl.eh / 2
+            let gdl.b = min(dl.ey + dl.eh / 2, vb - lf.t - 1)
             box { at: gdl.l + 58.5 * u + 2, gdl.t + 9 + 3; size: 58 * u, 24; corner: 5; color: deep; opacity: 38% }
             box { at: gdl.l + 58.5 * u, gdl.t + 9; size: 58 * u, 24; corner: 5; color: mintlo }
             box { at: gdl.l + 58.5 * u, gdl.t + 9 - 2.5; size: 58 * u, 24 - 5; corner: 5; color: mint }
@@ -144,9 +156,9 @@ part BarGlass {
                 line { from: gdl.r - 20 * u - k * 11 * u, gdl.b + 4; to: gdl.r - 20 * u - k * 11 * u, gdl.b - 18; width: 6; color: mix(deep, #ffffff, 6%) }
                 line { from: gdl.r - 20 * u - k * 11 * u + 3.6, gdl.b + 4; to: gdl.r - 20 * u - k * 11 * u + 3.6, gdl.b - 18; width: 1.2; color: #ffffff; opacity: 45% }
             }
-            ellipse { at: gdl.l + 11 * u, gdl.b - 9; radius: 3.6; color: mix(deep, #ffffff, 38%) }
-            ellipse { at: gdl.l + 11 * u, gdl.b - 9; radius: 3.6; stroke: 1.1; color: deep }
-            line { from: gdl.l + 11 * u - 2, gdl.b - 7; to: gdl.l + 11 * u + 2, gdl.b - 11; width: 1.3; color: deep }
+            ellipse { at: gdl.l + 12, gdl.b - 12; radius: 3.6; color: mix(deep, #ffffff, 38%) }
+            ellipse { at: gdl.l + 12, gdl.b - 12; radius: 3.6; stroke: 1.1; color: deep }
+            line { from: gdl.l + 10, gdl.b - 10; to: gdl.l + 14, gdl.b - 14; width: 1.3; color: deep }
         }
         group {
             show: cas_k > 0.01 and dm0 > 0.9
@@ -154,7 +166,7 @@ part BarGlass {
             let gdm.l = dm.ex - dm.ew / 2
             let gdm.r = dm.ex + dm.ew / 2
             let gdm.t = dm.ey - dm.eh / 2
-            let gdm.b = dm.ey + dm.eh / 2
+            let gdm.b = min(dm.ey + dm.eh / 2, vb - lf.t - 1)
             box { at: gdm.l + 58.5 * u + 2, gdm.t + 9 + 3; size: 58 * u, 24; corner: 5; color: deep; opacity: 38% }
             box { at: gdm.l + 58.5 * u, gdm.t + 9; size: 58 * u, 24; corner: 5; color: mintlo }
             box { at: gdm.l + 58.5 * u, gdm.t + 9 - 2.5; size: 58 * u, 24 - 5; corner: 5; color: mint }
@@ -164,9 +176,9 @@ part BarGlass {
                 line { from: gdm.r - 20 * u - k * 11 * u, gdm.b + 4; to: gdm.r - 20 * u - k * 11 * u, gdm.b - 18; width: 6; color: mix(deep, #ffffff, 6%) }
                 line { from: gdm.r - 20 * u - k * 11 * u + 3.6, gdm.b + 4; to: gdm.r - 20 * u - k * 11 * u + 3.6, gdm.b - 18; width: 1.2; color: #ffffff; opacity: 45% }
             }
-            ellipse { at: gdm.l + 11 * u, gdm.b - 9; radius: 3.6; color: mix(deep, #ffffff, 38%) }
-            ellipse { at: gdm.l + 11 * u, gdm.b - 9; radius: 3.6; stroke: 1.1; color: deep }
-            line { from: gdm.l + 11 * u - 2, gdm.b - 7; to: gdm.l + 11 * u + 2, gdm.b - 11; width: 1.3; color: deep }
+            ellipse { at: gdm.l + 12, gdm.b - 12; radius: 3.6; color: mix(deep, #ffffff, 38%) }
+            ellipse { at: gdm.l + 12, gdm.b - 12; radius: 3.6; stroke: 1.1; color: deep }
+            line { from: gdm.l + 10, gdm.b - 10; to: gdm.l + 14, gdm.b - 14; width: 1.3; color: deep }
         }
         group {
             show: cas_k > 0.01 and dz0 > 0.9
@@ -174,7 +186,7 @@ part BarGlass {
             let gdz.l = dz.fx - dz.fw / 2
             let gdz.r = dz.fx + dz.fw / 2
             let gdz.t = dz.fcy - dz.fh / 2
-            let gdz.b = dz.fcy + dz.fh / 2
+            let gdz.b = min(dz.fcy + dz.fh / 2, vb - lf.t - 1)
             box { at: gdz.l + 58.5 * u + 2, gdz.t + 9 + 3; size: 58 * u, 24; corner: 5; color: deep; opacity: 38% }
             box { at: gdz.l + 58.5 * u, gdz.t + 9; size: 58 * u, 24; corner: 5; color: mintlo }
             box { at: gdz.l + 58.5 * u, gdz.t + 9 - 2.5; size: 58 * u, 24 - 5; corner: 5; color: mint }
@@ -184,9 +196,348 @@ part BarGlass {
                 line { from: gdz.r - 20 * u - k * 11 * u, gdz.b + 4; to: gdz.r - 20 * u - k * 11 * u, gdz.b - 18; width: 6; color: mix(deep, #ffffff, 6%) }
                 line { from: gdz.r - 20 * u - k * 11 * u + 3.6, gdz.b + 4; to: gdz.r - 20 * u - k * 11 * u + 3.6, gdz.b - 18; width: 1.2; color: #ffffff; opacity: 45% }
             }
-            ellipse { at: gdz.l + 11 * u, gdz.b - 9; radius: 3.6; color: mix(deep, #ffffff, 38%) }
-            ellipse { at: gdz.l + 11 * u, gdz.b - 9; radius: 3.6; stroke: 1.1; color: deep }
-            line { from: gdz.l + 11 * u - 2, gdz.b - 7; to: gdz.l + 11 * u + 2, gdz.b - 11; width: 1.3; color: deep }
+            ellipse { at: gdz.l + 12, gdz.b - 12; radius: 3.6; color: mix(deep, #ffffff, 38%) }
+            ellipse { at: gdz.l + 12, gdz.b - 12; radius: 3.6; stroke: 1.1; color: deep }
+            line { from: gdz.l + 10, gdz.b - 10; to: gdz.l + 14, gdz.b - 14; width: 1.3; color: deep }
+        }
+        //  The UwU theme's graphics, on every drawer that is out (and round the screen, below): cat ears on its top corners, three twinkling stars along its
+        //  top, two hearts that bob and a trail of paw prints in its bottom corners, and sparkles rising from the hearts. The ears are the only part outside
+        //  the drawer; the rest sits in its margin and never touches what it holds. Each sticker has a grape outline, as the drawers have.
+        group {
+            show: uwu_k > 0.01 and dk0 > 0.9
+            opacity: uwu_k * clamp(dk0 * 3 - 2, 0, 1)
+            let wdk.l = dk.ex - dk.ew / 2
+            let wdk.r = dk.ex + dk.ew / 2
+            let wdk.t = dk.ey - dk.eh / 2
+            let wdk.b = min(dk.ey + dk.eh / 2, vb - lf.t - 1)
+            let wdk.m = (dk.ex)
+            repeat side in 0..2 {
+                let ex = if(side == 0, wdk.l + 50 * u, wdk.r - 50 * u)
+                let sg = if(side == 0, -1, 1)
+                path { at: ex, wdk.t; color: obsidian; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8; close }
+                path { at: ex, wdk.t; stroke: 3 * u; color: deep; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8 }
+                path { at: ex, wdk.t; color: #ff8fc8; move -14 * u, 5; line sg * 9 * u, -19 * u; line 14 * u, 5; close }
+            }
+            repeat s in 0..3 {
+                let sx = wdk.m + (s - 1) * 44 * u
+                let sr = if(s == 1, 7, 5) * u
+                group { scale: 1 + 0.22 * sin(time * 160 + s * 120); pivot: sx, wdk.t + 9
+                    path { at: sx, wdk.t + 9; stroke: 3; color: deep; move 0, -sr; line 0.3 * sr, -0.3 * sr; line sr, 0; line 0.3 * sr, 0.3 * sr; line 0, sr; line -0.3 * sr, 0.3 * sr; line -sr, 0; line -0.3 * sr, -0.3 * sr; close }
+                    path { at: sx, wdk.t + 9; color: pick(s, #ffe27a, #ffffff, #7fd3ff); move 0, -sr; line 0.3 * sr, -0.3 * sr; line sr, 0; line 0.3 * sr, 0.3 * sr; line 0, sr; line -0.3 * sr, 0.3 * sr; line -sr, 0; line -0.3 * sr, -0.3 * sr; close }
+                }
+            }
+            repeat hh in 0..2 {
+                let hx = wdk.l + (22 + hh * 22) * u
+                let hy = wdk.b - 11
+                let hr = if(hh == 0, 5.5, 4.5) * u
+                group { scale: 1 + 0.13 * sin(time * 200 + hh * 150); pivot: hx, hy
+                    ellipse { at: hx - 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62 + 1.5; color: deep }
+                    ellipse { at: hx + 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62 + 1.5; color: deep }
+                    path { at: hx, hy; stroke: 3; color: deep; move -1.12 * hr, -0.1 * hr; line 0, 1.2 * hr; line 1.12 * hr, -0.1 * hr; close }
+                    ellipse { at: hx - 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62; color: pick(hh, #ff6eb4, #b69cff) }
+                    ellipse { at: hx + 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62; color: pick(hh, #ff6eb4, #b69cff) }
+                    path { at: hx, hy; color: pick(hh, #ff6eb4, #b69cff); move -1.1 * hr, -0.1 * hr; line 0, 1.15 * hr; line 1.1 * hr, -0.1 * hr; close }
+                    ellipse { at: hx - 0.7 * hr, hy - 0.5 * hr; radius: hr * 0.2; color: #ffffff; opacity: 80% }
+                }
+            }
+            repeat pw in 0..3 {
+                let px = wdk.r - (26 + pw * 28) * u
+                let py = wdk.b - 12 + if(mod(pw, 2) == 0, 0, -3)
+                ellipse { at: px, py + 2.4; radius: 6; color: deep }
+                ellipse { at: px - 6.4, py - 3.2; radius: 3.4; color: deep }
+                ellipse { at: px - 2.4, py - 7.6; radius: 3.4; color: deep }
+                ellipse { at: px + 2.4, py - 7.6; radius: 3.4; color: deep }
+                ellipse { at: px + 6.4, py - 3.2; radius: 3.4; color: deep }
+                ellipse { at: px, py + 2.4; radius: 4.6; color: #ff8fc8 }
+                ellipse { at: px - 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px - 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px + 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px + 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
+            }
+            particles { at: wdk.l + 36 * u, wdk.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff, #7fd3ff, #5fe3d6, #ffe27a; shape: spark }
+        }
+        group {
+            show: uwu_k > 0.01 and dc0 > 0.9
+            opacity: uwu_k * clamp(dc0 * 3 - 2, 0, 1)
+            let wdc.l = dc.ex - dc.ew / 2
+            let wdc.r = dc.ex + dc.ew / 2
+            let wdc.t = dc.ey - dc.eh / 2
+            let wdc.b = min(dc.ey + dc.eh / 2, vb - lf.t - 1)
+            let wdc.m = (dc.ex)
+            repeat side in 0..2 {
+                let ex = if(side == 0, wdc.l + 50 * u, wdc.r - 50 * u)
+                let sg = if(side == 0, -1, 1)
+                path { at: ex, wdc.t; color: obsidian; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8; close }
+                path { at: ex, wdc.t; stroke: 3 * u; color: deep; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8 }
+                path { at: ex, wdc.t; color: #ff8fc8; move -14 * u, 5; line sg * 9 * u, -19 * u; line 14 * u, 5; close }
+            }
+            repeat s in 0..3 {
+                let sx = wdc.m + (s - 1) * 44 * u
+                let sr = if(s == 1, 7, 5) * u
+                group { scale: 1 + 0.22 * sin(time * 160 + s * 120); pivot: sx, wdc.t + 9
+                    path { at: sx, wdc.t + 9; stroke: 3; color: deep; move 0, -sr; line 0.3 * sr, -0.3 * sr; line sr, 0; line 0.3 * sr, 0.3 * sr; line 0, sr; line -0.3 * sr, 0.3 * sr; line -sr, 0; line -0.3 * sr, -0.3 * sr; close }
+                    path { at: sx, wdc.t + 9; color: pick(s, #ffe27a, #ffffff, #7fd3ff); move 0, -sr; line 0.3 * sr, -0.3 * sr; line sr, 0; line 0.3 * sr, 0.3 * sr; line 0, sr; line -0.3 * sr, 0.3 * sr; line -sr, 0; line -0.3 * sr, -0.3 * sr; close }
+                }
+            }
+            repeat hh in 0..2 {
+                let hx = wdc.l + (22 + hh * 22) * u
+                let hy = wdc.b - 11
+                let hr = if(hh == 0, 5.5, 4.5) * u
+                group { scale: 1 + 0.13 * sin(time * 200 + hh * 150); pivot: hx, hy
+                    ellipse { at: hx - 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62 + 1.5; color: deep }
+                    ellipse { at: hx + 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62 + 1.5; color: deep }
+                    path { at: hx, hy; stroke: 3; color: deep; move -1.12 * hr, -0.1 * hr; line 0, 1.2 * hr; line 1.12 * hr, -0.1 * hr; close }
+                    ellipse { at: hx - 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62; color: pick(hh, #ff6eb4, #b69cff) }
+                    ellipse { at: hx + 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62; color: pick(hh, #ff6eb4, #b69cff) }
+                    path { at: hx, hy; color: pick(hh, #ff6eb4, #b69cff); move -1.1 * hr, -0.1 * hr; line 0, 1.15 * hr; line 1.1 * hr, -0.1 * hr; close }
+                    ellipse { at: hx - 0.7 * hr, hy - 0.5 * hr; radius: hr * 0.2; color: #ffffff; opacity: 80% }
+                }
+            }
+            repeat pw in 0..3 {
+                let px = wdc.r - (26 + pw * 28) * u
+                let py = wdc.b - 12 + if(mod(pw, 2) == 0, 0, -3)
+                ellipse { at: px, py + 2.4; radius: 6; color: deep }
+                ellipse { at: px - 6.4, py - 3.2; radius: 3.4; color: deep }
+                ellipse { at: px - 2.4, py - 7.6; radius: 3.4; color: deep }
+                ellipse { at: px + 2.4, py - 7.6; radius: 3.4; color: deep }
+                ellipse { at: px + 6.4, py - 3.2; radius: 3.4; color: deep }
+                ellipse { at: px, py + 2.4; radius: 4.6; color: #ff8fc8 }
+                ellipse { at: px - 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px - 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px + 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px + 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
+            }
+            particles { at: wdc.l + 36 * u, wdc.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff, #7fd3ff, #5fe3d6, #ffe27a; shape: spark }
+        }
+        group {
+            show: uwu_k > 0.01 and ds0 > 0.9
+            opacity: uwu_k * clamp(ds0 * 3 - 2, 0, 1)
+            let wds.l = ds.ex - ds.ew / 2
+            let wds.r = ds.ex + ds.ew / 2
+            let wds.t = ds.ey - ds.eh / 2
+            let wds.b = min(ds.ey + ds.eh / 2, vb - lf.t - 1)
+            let wds.m = (ds.ex)
+            repeat side in 0..2 {
+                let ex = if(side == 0, wds.l + 50 * u, wds.r - 50 * u)
+                let sg = if(side == 0, -1, 1)
+                path { at: ex, wds.t; color: obsidian; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8; close }
+                path { at: ex, wds.t; stroke: 3 * u; color: deep; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8 }
+                path { at: ex, wds.t; color: #ff8fc8; move -14 * u, 5; line sg * 9 * u, -19 * u; line 14 * u, 5; close }
+            }
+            repeat s in 0..3 {
+                let sx = wds.m + (s - 1) * 44 * u
+                let sr = if(s == 1, 7, 5) * u
+                group { scale: 1 + 0.22 * sin(time * 160 + s * 120); pivot: sx, wds.t + 9
+                    path { at: sx, wds.t + 9; stroke: 3; color: deep; move 0, -sr; line 0.3 * sr, -0.3 * sr; line sr, 0; line 0.3 * sr, 0.3 * sr; line 0, sr; line -0.3 * sr, 0.3 * sr; line -sr, 0; line -0.3 * sr, -0.3 * sr; close }
+                    path { at: sx, wds.t + 9; color: pick(s, #ffe27a, #ffffff, #7fd3ff); move 0, -sr; line 0.3 * sr, -0.3 * sr; line sr, 0; line 0.3 * sr, 0.3 * sr; line 0, sr; line -0.3 * sr, 0.3 * sr; line -sr, 0; line -0.3 * sr, -0.3 * sr; close }
+                }
+            }
+            repeat hh in 0..2 {
+                let hx = wds.l + (22 + hh * 22) * u
+                let hy = wds.b - 11
+                let hr = if(hh == 0, 5.5, 4.5) * u
+                group { scale: 1 + 0.13 * sin(time * 200 + hh * 150); pivot: hx, hy
+                    ellipse { at: hx - 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62 + 1.5; color: deep }
+                    ellipse { at: hx + 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62 + 1.5; color: deep }
+                    path { at: hx, hy; stroke: 3; color: deep; move -1.12 * hr, -0.1 * hr; line 0, 1.2 * hr; line 1.12 * hr, -0.1 * hr; close }
+                    ellipse { at: hx - 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62; color: pick(hh, #ff6eb4, #b69cff) }
+                    ellipse { at: hx + 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62; color: pick(hh, #ff6eb4, #b69cff) }
+                    path { at: hx, hy; color: pick(hh, #ff6eb4, #b69cff); move -1.1 * hr, -0.1 * hr; line 0, 1.15 * hr; line 1.1 * hr, -0.1 * hr; close }
+                    ellipse { at: hx - 0.7 * hr, hy - 0.5 * hr; radius: hr * 0.2; color: #ffffff; opacity: 80% }
+                }
+            }
+            repeat pw in 0..3 {
+                let px = wds.r - (26 + pw * 28) * u
+                let py = wds.b - 12 + if(mod(pw, 2) == 0, 0, -3)
+                ellipse { at: px, py + 2.4; radius: 6; color: deep }
+                ellipse { at: px - 6.4, py - 3.2; radius: 3.4; color: deep }
+                ellipse { at: px - 2.4, py - 7.6; radius: 3.4; color: deep }
+                ellipse { at: px + 2.4, py - 7.6; radius: 3.4; color: deep }
+                ellipse { at: px + 6.4, py - 3.2; radius: 3.4; color: deep }
+                ellipse { at: px, py + 2.4; radius: 4.6; color: #ff8fc8 }
+                ellipse { at: px - 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px - 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px + 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px + 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
+            }
+            particles { at: wds.l + 36 * u, wds.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff, #7fd3ff, #5fe3d6, #ffe27a; shape: spark }
+        }
+        group {
+            show: uwu_k > 0.01 and dl0 > 0.9
+            opacity: uwu_k * clamp(dl0 * 3 - 2, 0, 1)
+            let wdl.l = dl.ex - dl.ew / 2
+            let wdl.r = dl.ex + dl.ew / 2
+            let wdl.t = dl.ey - dl.eh / 2
+            let wdl.b = min(dl.ey + dl.eh / 2, vb - lf.t - 1)
+            let wdl.m = (dl.ex)
+            repeat side in 0..2 {
+                let ex = if(side == 0, wdl.l + 50 * u, wdl.r - 50 * u)
+                let sg = if(side == 0, -1, 1)
+                path { at: ex, wdl.t; color: obsidian; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8; close }
+                path { at: ex, wdl.t; stroke: 3 * u; color: deep; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8 }
+                path { at: ex, wdl.t; color: #ff8fc8; move -14 * u, 5; line sg * 9 * u, -19 * u; line 14 * u, 5; close }
+            }
+            repeat s in 0..3 {
+                let sx = wdl.m + (s - 1) * 44 * u
+                let sr = if(s == 1, 7, 5) * u
+                group { scale: 1 + 0.22 * sin(time * 160 + s * 120); pivot: sx, wdl.t + 9
+                    path { at: sx, wdl.t + 9; stroke: 3; color: deep; move 0, -sr; line 0.3 * sr, -0.3 * sr; line sr, 0; line 0.3 * sr, 0.3 * sr; line 0, sr; line -0.3 * sr, 0.3 * sr; line -sr, 0; line -0.3 * sr, -0.3 * sr; close }
+                    path { at: sx, wdl.t + 9; color: pick(s, #ffe27a, #ffffff, #7fd3ff); move 0, -sr; line 0.3 * sr, -0.3 * sr; line sr, 0; line 0.3 * sr, 0.3 * sr; line 0, sr; line -0.3 * sr, 0.3 * sr; line -sr, 0; line -0.3 * sr, -0.3 * sr; close }
+                }
+            }
+            repeat hh in 0..2 {
+                let hx = wdl.l + (22 + hh * 22) * u
+                let hy = wdl.b - 11
+                let hr = if(hh == 0, 5.5, 4.5) * u
+                group { scale: 1 + 0.13 * sin(time * 200 + hh * 150); pivot: hx, hy
+                    ellipse { at: hx - 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62 + 1.5; color: deep }
+                    ellipse { at: hx + 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62 + 1.5; color: deep }
+                    path { at: hx, hy; stroke: 3; color: deep; move -1.12 * hr, -0.1 * hr; line 0, 1.2 * hr; line 1.12 * hr, -0.1 * hr; close }
+                    ellipse { at: hx - 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62; color: pick(hh, #ff6eb4, #b69cff) }
+                    ellipse { at: hx + 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62; color: pick(hh, #ff6eb4, #b69cff) }
+                    path { at: hx, hy; color: pick(hh, #ff6eb4, #b69cff); move -1.1 * hr, -0.1 * hr; line 0, 1.15 * hr; line 1.1 * hr, -0.1 * hr; close }
+                    ellipse { at: hx - 0.7 * hr, hy - 0.5 * hr; radius: hr * 0.2; color: #ffffff; opacity: 80% }
+                }
+            }
+            repeat pw in 0..3 {
+                let px = wdl.r - (26 + pw * 28) * u
+                let py = wdl.b - 12 + if(mod(pw, 2) == 0, 0, -3)
+                ellipse { at: px, py + 2.4; radius: 6; color: deep }
+                ellipse { at: px - 6.4, py - 3.2; radius: 3.4; color: deep }
+                ellipse { at: px - 2.4, py - 7.6; radius: 3.4; color: deep }
+                ellipse { at: px + 2.4, py - 7.6; radius: 3.4; color: deep }
+                ellipse { at: px + 6.4, py - 3.2; radius: 3.4; color: deep }
+                ellipse { at: px, py + 2.4; radius: 4.6; color: #ff8fc8 }
+                ellipse { at: px - 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px - 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px + 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px + 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
+            }
+            particles { at: wdl.l + 36 * u, wdl.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff, #7fd3ff, #5fe3d6, #ffe27a; shape: spark }
+        }
+        group {
+            show: uwu_k > 0.01 and dm0 > 0.9
+            opacity: uwu_k * clamp(dm0 * 3 - 2, 0, 1)
+            let wdm.l = dm.ex - dm.ew / 2
+            let wdm.r = dm.ex + dm.ew / 2
+            let wdm.t = dm.ey - dm.eh / 2
+            let wdm.b = min(dm.ey + dm.eh / 2, vb - lf.t - 1)
+            let wdm.m = (dm.ex)
+            repeat side in 0..2 {
+                let ex = if(side == 0, wdm.l + 50 * u, wdm.r - 50 * u)
+                let sg = if(side == 0, -1, 1)
+                path { at: ex, wdm.t; color: obsidian; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8; close }
+                path { at: ex, wdm.t; stroke: 3 * u; color: deep; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8 }
+                path { at: ex, wdm.t; color: #ff8fc8; move -14 * u, 5; line sg * 9 * u, -19 * u; line 14 * u, 5; close }
+            }
+            repeat s in 0..3 {
+                let sx = wdm.m + (s - 1) * 44 * u
+                let sr = if(s == 1, 7, 5) * u
+                group { scale: 1 + 0.22 * sin(time * 160 + s * 120); pivot: sx, wdm.t + 9
+                    path { at: sx, wdm.t + 9; stroke: 3; color: deep; move 0, -sr; line 0.3 * sr, -0.3 * sr; line sr, 0; line 0.3 * sr, 0.3 * sr; line 0, sr; line -0.3 * sr, 0.3 * sr; line -sr, 0; line -0.3 * sr, -0.3 * sr; close }
+                    path { at: sx, wdm.t + 9; color: pick(s, #ffe27a, #ffffff, #7fd3ff); move 0, -sr; line 0.3 * sr, -0.3 * sr; line sr, 0; line 0.3 * sr, 0.3 * sr; line 0, sr; line -0.3 * sr, 0.3 * sr; line -sr, 0; line -0.3 * sr, -0.3 * sr; close }
+                }
+            }
+            repeat hh in 0..2 {
+                let hx = wdm.l + (22 + hh * 22) * u
+                let hy = wdm.b - 11
+                let hr = if(hh == 0, 5.5, 4.5) * u
+                group { scale: 1 + 0.13 * sin(time * 200 + hh * 150); pivot: hx, hy
+                    ellipse { at: hx - 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62 + 1.5; color: deep }
+                    ellipse { at: hx + 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62 + 1.5; color: deep }
+                    path { at: hx, hy; stroke: 3; color: deep; move -1.12 * hr, -0.1 * hr; line 0, 1.2 * hr; line 1.12 * hr, -0.1 * hr; close }
+                    ellipse { at: hx - 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62; color: pick(hh, #ff6eb4, #b69cff) }
+                    ellipse { at: hx + 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62; color: pick(hh, #ff6eb4, #b69cff) }
+                    path { at: hx, hy; color: pick(hh, #ff6eb4, #b69cff); move -1.1 * hr, -0.1 * hr; line 0, 1.15 * hr; line 1.1 * hr, -0.1 * hr; close }
+                    ellipse { at: hx - 0.7 * hr, hy - 0.5 * hr; radius: hr * 0.2; color: #ffffff; opacity: 80% }
+                }
+            }
+            repeat pw in 0..3 {
+                let px = wdm.r - (26 + pw * 28) * u
+                let py = wdm.b - 12 + if(mod(pw, 2) == 0, 0, -3)
+                ellipse { at: px, py + 2.4; radius: 6; color: deep }
+                ellipse { at: px - 6.4, py - 3.2; radius: 3.4; color: deep }
+                ellipse { at: px - 2.4, py - 7.6; radius: 3.4; color: deep }
+                ellipse { at: px + 2.4, py - 7.6; radius: 3.4; color: deep }
+                ellipse { at: px + 6.4, py - 3.2; radius: 3.4; color: deep }
+                ellipse { at: px, py + 2.4; radius: 4.6; color: #ff8fc8 }
+                ellipse { at: px - 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px - 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px + 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px + 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
+            }
+            particles { at: wdm.l + 36 * u, wdm.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff, #7fd3ff, #5fe3d6, #ffe27a; shape: spark }
+        }
+        group {
+            show: uwu_k > 0.01 and dz0 > 0.9
+            opacity: uwu_k * clamp(dz0 * 3 - 2, 0, 1)
+            let wdz.l = dz.fx - dz.fw / 2
+            let wdz.r = dz.fx + dz.fw / 2
+            let wdz.t = dz.fcy - dz.fh / 2
+            let wdz.b = min(dz.fcy + dz.fh / 2, vb - lf.t - 1)
+            let wdz.m = (dz.fx)
+            repeat side in 0..2 {
+                let ex = if(side == 0, wdz.l + 50 * u, wdz.r - 50 * u)
+                let sg = if(side == 0, -1, 1)
+                path { at: ex, wdz.t; color: obsidian; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8; close }
+                path { at: ex, wdz.t; stroke: 3 * u; color: deep; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8 }
+                path { at: ex, wdz.t; color: #ff8fc8; move -14 * u, 5; line sg * 9 * u, -19 * u; line 14 * u, 5; close }
+            }
+            repeat s in 0..3 {
+                let sx = wdz.m + (s - 1) * 44 * u
+                let sr = if(s == 1, 7, 5) * u
+                group { scale: 1 + 0.22 * sin(time * 160 + s * 120); pivot: sx, wdz.t + 9
+                    path { at: sx, wdz.t + 9; stroke: 3; color: deep; move 0, -sr; line 0.3 * sr, -0.3 * sr; line sr, 0; line 0.3 * sr, 0.3 * sr; line 0, sr; line -0.3 * sr, 0.3 * sr; line -sr, 0; line -0.3 * sr, -0.3 * sr; close }
+                    path { at: sx, wdz.t + 9; color: pick(s, #ffe27a, #ffffff, #7fd3ff); move 0, -sr; line 0.3 * sr, -0.3 * sr; line sr, 0; line 0.3 * sr, 0.3 * sr; line 0, sr; line -0.3 * sr, 0.3 * sr; line -sr, 0; line -0.3 * sr, -0.3 * sr; close }
+                }
+            }
+            repeat hh in 0..2 {
+                let hx = wdz.l + (22 + hh * 22) * u
+                let hy = wdz.b - 11
+                let hr = if(hh == 0, 5.5, 4.5) * u
+                group { scale: 1 + 0.13 * sin(time * 200 + hh * 150); pivot: hx, hy
+                    ellipse { at: hx - 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62 + 1.5; color: deep }
+                    ellipse { at: hx + 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62 + 1.5; color: deep }
+                    path { at: hx, hy; stroke: 3; color: deep; move -1.12 * hr, -0.1 * hr; line 0, 1.2 * hr; line 1.12 * hr, -0.1 * hr; close }
+                    ellipse { at: hx - 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62; color: pick(hh, #ff6eb4, #b69cff) }
+                    ellipse { at: hx + 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62; color: pick(hh, #ff6eb4, #b69cff) }
+                    path { at: hx, hy; color: pick(hh, #ff6eb4, #b69cff); move -1.1 * hr, -0.1 * hr; line 0, 1.15 * hr; line 1.1 * hr, -0.1 * hr; close }
+                    ellipse { at: hx - 0.7 * hr, hy - 0.5 * hr; radius: hr * 0.2; color: #ffffff; opacity: 80% }
+                }
+            }
+            repeat pw in 0..3 {
+                let px = wdz.r - (26 + pw * 28) * u
+                let py = wdz.b - 12 + if(mod(pw, 2) == 0, 0, -3)
+                ellipse { at: px, py + 2.4; radius: 6; color: deep }
+                ellipse { at: px - 6.4, py - 3.2; radius: 3.4; color: deep }
+                ellipse { at: px - 2.4, py - 7.6; radius: 3.4; color: deep }
+                ellipse { at: px + 2.4, py - 7.6; radius: 3.4; color: deep }
+                ellipse { at: px + 6.4, py - 3.2; radius: 3.4; color: deep }
+                ellipse { at: px, py + 2.4; radius: 4.6; color: #ff8fc8 }
+                ellipse { at: px - 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px - 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px + 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
+                ellipse { at: px + 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
+            }
+            particles { at: wdz.l + 36 * u, wdz.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff, #7fd3ff, #5fe3d6, #ffe27a; shape: spark }
+        }
+        //  Round the screen: confetti dots along the frame's bottom and right edges, and twinkling stars on its right corners.
+        group {
+            show: uwu_k > 0.01 and lm > 0.35
+            opacity: uwu_k * lm
+            repeat cd in 0..92 {
+                ellipse { at: 14 * u + cd * 27 * u, vb - lf.t / 2; radius: 2.3; color: pick(mod(cd, 4), #ff6eb4, #b69cff, #7fd3ff, #ffe27a) }
+            }
+            repeat cd2 in 0..40 {
+                ellipse { at: screen.width - lf.t / 2, yo + 40 * u + cd2 * 27 * u; radius: 2.3; color: pick(mod(cd2, 4), #7fd3ff, #ffe27a, #ff6eb4, #b69cff) }
+            }
+            repeat cs in 0..2 {
+                let cy2 = if(cs == 0, yo + lf.t / 2, vb - lf.t / 2)
+                let cx2 = screen.width - lf.t / 2
+                group { scale: 1 + 0.25 * sin(time * 170 + cs * 140); pivot: cx2, cy2
+                    path { at: cx2, cy2; color: #ffe27a; move 0, -6; line 1.8, -1.8; line 6, 0; line 1.8, 1.8; line 0, 6; line -1.8, 1.8; line -6, 0; line -1.8, -1.8; close }
+                }
+            }
         }
         //  The three dots on each tab (the volume card's hint), fading out as the panel they open comes out.
         group {

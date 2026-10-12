@@ -1,67 +1,93 @@
 part Theme {
-        //  The Theme page: two looks (logic: `theme_pick`). Glass: liquid glass in the colours Iris reads off the wallpaper. Retro: moulded plastic in its own palette.
+        //  The Theme page: three looks (logic: `theme_pick`). Glass: liquid glass in the colours Iris reads off the wallpaper. Retro: moulded plastic in its own palette. UwU: candy-coloured plastic with cat ears, stars, hearts and paws.
         //  The lock screen, the window borders and the rest follow whichever is chosen.
         group {
             show: set_pgp > 0.01
             opacity: set_pgp
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 16 * pu + 0.5); text "Theme" { at: floor(spx + 14 * pu + 0.5), floor(sby + 16 * pu + 0.5); anchor: left center; size: 17.5; weight: 700; color: ink; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 16 * pu + 0.5); text "Changes apply right away." { at: floor(spx + 424 * pu + 0.5), floor(sby + 16 * pu + 0.5); anchor: right center; size: 13.5; color: faint; opacity: 80%; family: "Space Grotesk" } }
-            //  From the wallpaper
-            //  Its five colours as broad slanted stripes, fading from dark on the left, where the words are, to their true colours on the right.
+            //  The looks, as three cards: each shows its five colours as broad slanted stripes, fading from the panel colour on the left, where the words are.
+            //  Glass
             group {
-                clip inset 0 box { at: spx + 112 * pu, sby + 84 * pu; size: 206 * pu, 76 * pu; corner: 14 * pu }
-                body { gradient: spx + 112 * pu - 103 * pu, sby + 84 * pu to spx + 112 * pu + 103 * pu, sby + 84 * pu, mix(wcol.tint, mix(#000000, tint, cas_k), 0.66), mix(wcol.tint, mix(#000000, tint, cas_k), 0.54) 55%, mix(wcol.tint, mix(#000000, tint, cas_k), 0.1); path { at: spx + 112 * pu, sby + 84 * pu; move -182.9 * pu, -38 * pu; line -44.7 * pu, -38 * pu; line -78.9 * pu, 38 * pu; line -217.1 * pu, 38 * pu; close } }
-                body { gradient: spx + 112 * pu - 103 * pu, sby + 84 * pu to spx + 112 * pu + 103 * pu, sby + 84 * pu, mix(wcol.panel, mix(#000000, tint, cas_k), 0.66), mix(wcol.panel, mix(#000000, tint, cas_k), 0.54) 55%, mix(wcol.panel, mix(#000000, tint, cas_k), 0.1); path { at: spx + 112 * pu, sby + 84 * pu; move -44.7 * pu, -38 * pu; line -3.5 * pu, -38 * pu; line -37.7 * pu, 38 * pu; line -78.9 * pu, 38 * pu; close } }
-                body { gradient: spx + 112 * pu - 103 * pu, sby + 84 * pu to spx + 112 * pu + 103 * pu, sby + 84 * pu, mix(wcol.ink, mix(#000000, tint, cas_k), 0.66), mix(wcol.ink, mix(#000000, tint, cas_k), 0.54) 55%, mix(wcol.ink, mix(#000000, tint, cas_k), 0.1); path { at: spx + 112 * pu, sby + 84 * pu; move -3.5 * pu, -38 * pu; line 37.7 * pu, -38 * pu; line 3.5 * pu, 38 * pu; line -37.7 * pu, 38 * pu; close } }
-                body { gradient: spx + 112 * pu - 103 * pu, sby + 84 * pu to spx + 112 * pu + 103 * pu, sby + 84 * pu, mix(wcol.mint, mix(#000000, tint, cas_k), 0.66), mix(wcol.mint, mix(#000000, tint, cas_k), 0.54) 55%, mix(wcol.mint, mix(#000000, tint, cas_k), 0.1); path { at: spx + 112 * pu, sby + 84 * pu; move 37.7 * pu, -38 * pu; line 78.9 * pu, -38 * pu; line 44.7 * pu, 38 * pu; line 3.5 * pu, 38 * pu; close } }
-                body { gradient: spx + 112 * pu - 103 * pu, sby + 84 * pu to spx + 112 * pu + 103 * pu, sby + 84 * pu, mix(wcol.alert, mix(#000000, tint, cas_k), 0.66), mix(wcol.alert, mix(#000000, tint, cas_k), 0.54) 55%, mix(wcol.alert, mix(#000000, tint, cas_k), 0.1); path { at: spx + 112 * pu, sby + 84 * pu; move 78.9 * pu, -38 * pu; line 217.1 * pu, -38 * pu; line 182.9 * pu, 38 * pu; line 44.7 * pu, 38 * pu; close } }
-                box { at: spx + 112 * pu, sby + 84 * pu; size: 206 * pu, 76 * pu; color: #ffffff; opacity: 8% * theme_hit.0.hover }
+                clip inset 0 box { at: spx + 81 * pu, sby + 84 * pu; size: 134 * pu, 76 * pu; corner: 14 * pu }
+                body { gradient: spx + 81 * pu - 67 * pu, sby + 84 * pu to spx + 81 * pu + 67 * pu, sby + 84 * pu, mix(wcol.tint, mix(#000000, tint, pk), 0.66), mix(wcol.tint, mix(#000000, tint, pk), 0.54) 55%, mix(wcol.tint, mix(#000000, tint, pk), 0.1); path { at: spx + 81 * pu, sby + 84 * pu; move -98 * pu, -38 * pu; line -60 * pu, -38 * pu; line -88 * pu, 38 * pu; line -126 * pu, 38 * pu; close } }
+                body { gradient: spx + 81 * pu - 67 * pu, sby + 84 * pu to spx + 81 * pu + 67 * pu, sby + 84 * pu, mix(wcol.panel, mix(#000000, tint, pk), 0.66), mix(wcol.panel, mix(#000000, tint, pk), 0.54) 55%, mix(wcol.panel, mix(#000000, tint, pk), 0.1); path { at: spx + 81 * pu, sby + 84 * pu; move -64 * pu, -38 * pu; line -26 * pu, -38 * pu; line -54 * pu, 38 * pu; line -92 * pu, 38 * pu; close } }
+                body { gradient: spx + 81 * pu - 67 * pu, sby + 84 * pu to spx + 81 * pu + 67 * pu, sby + 84 * pu, mix(wcol.ink, mix(#000000, tint, pk), 0.66), mix(wcol.ink, mix(#000000, tint, pk), 0.54) 55%, mix(wcol.ink, mix(#000000, tint, pk), 0.1); path { at: spx + 81 * pu, sby + 84 * pu; move -30 * pu, -38 * pu; line 8 * pu, -38 * pu; line -20 * pu, 38 * pu; line -58 * pu, 38 * pu; close } }
+                body { gradient: spx + 81 * pu - 67 * pu, sby + 84 * pu to spx + 81 * pu + 67 * pu, sby + 84 * pu, mix(wcol.mint, mix(#000000, tint, pk), 0.66), mix(wcol.mint, mix(#000000, tint, pk), 0.54) 55%, mix(wcol.mint, mix(#000000, tint, pk), 0.1); path { at: spx + 81 * pu, sby + 84 * pu; move 4 * pu, -38 * pu; line 42 * pu, -38 * pu; line 14 * pu, 38 * pu; line -24 * pu, 38 * pu; close } }
+                body { gradient: spx + 81 * pu - 67 * pu, sby + 84 * pu to spx + 81 * pu + 67 * pu, sby + 84 * pu, mix(wcol.alert, mix(#000000, tint, pk), 0.66), mix(wcol.alert, mix(#000000, tint, pk), 0.54) 55%, mix(wcol.alert, mix(#000000, tint, pk), 0.1); path { at: spx + 81 * pu, sby + 84 * pu; move 38 * pu, -38 * pu; line 76 * pu, -38 * pu; line 48 * pu, 38 * pu; line 10 * pu, 38 * pu; close } }
+                box { at: spx + 81 * pu, sby + 84 * pu; size: 134 * pu, 76 * pu; color: #ffffff; opacity: 8% * theme_hit.0.hover }
             }
-            box { at: spx + 112 * pu, sby + 84 * pu; size: 206 * pu, 76 * pu; corner: 14 * pu; stroke: 1.6 * pu; color: mint; opacity: if(theme_sel == 0, 90%, 0) }
-            group { scale: rs; pivot: floor(spx + 112 * pu - 93 * pu + 0.5), floor(sby + 84 * pu - 17 * pu + 0.5); text "Glass" { at: floor(spx + 112 * pu - 93 * pu + 0.5), floor(sby + 84 * pu - 17 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; width: (150 * pu) / rs; lines: 1; color: if(theme_sel == 0, mint, ink); family: "Space Grotesk" } }
-            group { scale: rs; pivot: floor(spx + 112 * pu - 93 * pu + 0.5), floor(sby + 84 * pu + 4 * pu + 0.5); text "Liquid glass, in the wallpaper's colours" { at: floor(spx + 112 * pu - 93 * pu + 0.5), floor(sby + 84 * pu + 4 * pu + 0.5); anchor: left center; size: 12; weight: 500; width: (190 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
-            ellipse { at: spx + 112 * pu - 85 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: wcol.tint }
-            ellipse { at: spx + 112 * pu - 85 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
-            ellipse { at: spx + 112 * pu - 63 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: wcol.panel }
-            ellipse { at: spx + 112 * pu - 63 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
-            ellipse { at: spx + 112 * pu - 41 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: wcol.ink }
-            ellipse { at: spx + 112 * pu - 41 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
-            ellipse { at: spx + 112 * pu - 19 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: wcol.mint }
-            ellipse { at: spx + 112 * pu - 19 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
-            ellipse { at: spx + 112 * pu - -3 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: wcol.alert }
-            ellipse { at: spx + 112 * pu - -3 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
-            ellipse { at: spx + 112 * pu + 86 * pu, sby + 84 * pu - 24 * pu; radius: 8 * pu; color: mint; opacity: if(theme_sel == 0, 100%, 0) }
-            path { at: spx + 112 * pu + 86 * pu, sby + 84 * pu - 24 * pu; stroke: 1.6 * pu; color: onmint; opacity: if(theme_sel == 0, 100%, 0); move -3.4 * pu, 0; line -1 * pu, 2.8 * pu; line 3.6 * pu, -3 * pu }
-            zone box theme_hit.0 { at: spx + 112 * pu, sby + 84 * pu; size: 206 * pu, 76 * pu; corner: 14 * pu; cursor: pointer }
+            box { at: spx + 81 * pu, sby + 84 * pu; size: 134 * pu, 76 * pu; corner: 14 * pu; stroke: 1.6 * pu; color: mint; opacity: if(theme_sel == 0, 90%, 0) }
+            group { scale: rs; pivot: floor(spx + 81 * pu - 57 * pu + 0.5), floor(sby + 84 * pu - 17 * pu + 0.5); text "Glass" { at: floor(spx + 81 * pu - 57 * pu + 0.5), floor(sby + 84 * pu - 17 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(spx + 81 * pu - 57 * pu + 0.5), floor(sby + 84 * pu + 4 * pu + 0.5); text "Wallpaper colours" { at: floor(spx + 81 * pu - 57 * pu + 0.5), floor(sby + 84 * pu + 4 * pu + 0.5); anchor: left center; size: 12; weight: 500; width: (112 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
+            ellipse { at: spx + 81 * pu + -49 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: wcol.tint }
+            ellipse { at: spx + 81 * pu + -49 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
+            ellipse { at: spx + 81 * pu + -27 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: wcol.panel }
+            ellipse { at: spx + 81 * pu + -27 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
+            ellipse { at: spx + 81 * pu + -5 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: wcol.ink }
+            ellipse { at: spx + 81 * pu + -5 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
+            ellipse { at: spx + 81 * pu + 17 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: wcol.mint }
+            ellipse { at: spx + 81 * pu + 17 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
+            ellipse { at: spx + 81 * pu + 39 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: wcol.alert }
+            ellipse { at: spx + 81 * pu + 39 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
+            ellipse { at: spx + 81 * pu + 52 * pu, sby + 84 * pu - 24 * pu; radius: 8 * pu; color: mint; opacity: if(theme_sel == 0, 100%, 0) }
+            path { at: spx + 81 * pu + 52 * pu, sby + 84 * pu - 24 * pu; stroke: 1.6 * pu; color: onmint; opacity: if(theme_sel == 0, 100%, 0); move -3.4 * pu, 0; line -1 * pu, 2.8 * pu; line 3.6 * pu, -3 * pu }
+            zone box theme_hit.0 { at: spx + 81 * pu, sby + 84 * pu; size: 134 * pu, 76 * pu; corner: 14 * pu; cursor: pointer; label: "Glass theme" }
             on press theme_hit.0 { emit theme_pick(0) }
             //  Retro
-            //  Its five colours as broad slanted stripes, fading from dark on the left, where the words are, to their true colours on the right.
             group {
-                clip inset 0 box { at: spx + 326 * pu, sby + 84 * pu; size: 206 * pu, 76 * pu; corner: 14 * pu }
-                body { gradient: spx + 326 * pu - 103 * pu, sby + 84 * pu to spx + 326 * pu + 103 * pu, sby + 84 * pu, mix(#d6d0bd, mix(#000000, tint, cas_k), 0.66), mix(#d6d0bd, mix(#000000, tint, cas_k), 0.54) 55%, mix(#d6d0bd, mix(#000000, tint, cas_k), 0.1); path { at: spx + 326 * pu, sby + 84 * pu; move -182.9 * pu, -38 * pu; line -44.7 * pu, -38 * pu; line -78.9 * pu, 38 * pu; line -217.1 * pu, 38 * pu; close } }
-                body { gradient: spx + 326 * pu - 103 * pu, sby + 84 * pu to spx + 326 * pu + 103 * pu, sby + 84 * pu, mix(#bfb9a5, mix(#000000, tint, cas_k), 0.66), mix(#bfb9a5, mix(#000000, tint, cas_k), 0.54) 55%, mix(#bfb9a5, mix(#000000, tint, cas_k), 0.1); path { at: spx + 326 * pu, sby + 84 * pu; move -44.7 * pu, -38 * pu; line -3.5 * pu, -38 * pu; line -37.7 * pu, 38 * pu; line -78.9 * pu, 38 * pu; close } }
-                body { gradient: spx + 326 * pu - 103 * pu, sby + 84 * pu to spx + 326 * pu + 103 * pu, sby + 84 * pu, mix(#2b2833, mix(#000000, tint, cas_k), 0.66), mix(#2b2833, mix(#000000, tint, cas_k), 0.54) 55%, mix(#2b2833, mix(#000000, tint, cas_k), 0.1); path { at: spx + 326 * pu, sby + 84 * pu; move -3.5 * pu, -38 * pu; line 37.7 * pu, -38 * pu; line 3.5 * pu, 38 * pu; line -37.7 * pu, 38 * pu; close } }
-                body { gradient: spx + 326 * pu - 103 * pu, sby + 84 * pu to spx + 326 * pu + 103 * pu, sby + 84 * pu, mix(#e63a3a, mix(#000000, tint, cas_k), 0.66), mix(#e63a3a, mix(#000000, tint, cas_k), 0.54) 55%, mix(#e63a3a, mix(#000000, tint, cas_k), 0.1); path { at: spx + 326 * pu, sby + 84 * pu; move 37.7 * pu, -38 * pu; line 78.9 * pu, -38 * pu; line 44.7 * pu, 38 * pu; line 3.5 * pu, 38 * pu; close } }
-                body { gradient: spx + 326 * pu - 103 * pu, sby + 84 * pu to spx + 326 * pu + 103 * pu, sby + 84 * pu, mix(#d81b60, mix(#000000, tint, cas_k), 0.66), mix(#d81b60, mix(#000000, tint, cas_k), 0.54) 55%, mix(#d81b60, mix(#000000, tint, cas_k), 0.1); path { at: spx + 326 * pu, sby + 84 * pu; move 78.9 * pu, -38 * pu; line 217.1 * pu, -38 * pu; line 182.9 * pu, 38 * pu; line 44.7 * pu, 38 * pu; close } }
-                box { at: spx + 326 * pu, sby + 84 * pu; size: 206 * pu, 76 * pu; color: #ffffff; opacity: 8% * theme_hit.8.hover }
+                clip inset 0 box { at: spx + 223 * pu, sby + 84 * pu; size: 134 * pu, 76 * pu; corner: 14 * pu }
+                body { gradient: spx + 223 * pu - 67 * pu, sby + 84 * pu to spx + 223 * pu + 67 * pu, sby + 84 * pu, mix(#d6d0bd, mix(#000000, tint, pk), 0.66), mix(#d6d0bd, mix(#000000, tint, pk), 0.54) 55%, mix(#d6d0bd, mix(#000000, tint, pk), 0.1); path { at: spx + 223 * pu, sby + 84 * pu; move -98 * pu, -38 * pu; line -60 * pu, -38 * pu; line -88 * pu, 38 * pu; line -126 * pu, 38 * pu; close } }
+                body { gradient: spx + 223 * pu - 67 * pu, sby + 84 * pu to spx + 223 * pu + 67 * pu, sby + 84 * pu, mix(#bfb9a5, mix(#000000, tint, pk), 0.66), mix(#bfb9a5, mix(#000000, tint, pk), 0.54) 55%, mix(#bfb9a5, mix(#000000, tint, pk), 0.1); path { at: spx + 223 * pu, sby + 84 * pu; move -64 * pu, -38 * pu; line -26 * pu, -38 * pu; line -54 * pu, 38 * pu; line -92 * pu, 38 * pu; close } }
+                body { gradient: spx + 223 * pu - 67 * pu, sby + 84 * pu to spx + 223 * pu + 67 * pu, sby + 84 * pu, mix(#2b2833, mix(#000000, tint, pk), 0.66), mix(#2b2833, mix(#000000, tint, pk), 0.54) 55%, mix(#2b2833, mix(#000000, tint, pk), 0.1); path { at: spx + 223 * pu, sby + 84 * pu; move -30 * pu, -38 * pu; line 8 * pu, -38 * pu; line -20 * pu, 38 * pu; line -58 * pu, 38 * pu; close } }
+                body { gradient: spx + 223 * pu - 67 * pu, sby + 84 * pu to spx + 223 * pu + 67 * pu, sby + 84 * pu, mix(#e63a3a, mix(#000000, tint, pk), 0.66), mix(#e63a3a, mix(#000000, tint, pk), 0.54) 55%, mix(#e63a3a, mix(#000000, tint, pk), 0.1); path { at: spx + 223 * pu, sby + 84 * pu; move 4 * pu, -38 * pu; line 42 * pu, -38 * pu; line 14 * pu, 38 * pu; line -24 * pu, 38 * pu; close } }
+                body { gradient: spx + 223 * pu - 67 * pu, sby + 84 * pu to spx + 223 * pu + 67 * pu, sby + 84 * pu, mix(#d81b60, mix(#000000, tint, pk), 0.66), mix(#d81b60, mix(#000000, tint, pk), 0.54) 55%, mix(#d81b60, mix(#000000, tint, pk), 0.1); path { at: spx + 223 * pu, sby + 84 * pu; move 38 * pu, -38 * pu; line 76 * pu, -38 * pu; line 48 * pu, 38 * pu; line 10 * pu, 38 * pu; close } }
+                box { at: spx + 223 * pu, sby + 84 * pu; size: 134 * pu, 76 * pu; color: #ffffff; opacity: 8% * theme_hit.8.hover }
             }
-            box { at: spx + 326 * pu, sby + 84 * pu; size: 206 * pu, 76 * pu; corner: 14 * pu; stroke: 1.6 * pu; color: mint; opacity: if(theme_sel == 8, 90%, 0) }
-            group { scale: rs; pivot: floor(spx + 326 * pu - 93 * pu + 0.5), floor(sby + 84 * pu - 17 * pu + 0.5); text "Retro" { at: floor(spx + 326 * pu - 93 * pu + 0.5), floor(sby + 84 * pu - 17 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; width: (150 * pu) / rs; lines: 1; color: if(theme_sel == 8, mint, ink); family: "Space Grotesk" } }
-            group { scale: rs; pivot: floor(spx + 326 * pu - 93 * pu + 0.5), floor(sby + 84 * pu + 4 * pu + 0.5); text "Moulded plastic, no glass" { at: floor(spx + 326 * pu - 93 * pu + 0.5), floor(sby + 84 * pu + 4 * pu + 0.5); anchor: left center; size: 12; weight: 500; width: (190 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
-            ellipse { at: spx + 326 * pu - 85 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: #d6d0bd }
-            ellipse { at: spx + 326 * pu - 85 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
-            ellipse { at: spx + 326 * pu - 63 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: #bfb9a5 }
-            ellipse { at: spx + 326 * pu - 63 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
-            ellipse { at: spx + 326 * pu - 41 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: #2b2833 }
-            ellipse { at: spx + 326 * pu - 41 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
-            ellipse { at: spx + 326 * pu - 19 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: #e63a3a }
-            ellipse { at: spx + 326 * pu - 19 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
-            ellipse { at: spx + 326 * pu - -3 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: #d81b60 }
-            ellipse { at: spx + 326 * pu - -3 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
-            ellipse { at: spx + 326 * pu + 86 * pu, sby + 84 * pu - 24 * pu; radius: 8 * pu; color: mint; opacity: if(theme_sel == 8, 100%, 0) }
-            path { at: spx + 326 * pu + 86 * pu, sby + 84 * pu - 24 * pu; stroke: 1.6 * pu; color: onmint; opacity: if(theme_sel == 8, 100%, 0); move -3.4 * pu, 0; line -1 * pu, 2.8 * pu; line 3.6 * pu, -3 * pu }
-            zone box theme_hit.8 { at: spx + 326 * pu, sby + 84 * pu; size: 206 * pu, 76 * pu; corner: 14 * pu; cursor: pointer }
+            box { at: spx + 223 * pu, sby + 84 * pu; size: 134 * pu, 76 * pu; corner: 14 * pu; stroke: 1.6 * pu; color: mint; opacity: if(theme_sel == 8, 90%, 0) }
+            group { scale: rs; pivot: floor(spx + 223 * pu - 57 * pu + 0.5), floor(sby + 84 * pu - 17 * pu + 0.5); text "Retro" { at: floor(spx + 223 * pu - 57 * pu + 0.5), floor(sby + 84 * pu - 17 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(spx + 223 * pu - 57 * pu + 0.5), floor(sby + 84 * pu + 4 * pu + 0.5); text "Moulded plastic" { at: floor(spx + 223 * pu - 57 * pu + 0.5), floor(sby + 84 * pu + 4 * pu + 0.5); anchor: left center; size: 12; weight: 500; width: (112 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
+            ellipse { at: spx + 223 * pu + -49 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: #d6d0bd }
+            ellipse { at: spx + 223 * pu + -49 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
+            ellipse { at: spx + 223 * pu + -27 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: #bfb9a5 }
+            ellipse { at: spx + 223 * pu + -27 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
+            ellipse { at: spx + 223 * pu + -5 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: #2b2833 }
+            ellipse { at: spx + 223 * pu + -5 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
+            ellipse { at: spx + 223 * pu + 17 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: #e63a3a }
+            ellipse { at: spx + 223 * pu + 17 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
+            ellipse { at: spx + 223 * pu + 39 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: #d81b60 }
+            ellipse { at: spx + 223 * pu + 39 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
+            ellipse { at: spx + 223 * pu + 52 * pu, sby + 84 * pu - 24 * pu; radius: 8 * pu; color: mint; opacity: if(theme_sel == 8, 100%, 0) }
+            path { at: spx + 223 * pu + 52 * pu, sby + 84 * pu - 24 * pu; stroke: 1.6 * pu; color: onmint; opacity: if(theme_sel == 8, 100%, 0); move -3.4 * pu, 0; line -1 * pu, 2.8 * pu; line 3.6 * pu, -3 * pu }
+            zone box theme_hit.8 { at: spx + 223 * pu, sby + 84 * pu; size: 134 * pu, 76 * pu; corner: 14 * pu; cursor: pointer; label: "Retro theme" }
             on press theme_hit.8 { emit theme_pick(8) }
+            //  UwU
+            group {
+                clip inset 0 box { at: spx + 365 * pu, sby + 84 * pu; size: 134 * pu, 76 * pu; corner: 14 * pu }
+                body { gradient: spx + 365 * pu - 67 * pu, sby + 84 * pu to spx + 365 * pu + 67 * pu, sby + 84 * pu, mix(#fff2fa, mix(#000000, tint, pk), 0.66), mix(#fff2fa, mix(#000000, tint, pk), 0.54) 55%, mix(#fff2fa, mix(#000000, tint, pk), 0.1); path { at: spx + 365 * pu, sby + 84 * pu; move -98 * pu, -38 * pu; line -60 * pu, -38 * pu; line -88 * pu, 38 * pu; line -126 * pu, 38 * pu; close } }
+                body { gradient: spx + 365 * pu - 67 * pu, sby + 84 * pu to spx + 365 * pu + 67 * pu, sby + 84 * pu, mix(#ffd9ee, mix(#000000, tint, pk), 0.66), mix(#ffd9ee, mix(#000000, tint, pk), 0.54) 55%, mix(#ffd9ee, mix(#000000, tint, pk), 0.1); path { at: spx + 365 * pu, sby + 84 * pu; move -64 * pu, -38 * pu; line -26 * pu, -38 * pu; line -54 * pu, 38 * pu; line -92 * pu, 38 * pu; close } }
+                body { gradient: spx + 365 * pu - 67 * pu, sby + 84 * pu to spx + 365 * pu + 67 * pu, sby + 84 * pu, mix(#4a2b6b, mix(#000000, tint, pk), 0.66), mix(#4a2b6b, mix(#000000, tint, pk), 0.54) 55%, mix(#4a2b6b, mix(#000000, tint, pk), 0.1); path { at: spx + 365 * pu, sby + 84 * pu; move -30 * pu, -38 * pu; line 8 * pu, -38 * pu; line -20 * pu, 38 * pu; line -58 * pu, 38 * pu; close } }
+                body { gradient: spx + 365 * pu - 67 * pu, sby + 84 * pu to spx + 365 * pu + 67 * pu, sby + 84 * pu, mix(#ff5fae, mix(#000000, tint, pk), 0.66), mix(#ff5fae, mix(#000000, tint, pk), 0.54) 55%, mix(#ff5fae, mix(#000000, tint, pk), 0.1); path { at: spx + 365 * pu, sby + 84 * pu; move 4 * pu, -38 * pu; line 42 * pu, -38 * pu; line 14 * pu, 38 * pu; line -24 * pu, 38 * pu; close } }
+                body { gradient: spx + 365 * pu - 67 * pu, sby + 84 * pu to spx + 365 * pu + 67 * pu, sby + 84 * pu, mix(#5fe3d6, mix(#000000, tint, pk), 0.66), mix(#5fe3d6, mix(#000000, tint, pk), 0.54) 55%, mix(#5fe3d6, mix(#000000, tint, pk), 0.1); path { at: spx + 365 * pu, sby + 84 * pu; move 38 * pu, -38 * pu; line 76 * pu, -38 * pu; line 48 * pu, 38 * pu; line 10 * pu, 38 * pu; close } }
+                box { at: spx + 365 * pu, sby + 84 * pu; size: 134 * pu, 76 * pu; color: #ffffff; opacity: 8% * theme_hit.9.hover }
+            }
+            box { at: spx + 365 * pu, sby + 84 * pu; size: 134 * pu, 76 * pu; corner: 14 * pu; stroke: 1.6 * pu; color: mint; opacity: if(theme_sel == 9, 90%, 0) }
+            group { scale: rs; pivot: floor(spx + 365 * pu - 57 * pu + 0.5), floor(sby + 84 * pu - 17 * pu + 0.5); text "UwU" { at: floor(spx + 365 * pu - 57 * pu + 0.5), floor(sby + 84 * pu - 17 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(spx + 365 * pu - 57 * pu + 0.5), floor(sby + 84 * pu + 4 * pu + 0.5); text "Kawaii overload" { at: floor(spx + 365 * pu - 57 * pu + 0.5), floor(sby + 84 * pu + 4 * pu + 0.5); anchor: left center; size: 12; weight: 500; width: (112 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
+            ellipse { at: spx + 365 * pu + -49 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: #fff2fa }
+            ellipse { at: spx + 365 * pu + -49 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
+            ellipse { at: spx + 365 * pu + -27 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: #ffd9ee }
+            ellipse { at: spx + 365 * pu + -27 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
+            ellipse { at: spx + 365 * pu + -5 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: #4a2b6b }
+            ellipse { at: spx + 365 * pu + -5 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
+            ellipse { at: spx + 365 * pu + 17 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: #ff5fae }
+            ellipse { at: spx + 365 * pu + 17 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
+            ellipse { at: spx + 365 * pu + 39 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; color: #5fe3d6 }
+            ellipse { at: spx + 365 * pu + 39 * pu, sby + 84 * pu + 24 * pu; radius: 8 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
+            ellipse { at: spx + 365 * pu + 52 * pu, sby + 84 * pu - 24 * pu; radius: 8 * pu; color: mint; opacity: if(theme_sel == 9, 100%, 0) }
+            path { at: spx + 365 * pu + 52 * pu, sby + 84 * pu - 24 * pu; stroke: 1.6 * pu; color: onmint; opacity: if(theme_sel == 9, 100%, 0); move -3.4 * pu, 0; line -1 * pu, 2.8 * pu; line 3.6 * pu, -3 * pu }
+            zone box theme_hit.9 { at: spx + 365 * pu, sby + 84 * pu; size: 134 * pu, 76 * pu; corner: 14 * pu; cursor: pointer; label: "UwU theme" }
+            on press theme_hit.9 { emit theme_pick(9) }
             //  The font: a dropdown of the installed typefaces, a picture of the chosen one under it, and Apply (the shell starts again with it).
             let fnt_y = sby + 164 * pu                       // the trigger's top
             let fnt_x = spx + 14 * pu

@@ -134,20 +134,14 @@ part Display {
             let dh = 12 * pu
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(dtop + 226 * pu + 0.5); text "SDR brightness" { at: floor(spx + 14 * pu + 0.5), floor(dtop + 226 * pu + 0.5); anchor: left center; size: 15; color: faint; family: "Space Grotesk" } }
             body { color: deep; rim: 9%; box { at: dsl.x0 + dsl.w / 2, dtop + 226 * pu; size: dsl.w, dh; corner: dh / 2 } }
-            group {
-                glow: 6 * pu, 50%, mint
-                body { gradient: dsl.x0, 0 to dsl.x0 + dsl.w, 0, mintlo, mint 55%, minthi; rim: 22%; box { from: dsl.x0, dtop + 226 * pu - dh / 2; size: max(0.1, dsl.w * clamp(disp_sdrb - 1, 0, 1)), dh; corner: dh / 2 } }
-            }
+            body { shadow: 0, 0, 6 * pu, 50%, mint; gradient: dsl.x0, 0 to dsl.x0 + dsl.w, 0, mintlo, mint 55%, minthi; rim: 22%; box { from: dsl.x0, dtop + 226 * pu - dh / 2; size: max(0.1, dsl.w * clamp(disp_sdrb - 1, 0, 1)), dh; corner: dh / 2 } }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(dtop + 226 * pu + 0.5); text disp_sdrb_text { at: floor(spx + 424 * pu + 0.5), floor(dtop + 226 * pu + 0.5); anchor: right center; size: 17.5; weight: 600; color: ink; family: "Space Grotesk" } }
             zone box disp_sdrb_hit { at: dsl.x0 + dsl.w / 2, dtop + 226 * pu; size: dsl.w + 24 * pu, 30 * pu; cursor: pointer; active: (dtop + 226 * pu) - disp.off > sby and (dtop + 226 * pu) - disp.off < sby + set.h * pu }
             on press disp_sdrb_hit { emit disp_sdrb_set(clamp((pointer.x - dsl.x0) / dsl.w, 0, 1)) }
             on drag disp_sdrb_hit { emit disp_sdrb_set(clamp((pointer.x - dsl.x0) / dsl.w, 0, 1)) }
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(dtop + 256 * pu + 0.5); text "SDR saturation" { at: floor(spx + 14 * pu + 0.5), floor(dtop + 256 * pu + 0.5); anchor: left center; size: 15; color: faint; family: "Space Grotesk" } }
             body { color: deep; rim: 9%; box { at: dsl.x0 + dsl.w / 2, dtop + 256 * pu; size: dsl.w, dh; corner: dh / 2 } }
-            group {
-                glow: 6 * pu, 50%, mint
-                body { gradient: dsl.x0, 0 to dsl.x0 + dsl.w, 0, mintlo, mint 55%, minthi; rim: 22%; box { from: dsl.x0, dtop + 256 * pu - dh / 2; size: max(0.1, dsl.w * clamp((disp_sdrs - 0.9) / 0.2, 0, 1)), dh; corner: dh / 2 } }
-            }
+            body { shadow: 0, 0, 6 * pu, 50%, mint; gradient: dsl.x0, 0 to dsl.x0 + dsl.w, 0, mintlo, mint 55%, minthi; rim: 22%; box { from: dsl.x0, dtop + 256 * pu - dh / 2; size: max(0.1, dsl.w * clamp((disp_sdrs - 0.9) / 0.2, 0, 1)), dh; corner: dh / 2 } }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(dtop + 256 * pu + 0.5); text disp_sdrs_text { at: floor(spx + 424 * pu + 0.5), floor(dtop + 256 * pu + 0.5); anchor: right center; size: 17.5; weight: 600; color: ink; family: "Space Grotesk" } }
             zone box disp_sdrs_hit { at: dsl.x0 + dsl.w / 2, dtop + 256 * pu; size: dsl.w + 24 * pu, 30 * pu; cursor: pointer; active: (dtop + 256 * pu) - disp.off > sby and (dtop + 256 * pu) - disp.off < sby + set.h * pu }
             on press disp_sdrs_hit { emit disp_sdrs_set(clamp((pointer.x - dsl.x0) / dsl.w, 0, 1)) }

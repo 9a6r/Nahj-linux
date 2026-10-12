@@ -61,7 +61,7 @@ part Overview {
                 refraction: 0%
                 dispersion: 0%
                 shine: 9000, 9000
-                opacity: obs * 0.34 * (1 - cas_k)
+                opacity: obs * 0.34 * (1 - pk)
                 show: obs > 0.97
                 box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu }
             }
@@ -69,7 +69,7 @@ part Overview {
                 color: obsidian
                 rim: 0%
                 opacity: obs * (1 - 0.4 * clamp(hy_blur, 0, 1))
-                shadow: 0, 14 * ovu, 42 * ovu, (55%) * (1 - cas_k), #000000
+                shadow: 0, 14 * ovu, 42 * ovu, (55%) * (1 - pk), #000000
                 show: obs > 0.004
                 box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu }
             }
@@ -81,6 +81,16 @@ part Overview {
                 shadow: 4.5 * u * cas_k, 5.5 * u * cas_k, 0, 55% * cas_k, deep
                 opacity: cas_k
                 show: cas_k > 0.004
+                box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu }
+            }
+            //  The UwU's candy plastic over it: a pastel gradient across the whole screen (pink, lilac, sky, mint), a thick grape outline, a lit lip and a hard pink shadow.
+            body {
+                gradient: 0, 0 to screen.width, screen.height, #ffcfe8, #e6d6ff 38%, #cfeaff 68%, #d2fff0
+                rim: 55% * uwu_k
+                border: 3 * u * uwu_k, deep
+                shadow: 4 * u * uwu_k, 5 * u * uwu_k, 0, 90% * uwu_k, mix(deep, #ff6ec7, 0.75)
+                opacity: uwu_k
+                show: uwu_k > 0.004
                 box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu }
             }
             box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu; color: mix(ink, mint, max(ovc.act, ovc.drop)); opacity: 6% + 9% * ovc.act + 14% * ovc.drop + 4% * ov_hz.$c.hover }

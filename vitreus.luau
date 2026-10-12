@@ -2431,6 +2431,8 @@ end
 function iris_fx.apply_palette(pal)
     iris_fx.last_pal = pal
     local order = iris_fx.order
+    local tr, tg, tb = hex_to_rgb(pal.tint)
+    local wink = (0.2126 * tr + 0.7152 * tg + 0.0722 * tb) > 0.45 and "#f7f4fb" or pal.ink
     local lines = {
         "//  Written by Vitreus's logic from the wallpaper (Iris); edits here are overwritten.",
         "//  `let`s only: the lock screen imports this. (The shell's own scene takes its colours as facts: palette-live.plm.)",
@@ -2438,6 +2440,9 @@ function iris_fx.apply_palette(pal)
         "library Palette {",
     }
     for _, k in ipairs(order) do lines[#lines + 1] = string.format("    let %-7s= %s", k, pal[k]) end
+    lines[#lines + 1] = string.format("    let %-7s= %s", "wink", wink)
+    -- (`wink`: the writing the desktop widgets put straight on the wallpaper, the system monitor's: the palette's ink, unless that palette is a light one
+    -- (Retro, UwU), whose ink is dark and would be lost on a wallpaper: then a near-white, which the widgets' own shadow lifts.)
     lines[#lines + 1] = "}"
     local text_out = table.concat(lines, "\n") .. "\n"
     if text_out == iris_last_text then return end
@@ -2446,10 +2451,12 @@ function iris_fx.apply_palette(pal)
     local same_as_saved = iris_fx.saved ~= nil
     if same_as_saved then
         for _, k in ipairs(order) do if iris_fx.saved[k] ~= pal[k] then same_as_saved = false end end
+        if iris_fx.saved.wink ~= wink then same_as_saved = false end
     end
     if same_as_saved then iris_fx.apply_hypr(); return end
     local keep = {}
     for _, k in ipairs(order) do keep[k] = pal[k] end
+    keep.wink = wink
     iris_fx.saved = keep
     pcall(sys.call, "files.write", "palette.json", keep)
     with_dirs(function(d)
@@ -2719,6 +2726,10 @@ end
 -- Retro (preset 8): moulded putty plastic, not glass. Its colours skip the legibility floor (which is for light text on dark glass): the text is a
 -- dark ink on the plastic, the accent a Famicom red, and `deep` (the hard shadow, the outlines) is the ink itself.
 iris_fx.CASSETTE = 8
+-- UwU (preset 9): bubblegum plastic, bright and over the top. Cream bodies, a deep grape for text and outlines, hot pink for the accent.
+iris_fx.UWU = 9
+iris_fx.uwu = { ink = "#5a2a8c", faint = "#9a6bc4", mint = "#ff5fae", mintlo = "#e03a93", minthi = "#ff9ccf", onmint = "#ffffff",
+                tint = "#ffe3f2", panel = "#ffc9e6", deep = "#4a2b6b", off = "#e7c8f0", alert = "#ff3d6e" }
 iris_fx.cassette = { ink = "#2b2833", faint = "#6a665a", mint = "#e63a3a", mintlo = "#a8242b", minthi = "#ff7b5c", onmint = "#fff3dc",
                      tint = "#d6d0bd", panel = "#bfb9a5", deep = "#2b2833", off = "#a39e8e", alert = "#d81b60" }
 do
@@ -2726,7 +2737,7 @@ do
     if ok and type(saved) == "table" then
         if saved.enabled ~= nil then iris_cfg.enabled = saved.enabled and true or false end
         local pr = tonumber(saved.preset)
-        if pr and math.floor(pr) == iris_fx.CASSETTE then iris_cfg.preset = math.floor(pr) end
+        if pr and (math.floor(pr) == iris_fx.CASSETTE or math.floor(pr) == iris_fx.UWU) then iris_cfg.preset = math.floor(pr) end
     else
         pcall(sys.call, "files.write", "iris.json", iris_cfg)     -- so there is a file to edit
     end
@@ -2737,6 +2748,7 @@ do
         fact.iris_on = iris_cfg.enabled and not iris_cfg.preset
         fact.theme_sel = iris_cfg.preset or (iris_cfg.enabled and 0 or 7)       -- 0 Glass, 8 Retro (7: Iris switched off on the Wallpaper page, greys)
         fact.cas = iris_cfg.preset == iris_fx.CASSETTE
+        fact.uwu = iris_cfg.preset == iris_fx.UWU
         for k, name in ipairs(INTENSITIES) do if name == iris_cfg.intensity then fact.iris_int = k - 1 end end
     end
     local function save()
@@ -2747,6 +2759,7 @@ do
     end
     show()
     if iris_cfg.preset == iris_fx.CASSETTE then iris_fx.apply_palette(iris_fx.cassette)
+    elseif iris_cfg.preset == iris_fx.UWU then iris_fx.apply_palette(iris_fx.uwu)
     elseif not iris_cfg.enabled then iris_fx.apply_mono() end
     -- The switch on the Wallpaper page. Off: greys at once. On: Iris is run on the wallpaper in use, and the colours come back (a named palette is
     -- let go too: the switch says Iris is off while one is chosen, and turning it on is asking for the wallpaper's colours).
@@ -2760,26 +2773,26 @@ do
         show()
         if iris_cfg.enabled then follow_wallpaper() else iris_fx.apply_mono() end
     end)
-    -- Settings > Theme: 0 Glass (the wallpaper's colours), 8 Retro.
+    -- Settings > Theme: 0 Glass (the wallpaper's colours), 8 Retro, 9 UwU.
     on("theme_pick", function(k)
         k = math.floor((tonumber(k) or 0) + 0.5)
-        local was_retro = iris_cfg.preset == iris_fx.CASSETTE
         if k == 0 then
             iris_cfg.preset, iris_cfg.enabled = nil, true
             follow_wallpaper()
         elseif k == iris_fx.CASSETTE then
             iris_cfg.preset, iris_cfg.enabled = k, true
             iris_fx.apply_palette(iris_fx.cassette)
+        elseif k == iris_fx.UWU then
+            iris_cfg.preset, iris_cfg.enabled = k, true
+            iris_fx.apply_palette(iris_fx.uwu)
         else
             return
         end
         save()
         show()
-        -- Retro has its own typeface, which a scene cannot change while it runs: the shell is started again (its keeper does it, in the font the saved
-        -- theme asks for; see bin/vitreus-keep).
-        if was_retro ~= (iris_cfg.preset == iris_fx.CASSETTE) then
-            after(600, function() run("pkill", { "-f", "pleamar --scene .*/vitreus/vitreus\\.plm" }, function() end) end)
-        end
+        -- A theme switch is live: nothing restarts. The typeface is the one thing a scene cannot change while it runs (its font names are fixed), so the
+        -- font picker (below) says when the new theme's font is not the one in use and offers Apply, which is what starts the shell again.
+        if fonts_refresh then fonts_refresh() end
     end)
     -- How strongly the wallpaper's accent is pushed (Subtle, Medium, Bold): it was only a line in iris.json.
     on("iris_int_set", function(k)
@@ -2792,23 +2805,24 @@ do
     end)
 end
 -- ── Settings > Theme: the font picker ─────────────────────────────────────────────────────────────────────
--- Each theme has a typeface: Space Grotesk on Glass, Better VCR on Retro, or whichever is picked here (`fonts.json`: { glass = name, retro = name }). A
+-- Each theme has a typeface: Space Grotesk on Glass, Audiowide on Retro, or whichever is picked here (`fonts.json`: { glass = name, retro = name }). A
 -- scene's font names are fixed, so a different typeface is shown by starting the shell with a font setup (see bin/vitreus-fonts, which the keeper runs):
 -- Apply saves the choice and stops the shell, and its keeper starts it again. The dropdown is a window of eight rows (`top`) over the list as the search
 -- has narrowed it (`view`); a picture of the chosen typeface (ImageMagick, from its file) is the preview, since a scene can only draw in its own font.
 -- The arrows move the choice with the dropdown open or shut, and typing opens it and searches.
 do
-    local DEFAULTS = { glass = "Space Grotesk", retro = "Better VCR-JP" }
+    local DEFAULTS = { glass = "Space Grotesk", retro = "Audiowide", uwu = "Mochiy Pop One" }
     local ROWS = 8
     local saved = {}                       -- what the shell is drawn in; a theme with no entry has its default
     local all = { { label = "", value = nil } }       -- the theme's default first, then the installed families, sorted
     local view = all                       -- `all` narrowed by what is typed (the default only while nothing is)
     local query = ""
     local chosen = nil                     -- the family chosen on the page (nil: the theme's default)
+    local inuse                            -- the family the running shell is drawn in (set once the choice is read; only a start changes it)
     local top = 0                          -- the first row shown
     local pv_n, pv_token = 0, 0
-    local function theme() return iris_cfg.preset == iris_fx.CASSETTE and "retro" or "glass" end
-    local function label() return theme() == "retro" and "Retro" or "Glass" end
+    local function theme() return iris_cfg.preset == iris_fx.CASSETTE and "retro" or iris_cfg.preset == iris_fx.UWU and "uwu" or "glass" end
+    local function label() return theme() == "retro" and "Retro" or theme() == "uwu" and "UwU" or "Glass" end
     local function index_of(v)
         for i, e in ipairs(view) do if e.value == v then return i end end
         return nil
@@ -2829,12 +2843,13 @@ do
         all[1].label = "Default · " .. DEFAULTS[theme()]
         text.font_for = "Font for " .. label()
         text.font_name = chosen or DEFAULTS[theme()]
-        if chosen == saved[theme()] then
+        local same = (chosen or DEFAULTS[theme()]) == inuse
+        if same then
             text.font_note = chosen and "In use" or ("The default for " .. label())
         else
             text.font_note = "Not applied yet"
         end
-        fact.font_dirty = chosen ~= saved[theme()]
+        fact.font_dirty = not same
         rows()
     end
     local function narrow()
@@ -2882,9 +2897,21 @@ do
     if ok and type(file) == "table" then
         if type(file.glass) == "string" and file.glass ~= "" then saved.glass = file.glass end
         if type(file.retro) == "string" and file.retro ~= "" then saved.retro = file.retro end
+        if type(file.uwu) == "string" and file.uwu ~= "" then saved.uwu = file.uwu end
     end
     chosen = saved[theme()]
+    inuse = chosen or DEFAULTS[theme()]
     show()
+    -- A theme was just picked: the picker shows that theme's font (and Apply, if it is not the one in use).
+    function fonts_refresh()
+        chosen = saved[theme()]
+        if #all > 0 then
+            narrow()
+            keep_in_view()
+        end
+        show()
+        preview()
+    end
     local SKIP = { "symbol", "emoji", "icon", "awesome", "dingbat", "material", "webdings", "wingdings" }
     run("env", { "-u", "FONTCONFIG_FILE", "fc-list", ":", "family" }, function(out, code)
         if code ~= 0 or not out then return end
@@ -2985,9 +3012,9 @@ do
         preview()
     end)
     on("font_apply", function()
-        if chosen == saved[theme()] then return end
+        if (chosen or DEFAULTS[theme()]) == inuse and chosen == saved[theme()] then return end
         saved[theme()] = chosen
-        pcall(sys.call, "files.write", "fonts.json", { glass = saved.glass, retro = saved.retro })
+        pcall(sys.call, "files.write", "fonts.json", { glass = saved.glass, retro = saved.retro, uwu = saved.uwu })
         show()
         after(500, function() run("pkill", { "-f", "pleamar --scene .*/vitreus/vitreus\\.plm" }, function() end) end)
     end)

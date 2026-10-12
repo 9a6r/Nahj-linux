@@ -1,6 +1,7 @@
 part ControlsDrawer {
     //  The controls' content is clipped to the drawer's shape.
     group {
+        shader: pixelate, px.dk
         opacity: pown
         clip inset 2 box { at: mix(pcx, dk.gx, lm), mix(bar.y + dk.hh / 2, lp.cy, lm); size: mix(dk.w, dk.gw, lm), mix(dk.hh, dk.gh, lm); corner: 26 * cu * (1 - 0.73 * cas_k) }
         //  Down the left it comes out of the strip: what is inside grows with the drawer's shape (`dk.lf`), from the strip's edge at the panel's middle, instead of waiting still under the clip.
@@ -37,11 +38,11 @@ part ControlsDrawer {
             //  The fill is a gradient laid along the whole track, so the more there is, the
             //  brighter its end. It glows a little.
             group {
-                glow: 7 * cu, 50%, mint
                 show: not audio.muted
                 body {
                     gradient: sl.x0, 0 to sl.x0 + sl.w, 0, mintlo, mint 55%, minthi
                     rim: 22%
+                    shadow: 0, 0, 7 * cu, 50%, mint
                     box { from: sl.x0, sy - th / 2; size: max(0.1, sl.w * volume_level), th; corner: th / 2 }
                 }
             }
@@ -144,10 +145,10 @@ part ControlsDrawer {
                 box { at: bsl.x0 + bsl.w / 2, bsy; size: bsl.w, bth; corner: bth / 2 }
             }
             group {
-                glow: 7 * cu, 50%, mint
                 body {
                     gradient: bsl.x0, 0 to bsl.x0 + bsl.w, 0, mintlo, mint 55%, minthi
                     rim: 22%
+                    shadow: 0, 0, 7 * cu, 50%, mint
                     box { from: bsl.x0, bsy - bth / 2; size: max(0.1, bsl.w * bright_level), bth; corner: bth / 2 }
                 }
             }
@@ -219,16 +220,13 @@ part ControlsDrawer {
                 //  Held: the track shows the signal as a mint bar up to the knob.
                 box { from: wf_l, wf_cy - 11 * cu; size: wf_kx - wf_l + 8 * cu, 22 * cu; color: mint; opacity: wf_hold * wifi_on }
                 //  Off: the hollow's inner shadow (dark above, a faint lip below).
-                group {
-                    blur: 3 * cu
-                    box { from: wf_l - 6 * cu, wf_cy - 18 * cu; size: wf_w + 12 * cu, 9 * cu; color: #000000; opacity: 55% * (1 - wifi_on) }
-                }
+                box { from: wf_l - 6 * cu, wf_cy - 18 * cu; size: wf_w + 12 * cu, 9 * cu; color: #000000; opacity: (55% * (1 - wifi_on)) * 0.5 }
+                box { from: wf_l - 6 * cu, (wf_cy - 18 * cu) + 3 * cu; size: wf_w + 12 * cu, 5 * cu; color: #000000; opacity: (55% * (1 - wifi_on)) * 0.45 }
                 box { from: wf_l, wf_cy + 9.5 * cu; size: wf_w, 1.5 * cu; color: ink; opacity: 12% * (1 - wifi_on) }
                 //  A light that travels with the knob and drains back into it.
-                group {
-                    blur: 5 * cu
-                    ellipse { at: wf_kx, wf_cy; radius: (6 + 8 * wifi_on + 4 * wf_m) * cu; color: ink; opacity: 22% * wifi_on + 28% * wf_m }
-                }
+                ellipse { at: wf_kx, wf_cy; radius: ((6 + 8 * wifi_on + 4 * wf_m) * cu) * 1.15; color: ink; opacity: (22% * wifi_on + 28% * wf_m) * 0.3 }
+                ellipse { at: wf_kx, wf_cy; radius: ((6 + 8 * wifi_on + 4 * wf_m) * cu) * 0.85; color: ink; opacity: (22% * wifi_on + 28% * wf_m) * 0.35 }
+                ellipse { at: wf_kx, wf_cy; radius: ((6 + 8 * wifi_on + 4 * wf_m) * cu) * 0.55; color: ink; opacity: (22% * wifi_on + 28% * wf_m) * 0.4 }
                 //  Ridges that slide past as it moves, like a real switch.
                 repeat i in 0..8 {
                     box { at: wf_l + (4.5 + 5 * i - (wifi_on - 0.5) * 9) * cu, wf_cy; size: 1.2 * cu, 9 * cu; corner: 0.6 * cu; color: ink; opacity: 24% * wf_m }
@@ -296,15 +294,12 @@ part ControlsDrawer {
             }
             group {
                 clip inset 0 box { at: gbt_cx, gbt_cy; size: gbt_w, 22 * cu; corner: (11 - 2 * bt_on) * cu }
-                group {
-                    blur: 3 * cu
-                    box { from: gbt_l - 6 * cu, gbt_cy - 18 * cu; size: gbt_w + 12 * cu, 9 * cu; color: #000000; opacity: 55% * (1 - bt_on) }
-                }
+                box { from: gbt_l - 6 * cu, gbt_cy - 18 * cu; size: gbt_w + 12 * cu, 9 * cu; color: #000000; opacity: (55% * (1 - bt_on)) * 0.5 }
+                box { from: gbt_l - 6 * cu, (gbt_cy - 18 * cu) + 3 * cu; size: gbt_w + 12 * cu, 5 * cu; color: #000000; opacity: (55% * (1 - bt_on)) * 0.45 }
                 box { from: gbt_l, gbt_cy + 9.5 * cu; size: gbt_w, 1.5 * cu; color: ink; opacity: 12% * (1 - bt_on) }
-                group {
-                    blur: 5 * cu
-                    ellipse { at: gbt_kx, gbt_cy; radius: (6 + 8 * bt_on + 4 * gbt_m) * cu; color: ink; opacity: 22% * bt_on + 28% * gbt_m }
-                }
+                ellipse { at: gbt_kx, gbt_cy; radius: ((6 + 8 * bt_on + 4 * gbt_m) * cu) * 1.15; color: ink; opacity: (22% * bt_on + 28% * gbt_m) * 0.3 }
+                ellipse { at: gbt_kx, gbt_cy; radius: ((6 + 8 * bt_on + 4 * gbt_m) * cu) * 0.85; color: ink; opacity: (22% * bt_on + 28% * gbt_m) * 0.35 }
+                ellipse { at: gbt_kx, gbt_cy; radius: ((6 + 8 * bt_on + 4 * gbt_m) * cu) * 0.55; color: ink; opacity: (22% * bt_on + 28% * gbt_m) * 0.4 }
                 repeat i in 0..8 {
                     box { at: gbt_l + (4.5 + 5 * i - (bt_on - 0.5) * 9) * cu, gbt_cy; size: 1.2 * cu, 9 * cu; corner: 0.6 * cu; color: ink; opacity: 24% * gbt_m }
                 }
@@ -371,15 +366,12 @@ part ControlsDrawer {
             }
             group {
                 clip inset 0 box { at: gdn_cx, gdn_cy; size: gdn_w, 22 * cu; corner: (11 - 2 * dnd_pill) * cu }
-                group {
-                    blur: 3 * cu
-                    box { from: gdn_l - 6 * cu, gdn_cy - 18 * cu; size: gdn_w + 12 * cu, 9 * cu; color: #000000; opacity: 55% * (1 - dnd_pill) }
-                }
+                box { from: gdn_l - 6 * cu, gdn_cy - 18 * cu; size: gdn_w + 12 * cu, 9 * cu; color: #000000; opacity: (55% * (1 - dnd_pill)) * 0.5 }
+                box { from: gdn_l - 6 * cu, (gdn_cy - 18 * cu) + 3 * cu; size: gdn_w + 12 * cu, 5 * cu; color: #000000; opacity: (55% * (1 - dnd_pill)) * 0.45 }
                 box { from: gdn_l, gdn_cy + 9.5 * cu; size: gdn_w, 1.5 * cu; color: ink; opacity: 12% * (1 - dnd_pill) }
-                group {
-                    blur: 5 * cu
-                    ellipse { at: gdn_kx, gdn_cy; radius: (6 + 8 * dnd_pill + 4 * gdn_m) * cu; color: ink; opacity: 22% * dnd_pill + 28% * gdn_m }
-                }
+                ellipse { at: gdn_kx, gdn_cy; radius: ((6 + 8 * dnd_pill + 4 * gdn_m) * cu) * 1.15; color: ink; opacity: (22% * dnd_pill + 28% * gdn_m) * 0.3 }
+                ellipse { at: gdn_kx, gdn_cy; radius: ((6 + 8 * dnd_pill + 4 * gdn_m) * cu) * 0.85; color: ink; opacity: (22% * dnd_pill + 28% * gdn_m) * 0.35 }
+                ellipse { at: gdn_kx, gdn_cy; radius: ((6 + 8 * dnd_pill + 4 * gdn_m) * cu) * 0.55; color: ink; opacity: (22% * dnd_pill + 28% * gdn_m) * 0.4 }
                 repeat i in 0..8 {
                     box { at: gdn_l + (4.5 + 5 * i - (dnd_pill - 0.5) * 9) * cu, gdn_cy; size: 1.2 * cu, 9 * cu; corner: 0.6 * cu; color: ink; opacity: 24% * gdn_m }
                 }
@@ -453,15 +445,12 @@ part ControlsDrawer {
                 }
                 group {
                     clip inset 0 box { at: gcf_cx, gcf_cy; size: gcf_w, 22 * cu; corner: (11 - 2 * caf_pill) * cu }
-                    group {
-                        blur: 3 * cu
-                        box { from: gcf_l - 6 * cu, gcf_cy - 18 * cu; size: gcf_w + 12 * cu, 9 * cu; color: #000000; opacity: 55% * (1 - caf_pill) }
-                    }
+                    box { from: gcf_l - 6 * cu, gcf_cy - 18 * cu; size: gcf_w + 12 * cu, 9 * cu; color: #000000; opacity: (55% * (1 - caf_pill)) * 0.5 }
+                    box { from: gcf_l - 6 * cu, (gcf_cy - 18 * cu) + 3 * cu; size: gcf_w + 12 * cu, 5 * cu; color: #000000; opacity: (55% * (1 - caf_pill)) * 0.45 }
                     box { from: gcf_l, gcf_cy + 9.5 * cu; size: gcf_w, 1.5 * cu; color: ink; opacity: 12% * (1 - caf_pill) }
-                    group {
-                        blur: 5 * cu
-                        ellipse { at: gcf_kx, gcf_cy; radius: (6 + 8 * caf_pill + 4 * gcf_m) * cu; color: ink; opacity: 22% * caf_pill + 28% * gcf_m }
-                    }
+                    ellipse { at: gcf_kx, gcf_cy; radius: ((6 + 8 * caf_pill + 4 * gcf_m) * cu) * 1.15; color: ink; opacity: (22% * caf_pill + 28% * gcf_m) * 0.3 }
+                    ellipse { at: gcf_kx, gcf_cy; radius: ((6 + 8 * caf_pill + 4 * gcf_m) * cu) * 0.85; color: ink; opacity: (22% * caf_pill + 28% * gcf_m) * 0.35 }
+                    ellipse { at: gcf_kx, gcf_cy; radius: ((6 + 8 * caf_pill + 4 * gcf_m) * cu) * 0.55; color: ink; opacity: (22% * caf_pill + 28% * gcf_m) * 0.4 }
                     repeat i in 0..8 {
                         box { at: gcf_l + (4.5 + 5 * i - (caf_pill - 0.5) * 9) * cu, gcf_cy; size: 1.2 * cu, 9 * cu; corner: 0.6 * cu; color: ink; opacity: 24% * gcf_m }
                     }
@@ -674,10 +663,9 @@ part ControlsDrawer {
                 show: nt_hist.count < 1
                 let en_y = nx_top + 196 * cu + 1.5 * cu * sin(time * 100)
                 let en_on = clamp(dnd_pill, 0, 1)   // Do Not Disturb, as a spring
-                group {
-                    blur: 10 * cu
-                    ellipse { at: pcx, en_y; radius: 34 * cu; color: mint; opacity: 10% + 5% * (0.5 + 0.5 * sin(time * 100)) + en_on * 14% }
-                }
+                ellipse { at: pcx, en_y; radius: (34 * cu) * 1.3; color: mint; opacity: (10% + 5% * (0.5 + 0.5 * sin(time * 100)) + en_on * 14%) * 0.28 }
+                ellipse { at: pcx, en_y; radius: (34 * cu) * 0.95; color: mint; opacity: (10% + 5% * (0.5 + 0.5 * sin(time * 100)) + en_on * 14%) * 0.34 }
+                ellipse { at: pcx, en_y; radius: (34 * cu) * 0.62; color: mint; opacity: (10% + 5% * (0.5 + 0.5 * sin(time * 100)) + en_on * 14%) * 0.4 }
                 Envelope(pcx, en_y, 2.4 * cu, 1 - en_on, 0, 100%)
                 let ne0 = fract(time * 0.38)
                 let ne1 = fract(time * 0.38 + 0.33)
@@ -711,16 +699,13 @@ part ControlsDrawer {
             let cf_p = 0.5 + 0.5 * sin(time * 130)                // a slow breath
             group {
                 opacity: mix(0.45, 1, caf_avail)
-                group {
-                    blur: 16 * cu
-                    ellipse { at: cf_x, cf_y; radius: (36 + 6 * cf_p) * cu; color: mint; opacity: caf_pill * (22% + 12% * cf_p) }
-                }
+                ellipse { at: cf_x, cf_y; radius: ((36 + 6 * cf_p) * cu) * 1.3; color: mint; opacity: (caf_pill * (22% + 12% * cf_p)) * 0.28 }
+                ellipse { at: cf_x, cf_y; radius: ((36 + 6 * cf_p) * cu) * 0.95; color: mint; opacity: (caf_pill * (22% + 12% * cf_p)) * 0.34 }
+                ellipse { at: cf_x, cf_y; radius: ((36 + 6 * cf_p) * cu) * 0.62; color: mint; opacity: (caf_pill * (22% + 12% * cf_p)) * 0.4 }
                 ellipse { at: cf_x, cf_y; radius: cf_r; stroke: 5 * cu; color: ink; opacity: 10% }
                 let cf_s = if(caf_len > 0, max(0.004, caf_fr), 1)
-                group {
-                    glow: 7 * cu, 55%, mint
-                    arc { at: cf_x, cf_y; radius: cf_r; span: cf_s * 360deg; width: 5 * cu; rotate: cf_s * 180deg; color: mint; opacity: caf_pill * if(caf_len > 0, 100%, 55% + 35% * cf_p) }
-                }
+                arc { at: cf_x, cf_y; radius: cf_r; span: cf_s * 360deg; width: 11 * cu; rotate: cf_s * 180deg; color: mint; opacity: 0.22 * caf_pill * if(caf_len > 0, 100%, 55% + 35% * cf_p) }
+                arc { at: cf_x, cf_y; radius: cf_r; span: cf_s * 360deg; width: 5 * cu; rotate: cf_s * 180deg; color: mint; opacity: caf_pill * if(caf_len > 0, 100%, 55% + 35% * cf_p) }
                 group {
                     opacity: 55% + 45% * caf_pill
                     move: 0, -5 * cu
@@ -730,7 +715,6 @@ part ControlsDrawer {
                     box { at: cf_x - 2 * cu, cf_y - 2.5 * cu; size: 22 * cu, 3 * cu; corner: 1.5 * cu; color: mix(deep, mint, 0.55 * caf_pill) }
                 }
                 group {
-                    blur: 2.5 * cu
                     particles steam {
                         at: cf_x - 2 * cu, cf_y - 13 * cu; count: 24
                         life: 1.8s .. 3.2s; speed: 9 .. 20

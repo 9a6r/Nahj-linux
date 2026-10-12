@@ -1,6 +1,7 @@
 part Desk {
     //  Scaled about its top left corner when it has been made smaller (`desk_s`): the zones inside follow the group's scale.
     group {
+        shader: pixelate, px.dz
     pivot: dsk_x0, dsk_y0
     scale: desk_s
         //  The desk: a panel out of the right frame with tabs. What is drawn is laid out for the full size and the panel's shape uncovers it.

@@ -273,15 +273,21 @@ scene Vitreus {
     //  Glass switched off (`glass_obs`): the same bar and drawers, but a flat, solid obsidian instead of glass. `obs` is 0 glass, 1 obsidian, and travels between them.
     fact glass_obs = false
     prop obs = 0 ~calm
-    follow obs = if(glass_obs or cas, 1, 0)
+    follow obs = if(glass_obs or cas or uwu, 1, 0)
     //  The Cassette theme (Settings > Theme): the same flat body as obsidian, but in the palette's own plastic (`obsidian` below stops being darkened), with a hard
     //  edge, a lit lip, a seam, a four-colour stripe across each drawer's head and a hard shadow. `cas_k` travels between glass and plastic; the drawers' liquid
     //  (necks, drips, the jelly) is switched off with it and their corners are cut square (`rc`, `bk`).
     fact cas = false
     prop cas_k = 0 ~calm
     follow cas_k = if(cas, 1, 0)
+    //  The UwU theme: the same plastic body (an opaque candy-coloured one, with a thick grape outline and a hard pink shadow) but with the liquid left on
+    //  (round corners, necks and jelly), and the cute things drawn on every drawer (see bar_glass.plm). `pk` is how much of the body is plastic, of either.
+    fact uwu = false
+    prop uwu_k = 0 ~calm
+    follow uwu_k = if(uwu, 1, 0)
+    let pk = max(cas_k, uwu_k)
     event glass_obs_toggle ->
-    let obsidian = mix(tint, #000000, 0.7 * (1 - cas_k))      // the theme's own tint, taken most of the way to black (the plastic's own colour on the Cassette): static themes and Iris both change it
+    let obsidian = mix(tint, #000000, 0.7 * (1 - pk))      // the theme's own tint, taken most of the way to black (the plastic's own colour on the Cassette): static themes and Iris both change it
     fact hy_blur = 3
     prop glass_bend_k = 0 ~quick
     follow glass_bend_k = if(glass_bend, 1, 0)
@@ -680,6 +686,7 @@ scene Vitreus {
     let glyph_a = 0.4              // how strong the little marks on the toggle knobs are: kept subtle
 
     shader wave = file "wave.wgsl"
+    shader pixelate = file "pixelate.wgsl"
     spring dripl = 46, 8          // the drip down the left: slow enough to see the neck stretch, thin and snap, and loose enough to swing past where it lands
     spring drip = 170, 18         // underdamped: it overshoots and settles back, like a real drop landing
     spring pop  = 300, 12         // snappier and much less damped: a toggle knob popping past where it lands
@@ -797,6 +804,15 @@ scene Vitreus {
     prop ds    = 0 ~drip          // the settings panel
     prop fs    = 0 ~300ms         // what is in it, fading in
     prop dl    = 0 ~drip          // the launcher
+    //  The Retro's pixelation outlasts the drawer's own movement: each drawer has a slower twin (`pq.*`, 0.6 s) that follows the same target, and the squares are as
+    //  big as the two are apart, so they appear as the drawer starts to move and are still there after it has arrived, thinning out as the twin catches up.
+    prop pq.dc = 0 ~600ms
+    prop pq.dk = 0 ~600ms
+    prop pq.dm = 0 ~600ms
+    prop pq.dz = 0 ~600ms
+    prop pq.ds = 0 ~600ms
+    prop pq.dl = 0 ~600ms
+    prop pq.do = 0 ~600ms
     prop fl    = 0 ~300ms         // what is in it, fading in
     prop lr    = 1 ~calm          // how many rows it has room for
     prop fo    = 0 ~300ms         // what is in it, fading in
@@ -804,12 +820,12 @@ scene Vitreus {
     prop okn   = 0 ~calm          // 1 while it is a notification
     prop oks   = 0 ~calm          // 1 while it is a screenshot
     prop osd_h = 64 ~calm         // the height of its plate: a notification is taller with text and buttons
-    prop nt_ring = 1 ~900ms       // a ripple off the notification's tile: 0 born, 1 gone
+    prop nt_ring = 1 ~600ms       // a ripple off the notification's tile: 0 born, 1 gone
     prop expand = 0 ~drip          // a tile growing into its own window, 0 tile .. 1 full window
     //  The music: fast, and a little loose, so the bar bounces on the beat.
     spring beat = 480, 15
     prop pulse = 0 ~beat
-    prop ring  = 1 ~900ms          // a ripple crossing the bar: 0 born, 1 gone
+    prop ring  = 1 ~600ms          // a ripple crossing the bar: 0 born, 1 gone
     prop dd    = 0 ~calm           // the output dropdown, 0 shut .. 1 open
     prop vm    = 0 ~calm           // the per-app mixer, 0 shut .. 1 open
     prop mvis  = 0 ~calm           // 1 while there is an app playing sound (or the mixer is open): the dots show
@@ -827,6 +843,13 @@ scene Vitreus {
     follow dz   = if(desk_open, 1, 0)
     follow ds   = if(panel == settings, 1, 0)
     follow dl   = if(panel == launch, 1, 0)
+    follow pq.dc = if(panel == calendar, 1, 0)
+    follow pq.dk = if(panel == controls, 1, 0)
+    follow pq.dm = if(panel == player or panel == tray, 1, 0)
+    follow pq.dz = if(desk_open, 1, 0)
+    follow pq.ds = if(panel == settings, 1, 0)
+    follow pq.dl = if(panel == launch, 1, 0)
+    follow pq.do = if(osd_on, 1, 0)
     follow lr   = max(1, lcount, if(lp_on, 6, 1))
     follow okv  = if(osd_kind == vol, 1, 0)
     follow okn  = if(osd_kind == note, 1, 0)
@@ -914,14 +937,14 @@ scene Vitreus {
     //  hanging and is swallowed), it is grabbed on its way back, and the edge closes over it once it has gone in.
     on change dsl > 0.84 while dsl > 0.84 and lm > 0.5 { impulse pbounce -280; impulse wobble -520; prip: 0 ~16ms; prip: 1 ~1100ms after 30ms; pstray: 1 ~16ms; pstray: 0 ~700ms after 60ms }
     on change dsl < 0.84 while dsl < 0.84 and lm > 0.5 { impulse wobble 300; impulse pbounce 80 }
-    on change dsl < 0.06 while dsl < 0.06 and lm > 0.5 { impulse pbounce -200; impulse wobble -160; prip: 0 ~16ms; prip: 1 ~900ms after 30ms }
+    on change dsl < 0.06 while dsl < 0.06 and lm > 0.5 { impulse pbounce -200; impulse wobble -160; prip: 0 ~16ms; prip: 1 ~600ms after 30ms }
     //  A drawer that has gone back into the bar: the surface closes over it, and a ripple runs out from the
     //  middle of the bar (the same wave the music makes, from another place).
     on change drop < 0.08 while drop < 0.08 and panel == none {
         impulse wobble 90
         ring_mid: 1 ~0ms
         ring: 0 ~16ms
-        ring: 1 ~900ms after 30ms
+        ring: 1 ~600ms after 30ms
     }
     //  What is inside a panel arrives after the drawer has come down, not with it (it was showing while the
     //  drawer was still a sliver under the bar, over the bar's lower half), and leaves at once when the panel
@@ -1033,8 +1056,8 @@ scene Vitreus {
     //  scene for that second and lets it sleep for the other four. A battery that says "charging" at 98 % or more is
     //  full and only being held there, so it does not glint.
     prop charge_sweep = 1 ~calm
-    every 5s while chg_now and pwr.percent < 98 { charge_sweep: 0 ~0ms; charge_sweep: 1 ~900ms after 40ms }
-    on change chg_now while chg_now and pwr.percent < 98 { charge_sweep: 0 ~0ms; charge_sweep: 1 ~900ms after 40ms }
+    every 5s while chg_now and pwr.percent < 98 { charge_sweep: 0 ~0ms; charge_sweep: 1 ~600ms after 40ms }
+    on change chg_now while chg_now and pwr.percent < 98 { charge_sweep: 0 ~0ms; charge_sweep: 1 ~600ms after 40ms }
     repeat i in 1..6 { prop wsh.$i = 0 ~quick }         // each workspace dot's hover, brought out of its `repeat`
     prop ovp = 0 ~pop                                   // the overview button's hover, on the same spring: how much it swells
     repeat i in 1..6 { prop wsp.$i = 0 ~pop }           // the same, on a spring that pops a little past: how much a hovered mark swells
@@ -1381,8 +1404,8 @@ scene Vitreus {
     prop wp_cpos = 0 ~lively                  // where the row has got to, in cards: it glides to the one in focus
     follow wp_cpos = wp_card_sel
     fact wp_card_rip = 0                      // counts the cards kept: each one sets off the ripple
-    prop wp_crip = 1 ~900ms                   // the card's ripple, as the island bar's when a panel closes: 0 just born, 1 gone
-    on change wp_card_rip while wp_card_rip > 0 { wp_crip: 0 ~16ms; wp_crip: 1 ~900ms after 30ms }
+    prop wp_crip = 1 ~600ms                   // the card's ripple, as the island bar's when a panel closes: 0 just born, 1 gone
+    on change wp_card_rip while wp_card_rip > 0 { wp_crip: 0 ~16ms; wp_crip: 1 ~600ms after 30ms }
     //  The cards' entrance: the same spring as Search and Settings drop on (`drip`, underdamped, so each card overshoots where it lands and settles back, as a drop does). One for
     //  each step away from the focused card, started a little after the one before it; they run from 0 to 1 when the picker opens on the cards or the swipe from the hexagons arrives.
     prop wp_ce0 = 0 ~drip
@@ -1826,10 +1849,9 @@ scene Vitreus {
                 shadow: 0, 2 * cu * touch.hover, 9 * cu * touch.hover, 30% * touch.hover, #000000
                 box { from: 0, 0; size: 134 * cu, 52 * cu; corner: 14 * cu }
             }
-            group {
-                blur: 8 * cu
-                ellipse { at: 28 * cu, 26 * cu; radius: 15 * cu; color: mint; opacity: 40% * touch.hover }
-            }
+            ellipse { at: 28 * cu, 26 * cu; radius: (15 * cu) * 1.3; color: mint; opacity: (40% * touch.hover) * 0.28 }
+            ellipse { at: 28 * cu, 26 * cu; radius: (15 * cu) * 0.95; color: mint; opacity: (40% * touch.hover) * 0.34 }
+            ellipse { at: 28 * cu, 26 * cu; radius: (15 * cu) * 0.62; color: mint; opacity: (40% * touch.hover) * 0.4 }
             ellipse { at: 28 * cu, 26 * cu; radius: 17 * cu; color: mix(ink, mint, touch.hover); opacity: 10% + 18% * touch.hover }
             ellipse { at: 28 * cu, 26 * cu; radius: 17 * cu; stroke: 1 * cu; color: mint; opacity: 45% * touch.hover }
             group {
@@ -2262,15 +2284,12 @@ scene Vitreus {
         }
         group {
             clip inset 0 box { at: scx, cy; size: sw, 22 * cu; corner: (11 - 2 * k) * cu }
-            group {
-                blur: 3 * cu
-                box { from: sl - 6 * cu, cy - 18 * cu; size: sw + 12 * cu, 9 * cu; color: #000000; opacity: 55% * (1 - k) }
-            }
+            box { from: sl - 6 * cu, cy - 18 * cu; size: sw + 12 * cu, 9 * cu; color: #000000; opacity: 55% * (1 - k) * 0.5 }
+            box { from: sl - 6 * cu, cy - 15 * cu; size: sw + 12 * cu, 5 * cu; color: #000000; opacity: 55% * (1 - k) * 0.45 }
             box { from: sl, cy + 9.5 * cu; size: sw, 1.5 * cu; color: ink; opacity: 12% * (1 - k) }
-            group {
-                blur: 5 * cu
-                ellipse { at: skx, cy; radius: (6 + 8 * k + 4 * sm) * cu; color: ink; opacity: 22% * k + 28% * sm }
-            }
+            ellipse { at: skx, cy; radius: ((6 + 8 * k + 4 * sm) * cu) * 1.3; color: ink; opacity: (22% * k + 28% * sm) * 0.28 }
+            ellipse { at: skx, cy; radius: ((6 + 8 * k + 4 * sm) * cu) * 0.95; color: ink; opacity: (22% * k + 28% * sm) * 0.34 }
+            ellipse { at: skx, cy; radius: ((6 + 8 * k + 4 * sm) * cu) * 0.62; color: ink; opacity: (22% * k + 28% * sm) * 0.4 }
             repeat i in 0..8 {
                 box { at: sl + (4.5 + 5 * i - (k - 0.5) * 9) * cu, cy; size: 1.2 * cu, 9 * cu; corner: 0.6 * cu; color: ink; opacity: 24% * sm }
             }
@@ -2752,6 +2771,16 @@ scene Vitreus {
     let dz0 = max(0, dz) * pown
     let ds0 = max(0, ds) * pown
     let dl0 = max(0, dl) * pown
+    //  The Retro's pixelation, only while a drawer opens or closes: the side of a square, from how far the drawer's spring and its slower twin (`pq.*`, below) are apart: none at rest, the biggest soon after it
+    //  starts moving, and still there after it has arrived. `px.*` is each drawer's own (its contents: pixelate.wgsl), `pxa` the biggest, for the glass (wave.wgsl).
+    let px.dc = cas_k * 16 * min(1, sqrt(2.4 * abs(clamp(dc, 0, 1) - pq.dc)))
+    let px.dk = cas_k * 16 * min(1, sqrt(2.4 * abs(clamp(dk, 0, 1) - pq.dk)))
+    let px.dm = cas_k * 16 * min(1, sqrt(2.4 * abs(clamp(dm, 0, 1) - pq.dm)))
+    let px.dz = cas_k * 16 * min(1, sqrt(2.4 * abs(clamp(dz, 0, 1) - pq.dz)))
+    let px.ds = cas_k * 16 * min(1, sqrt(2.4 * abs(clamp(ds, 0, 1) - pq.ds)))
+    let px.dl = cas_k * 16 * min(1, sqrt(2.4 * abs(clamp(dl, 0, 1) - pq.dl)))
+    let px.do = cas_k * 16 * min(1, sqrt(2.4 * abs(clamp(do, 0, 1) - pq.do)))
+    let pxa = max(max(max(px.dc, px.dk), max(px.dm, px.dz)), max(max(px.ds, px.dl), px.do))
     let expand0 = max(0, expand)
     //  Marea's liquid: while a drawer comes out (or goes back), the neck that joins it to the bar is a bell,
     //  thickest halfway; the drawer is a little narrower there, as a falling drop is, and it is round at first
@@ -3200,8 +3229,8 @@ scene Vitreus {
     fact desk_ry = 0                                       // where along the frame the neck broke
     on change dz.det > 0.7 while dz.det > 0.7 { desk_ry = vc + desk_oy; impulse dbounce -280; impulse wobble -300; dprip: 0 ~16ms; dprip: 1 ~1100ms after 30ms; dpstray: 1 ~16ms; dpstray: 0 ~700ms after 60ms }
     on change dz.det < 0.7 while dz.det < 0.7 and desk_open { desk_ry = vc + desk_oy; impulse dbounce 80; impulse wobble 200 }
-    on change dz.det < 0.05 while dz.det < 0.05 and desk_open { desk_ry = vc + desk_oy; impulse dbounce -200; impulse wobble -120; dprip: 0 ~16ms; dprip: 1 ~900ms after 30ms }
-    on change dz0 < 0.06 while dz0 < 0.06 and not desk_open and lm > 0.5 { dprip: 0 ~16ms; dprip: 1 ~900ms after 30ms }
+    on change dz.det < 0.05 while dz.det < 0.05 and desk_open { desk_ry = vc + desk_oy; impulse dbounce -200; impulse wobble -120; dprip: 0 ~16ms; dprip: 1 ~600ms after 30ms }
+    on change dz0 < 0.06 while dz0 < 0.06 and not desk_open and lm > 0.5 { dprip: 0 ~16ms; dprip: 1 ~600ms after 30ms }
     follow desk_sel = desk_tab
     zone box ntz_r { at: screen.width - (lf.t + 6 * cu) / 2, vc; size: lf.t + 6 * cu, nt_w + 24 * cu; active: lm > 0.5 and not desk_open }
     zone box ntn_r { at: screen.width - (lf.t + nt_d) / 2, vc; size: lf.t + nt_d, nt_w; cursor: pointer; active: lm > 0.5 and nt_vis_r > 0.5 and not desk_open }
@@ -3432,11 +3461,11 @@ scene Vitreus {
     //  crests (size, speed, time) as the Settings' and the launcher's: when it has come out and when it has gone back in. Frame layout only, like theirs.
     prop tprip = 1 ~1100ms
     on change dm > 0.84 while dm > 0.84 and lm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~1100ms after 30ms }
-    on change dm < 0.06 while dm < 0.06 and lm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~900ms after 30ms }
+    on change dm < 0.06 while dm < 0.06 and lm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~600ms after 30ms }
     on change dc > 0.84 while dc > 0.84 and lm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~1100ms after 30ms }
-    on change dc < 0.06 while dc < 0.06 and lm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~900ms after 30ms }
+    on change dc < 0.06 while dc < 0.06 and lm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~600ms after 30ms }
     on change dk > 0.84 while dk > 0.84 and lm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~1100ms after 30ms }
-    on change dk < 0.06 while dk < 0.06 and lm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~900ms after 30ms }
+    on change dk < 0.06 while dk < 0.06 and lm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~600ms after 30ms }
     let tq.x = (12 + 90 * tprip) * u
     let tq.h = max(20 * u * (1 - tprip) * clamp(tprip * 6, 0, 1) * lm, 0.3)
     let tq.act = if(cas_k < 0.5 and lm > 0.5 and tprip < 0.98 and pown > 0.5, 1, 0)
@@ -3522,7 +3551,7 @@ scene Vitreus {
             refraction: 0%
             dispersion: 0%
             shine: 9000, 9000
-            opacity: obs * 0.34 * (1 - cas_k)
+            opacity: obs * 0.34 * (1 - pk)
             show: obs > 0.97
             box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
             box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
@@ -3532,7 +3561,7 @@ scene Vitreus {
             color: obsidian
             rim: 0%
             opacity: obs * (1 - 0.4 * clamp(hy_blur, 0, 1))
-            shadow: 0, 7, 24, (38%) * (1 - cas_k), #000000
+            shadow: 0, 7, 24, (38%) * (1 - pk), #000000
             show: obs > 0.004
             box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
             box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
@@ -3546,6 +3575,18 @@ scene Vitreus {
             shadow: 4.5 * u * cas_k, 5.5 * u * cas_k, 0, 55% * cas_k, deep
             opacity: cas_k
             show: cas_k > 0.004
+            box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
+            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
+            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * cas_k); show: mfl > 0.01 and media_open > 0.01 }
+        }
+        //  The UwU's candy plastic over it: a pastel gradient across the whole screen (pink, lilac, sky, mint), a thick grape outline, a lit lip and a hard pink shadow.
+        body {
+            gradient: 0, 0 to screen.width, screen.height, #ffcfe8, #e6d6ff 38%, #cfeaff 68%, #d2fff0
+            rim: 55% * uwu_k
+            border: 3 * u * uwu_k, deep
+            shadow: 4 * u * uwu_k, 5 * u * uwu_k, 0, 90% * uwu_k, mix(deep, #ff6ec7, 0.75)
+            opacity: uwu_k
+            show: uwu_k > 0.004
             box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
             box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
             box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * cas_k); show: mfl > 0.01 and media_open > 0.01 }
@@ -3647,6 +3688,7 @@ scene Vitreus {
     //  logic (see the Launcher section of vitreus.luau) reads the field and fills `lres`. Files, the clipboard and
     //  wallpapers have a preview beside the rows: the picture, or the text, and the file's details.
     group {
+        shader: pixelate, px.dl
         clip inset 2 box { at: mix(pcx, dl.gx, lm), mix(bar.y + dl.hh / 2, lp.cy, lm); size: mix(dl.w, dl.gw, lm), mix(dl.hh, dl.gh, lm); corner: 26 * pu * (1 - 0.73 * cas_k) }
         opacity: fl * pown
         move: 0, (1 - fl) * 12 * pu
@@ -4122,7 +4164,7 @@ scene Vitreus {
             refraction: 0%
             dispersion: 0%
             shine: 9000, 9000
-            opacity: obs * 0.34 * (1 - cas_k)
+            opacity: obs * 0.34 * (1 - pk)
             show: obs > 0.97
             box { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: rc }
         }
@@ -4130,7 +4172,7 @@ scene Vitreus {
             color: obsidian
             rim: 0%
             opacity: obs * (1 - 0.4 * clamp(hy_blur, 0, 1))
-            shadow: 0, 18 * u, 60 * u, (55%) * (1 - cas_k), #000000
+            shadow: 0, 18 * u, 60 * u, (55%) * (1 - pk), #000000
             show: obs > 0.004
             box { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: rc }
         }
@@ -4142,6 +4184,16 @@ scene Vitreus {
             shadow: 4.5 * u * cas_k, 5.5 * u * cas_k, 0, 55% * cas_k, deep
             opacity: cas_k
             show: cas_k > 0.004
+            box { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: rc }
+        }
+        //  The UwU's candy plastic over it: a pastel gradient across the whole screen (pink, lilac, sky, mint), a thick grape outline, a lit lip and a hard pink shadow.
+        body {
+            gradient: 0, 0 to screen.width, screen.height, #ffcfe8, #e6d6ff 38%, #cfeaff 68%, #d2fff0
+            rim: 55% * uwu_k
+            border: 3 * u * uwu_k, deep
+            shadow: 4 * u * uwu_k, 5 * u * uwu_k, 0, 90% * uwu_k, mix(deep, #ff6ec7, 0.75)
+            opacity: uwu_k
+            show: uwu_k > 0.004
             box { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: rc }
         }
         zone box pk_card { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: rc }

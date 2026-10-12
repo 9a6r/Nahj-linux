@@ -4,6 +4,7 @@ part SettingsPanel {
     //  it a sidebar of sections next to the page, which is a stack of cards. The wallpaper picker is the
     //  first (and, for now, only) page.
     group {
+        shader: pixelate, px.ds
         clip inset 2 box { at: mix(pcx, ds.gx, lm), mix(bar.y + ss.hh / 2, lp.cy, lm); size: mix(ss.w, ds.gw, lm), mix(ss.hh, ds.gh, lm); corner: 26 * pu * (1 - 0.73 * cas_k) }
         opacity: fs * pown
         move: 0, (1 - fs) * 12 * pu

@@ -44,13 +44,11 @@ part Glass {
                     rim: 9%
                     box { at: gsl.x0 + gsl.w / 2, sby + 141 * pu; size: gsl.w, gh; corner: gh / 2 }
                 }
-                group {
-                    glow: 6 * pu, 50%, mint
-                    body {
-                        gradient: gsl.x0, 0 to gsl.x0 + gsl.w, 0, mintlo, mint 55%, minthi
-                        rim: 22%
-                        box { from: gsl.x0, sby + 141 * pu - gh / 2; size: max(0.1, gsl.w * clamp(hy_blur / 20, 0, 1)), gh; corner: gh / 2 }
-                    }
+                body {
+                    shadow: 0, 0, 6 * pu, 50%, mint
+                    gradient: gsl.x0, 0 to gsl.x0 + gsl.w, 0, mintlo, mint 55%, minthi
+                    rim: 22%
+                    box { from: gsl.x0, sby + 141 * pu - gh / 2; size: max(0.1, gsl.w * clamp(hy_blur / 20, 0, 1)), gh; corner: gh / 2 }
                 }
             }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 112 * pu + 0.5); text hy_blur_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 112 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100%; family: "Space Grotesk" } }
@@ -77,13 +75,11 @@ part Glass {
                     rim: 9%
                     box { at: gsl.x0 + gsl.w / 2, sby + 199 * pu; size: gsl.w, gh; corner: gh / 2 }
                 }
-                group {
-                    glow: 6 * pu, 50%, mint
-                    body {
-                        gradient: gsl.x0, 0 to gsl.x0 + gsl.w, 0, mintlo, mint 55%, minthi
-                        rim: 22%
-                        box { from: gsl.x0, sby + 199 * pu - gh / 2; size: max(0.1, gsl.w * clamp(glass_op, 0, 1)), gh; corner: gh / 2 }
-                    }
+                body {
+                    shadow: 0, 0, 6 * pu, 50%, mint
+                    gradient: gsl.x0, 0 to gsl.x0 + gsl.w, 0, mintlo, mint 55%, minthi
+                    rim: 22%
+                    box { from: gsl.x0, sby + 199 * pu - gh / 2; size: max(0.1, gsl.w * clamp(glass_op, 0, 1)), gh; corner: gh / 2 }
                 }
             }
             //  The first 30 % of this track cannot be picked: it is shaded, with a tick where the range starts.
@@ -108,13 +104,11 @@ part Glass {
                     rim: 9%
                     box { at: gsl.x0 + gsl.w / 2, sby + 257 * pu; size: gsl.w, gh; corner: gh / 2 }
                 }
-                group {
-                    glow: 6 * pu, 50%, mint
-                    body {
-                        gradient: gsl.x0, 0 to gsl.x0 + gsl.w, 0, mintlo, mint 55%, minthi
-                        rim: 22%
-                        box { from: gsl.x0, sby + 257 * pu - gh / 2; size: max(0.1, gsl.w * clamp(glass_rim / 2, 0, 1)), gh; corner: gh / 2 }
-                    }
+                body {
+                    shadow: 0, 0, 6 * pu, 50%, mint
+                    gradient: gsl.x0, 0 to gsl.x0 + gsl.w, 0, mintlo, mint 55%, minthi
+                    rim: 22%
+                    box { from: gsl.x0, sby + 257 * pu - gh / 2; size: max(0.1, gsl.w * clamp(glass_rim / 2, 0, 1)), gh; corner: gh / 2 }
                 }
             }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 228 * pu + 0.5); text glass_rim_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 228 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100%; family: "Space Grotesk" } }
@@ -136,13 +130,11 @@ part Glass {
                     rim: 9%
                     box { at: gsl.x0 + gsl.w / 2, sby + 315 * pu; size: gsl.w, gh; corner: gh / 2 }
                 }
-                group {
-                    glow: 6 * pu, 50%, mint
-                    body {
-                        gradient: gsl.x0, 0 to gsl.x0 + gsl.w, 0, mintlo, mint 55%, minthi
-                        rim: 22%
-                        box { from: gsl.x0, sby + 315 * pu - gh / 2; size: max(0.1, gsl.w * clamp(glass_refr / 2, 0, 1)), gh; corner: gh / 2 }
-                    }
+                body {
+                    shadow: 0, 0, 6 * pu, 50%, mint
+                    gradient: gsl.x0, 0 to gsl.x0 + gsl.w, 0, mintlo, mint 55%, minthi
+                    rim: 22%
+                    box { from: gsl.x0, sby + 315 * pu - gh / 2; size: max(0.1, gsl.w * clamp(glass_refr / 2, 0, 1)), gh; corner: gh / 2 }
                 }
             }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 286 * pu + 0.5); text glass_refr_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 286 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
@@ -164,13 +156,11 @@ part Glass {
                     rim: 9%
                     box { at: gsl.x0 + gsl.w / 2, sby + 373 * pu; size: gsl.w, gh; corner: gh / 2 }
                 }
-                group {
-                    glow: 6 * pu, 50%, mint
-                    body {
-                        gradient: gsl.x0, 0 to gsl.x0 + gsl.w, 0, mintlo, mint 55%, minthi
-                        rim: 22%
-                        box { from: gsl.x0, sby + 373 * pu - gh / 2; size: max(0.1, gsl.w * clamp(glass_disp / 2.5, 0, 1)), gh; corner: gh / 2 }
-                    }
+                body {
+                    shadow: 0, 0, 6 * pu, 50%, mint
+                    gradient: gsl.x0, 0 to gsl.x0 + gsl.w, 0, mintlo, mint 55%, minthi
+                    rim: 22%
+                    box { from: gsl.x0, sby + 373 * pu - gh / 2; size: max(0.1, gsl.w * clamp(glass_disp / 2.5, 0, 1)), gh; corner: gh / 2 }
                 }
             }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 344 * pu + 0.5); text glass_disp_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 344 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
@@ -207,13 +197,11 @@ part Glass {
                     rim: 9%
                     box { at: gsl.x0 + gsl.w / 2, sby + 479 * pu; size: gsl.w, gh; corner: gh / 2 }
                 }
-                group {
-                    glow: 6 * pu, 50%, mint
-                    body {
-                        gradient: gsl.x0, 0 to gsl.x0 + gsl.w, 0, mintlo, mint 55%, minthi
-                        rim: 22%
-                        box { from: gsl.x0, sby + 479 * pu - gh / 2; size: max(0.1, gsl.w * clamp(glass_clear, 0, 1)), gh; corner: gh / 2 }
-                    }
+                body {
+                    shadow: 0, 0, 6 * pu, 50%, mint
+                    gradient: gsl.x0, 0 to gsl.x0 + gsl.w, 0, mintlo, mint 55%, minthi
+                    rim: 22%
+                    box { from: gsl.x0, sby + 479 * pu - gh / 2; size: max(0.1, gsl.w * clamp(glass_clear, 0, 1)), gh; corner: gh / 2 }
                 }
             }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 450 * pu + 0.5); text glass_clear_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 450 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k) * (1 - 0.55 * glass_auto_pill); family: "Space Grotesk" } }

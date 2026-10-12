@@ -2,6 +2,7 @@ part OsdDrawer {
     //  The volume and notification drawer's content, clipped to its shape. Both sit on one plate
     //  (the same 8% veil as the others), 12 in from the drawer's edge; `osd_kind` picks which is drawn.
     group {
+        shader: pixelate, px.do
         clip inset 2 box { at: mix(do.ix, do.ex, lm), do.ey; size: mix(do.iw, do.ew, lm), do.eh; corner: 26 * u * (1 - 0.73 * cas_k) }
         opacity: fo
         move: 0, (1 - fo) * 12 * u
