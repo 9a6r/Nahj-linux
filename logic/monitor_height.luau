@@ -29,7 +29,7 @@ return function()
         calm = 0
         base = latest
         -- a moment first, for the mode switch to finish (Hyprland can report two steps in a row)
-        exec_on_desktop("sleep 1.5; pkill -f '^pleamar --scene .*/vitreus/vitreus.plm'")
+        exec_on_desktop("sleep 1.5; pkill -f '^pleamar --scene .*/vitreus/(vitreus.plm|desktop)'")
     end
     local function check_change(list)
         local parts = {}

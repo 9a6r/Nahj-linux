@@ -1822,7 +1822,7 @@ after(4000, function()
     for _, dir in ipairs({ "desktopmenu", "desktopnotes", "webcam" }) do
         run("pgrep", { "-f", dir .. "/" .. dir .. ".plm" }, function(_, code)
             if code ~= 0 then
-                exec_on_desktop('pleamar --scene "$HOME/.config/pleamar/shells/vitreus/' .. dir .. '/' .. dir .. '.plm" --no-hud')
+                exec_on_desktop('vitreus-keep "$HOME/.config/pleamar/shells/vitreus/' .. dir .. '/' .. dir .. '.plm"')
             end
         end)
     end
@@ -2487,6 +2487,7 @@ pleamar --say vitreus quit >/dev/null 2>&1
 i=0
 while pgrep -f "^pleamar --scene $P" >/dev/null && [ $i -lt 15 ]; do sleep 0.2; i=$((i+1)); done
 pkill -f "^pleamar --scene $P"
+pkill -f "^pleamar --scene .*/vitreus/desktop"  # the desktop widgets restart with the shell (their keepers start them again)
 sleep 0.3
 [ "$(stat -c %s "$L" 2>/dev/null || echo 0)" -gt 1048576 ] && mv -f "$L" "$L.1"
 # under its keeper when there is one (bin/vitreus-keep): a keeper already looking after it starts it again itself
@@ -3031,7 +3032,7 @@ do
         saved[theme()] = chosen
         pcall(sys.call, "files.write", "fonts.json", { glass = saved.glass, retro = saved.retro, uwu = saved.uwu })
         show()
-        after(500, function() run("pkill", { "-f", "pleamar --scene .*/vitreus/vitreus\\.plm" }, function() end) end)
+        after(500, function() run("pkill", { "-f", "pleamar --scene .*/vitreus/(vitreus\\.plm|desktop)" }, function() end) end)
     end)
 end
 -- A wallpaper that Vitreus sets is known at once (see `wp_apply`); this is only for one changed from elsewhere, so it
@@ -5124,7 +5125,7 @@ end
     local function toggle_scene(name, dir)
         run("pleamar", { "--say", name, "get shown" }, function(out, code)
             if code ~= 0 then
-                exec_on_desktop('pleamar --scene "$HOME/.config/pleamar/shells/vitreus/' .. dir .. '/' .. dir .. '.plm" --no-hud')
+                exec_on_desktop('vitreus-keep "$HOME/.config/pleamar/shells/vitreus/' .. dir .. '/' .. dir .. '.plm"')
                 after(2500, function() run("pleamar", { "--say", name, "fact shown true" }, function() end) end)
                 return
             end
@@ -5148,7 +5149,7 @@ end
         end
         run("pleamar", { "--say", "desktopnotes", "get shown" }, function(_, code)
             if code ~= 0 then
-                exec_on_desktop('pleamar --scene "$HOME/.config/pleamar/shells/vitreus/desktopnotes/desktopnotes.plm" --no-hud')
+                exec_on_desktop('vitreus-keep "$HOME/.config/pleamar/shells/vitreus/desktopnotes/desktopnotes.plm"')
                 after(2500, send)
             else
                 send()
@@ -5201,7 +5202,7 @@ end
             -- A card on the desktop (desktopsysmon/) with its own scene: asked how it is, and started if it is not running.
             run("pleamar", { "--say", "desktopsysmon", "get shown" }, function(out, code)
                 if code ~= 0 then
-                    exec_on_desktop('pleamar --scene "$HOME/.config/pleamar/shells/vitreus/desktopsysmon/desktopsysmon.plm" --no-hud')
+                    exec_on_desktop('vitreus-keep "$HOME/.config/pleamar/shells/vitreus/desktopsysmon/desktopsysmon.plm"')
                     after(2500, function() run("pleamar", { "--say", "desktopsysmon", "fact shown true" }, function() end) end)
                     return
                 end
@@ -5215,7 +5216,7 @@ end
         { "Desktop menu: start", "action", function()
             -- The right-click menu on the wallpaper (desktopmenu/) is a scene of its own; this starts it for this session if it is not running (it is in the autostart file after an install).
             run("pleamar", { "--say", "desktopmenu", "get open" }, function(_, code)
-                if code ~= 0 then exec_on_desktop('pleamar --scene "$HOME/.config/pleamar/shells/vitreus/desktopmenu/desktopmenu.plm" --no-hud') end
+                if code ~= 0 then exec_on_desktop('vitreus-keep "$HOME/.config/pleamar/shells/vitreus/desktopmenu/desktopmenu.plm"') end
             end)
         end, "desktop menu right click context wallpaper start" },
         { "Sticky note: new", "action", function() spawn('pleamar --say vitreus "emit sticky_new"') end, "sticky note sticker new add notes desktop paper write" },
