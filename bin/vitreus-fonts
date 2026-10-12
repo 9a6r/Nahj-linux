@@ -16,7 +16,8 @@ def load(name):
         return {}
     return got if isinstance(got, dict) else {}      # pleamar writes an empty table as []
 
-preset = load("iris.json").get("preset")
+iris = load("iris.json")
+preset = iris.get("look", iris.get("preset"))      # the look (Glass, Retro 8, UwU 9); an older file has only the palette
 theme = "retro" if preset == 8 else "uwu" if preset == 9 else "glass"
 choice = load("fonts.json").get(theme)
 family = choice or {"retro": "Audiowide", "uwu": "Mochiy Pop One"}.get(theme)

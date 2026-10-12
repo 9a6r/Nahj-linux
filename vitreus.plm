@@ -683,7 +683,7 @@ scene Vitreus {
 
     //  The colours live in palette-live.plm (ink, faint, mint, tint…); only the veil is the scene's.
     let veil  = 8%
-    let glyph_a = 0.4              // how strong the little marks on the toggle knobs are: kept subtle
+    let glyph_a = 0.4 * (1 - uwu_k)              // how strong the little marks on the toggle knobs are: kept subtle
 
     shader wave = file "wave.wgsl"
     shader pixelate = file "pixelate.wgsl"
@@ -2280,6 +2280,22 @@ scene Vitreus {
     //  A result of the launcher: an icon (or a letter where there is none), its name, and a line of detail.
     //  Its width is the rows' width (`lw`): narrower where a preview sits beside the rows, and then it has no detail line.
     let lw = mix(430, 238, lpv) * pu
+    //  The UwU's knob: a cat paw (a pad and four toes) in the knob's colour, in place of the rounded one, swelling as it does. Every switch's knob (the Control Center's
+    //  tiles, the Settings', the Desk's) calls this, so they are all one: `kx`, `cy` the knob's middle, `kw` its width, `ku` the unit the switch is laid out in.
+    component CatPawKnob(kx: number, cy: number, kw: number, ku: number) {
+        let ps = kw / (17 * ku)
+        body {
+            color: ink
+            shadow: 0, 2 * ku, 5 * ku, 26%
+            opacity: uwu_k
+            show: uwu_k > 0.01
+            ellipse { at: kx, cy + 3.2 * ku * ps; radius: 5.6 * ku * ps; scale: 1.25, 0.95 }
+            ellipse { at: kx - 6.4 * ku * ps, cy - 1.6 * ku * ps; radius: 2.5 * ku * ps }
+            ellipse { at: kx - 2.8 * ku * ps, cy - 5.8 * ku * ps; radius: 2.5 * ku * ps }
+            ellipse { at: kx + 2.8 * ku * ps, cy - 5.8 * ku * ps; radius: 2.5 * ku * ps }
+            ellipse { at: kx + 6.4 * ku * ps, cy - 1.6 * ku * ps; radius: 2.5 * ku * ps }
+        }
+    }
     //  The switch of the Settings, drawn exactly like the Control Center's (the Notifications tile's, say) without the little icon on the knob: a track that is
     //  a dark hollow off and raised and lit from inside on, a solid knob that swells while it moves and under the finger, and the light that travels with it.
     //  `rx` is the track's right edge, `cy` its middle, `k` how on it is (0 to 1, a spring), `press` how pressed (the row's zone `.pressed`), `acc` the colour on.
@@ -2311,9 +2327,11 @@ scene Vitreus {
         }
         body {
             color: ink
+            opacity: 1 - uwu_k
             shadow: 0, 2 * cu, 5 * cu, 26%
             box { at: skx, cy; size: skw, skh; corner: (8.5 - 2 * clamp(k, 0, 1) - 1.5 * sm) * cu }
         }
+        CatPawKnob(skx, cy, skw, cu)
     }
     //  An envelope, for the notifications: `o` how open its flap is (0 sealed, 1 open, a spring), `letter` 1 for a letter that comes up out of it, 0 for an
     //  empty one, `op` how much of it shows. `s` is the size (26 * s wide). Flat parts only, so it is the same on glass and obsidian. Back to front: the

@@ -237,9 +237,11 @@ part ControlsDrawer {
             //  and an outline, crossed out, with it off.
             body {
                 color: ink
+                opacity: 1 - uwu_k
                 shadow: 0, 2 * cu, 5 * cu, 26%
                 box { at: wf_kx, wf_cy; size: wf_kw, wf_kh; corner: (8.5 - 2 * clamp(wifi_on, 0, 1) - 1.5 * wf_m) * cu }
             }
+            CatPawKnob(wf_kx, wf_cy, wf_kw, cu)
             let wf_gy = wf_cy + 3.4 * cu
             ellipse { at: wf_kx, wf_gy; radius: 1.5 * cu; color: wf_dk; opacity: glyph_a * (wifi_on) }
             arc { at: wf_kx, wf_gy; radius: 4.2 * cu; span: 92deg; width: 1.4 * cu; color: wf_dk; opacity: glyph_a * (wifi_on) }
@@ -308,9 +310,11 @@ part ControlsDrawer {
             //  The knob: plain, solid, squared a little when on, swelling under the finger, with a mark on it.
             body {
                 color: ink
+                opacity: 1 - uwu_k
                 shadow: 0, 2 * cu, 5 * cu, 26%
                 box { at: gbt_kx, gbt_cy; size: gbt_kw, gbt_kh; corner: (8.5 - 2 * clamp(bt_on, 0, 1) - 1.5 * gbt_m) * cu }
             }
+            CatPawKnob(gbt_kx, gbt_cy, gbt_kw, cu)
             path { at: gbt_kx, gbt_cy; stroke: 1.3 * cu; color: gbt_dk; opacity: glyph_a * (bt_on); move -3.5 * cu, -3 * cu; line 3.5 * cu, 3 * cu; line 0, 5.5 * cu; line 0, -5.5 * cu; line 3.5 * cu, -3 * cu; line -3.5 * cu, 3 * cu }
             path { at: gbt_kx, gbt_cy; stroke: 1.1 * cu; color: gbt_dk; opacity: glyph_a * (0.7 * (1 - bt_on)); move -3.5 * cu, -3 * cu; line 3.5 * cu, 3 * cu; line 0, 5.5 * cu; line 0, -5.5 * cu; line 3.5 * cu, -3 * cu; line -3.5 * cu, 3 * cu }
             line { from: gbt_kx - 5 * cu, gbt_cy - 5 * cu; to: gbt_kx + 5 * cu, gbt_cy + 5 * cu; width: 1.4 * cu; color: gbt_dk; opacity: glyph_a * (0.8 * (1 - bt_on)) }
@@ -380,9 +384,11 @@ part ControlsDrawer {
             //  The knob: plain, solid, squared a little when on, swelling under the finger, with a mark on it.
             body {
                 color: ink
+                opacity: 1 - uwu_k
                 shadow: 0, 2 * cu, 5 * cu, 26%
                 box { at: gdn_kx, gdn_cy; size: gdn_kw, gdn_kh; corner: (8.5 - 2 * clamp(dnd_pill, 0, 1) - 1.5 * gdn_m) * cu }
             }
+            CatPawKnob(gdn_kx, gdn_cy, gdn_kw, cu)
             group {
                 opacity: glyph_a
                 ellipse { at: gdn_kx, gdn_cy - 1.2 * cu; radius: 3.4 * cu; color: gdn_dk }
@@ -459,9 +465,11 @@ part ControlsDrawer {
                 //  The knob: plain, solid, squared a little when on, swelling under the finger, with a mark on it.
                 body {
                     color: ink
+                    opacity: 1 - uwu_k
                     shadow: 0, 2 * cu, 5 * cu, 26%
                     box { at: gcf_kx, gcf_cy; size: gcf_kw, gcf_kh; corner: (8.5 - 2 * clamp(caf_pill, 0, 1) - 1.5 * gcf_m) * cu }
                 }
+                CatPawKnob(gcf_kx, gcf_cy, gcf_kw, cu)
                 group {
                     opacity: glyph_a * (caf_pill)
                     box { at: gcf_kx - 1 * cu, gcf_cy + 0.5 * cu; size: 8 * cu, 7 * cu; corner: 2 * cu; color: gcf_dk }

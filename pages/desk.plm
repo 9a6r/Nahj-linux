@@ -439,9 +439,11 @@ part Desk {
                 }
                 body {
                     color: ink
+                    opacity: 1 - uwu_k
                     shadow: 0, 2 * du, 5 * du, 26%
                     box { at: sk0, fs_y; size: (17 + 9 * sm0 + 4 * ft_press) * du, (17 - 3 * sm0) * du; corner: (8.5 - 2 * clamp(sp0, 0, 1) - 1.5 * sm0) * du }
                 }
+                CatPawKnob(sk0, fs_y, (17 + 9 * sm0 + 4 * ft_press) * du, du)
                 group {
                     opacity: glyph_a
                     ellipse { at: sk0, fs_y - 1.2 * du; radius: 3.4 * du; color: off }
@@ -475,9 +477,11 @@ part Desk {
                 }
                 body {
                     color: ink
+                    opacity: 1 - uwu_k
                     shadow: 0, 2 * du, 5 * du, 26%
                     box { at: sk1, fs_y; size: (17 + 9 * sm1 + 4 * ft_press) * du, (17 - 3 * sm1) * du; corner: (8.5 - 2 * clamp(sp1, 0, 1) - 1.5 * sm1) * du }
                 }
+                CatPawKnob(sk1, fs_y, (17 + 9 * sm1 + 4 * ft_press) * du, du)
                 group {
                     opacity: glyph_a * sp1
                     box { at: sk1 - 1 * du, fs_y + 0.5 * du; size: 8 * du, 7 * du; corner: 2 * du; color: off }

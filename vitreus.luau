@@ -2721,7 +2721,8 @@ local function check_wallpaper()
     end)
 end
 
--- Settings > Theme has two looks: Glass (the wallpaper's colours, Iris; `iris_cfg.preset` is nil) and Retro (`iris_cfg.preset` is 8). Everything that follows
+-- Settings > Theme has looks: Glass (`iris_cfg.look` is nil), Retro (8) and UwU (9); picking one also takes that theme's own palette (`iris_cfg.preset` is its number). The palette can then
+-- be changed to the wallpaper's (Iris, `preset` nil) without leaving the look. Everything that follows
 -- the palette follows it: the shell, the lock screen, pleamar-wm's border, Hyprland's borders.
 -- Retro (preset 8): moulded putty plastic, not glass. Its colours skip the legibility floor (which is for light text on dark glass): the text is a
 -- dark ink on the plastic, the accent a Famicom red, and `deep` (the hard shadow, the outlines) is the ink itself.
@@ -2738,6 +2739,10 @@ do
         if saved.enabled ~= nil then iris_cfg.enabled = saved.enabled and true or false end
         local pr = tonumber(saved.preset)
         if pr and (math.floor(pr) == iris_fx.CASSETTE or math.floor(pr) == iris_fx.UWU) then iris_cfg.preset = math.floor(pr) end
+        -- The look (Glass, Retro, UwU) is its own setting, apart from where the colours come from: Iris may colour a Retro or UwU shell and it stays one.
+        local lk = tonumber(saved.look)
+        if lk and (math.floor(lk) == iris_fx.CASSETTE or math.floor(lk) == iris_fx.UWU) then iris_cfg.look = math.floor(lk)
+        elseif lk == nil then iris_cfg.look = iris_cfg.preset end      -- an older file: the look was the palette
     else
         pcall(sys.call, "files.write", "iris.json", iris_cfg)     -- so there is a file to edit
     end
@@ -2746,13 +2751,13 @@ do
     local INTENSITIES = { "subtle", "medium", "bold" }
     local function show()
         fact.iris_on = iris_cfg.enabled and not iris_cfg.preset
-        fact.theme_sel = iris_cfg.preset or (iris_cfg.enabled and 0 or 7)       -- 0 Glass, 8 Retro (7: Iris switched off on the Wallpaper page, greys)
-        fact.cas = iris_cfg.preset == iris_fx.CASSETTE
-        fact.uwu = iris_cfg.preset == iris_fx.UWU
+        fact.theme_sel = iris_cfg.look or (iris_cfg.enabled and 0 or 7)       -- 0 Glass, 8 Retro, 9 UwU (7: Iris switched off on the Wallpaper page, greys)
+        fact.cas = iris_cfg.look == iris_fx.CASSETTE
+        fact.uwu = iris_cfg.look == iris_fx.UWU
         for k, name in ipairs(INTENSITIES) do if name == iris_cfg.intensity then fact.iris_int = k - 1 end end
     end
     local function save()
-        pcall(sys.call, "files.write", "iris.json", { enabled = iris_cfg.enabled, intensity = iris_cfg.intensity, preset = iris_cfg.preset })
+        pcall(sys.call, "files.write", "iris.json", { enabled = iris_cfg.enabled, intensity = iris_cfg.intensity, preset = iris_cfg.preset, look = iris_cfg.look })
     end
     local function follow_wallpaper()
         if iris_last_wp then run_iris(iris_last_wp) else check_wallpaper() end
@@ -2761,8 +2766,9 @@ do
     if iris_cfg.preset == iris_fx.CASSETTE then iris_fx.apply_palette(iris_fx.cassette)
     elseif iris_cfg.preset == iris_fx.UWU then iris_fx.apply_palette(iris_fx.uwu)
     elseif not iris_cfg.enabled then iris_fx.apply_mono() end
-    -- The switch on the Wallpaper page. Off: greys at once. On: Iris is run on the wallpaper in use, and the colours come back (a named palette is
-    -- let go too: the switch says Iris is off while one is chosen, and turning it on is asking for the wallpaper's colours).
+    -- The switch on the Wallpaper page. Off: greys at once. On: Iris is run on the wallpaper in use, and the colours come back (a theme's own palette is
+    -- let go too: the switch says Iris is off while one is in use, and turning it on is asking for the wallpaper's colours). The look stays: Retro or UwU
+    -- with the wallpaper's colours is still Retro or UwU.
     on("iris_toggle", function()
         if iris_cfg.preset then
             iris_cfg.preset, iris_cfg.enabled = nil, true
@@ -2777,13 +2783,13 @@ do
     on("theme_pick", function(k)
         k = math.floor((tonumber(k) or 0) + 0.5)
         if k == 0 then
-            iris_cfg.preset, iris_cfg.enabled = nil, true
+            iris_cfg.look, iris_cfg.preset, iris_cfg.enabled = nil, nil, true
             follow_wallpaper()
         elseif k == iris_fx.CASSETTE then
-            iris_cfg.preset, iris_cfg.enabled = k, true
+            iris_cfg.look, iris_cfg.preset, iris_cfg.enabled = k, k, true
             iris_fx.apply_palette(iris_fx.cassette)
         elseif k == iris_fx.UWU then
-            iris_cfg.preset, iris_cfg.enabled = k, true
+            iris_cfg.look, iris_cfg.preset, iris_cfg.enabled = k, k, true
             iris_fx.apply_palette(iris_fx.uwu)
         else
             return
@@ -2821,7 +2827,7 @@ do
     local inuse                            -- the family the running shell is drawn in (set once the choice is read; only a start changes it)
     local top = 0                          -- the first row shown
     local pv_n, pv_token = 0, 0
-    local function theme() return iris_cfg.preset == iris_fx.CASSETTE and "retro" or iris_cfg.preset == iris_fx.UWU and "uwu" or "glass" end
+    local function theme() return iris_cfg.look == iris_fx.CASSETTE and "retro" or iris_cfg.look == iris_fx.UWU and "uwu" or "glass" end
     local function label() return theme() == "retro" and "Retro" or theme() == "uwu" and "UwU" or "Glass" end
     local function index_of(v)
         for i, e in ipairs(view) do if e.value == v then return i end end
