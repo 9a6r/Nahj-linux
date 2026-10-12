@@ -2409,11 +2409,19 @@ scene Vitreus {
     component TmRow(r: record, pick: event) {
         size: 288 * cu, floor(if(r.sep, 10, 28) * cu + 0.5)
         zone box touch { from: 0, 0; size: 288 * cu, 28 * cu; corner: 9 * cu; cursor: pointer; active: r.enabled and not r.sep }
-        box { from: 0, 0; size: 288 * cu, 28 * cu; corner: 9 * cu; color: ink; opacity: if(r.sep, 0%, 9% * touch.hover) }
+        //  Under the pointer a row lights in the accent: a soft wash over the usual veil, a bar growing from the left edge, a dot where the check goes, the label stepping
+        //  in and the arrow leaning; on the UwU a little star twinkles at the right. All of it is the theme's own colour and corner, so each look keeps its own.
+        box { from: 0, 0; size: 288 * cu, 28 * cu; corner: 9 * cu * (1 - 0.73 * cas_k); color: ink; opacity: if(r.sep, 0%, 6% * touch.hover) }
+        box { from: 0, 0; size: 288 * cu, 28 * cu; corner: 9 * cu * (1 - 0.73 * cas_k); color: mint; opacity: if(r.sep, 0%, 15% * touch.hover) }
+        box { at: 2.5 * cu, 14 * cu; size: 3 * cu, 16 * cu * touch.hover; corner: 1.5 * cu * (1 - 0.8 * cas_k); color: mint; opacity: if(r.sep, 0%, 100%) }
+        ellipse { at: 15 * cu, 14 * cu; radius: 2.2 * cu * touch.hover; color: mint; opacity: if(r.checked or r.sep, 0%, 100%) }
+        //  A separator is a line with a small diamond of the accent in the middle.
         box { at: 144 * cu, 5 * cu; size: 264 * cu, 1 * cu; color: ink; opacity: if(r.sep, 12%, 0%) }
+        path { at: 144 * cu, 5 * cu; color: mint; opacity: if(r.sep, 70%, 0%); move 0, -3 * cu; line 3 * cu, 0; line 0, 3 * cu; line -3 * cu, 0; close }
         path { at: 15 * cu, 14 * cu; stroke: 1.6 * cu; color: mint; opacity: if(r.checked, 100%, 0%); move -3.5 * cu, 0.5 * cu; line -1 * cu, 3 * cu; line 4 * cu, -3.5 * cu }
-        text r.label { at: floor((30 + r.depth * 14) * cu + 0.5), floor(14 * cu + 0.5); anchor: left center; size: 14.5; width: (226 - r.depth * 14) * cu; lines: 1; color: ink; opacity: if(r.enabled, 100%, 40%); show: not r.sep; family: "Space Grotesk" }
-        path { at: 274 * cu, 14 * cu; stroke: 1.5 * cu; color: ink; rotate: if(r.open, 90deg, 0deg); opacity: if(r.kids, 60%, 0%); move -2 * cu, -3.5 * cu; line 2 * cu, 0; line -2 * cu, 3.5 * cu }
+        text r.label { at: floor((30 + r.depth * 14 + 3 * touch.hover) * cu + 0.5), floor(14 * cu + 0.5); anchor: left center; size: 14.5; width: (226 - r.depth * 14) * cu; lines: 1; color: ink; opacity: if(r.enabled, 100%, 40%); show: not r.sep; family: "Space Grotesk" }
+        path { at: (274 + 2.5 * touch.hover) * cu, 14 * cu; stroke: 1.5 * cu; color: mix(ink, mint, touch.hover); rotate: if(r.open, 90deg, 0deg); opacity: if(r.kids, 60% + 40% * touch.hover, 0%); move -2 * cu, -3.5 * cu; line 2 * cu, 0; line -2 * cu, 3.5 * cu }
+        path { at: 262 * cu, 14 * cu; color: #ffe27a; opacity: if(r.sep, 0%, uwu_k * touch.hover); move 0, -5 * cu * touch.hover; line 1.5 * cu * touch.hover, -1.5 * cu * touch.hover; line 5 * cu * touch.hover, 0; line 1.5 * cu * touch.hover, 1.5 * cu * touch.hover; line 0, 5 * cu * touch.hover; line -1.5 * cu * touch.hover, 1.5 * cu * touch.hover; line -5 * cu * touch.hover, 0; line -1.5 * cu * touch.hover, -1.5 * cu * touch.hover; close }
         on press touch { emit pick(r.index) }
     }
 
