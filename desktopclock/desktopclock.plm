@@ -54,7 +54,12 @@ scene DesktopClock {
     follow sh = if(shown, 1, 0)
     fact obs = false        // Vitreus has its glass off: the digits are flat obsidian (Vitreus says so with `fact obs true`)
     prop ob = 0 ~calm
-    follow ob = if(obs, 1, 0)
+    follow ob = if(obs or look > 0, 1, 0)
+    fact look = 0           // the shell's theme (Vitreus says so): 0 Glass, 1 Retro, 2 UwU; the last two draw the digits as plastic, like the bar (outline, hard shadow)
+    prop pl = 0 ~calm
+    follow pl = if(look > 0, 1, 0)
+    prop uk = 0 ~calm
+    follow uk = if(look == 2, 1, 0)
 
     let k = px / 88
     let wt = if(wti == 0, 0.62, if(wti == 2, 1.4, 1))
@@ -120,5 +125,5 @@ scene DesktopClock {
         text "Clock" { at: fx - hw - pad + 14, fy - hh - pad + 16; anchor: left center; size: 12; weight: 700; color: mint; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
     }
 
-    ClockFaceStyled(k, lay, d0, d1, d2, d3, fx, fy, tint, 1, 0.4, sh * clr, wt, mint, ink, alert, faint, ob)
+    ClockFaceStyled(k, lay, d0, d1, d2, d3, fx, fy, tint, 1, 0.4, sh * clr, wt, mint, ink, alert, faint, ob, pl, uk, deep)
 }

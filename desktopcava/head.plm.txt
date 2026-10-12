@@ -33,7 +33,12 @@ scene DesktopCava {
     prop lv = 0 ~calm
     follow lv = if(live, 1, 0)
     prop ob = 0 ~calm
-    follow ob = if(obs, 1, 0)
+    follow ob = if(obs or look > 0, 1, 0)
+    fact look = 0          // the shell's theme (Vitreus says so): 0 Glass, 1 Retro, 2 UwU; the last two draw the bars as plastic, like the bar (outline, hard shadow)
+    prop pl = 0 ~calm
+    follow pl = if(look > 0, 1, 0)
+    prop uk = 0 ~calm
+    follow uk = if(look == 2, 1, 0)
     let vis = sh * lv
 
     //  Where it goes: a frame of `len` by `thk` pixels centred on (cx, cy), turned so that its bottom is against the edge it sits at. Everything below is drawn in

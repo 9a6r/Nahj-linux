@@ -55,7 +55,13 @@ scene DesktopSysmon {
     follow sh = if(shown, 1, 0)
     fact obs = false        // Vitreus has its glass off: the card is flat obsidian (Vitreus says so with `fact obs true`)
     prop ob = 0 ~calm
-    follow ob = if(obs, 1, 0)
+    follow ob = if(obs or look > 0, 1, 0)
+    fact look = 0           // the shell's theme (Vitreus says so): 0 Glass, 1 Retro, 2 UwU; the last two draw the card as plastic, like the bar (a body with an outline and a hard shadow)
+    prop pl = 0 ~calm
+    follow pl = if(look > 0, 1, 0)
+    prop uk = 0 ~calm
+    follow uk = if(look == 2, 1, 0)
+    let tx = mix(wink, ink, pl)         // the writing: light over glass, dark over plastic
     prop cpu_p = 0 ~calm
     prop mem_p = 0 ~calm
     prop gpu_p = 0 ~calm
@@ -120,7 +126,7 @@ scene DesktopSysmon {
         opacity: edp
         box { from: cx0 + ox, cy0 + oy; size: ow, oh; corner: 16; color: mint; opacity: 7% + 9% * dgp }
         box { from: cx0 + ox, cy0 + oy; size: ow, oh; corner: 16; stroke: 1.6; color: mint; opacity: 55% + 45% * dgp }
-        text "System" { at: cx0 + ox + 14, cy0 + oy + 16; anchor: left center; size: 12; weight: 700; color: mint; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
+        text "System" { at: cx0 + ox + 14, cy0 + oy + 16; anchor: left center; size: 12; weight: 700; color: mint; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl) }
     }
     let ry = 92
     group {
@@ -140,12 +146,22 @@ scene DesktopSysmon {
             arc { at: g2, ry; radius: 36; span: 270deg; width: 8; rotate: 0deg; show: gpu_on }
             box { at: 200, 206; size: 340, 2.4; corner: 1.2 }
         }
+        //  Retro and UwU: the card itself, a plastic plate with an outline and a hard shadow (the tracks and the graph's line are cut into it, below).
+        body {
+            color: tint
+            rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
+            shadow: 4 * pl, 5 * pl, 0, 55% + 35% * uk, mix(deep, #ff6ec7, 0.75 * uk)
+            opacity: sh * pl
+            show: pl > 0.004
+            box { at: 200, 113; size: 364, 230; corner: 16 }
+        }
         //  Obsidian (Vitreus has its glass off): the same shapes as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), off, pl)
             rim: 0%
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 0, 6, 18, 45% * (1 - pl), #000000
             show: ob > 0.004
             arc { at: g0, ry; radius: 36; span: 270deg; width: 8; rotate: 0deg }
             arc { at: g1, ry; radius: 36; span: 270deg; width: 8; rotate: 0deg }
@@ -154,29 +170,29 @@ scene DesktopSysmon {
         }
         group {
             opacity: sh
-            text host { at: 30, 30; anchor: left center; size: 17; weight: 700; width: 190; lines: 1; color: wink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
-            text up { at: 370, 30; anchor: right center; size: 13; weight: 600; width: 120; lines: 1; color: wink; family: "Space Grotesk"; align: right; opacity: 80%; shadow: 0, 1, 5, 70% }
-            text aur_txt { at: 212, 30; anchor: center center; size: 12; weight: 600; width: 150; lines: 1; color: mint; opacity: 90%; family: "Space Grotesk"; align: center; show: aur_on; shadow: 0, 1, 5, 70% }
+            text host { at: 30, 30; anchor: left center; size: 17; weight: 700; width: 190; lines: 1; color: tx; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl) }
+            text up { at: 370, 30; anchor: right center; size: 13; weight: 600; width: 120; lines: 1; color: tx; family: "Space Grotesk"; align: right; opacity: 80%; shadow: 0, 1, 5, 70% * (1 - pl) }
+            text aur_txt { at: 212, 30; anchor: center center; size: 12; weight: 600; width: 150; lines: 1; color: mint; opacity: 90%; family: "Space Grotesk"; align: center; show: aur_on; shadow: 0, 1, 5, 70% * (1 - pl) }
 
             group {
-                glow: 7, 26%
+                glow: 7, 26% * (1 - pl)
                 arc { at: g0, ry; radius: 36; span: (270 * clamp(cpu_p, 0.004, 1)) * 1deg; width: 8; color: mix(mint, alert, clamp((cpu_p - 0.75) / 0.25, 0, 1)); rotate: (-135 + 135 * clamp(cpu_p, 0.004, 1)) * 1deg }
                 arc { at: g1, ry; radius: 36; span: (270 * clamp(mem_p, 0.004, 1)) * 1deg; width: 8; color: mix(mint, alert, clamp((mem_p - 0.85) / 0.15, 0, 1)); rotate: (-135 + 135 * clamp(mem_p, 0.004, 1)) * 1deg }
                 arc { at: g2, ry; radius: 36; span: (270 * clamp(gpu_p, 0.004, 1)) * 1deg; width: 8; color: mix(mint, alert, clamp((gpu_p - 0.85) / 0.15, 0, 1)); rotate: (-135 + 135 * clamp(gpu_p, 0.004, 1)) * 1deg; show: gpu_on }
             }
-            text cpu_txt { at: g0, ry - 4; anchor: center center; size: 20; weight: 700; width: 60; lines: 1; color: wink; family: "Space Grotesk"; align: center; shadow: 0, 1, 6, 70% }
-            text "CPU" { at: g0, ry + 13; anchor: center center; size: 10; weight: 700; color: wink; opacity: 75%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
-            text cpu_meta { at: g0, 146; anchor: center center; size: 11.5; weight: 600; width: 112; lines: 1; color: wink; opacity: 85%; family: "Space Grotesk"; align: center; shadow: 0, 1, 5, 70% }
-            text mem_txt { at: g1, ry - 4; anchor: center center; size: 20; weight: 700; width: 60; lines: 1; color: wink; family: "Space Grotesk"; align: center; shadow: 0, 1, 6, 70% }
-            text "MEMORY" { at: g1, ry + 13; anchor: center center; size: 10; weight: 700; color: wink; opacity: 75%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
-            text mem_meta { at: g1, 146; anchor: center center; size: 11.5; weight: 600; width: 112; lines: 1; color: wink; opacity: 85%; family: "Space Grotesk"; align: center; shadow: 0, 1, 5, 70% }
-            text gpu_txt { at: g2, ry - 4; anchor: center center; size: 20; weight: 700; width: 60; lines: 1; color: wink; family: "Space Grotesk"; align: center; show: gpu_on; shadow: 0, 1, 6, 70% }
-            text "GRAPHICS" { at: g2, ry + 13; anchor: center center; size: 10; weight: 700; color: wink; opacity: 75%; family: "Space Grotesk"; show: gpu_on; shadow: 0, 1, 5, 70% }
-            text gpu_meta { at: g2, 146; anchor: center center; size: 11.5; weight: 600; width: 112; lines: 1; color: wink; opacity: 85%; family: "Space Grotesk"; align: center; show: gpu_on; shadow: 0, 1, 5, 70% }
+            text cpu_txt { at: g0, ry - 4; anchor: center center; size: 20; weight: 700; width: 60; lines: 1; color: tx; family: "Space Grotesk"; align: center; shadow: 0, 1, 6, 70% * (1 - pl) }
+            text "CPU" { at: g0, ry + 13; anchor: center center; size: 10; weight: 700; color: tx; opacity: 75%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl) }
+            text cpu_meta { at: g0, 146; anchor: center center; size: 11.5; weight: 600; width: 112; lines: 1; color: tx; opacity: 85%; family: "Space Grotesk"; align: center; shadow: 0, 1, 5, 70% * (1 - pl) }
+            text mem_txt { at: g1, ry - 4; anchor: center center; size: 20; weight: 700; width: 60; lines: 1; color: tx; family: "Space Grotesk"; align: center; shadow: 0, 1, 6, 70% * (1 - pl) }
+            text "MEMORY" { at: g1, ry + 13; anchor: center center; size: 10; weight: 700; color: tx; opacity: 75%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl) }
+            text mem_meta { at: g1, 146; anchor: center center; size: 11.5; weight: 600; width: 112; lines: 1; color: tx; opacity: 85%; family: "Space Grotesk"; align: center; shadow: 0, 1, 5, 70% * (1 - pl) }
+            text gpu_txt { at: g2, ry - 4; anchor: center center; size: 20; weight: 700; width: 60; lines: 1; color: tx; family: "Space Grotesk"; align: center; show: gpu_on; shadow: 0, 1, 6, 70% * (1 - pl) }
+            text "GRAPHICS" { at: g2, ry + 13; anchor: center center; size: 10; weight: 700; color: tx; opacity: 75%; family: "Space Grotesk"; show: gpu_on; shadow: 0, 1, 5, 70% * (1 - pl) }
+            text gpu_meta { at: g2, 146; anchor: center center; size: 11.5; weight: 600; width: 112; lines: 1; color: tx; opacity: 85%; family: "Space Grotesk"; align: center; show: gpu_on; shadow: 0, 1, 5, 70% * (1 - pl) }
 
-            text "NETWORK" { at: 30, 172; anchor: left center; size: 11; weight: 700; color: wink; opacity: 75%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
-            text rx_txt { at: 140, 172; anchor: left center; size: 12.5; weight: 700; width: 112; lines: 1; color: wink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
-            text tx_txt { at: 370, 172; anchor: right center; size: 12.5; weight: 700; width: 112; lines: 1; color: mix(mint, wink, 0.4); family: "Space Grotesk"; align: right; shadow: 0, 1, 5, 70% }
+            text "NETWORK" { at: 30, 172; anchor: left center; size: 11; weight: 700; color: tx; opacity: 75%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl) }
+            text rx_txt { at: 140, 172; anchor: left center; size: 12.5; weight: 700; width: 112; lines: 1; color: tx; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl) }
+            text tx_txt { at: 370, 172; anchor: right center; size: 12.5; weight: 700; width: 112; lines: 1; color: mix(mint, tx, 0.4); family: "Space Grotesk"; align: right; shadow: 0, 1, 5, 70% * (1 - pl) }
             //  The columns are close enough (and smoothed in the logic) to read as one curve; the whole graph slides left as each sample arrives.
             //  The slide is linear, a sample's width in a second, and the newest sample comes in from beyond the edge (clipped), so it never pops in.
             group {
@@ -188,7 +204,7 @@ scene DesktopSysmon {
                         let dh = max(1.2, clamp(net_h.$i.rx, 0, 1) * 26)
                         let uh = max(1.2, clamp(net_h.$i.tx, 0, 1) * 22)
                         box { at: 31.4 + (k + 0.5) * 2.835, 205 - dh / 2; size: 2.6, dh; corner: 1.2; color: mint; opacity: (25% + 70% * k / 120); show: i < net_h.count }
-                        box { at: 31.4 + (k + 0.5) * 2.835, 208 + uh / 2; size: 2.6, uh; corner: 1.2; color: mix(mint, wink, 0.4); opacity: (20% + 55% * k / 120); show: i < net_h.count }
+                        box { at: 31.4 + (k + 0.5) * 2.835, 208 + uh / 2; size: 2.6, uh; corner: 1.2; color: mix(mint, tx, 0.4); opacity: (20% + 55% * k / 120); show: i < net_h.count }
                     }
                 }
             }

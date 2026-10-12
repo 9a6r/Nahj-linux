@@ -168,3 +168,15 @@ local function ask_obs()
 end
 ask_obs()
 after(4000, ask_obs)
+-- And which theme it has (0 Glass, 1 Retro, 2 UwU): Retro and UwU draw this as plastic, like the bar. Vitreus tells it when the theme changes.
+local function ask_look()
+    run("pleamar", { "--say", "vitreus", "get cas" }, function(cas, code)
+        if code ~= 0 or not cas then return end
+        run("pleamar", { "--say", "vitreus", "get uwu" }, function(uwu, code2)
+            if code2 ~= 0 or not uwu then return end
+            fact.look = cas:match("true") and 1 or (uwu:match("true") and 2 or 0)
+        end)
+    end)
+end
+ask_look()
+after(4000, ask_look)

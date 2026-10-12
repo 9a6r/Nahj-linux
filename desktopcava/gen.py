@@ -29,13 +29,14 @@ OPEN = """    let slot = len / 48
         rotate: ang * 1deg
         show: vis > 0.01
         body {
-            color: if(cm == 0, mix(tint, mix(mix(tint, #000000, 0.7), ink, 0.3), ob), if(cm == 1, mint, if(cm == 2, ink, alert)))
+            color: if(cm == 0, mix(tint, mix(mix(tint, #000000, 0.7), ink, 0.3), ob * (1 - pl)), if(cm == 1, mint, if(cm == 2, ink, alert)))
             glass: gl
             lens: false
             rim: 70% * gl
             shine: 0, 0
-            shadow: 0, 6, 18, 30% + 15% * ob * (1 - gl)
-            opacity: vis * if(cm == 0, 100%, 85%)
+            border: (2 + 1.2 * uk) * pl, deep
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 30% + 15% * ob * (1 - gl) + 40% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
+            opacity: vis * if(cm == 0 or pl > 0.5, 100%, 85%)
 """
 
 

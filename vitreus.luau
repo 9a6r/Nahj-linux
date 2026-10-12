@@ -2749,7 +2749,16 @@ do
 end
 do
     local INTENSITIES = { "subtle", "medium", "bold" }
+    -- The desktop clock and system monitor draw themselves as plastic with Retro and UwU: they are told the theme (0 Glass, 1 Retro, 2 UwU).
+    local function push_look()
+        local v = iris_cfg.look == iris_fx.CASSETTE and 1 or iris_cfg.look == iris_fx.UWU and 2 or 0
+        run("pleamar", { "--say", "desktopclock", "fact look " .. v }, function() end)
+        run("pleamar", { "--say", "desktopsysmon", "fact look " .. v }, function() end)
+        run("pleamar", { "--say", "desktopnotes", "fact look " .. v }, function() end)
+        run("pleamar", { "--say", "desktopcava", "fact look " .. v }, function() end)
+    end
     local function show()
+        push_look()
         fact.iris_on = iris_cfg.enabled and not iris_cfg.preset
         fact.theme_sel = iris_cfg.look or (iris_cfg.enabled and 0 or 7)       -- 0 Glass, 8 Retro, 9 UwU (7: Iris switched off on the Wallpaper page, greys)
         fact.cas = iris_cfg.look == iris_fx.CASSETTE

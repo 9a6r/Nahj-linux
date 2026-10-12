@@ -50,7 +50,12 @@ scene DesktopNotes {
     prop sh = 0 ~calm
     follow sh = if(shown, 1, 0)
     prop ob = 0 ~calm
-    follow ob = if(obs, 1, 0)
+    follow ob = if(obs or look > 0, 1, 0)
+    fact look = 0           // the shell's theme (Vitreus says so): 0 Glass, 1 Retro, 2 UwU; the last two draw the stickers as plastic, like the bar (outline, hard shadow)
+    prop pl = 0 ~calm
+    follow pl = if(look > 0, 1, 0)
+    prop uk = 0 ~calm
+    follow uk = if(look == 2, 1, 0)
     let clr = if(cli == 0, 55%, if(cli == 1, 80%, 100%))
     let mi = clamp(screen.index, 0, 3)
     let ox = pick(mi, m0x, m1x, m2x, m3x)     // where this monitor's top left is in the desktop
@@ -319,10 +324,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -336,8 +342,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb0.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb0.hover }
-            text t0 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 0 and h0 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 0 and not h0 }
+            text t0 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 0 and h0 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 0 and not h0 }
         }
     }
     group {
@@ -356,10 +362,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -373,8 +380,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb1.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb1.hover }
-            text t1 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 1 and h1 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 1 and not h1 }
+            text t1 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 1 and h1 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 1 and not h1 }
         }
     }
     group {
@@ -393,10 +400,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -410,8 +418,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb2.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb2.hover }
-            text t2 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 2 and h2 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 2 and not h2 }
+            text t2 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 2 and h2 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 2 and not h2 }
         }
     }
     group {
@@ -430,10 +438,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -447,8 +456,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb3.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb3.hover }
-            text t3 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 3 and h3 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 3 and not h3 }
+            text t3 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 3 and h3 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 3 and not h3 }
         }
     }
     group {
@@ -467,10 +476,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -484,8 +494,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb4.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb4.hover }
-            text t4 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 4 and h4 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 4 and not h4 }
+            text t4 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 4 and h4 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 4 and not h4 }
         }
     }
     group {
@@ -504,10 +514,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -521,8 +532,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb5.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb5.hover }
-            text t5 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 5 and h5 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 5 and not h5 }
+            text t5 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 5 and h5 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 5 and not h5 }
         }
     }
     group {
@@ -541,10 +552,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -558,8 +570,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb6.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb6.hover }
-            text t6 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 6 and h6 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 6 and not h6 }
+            text t6 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 6 and h6 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 6 and not h6 }
         }
     }
     group {
@@ -578,10 +590,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -595,8 +608,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb7.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb7.hover }
-            text t7 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 7 and h7 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 7 and not h7 }
+            text t7 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 7 and h7 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 7 and not h7 }
         }
     }
     group {
@@ -615,10 +628,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -632,8 +646,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb8.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb8.hover }
-            text t8 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 8 and h8 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 8 and not h8 }
+            text t8 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 8 and h8 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 8 and not h8 }
         }
     }
     group {
@@ -652,10 +666,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -669,8 +684,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb9.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb9.hover }
-            text t9 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 9 and h9 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 9 and not h9 }
+            text t9 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 9 and h9 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 9 and not h9 }
         }
     }
     group {
@@ -689,10 +704,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -706,8 +722,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb10.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb10.hover }
-            text t10 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 10 and h10 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 10 and not h10 }
+            text t10 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 10 and h10 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 10 and not h10 }
         }
     }
     group {
@@ -726,10 +742,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -743,8 +760,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb11.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb11.hover }
-            text t11 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 11 and h11 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 11 and not h11 }
+            text t11 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 11 and h11 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 11 and not h11 }
         }
     }
     group {
@@ -763,10 +780,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -780,8 +798,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb12.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb12.hover }
-            text t12 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 12 and h12 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 12 and not h12 }
+            text t12 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 12 and h12 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 12 and not h12 }
         }
     }
     group {
@@ -800,10 +818,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -817,8 +836,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb13.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb13.hover }
-            text t13 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 13 and h13 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 13 and not h13 }
+            text t13 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 13 and h13 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 13 and not h13 }
         }
     }
     group {
@@ -837,10 +856,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -854,8 +874,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb14.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb14.hover }
-            text t14 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 14 and h14 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 14 and not h14 }
+            text t14 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 14 and h14 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 14 and not h14 }
         }
     }
     group {
@@ -874,10 +894,11 @@ scene DesktopNotes {
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
-            color: mix(mix(tint, #000000, 0.7), ink, 0.3)
+            color: mix(mix(mix(tint, #000000, 0.7), ink, 0.3), tint, pl)
             rim: 0%
+            border: (2 + 1.2 * uk) * pl, deep
             opacity: sh * ob
-            shadow: 0, 6, 18, 45%, #000000
+            shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
             box { from: 0, 0; size: 200, 168; corner: 22 }
         }
@@ -891,8 +912,8 @@ scene DesktopNotes {
             ellipse { at: 100 + 9, 15; radius: 1.8; color: ink; opacity: 45% }
             line { from: 174, 10.5; to: 184, 19.5; width: 1.5; color: ink; opacity: 65% * zb15.hover }
             line { from: 184, 10.5; to: 174, 19.5; width: 1.5; color: ink; opacity: 65% * zb15.hover }
-            text t15 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 15 and h15 }
-            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70%; show: eix != 15 and not h15 }
+            text t15 { at: 20, 46; anchor: left top; size: 17; weight: 500; width: 160; lines: 5; color: ink; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 15 and h15 }
+            text "Click to write" { at: 20, 46; anchor: left top; size: 15; weight: 500; color: ink; opacity: 50%; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl); show: eix != 15 and not h15 }
         }
     }
 
