@@ -61,7 +61,7 @@ part Overview {
                 refraction: 0%
                 dispersion: 0%
                 shine: 9000, 9000
-                opacity: obs * 0.34
+                opacity: obs * 0.34 * (1 - cas_k)
                 show: obs > 0.97
                 box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu }
             }
@@ -69,8 +69,18 @@ part Overview {
                 color: obsidian
                 rim: 0%
                 opacity: obs * (1 - 0.4 * clamp(hy_blur, 0, 1))
-                shadow: 0, 14 * ovu, 42 * ovu, 55%, #000000
+                shadow: 0, 14 * ovu, 42 * ovu, (55%) * (1 - cas_k), #000000
                 show: obs > 0.004
+                box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu }
+            }
+            //  The Cassette's plastic over it (see `cas_k`): a lit lip, a dark outline, a hard shadow.
+            body {
+                color: obsidian
+                rim: 40% * cas_k
+                border: 1.7 * u * cas_k, deep
+                shadow: 4.5 * u * cas_k, 5.5 * u * cas_k, 0, 55% * cas_k, deep
+                opacity: cas_k
+                show: cas_k > 0.004
                 box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu }
             }
             box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu; color: mix(ink, mint, max(ovc.act, ovc.drop)); opacity: 6% + 9% * ovc.act + 14% * ovc.drop + 4% * ov_hz.$c.hover }

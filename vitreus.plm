@@ -66,7 +66,7 @@ scene Vitreus {
     let wcol.alert = rgb(wcol_alert_r, wcol_alert_g, wcol_alert_b)
     surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 68 while bar_anchor == top; screens: each max 2; keyboard: exclusive while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) }
     permissions { services: "files", "files.write", "auth", "clock", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
-                  run: "git", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "claude", "ollama", "codex", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "udevadm" }
+                  run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "claude", "ollama", "codex", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "udevadm" }
 
     model wifi_nets max 16 { ssid: text; strength: number; secure: bool; known: bool; active: bool; band: number; bands: text; bandw: number; chan: number; rate: number; sec: text; busy: number }
     model bat_devs max 6 { name: text; level: number }
@@ -273,9 +273,15 @@ scene Vitreus {
     //  Glass switched off (`glass_obs`): the same bar and drawers, but a flat, solid obsidian instead of glass. `obs` is 0 glass, 1 obsidian, and travels between them.
     fact glass_obs = false
     prop obs = 0 ~calm
-    follow obs = if(glass_obs, 1, 0)
+    follow obs = if(glass_obs or cas, 1, 0)
+    //  The Cassette theme (Settings > Theme): the same flat body as obsidian, but in the palette's own plastic (`obsidian` below stops being darkened), with a hard
+    //  edge, a lit lip, a seam, a four-colour stripe across each drawer's head and a hard shadow. `cas_k` travels between glass and plastic; the drawers' liquid
+    //  (necks, drips, the jelly) is switched off with it and their corners are cut square (`rc`, `bk`).
+    fact cas = false
+    prop cas_k = 0 ~calm
+    follow cas_k = if(cas, 1, 0)
     event glass_obs_toggle ->
-    let obsidian = mix(tint, #000000, 0.7)      // the theme's own tint, taken most of the way to black: static themes and Iris both change it
+    let obsidian = mix(tint, #000000, 0.7 * (1 - cas_k))      // the theme's own tint, taken most of the way to black (the plastic's own colour on the Cassette): static themes and Iris both change it
     fact hy_blur = 3
     prop glass_bend_k = 0 ~quick
     follow glass_bend_k = if(glass_bend, 1, 0)
@@ -499,6 +505,34 @@ scene Vitreus {
     text wp_mins_text = ""          // 5 min
     event wp_show_toggle ->
     fact rand_turn = 0              // how many times Random has been pressed: the die turns once for each
+    //  The font picker on the Theme page: the typeface the shell is drawn in for the chosen theme (Glass: Space Grotesk, Retro: Better VCR, unless picked
+    //  otherwise), as a dropdown with a picture of the typeface under it. A scene cannot change its font while it runs, so Apply saves the choice and
+    //  starts the shell again (see `bin/vitreus-fonts`). The list has eight rows at a time and the wheel moves it (`font_top`, in the logic).
+    text font_for = "Font for Glass"
+    text font_name = "Space Grotesk"
+    text font_note = "The default"
+    text font_prevurl = ""
+    text font_q = ""                   // what is typed in the dropdown to find a typeface (the list narrows to the names that have it)
+    fact font_none = false             // nothing matches it
+    image font_prev = from font_prevurl, 692, 214
+    fact font_dirty = false
+    fact font_dd_open = false
+    prop font_dd = 0 ~calm
+    follow font_dd = if(font_dd_open, 1, 0)
+    fact font_sb_y = 0                 // the list's scrollbar: where its thumb starts and how long it is (0 to 1 of the track)
+    fact font_sb_h = 1
+    event font_pick ->
+    event font_scroll ->
+    event font_bar ->
+    event font_step ->
+    event font_char ->
+    event font_open ->
+    event font_apply ->
+    repeat i in 0..8 {
+        fact font_r.$i.on = false
+        fact font_r.$i.lit = false
+        text font_r.$i.text = ""
+    }
     fact theme_sel = 0               // Settings > Theme: 0 the wallpaper's colours, 1 to 6 a named palette, 7 monochrome
     fact iris_int = 1                // how strongly the wallpaper's accent is pushed: 0 subtle, 1 medium, 2 bold
     event theme_pick ->
@@ -1658,8 +1692,8 @@ scene Vitreus {
     follow mvis = if(mixer.count > 0 or vm_open, 1, 0)
     on launch_toggle { panel = if(panel == launch, none, launch) }
     on settings_toggle { panel = if(panel == settings, none, settings) }
-    on change panel { dd_open = false; vm_open = false; panel_sub = none; disp_res_open = false; disp_scroll_to = 0; sm_scroll_to = 0; nt_scroll_to = 0; lk_scroll_to = 0; gl_scroll_to = 0; ck_scroll_to = 0; wm_scroll_to = 0; vpn_scroll_to = 0 }
-    on change set_page { disp_res_open = false; disp_scroll_to = 0; sm_scroll_to = 0; nt_scroll_to = 0; lk_scroll_to = 0; gl_scroll_to = 0; ck_scroll_to = 0; wm_scroll_to = 0; vpn_scroll_to = 0; vpn_arm = -1 }
+    on change panel { font_dd_open = false; dd_open = false; vm_open = false; panel_sub = none; disp_res_open = false; disp_scroll_to = 0; sm_scroll_to = 0; nt_scroll_to = 0; lk_scroll_to = 0; gl_scroll_to = 0; ck_scroll_to = 0; wm_scroll_to = 0; vpn_scroll_to = 0 }
+    on change set_page { font_dd_open = false; disp_res_open = false; disp_scroll_to = 0; sm_scroll_to = 0; nt_scroll_to = 0; lk_scroll_to = 0; gl_scroll_to = 0; ck_scroll_to = 0; wm_scroll_to = 0; vpn_scroll_to = 0; vpn_arm = -1 }
     //  The Hyprland and Pleamar-WM pages read their settings from the system when they are shown, and only then: reading them on every page change
     //  (a dozen commands and a couple of hundred fact writes) stalled the scene for half a second on each click anywhere in Settings.
     on change set_page while set_page == pg_hypr { emit hy_refresh }
@@ -1687,6 +1721,8 @@ scene Vitreus {
     //  about its own anchor point (and its `width:` is divided by `rs` to make up for it).
     let rs = clamp(screen.height / 1350, 0.55, 1)
     let cu = 1.5525                  // u * 1.15: the control center, the calendar and the player and tray are laid out 15% larger than the rest
+    let rc = (26 - 19 * cas_k) * u              // a drawer's corner
+    let bk = 1 - 0.85 * cas_k                   // how much of a melt (a neck) is left
     let du = 1.5525 * rs             // the Desk's own unit: cu (u * 1.15) at the scale of the screen
     let pu = 1.6875 * rs             // u * 1.25: the Settings and the launcher are laid out 25% larger than the rest, at real size (not zoomed)
     //  One reminder of the chosen day: a circle to tick it off, its time, its words, a cross.
@@ -2576,7 +2612,7 @@ scene Vitreus {
     //  Down the left the panels come out of the strip at the height of their button: `pw_y` is where the open panel's top is (see `lp.top`), and
     //  the bar's "middle line" is half a bar above it, so that the first plate keeps the 12 it has under a panel's top (`bar.y` + 32).
     let bar.y = bar.y0
-    let bar.rad = 14 * u                 // the bar's corner when shut: the same as the plates', not a full pill
+    let bar.rad = 14 * u * (1 - 0.5 * cas_k)                 // the bar's corner when shut: the same as the plates', not a full pill
     //  The bar's pieces sit in a row in the order Settings > Bar gives them (`bo.*`), 16 in from each end and
     //  `bar.gap` apart. Each one is as wide as what it draws (`fw.*`) and takes that and a gap (`bw.*`: less while
     //  it is being hidden, and the player's only while there is something playing); the title takes none, it is
@@ -2826,8 +2862,8 @@ scene Vitreus {
     //  The sidebar's SYSTEM group, top to bottom. To add a section, give it a row here (`side.NAME = previous row + 32`), draw its item
     //  like the others, and move `side.last` to its row: About is always the row after `side.last`, so it stays the final one, and
     //  Settings' minimum height follows it (see `set.h`).
-    let side.ck = 202                  // the Clock row: after Night mode (170)
-    let side.th = 234                  // the Theme row: the last of Visuals
+    let side.ck = 234                  // the Clock row: after Night mode (202)
+    let side.th = 74                   // the Theme row: the first after Wallpaper
     let side.hy = 290
     let side.wm = side.hy + if(wm_hypr, 32, 0)             // the Hyprland row is only there on Hyprland, and the Pleamar-WM one only under pleamar-wm
     let side.mon = side.wm + if(wm_pwm, 32, 0)
@@ -2933,14 +2969,14 @@ scene Vitreus {
     let dj.ripx = (12 + 90 * prip) * u
     let dj.riph = 20 * u * (1 - prip) * clamp(prip * 6, 0, 1) * lm * (1 - att)
     let dj.stray = 10 * u * pstray * lm * (1 - att)
-    let dj.stretch = clamp(vel(dtrav) * 0.07, 0, 0.5) * lm
+    let dj.stretch = clamp(vel(dtrav) * 0.07, 0, 0.5) * lm * (1 - cas_k)
     let dj.y0 = lp.sy0
     let dj.ey = if(lp_k == 1, vb - lf.t / 2, yo + lf.t / 2)     // the frame edge a drop comes out of (bottom for Settings, top for the launcher)
     let dj.es = if(lp_k == 1, -1, 1)                                  // and which way the small stray drop hangs from it: up, or down
     //  Those four shapes are never zero-size (a floor of 0.3 keeps them valid), so left in place they are a sliver on the strip's edge at the height of
     //  the panel last opened. They are only in play while a panel that drips is on its way or just after it (its ripples and stray drop), and
     //  off the screen the rest of the time (`show:` does not take a shape off the glass).
-    let dj.act = if(lm > 0.5 and att < 0.5 and (dtrav > 0.02 or prip < 0.98 or pstray > 0.01 or abs(pbounce) > 0.2), 1, 0)
+    let dj.act = if(cas_k < 0.5 and lm > 0.5 and att < 0.5 and (dtrav > 0.02 or prip < 0.98 or pstray > 0.01 or abs(pbounce) > 0.2), 1, 0)
     let dj.px = if(dj.act > 0.5, 0, 30000)
     //  Each drawer's shape as it is drawn (`*.ex`, `*.ey` its middle, `*.ew`, `*.eh` its size). From the top bar it is the drawer above: it falls,
     //  widening on the way. Down the left it comes out sideways from the strip instead: it starts small and grows in both ways (`*.lf`, the same quick
@@ -3057,10 +3093,10 @@ scene Vitreus {
     let dz.ripx = (12 + 90 * dprip) * u
     let dz.riph = 20 * u * (1 - dprip) * clamp(dprip * 6, 0, 1) * lm
     let dz.stray = 10 * u * dpstray * lm
-    let dz.act = if(lm > 0.5 and desk_open and (abs(desk_ox + (desk_s - 1) * dsk_w) > 4 * du or dprip < 0.98 or dpstray > 0.01 or abs(dbounce) > 0.2), 1, 0)
+    let dz.act = if(cas_k < 0.5 and lm > 0.5 and desk_open and (abs(desk_ox + (desk_s - 1) * dsk_w) > 4 * du or dprip < 0.98 or dpstray > 0.01 or abs(dbounce) > 0.2), 1, 0)
     let dz.px = if(dz.act > 0.5, 0, 30000)
     //  The ripples alone also run after the desk has closed (`dz.act` needs it open): they are the closing ripple, as the title's panel has (`tprip`).
-    let dz.rpx = if(lm > 0.5 and dprip < 0.98, 0, 30000)
+    let dz.rpx = if(cas_k < 0.5 and lm > 0.5 and dprip < 0.98, 0, 30000)
     let dz.fy = mix(vc + desk_oy, desk_ry, dz.det)       // along the frame: where the neck is, then where it broke
     let dz.ey = vc + desk_oy
     //  What the glass is when the desk is scaled (about its top left corner, which `dsk_x0`, `dsk_y0` is): the contents are scaled by a group and take
@@ -3099,7 +3135,7 @@ scene Vitreus {
     let dz.siw = dz.iw * desk_s
     let dz.siy = dsk_y0 + (dz.iy - dsk_y0) * desk_s
     let dz.sih = dz.ih * desk_s
-    let dz.stretch = clamp(vel(dz) * 0.07, 0, 0.5)
+    let dz.stretch = clamp(vel(dz) * 0.07, 0, 0.5) * (1 - cas_k)
     //  The notches (Frame layout only). Touch the middle of the top frame and a small tab grows out of it, with the three dots the volume
     //  card has under its plate; touch the bottom frame's middle and one grows up out of it. Pressing the tab opens the panel that
     //  comes out of that edge (the launcher from the top, Settings from the bottom), and pressing it again closes it. Hovering only
@@ -3403,7 +3439,7 @@ scene Vitreus {
     on change dk < 0.06 while dk < 0.06 and lm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~900ms after 30ms }
     let tq.x = (12 + 90 * tprip) * u
     let tq.h = max(20 * u * (1 - tprip) * clamp(tprip * 6, 0, 1) * lm, 0.3)
-    let tq.act = if(lm > 0.5 and tprip < 0.98 and pown > 0.5, 1, 0)
+    let tq.act = if(cas_k < 0.5 and lm > 0.5 and tprip < 0.98 and pown > 0.5, 1, 0)
     on change dm > 0.5 while dm > 0.5 and panel == player { lp_k = 6; lp_w = 312 }
     //  Where the contents hang from: the panel's old middle, so they keep their
     //  place when the panel grows to make room for the player.
@@ -3456,9 +3492,9 @@ scene Vitreus {
             shine: pointer
             shadow: 0, 7, 20, 24%, deep
             show: obs < 0.996 and not glass_auto
-            box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, 26 * u, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
-            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s, clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu; show: mfl > 0.01 and media_open > 0.01 }
+            box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
+            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
+            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * cas_k); show: mfl > 0.01 and media_open > 0.01 }
         }
         //  The same glass with `frost: auto` (frosted only where what is behind is busy): `frost:` cannot take `auto` from an expression, so it is a body of its own.
         body {
@@ -3473,9 +3509,9 @@ scene Vitreus {
             shine: pointer
             shadow: 0, 7, 20, 24%, deep
             show: obs < 0.996 and glass_auto
-            box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, 26 * u, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
-            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s, clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu; show: mfl > 0.01 and media_open > 0.01 }
+            box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
+            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
+            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * cas_k); show: mfl > 0.01 and media_open > 0.01 }
         }
         //  Blur behind the obsidian: a glass body asks the compositor for it (100 % glass at 34 %: the request needs glass x opacity of 30 % or more, and a more opaque layer would hide the blur), and the obsidian over it (60 % opaque while blur is on, solid when it is off) hides the glass's look.
         body {
@@ -3486,21 +3522,33 @@ scene Vitreus {
             refraction: 0%
             dispersion: 0%
             shine: 9000, 9000
-            opacity: obs * 0.34
+            opacity: obs * 0.34 * (1 - cas_k)
             show: obs > 0.97
-            box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, 26 * u, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
-            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s, clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu; show: mfl > 0.01 and media_open > 0.01 }
+            box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
+            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
+            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * cas_k); show: mfl > 0.01 and media_open > 0.01 }
         }
         body {
             color: obsidian
             rim: 0%
             opacity: obs * (1 - 0.4 * clamp(hy_blur, 0, 1))
-            shadow: 0, 7, 24, 38%, #000000
+            shadow: 0, 7, 24, (38%) * (1 - cas_k), #000000
             show: obs > 0.004
-            box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, 26 * u, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
-            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s, clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu; show: mfl > 0.01 and media_open > 0.01 }
+            box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
+            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
+            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * cas_k); show: mfl > 0.01 and media_open > 0.01 }
+        }
+        //  The Cassette's plastic over it (see `cas_k`): a lit lip, a dark outline, a hard shadow.
+        body {
+            color: obsidian
+            rim: 40% * cas_k
+            border: 1.7 * u * cas_k, deep
+            shadow: 4.5 * u * cas_k, 5.5 * u * cas_k, 0, 55% * cas_k, deep
+            opacity: cas_k
+            show: cas_k > 0.004
+            box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
+            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
+            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * cas_k); show: mfl > 0.01 and media_open > 0.01 }
         }
     }
     //  The desk's contents (and its tab and opener): drawn after the island's glass above, so the glass is under them and not over them.
@@ -3599,7 +3647,7 @@ scene Vitreus {
     //  logic (see the Launcher section of vitreus.luau) reads the field and fills `lres`. Files, the clipboard and
     //  wallpapers have a preview beside the rows: the picture, or the text, and the file's details.
     group {
-        clip inset 2 box { at: mix(pcx, dl.gx, lm), mix(bar.y + dl.hh / 2, lp.cy, lm); size: mix(dl.w, dl.gw, lm), mix(dl.hh, dl.gh, lm); corner: 26 * pu }
+        clip inset 2 box { at: mix(pcx, dl.gx, lm), mix(bar.y + dl.hh / 2, lp.cy, lm); size: mix(dl.w, dl.gw, lm), mix(dl.hh, dl.gh, lm); corner: 26 * pu * (1 - 0.73 * cas_k) }
         opacity: fl * pown
         move: 0, (1 - fl) * 12 * pu
         let lx = pcx - 215 * pu
@@ -3716,7 +3764,43 @@ scene Vitreus {
     on key Shift+Delete while panel == launch { emit launch_delsel }
     on submit lq { emit launch_run }
     on key Escape while dd_open { dd_open = false }
-    on key Escape while panel != none and not dd_open { panel = none }
+    on key Escape while font_dd_open { font_dd_open = false; blur }
+    on key Escape while panel != none and not dd_open and not font_dd_open { panel = none }
+    //  The font picker on the Theme page, from the keyboard: the arrows, Page Up and Down, Home and End move the chosen typeface whether the dropdown is open or
+    //  not; typing a letter opens it and searches (`font_q`); Return closes it.
+    on key Down while panel == settings and set_page == pg_theme { emit font_step(1) }
+    on key Up while panel == settings and set_page == pg_theme { emit font_step(-1) }
+    on key Page_Down while panel == settings and set_page == pg_theme { emit font_step(8) }
+    on key Page_Up while panel == settings and set_page == pg_theme { emit font_step(-8) }
+    on key Home while panel == settings and set_page == pg_theme { emit font_step(-100000) }
+    on key End while panel == settings and set_page == pg_theme { emit font_step(100000) }
+    on key Return while font_dd_open { font_dd_open = false; blur }
+    on key a while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(97); focus font_q }
+    on key b while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(98); focus font_q }
+    on key c while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(99); focus font_q }
+    on key d while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(100); focus font_q }
+    on key e while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(101); focus font_q }
+    on key f while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(102); focus font_q }
+    on key g while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(103); focus font_q }
+    on key h while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(104); focus font_q }
+    on key i while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(105); focus font_q }
+    on key j while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(106); focus font_q }
+    on key k while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(107); focus font_q }
+    on key l while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(108); focus font_q }
+    on key m while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(109); focus font_q }
+    on key n while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(110); focus font_q }
+    on key o while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(111); focus font_q }
+    on key p while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(112); focus font_q }
+    on key q while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(113); focus font_q }
+    on key r while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(114); focus font_q }
+    on key s while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(115); focus font_q }
+    on key t while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(116); focus font_q }
+    on key u while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(117); focus font_q }
+    on key v while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(118); focus font_q }
+    on key w while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(119); focus font_q }
+    on key x while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(120); focus font_q }
+    on key y while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(121); focus font_q }
+    on key z while panel == settings and set_page == pg_theme and not font_dd_open { font_dd_open = true; emit font_char(122); focus font_q }
 
     include "pages/osd_drawer.plm"
     //  ── the wallpaper picker ─────────────────────────────────────
@@ -4013,7 +4097,7 @@ scene Vitreus {
             rim: 14% * glass_rim
             shadow: 0, 18 * u, 50 * u, 45%, deep
             show: obs < 0.996 and not glass_auto
-            box { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: 26 * u }
+            box { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: rc }
         }
         //  The same glass with `frost: auto` (frosted only where what is behind is busy): `frost:` cannot take `auto` from an expression, so it is a body of its own.
         body {
@@ -4027,7 +4111,7 @@ scene Vitreus {
             rim: 14% * glass_rim
             shadow: 0, 18 * u, 50 * u, 45%, deep
             show: obs < 0.996 and glass_auto
-            box { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: 26 * u }
+            box { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: rc }
         }
         //  Blur behind the obsidian: a glass body asks the compositor for it (100 % glass at 34 %: the request needs glass x opacity of 30 % or more, and a more opaque layer would hide the blur), and the obsidian over it (60 % opaque while blur is on, solid when it is off) hides the glass's look.
         body {
@@ -4038,19 +4122,29 @@ scene Vitreus {
             refraction: 0%
             dispersion: 0%
             shine: 9000, 9000
-            opacity: obs * 0.34
+            opacity: obs * 0.34 * (1 - cas_k)
             show: obs > 0.97
-            box { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: 26 * u }
+            box { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: rc }
         }
         body {
             color: obsidian
             rim: 0%
             opacity: obs * (1 - 0.4 * clamp(hy_blur, 0, 1))
-            shadow: 0, 18 * u, 60 * u, 55%, #000000
+            shadow: 0, 18 * u, 60 * u, (55%) * (1 - cas_k), #000000
             show: obs > 0.004
-            box { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: 26 * u }
+            box { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: rc }
         }
-        zone box pk_card { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: 26 * u }
+        //  The Cassette's plastic over it (see `cas_k`): a lit lip, a dark outline, a hard shadow.
+        body {
+            color: obsidian
+            rim: 40% * cas_k
+            border: 1.7 * u * cas_k, deep
+            shadow: 4.5 * u * cas_k, 5.5 * u * cas_k, 0, 55% * cas_k, deep
+            opacity: cas_k
+            show: cas_k > 0.004
+            box { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: rc }
+        }
+        zone box pk_card { at: pk.x, pk.cy; size: 400 * u, 256 * u; corner: rc }
         //  A padlock, then the title.
         path { at: pk.l + 12 * u, pk.top + 38 * u; stroke: 1.7 * u; color: mint; move -4 * u, -1 * u; line -4 * u, -5 * u; curve 4 * u, -5 * u via 0, -12 * u; line 4 * u, -1 * u }
         box { at: pk.l + 12 * u, pk.top + 41 * u; size: 15 * u, 11 * u; corner: 3 * u; stroke: 1.7 * u; color: mint }

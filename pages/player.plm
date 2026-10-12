@@ -3,7 +3,7 @@ part Player {
     //  the same glass as the bar. Its content is clipped to the drawer's shape.
     group {
         opacity: pown
-        clip inset 2 box { at: mix(pcx, dm.gx, lm), mix(bar.y + dm.hh / 2, lp.cy, lm); size: mix(dm.w, dm.gw, lm), mix(dm.hh, dm.gh, lm); corner: 26 * cu }
+        clip inset 2 box { at: mix(pcx, dm.gx, lm), mix(bar.y + dm.hh / 2, lp.cy, lm); size: mix(dm.w, dm.gw, lm), mix(dm.hh, dm.gh, lm); corner: 26 * cu * (1 - 0.73 * cas_k) }
         //  Down the left it comes out of the strip: what is inside grows with the drawer's shape (`dm.lf`), from the strip's edge at the panel's middle, as the calendar's and the controls' do.
         group {
             pivot: lp.xl, lp.cy

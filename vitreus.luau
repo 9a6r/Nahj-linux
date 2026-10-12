@@ -2276,7 +2276,7 @@ end)
 -- goes to the scene as facts (`pal_*`, three per colour), which `palette-live.plm` turns into its `let` colours with
 -- `rgb(...)`; the lock screen, another program, still gets `palette.plm`. `iris.json` in Vitreus's data folder
 -- holds the two settings: { enabled = true, intensity = "medium" | "subtle" | "bold" }.
-local iris_cfg = { enabled = true, intensity = "medium" }
+local iris_cfg = { enabled = true, intensity = "bold" }       -- how far the wallpaper's accent is pushed: always Bold (the Theme page no longer offers a choice)
 local iris_last_wp = nil
 local iris_last_text = nil
 
@@ -2714,30 +2714,19 @@ local function check_wallpaper()
     end)
 end
 
--- Named palettes (Settings > Theme): a preset's six colours go through the same legibility floor as Iris's (`apply_iris`, with no intensity push), and
--- everything that follows the palette follows it: the shell, the lock screen, pleamar-wm's border, Hyprland's borders. `iris_cfg.preset` is its number
--- (1 to 6) or nil for the wallpaper's colours; while one is chosen the wallpaper is not read. Order: bg, surface, fg, dim, accent, alert.
-iris_fx.presets = {
-    { "Tokyo Night",      "#1a1b26", "#24283b", "#c0caf5", "#787c99", "#7aa2f7", "#f7768e" },
-    { "Catppuccin Mocha", "#1e1e2e", "#313244", "#cdd6f4", "#9399b2", "#cba6f7", "#f38ba8" },
-    { "Gruvbox",          "#282828", "#3c3836", "#ebdbb2", "#a89984", "#fabd2f", "#fb4934" },
-    { "Nord",             "#2e3440", "#3b4252", "#eceff4", "#9aa5b8", "#88c0d0", "#bf616a" },
-    { "Rosé Pine",        "#191724", "#26233a", "#e0def4", "#908caa", "#ebbcba", "#eb6f92" },
-    { "Dracula",          "#282a36", "#44475a", "#f8f8f2", "#a0a6c0", "#bd93f9", "#ff5555" },
-}
-function iris_fx.preset_json(i)
-    local p = iris_fx.presets[i]
-    return p and string.format('{"bg":"%s","surface":"%s","fg":"%s","dim":"%s","accent":"%s","red":"%s"}', p[2], p[3], p[4], p[5], p[6], p[7]) or nil
-end
+-- Settings > Theme has two looks: Glass (the wallpaper's colours, Iris; `iris_cfg.preset` is nil) and Retro (`iris_cfg.preset` is 8). Everything that follows
+-- the palette follows it: the shell, the lock screen, pleamar-wm's border, Hyprland's borders.
+-- Retro (preset 8): moulded putty plastic, not glass. Its colours skip the legibility floor (which is for light text on dark glass): the text is a
+-- dark ink on the plastic, the accent a Famicom red, and `deep` (the hard shadow, the outlines) is the ink itself.
+iris_fx.CASSETTE = 8
+iris_fx.cassette = { ink = "#2b2833", faint = "#6a665a", mint = "#e63a3a", mintlo = "#a8242b", minthi = "#ff7b5c", onmint = "#fff3dc",
+                     tint = "#d6d0bd", panel = "#bfb9a5", deep = "#2b2833", off = "#a39e8e", alert = "#d81b60" }
 do
     local ok, saved = pcall(sys.ask, "files.read", "iris.json", "json")
     if ok and type(saved) == "table" then
         if saved.enabled ~= nil then iris_cfg.enabled = saved.enabled and true or false end
-        if saved.intensity == "subtle" or saved.intensity == "bold" or saved.intensity == "medium" then
-            iris_cfg.intensity = saved.intensity
-        end
         local pr = tonumber(saved.preset)
-        if pr and iris_fx.presets[math.floor(pr)] then iris_cfg.preset = math.floor(pr) end
+        if pr and math.floor(pr) == iris_fx.CASSETTE then iris_cfg.preset = math.floor(pr) end
     else
         pcall(sys.call, "files.write", "iris.json", iris_cfg)     -- so there is a file to edit
     end
@@ -2746,7 +2735,8 @@ do
     local INTENSITIES = { "subtle", "medium", "bold" }
     local function show()
         fact.iris_on = iris_cfg.enabled and not iris_cfg.preset
-        fact.theme_sel = iris_cfg.preset or (iris_cfg.enabled and 0 or 7)       -- 0 the wallpaper's, 1 to 6 a named one, 7 monochrome
+        fact.theme_sel = iris_cfg.preset or (iris_cfg.enabled and 0 or 7)       -- 0 Glass, 8 Retro (7: Iris switched off on the Wallpaper page, greys)
+        fact.cas = iris_cfg.preset == iris_fx.CASSETTE
         for k, name in ipairs(INTENSITIES) do if name == iris_cfg.intensity then fact.iris_int = k - 1 end end
     end
     local function save()
@@ -2756,7 +2746,7 @@ do
         if iris_last_wp then run_iris(iris_last_wp) else check_wallpaper() end
     end
     show()
-    if iris_cfg.preset then apply_iris(iris_fx.preset_json(iris_cfg.preset), true)
+    if iris_cfg.preset == iris_fx.CASSETTE then iris_fx.apply_palette(iris_fx.cassette)
     elseif not iris_cfg.enabled then iris_fx.apply_mono() end
     -- The switch on the Wallpaper page. Off: greys at once. On: Iris is run on the wallpaper in use, and the colours come back (a named palette is
     -- let go too: the switch says Iris is off while one is chosen, and turning it on is asking for the wallpaper's colours).
@@ -2770,23 +2760,26 @@ do
         show()
         if iris_cfg.enabled then follow_wallpaper() else iris_fx.apply_mono() end
     end)
-    -- Settings > Theme: 0 the wallpaper's colours, 1 to 6 a named palette, 7 monochrome.
+    -- Settings > Theme: 0 Glass (the wallpaper's colours), 8 Retro.
     on("theme_pick", function(k)
         k = math.floor((tonumber(k) or 0) + 0.5)
+        local was_retro = iris_cfg.preset == iris_fx.CASSETTE
         if k == 0 then
             iris_cfg.preset, iris_cfg.enabled = nil, true
             follow_wallpaper()
-        elseif k >= 1 and k <= #iris_fx.presets then
+        elseif k == iris_fx.CASSETTE then
             iris_cfg.preset, iris_cfg.enabled = k, true
-            apply_iris(iris_fx.preset_json(k), true)
-        elseif k == 7 then
-            iris_cfg.preset, iris_cfg.enabled = nil, false
-            iris_fx.apply_mono()
+            iris_fx.apply_palette(iris_fx.cassette)
         else
             return
         end
         save()
         show()
+        -- Retro has its own typeface, which a scene cannot change while it runs: the shell is started again (its keeper does it, in the font the saved
+        -- theme asks for; see bin/vitreus-keep).
+        if was_retro ~= (iris_cfg.preset == iris_fx.CASSETTE) then
+            after(600, function() run("pkill", { "-f", "pleamar --scene .*/vitreus/vitreus\\.plm" }, function() end) end)
+        end
     end)
     -- How strongly the wallpaper's accent is pushed (Subtle, Medium, Bold): it was only a line in iris.json.
     on("iris_int_set", function(k)
@@ -2796,6 +2789,207 @@ do
         save()
         show()
         if iris_cfg.enabled and not iris_cfg.preset then follow_wallpaper() elseif iris_last_wp then run_iris(iris_last_wp, true) end
+    end)
+end
+-- ── Settings > Theme: the font picker ─────────────────────────────────────────────────────────────────────
+-- Each theme has a typeface: Space Grotesk on Glass, Better VCR on Retro, or whichever is picked here (`fonts.json`: { glass = name, retro = name }). A
+-- scene's font names are fixed, so a different typeface is shown by starting the shell with a font setup (see bin/vitreus-fonts, which the keeper runs):
+-- Apply saves the choice and stops the shell, and its keeper starts it again. The dropdown is a window of eight rows (`top`) over the list as the search
+-- has narrowed it (`view`); a picture of the chosen typeface (ImageMagick, from its file) is the preview, since a scene can only draw in its own font.
+-- The arrows move the choice with the dropdown open or shut, and typing opens it and searches.
+do
+    local DEFAULTS = { glass = "Space Grotesk", retro = "Better VCR-JP" }
+    local ROWS = 8
+    local saved = {}                       -- what the shell is drawn in; a theme with no entry has its default
+    local all = { { label = "", value = nil } }       -- the theme's default first, then the installed families, sorted
+    local view = all                       -- `all` narrowed by what is typed (the default only while nothing is)
+    local query = ""
+    local chosen = nil                     -- the family chosen on the page (nil: the theme's default)
+    local top = 0                          -- the first row shown
+    local pv_n, pv_token = 0, 0
+    local function theme() return iris_cfg.preset == iris_fx.CASSETTE and "retro" or "glass" end
+    local function label() return theme() == "retro" and "Retro" or "Glass" end
+    local function index_of(v)
+        for i, e in ipairs(view) do if e.value == v then return i end end
+        return nil
+    end
+    local function rows()
+        for i = 0, ROWS - 1 do
+            local e = view[top + i + 1]
+            fact["font_r." .. i .. ".on"] = e ~= nil
+            fact["font_r." .. i .. ".lit"] = e ~= nil and e.value == chosen
+            text["font_r." .. i .. ".text"] = e and e.label or ""
+        end
+        local n = #view
+        fact.font_sb_h = math.min(1, ROWS / math.max(n, 1))
+        fact.font_sb_y = n > ROWS and top / n or 0
+        fact.font_none = n == 0
+    end
+    local function show()
+        all[1].label = "Default · " .. DEFAULTS[theme()]
+        text.font_for = "Font for " .. label()
+        text.font_name = chosen or DEFAULTS[theme()]
+        if chosen == saved[theme()] then
+            text.font_note = chosen and "In use" or ("The default for " .. label())
+        else
+            text.font_note = "Not applied yet"
+        end
+        fact.font_dirty = chosen ~= saved[theme()]
+        rows()
+    end
+    local function narrow()
+        if query == "" then
+            view = all
+        else
+            view = {}
+            for i = 2, #all do
+                if all[i].label:lower():find(query, 1, true) then view[#view + 1] = all[i] end
+            end
+        end
+    end
+    local function keep_in_view()
+        local i = index_of(chosen)
+        if not i then return end
+        if i <= top then top = i - 1 elseif i > top + ROWS then top = i - ROWS end
+        top = math.max(0, math.min(math.max(0, #view - ROWS), top))
+    end
+    -- (Both fc programs run without FONTCONFIG_FILE: the shell's own font setup makes "Space Grotesk" the typeface in use, which would answer for it.)
+    -- The preview: the typeface's file (fc-match answers with the one the name stands for), drawn as three lines in the text colour.
+    local function preview()
+        local fam = chosen or DEFAULTS[theme()]
+        local pat = ":family=" .. fam:gsub("[-:,=\\]", "\\%0")
+        run("env", { "-u", "FONTCONFIG_FILE", "fc-match", pat, "-f", "%{file}" }, function(file, code)
+            if code ~= 0 or not file or file == "" then return end
+            local pal = iris_fx.last_pal or iris_fx.saved or {}
+            with_dirs(function(d)
+                pv_n = pv_n + 1
+                local out = d.data .. "/font-preview.png"
+                run("magick", { "-background", "none", "-fill", pal.ink or "#ffffff", "-font", file,
+                    "-pointsize", "78", "label:Aa Bb Cc 0123", "-pointsize", "40", "label:The quick brown fox jumps over",
+                    "-pointsize", "32", "label:Settings · 12:45 PM · Wi-Fi 78%",
+                    "-gravity", "west", "-background", "none", "-append", "-gravity", "northwest", "-extent", "1420x440", out },
+                    function(_, c2) if c2 == 0 then text.font_prevurl = out .. "?" .. pv_n end end)
+            end)
+        end)
+    end
+    -- Each key would start two programs, so the picture is made once the choosing stops.
+    local function preview_soon()
+        pv_token = pv_token + 1
+        local mine = pv_token
+        after(250, function() if mine == pv_token then preview() end end)
+    end
+    local ok, file = pcall(sys.ask, "files.read", "fonts.json", "json")
+    if ok and type(file) == "table" then
+        if type(file.glass) == "string" and file.glass ~= "" then saved.glass = file.glass end
+        if type(file.retro) == "string" and file.retro ~= "" then saved.retro = file.retro end
+    end
+    chosen = saved[theme()]
+    show()
+    local SKIP = { "symbol", "emoji", "icon", "awesome", "dingbat", "material", "webdings", "wingdings" }
+    run("env", { "-u", "FONTCONFIG_FILE", "fc-list", ":", "family" }, function(out, code)
+        if code ~= 0 or not out then return end
+        local seen, names = {}, {}
+        for line in out:gmatch("[^\n]+") do
+            local name = line:match("^([^,:]+)")
+            name = name and name:gsub("\\(.)", "%1"):gsub("^%s+", ""):gsub("%s+$", "")      -- fc-list escapes a hyphen: Ari\-W9500
+            if name and name ~= "" and not seen[name] and name:sub(1, 1) ~= "." then
+                local low, skip = name:lower(), false
+                for _, w in ipairs(SKIP) do if low:find(w, 1, true) then skip = true end end
+                if not skip then seen[name] = true; names[#names + 1] = name end
+            end
+        end
+        table.sort(names, function(a, b) return a:lower() < b:lower() end)
+        local first = all[1]
+        all = { first }
+        for _, n in ipairs(names) do all[#all + 1] = { label = n, value = n } end
+        narrow()
+        show()
+        preview()
+    end)
+    on("font_open", function()                         -- the dropdown opens with the chosen one in view, and nothing searched for
+        query = ""
+        text.font_q = ""
+        narrow()
+        local i = index_of(chosen) or 1
+        top = math.max(0, math.min(math.max(0, #view - ROWS), i - 3))
+        rows()
+    end)
+    -- Closing it (by any way) clears the search, so the arrows go through the whole list again.
+    -- (A moment later: a row pressed closes the dropdown in the same breath, and its pick must still see the list as the search left it.)
+    local is_open = false
+    on("fact:font_dd_open", function(open)
+        is_open = open and true or false
+        if open then return end
+        after(120, function()
+            if is_open then return end
+            if query ~= "" or text.font_q ~= "" then
+                query = ""
+                text.font_q = ""
+                narrow()
+                keep_in_view()
+                rows()
+            end
+        end)
+    end)
+    -- A letter typed with the dropdown shut: it opens with that letter searched for.
+    on("font_char", function(code)
+        query = string.char(math.floor((tonumber(code) or 97) + 0.5))
+        text.font_q = query
+        narrow()
+        top = 0
+        if #view > 0 then chosen = view[1].value end
+        show()
+        preview_soon()
+    end)
+    -- What is typed in the box: the list narrows, and the choice is the first name that has it.
+    on("text:font_q", function()
+        local q = (text.font_q or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
+        if q == query then return end
+        query = q
+        narrow()
+        top = 0
+        if #view > 0 and not index_of(chosen) then chosen = view[1].value end
+        if query ~= "" and #view > 0 then chosen = view[1].value end
+        show()
+        preview_soon()
+    end)
+    on("font_scroll", function(w)
+        w = tonumber(w) or 0
+        top = math.max(0, math.min(math.max(0, #view - ROWS), top - math.floor(w * 3 + (w > 0 and 0.5 or -0.5))))
+        rows()
+    end)
+    -- The scrollbar as a handle: `frac` is where the pointer is along the track (0 top, 1 bottom); the thumb's middle goes there.
+    on("font_bar", function(frac)
+        local n = #view
+        if n <= ROWS then return end
+        frac = math.max(0, math.min(1, tonumber(frac) or 0))
+        top = math.max(0, math.min(n - ROWS, math.floor((frac - ROWS / n / 2) * n + 0.5)))
+        rows()
+    end)
+    -- The arrow keys, Page Up and Down, Home and End: the choice moves in the list as it stands, which follows it.
+    on("font_step", function(d)
+        d = tonumber(d) or 0
+        if #view == 0 then return end
+        local i = index_of(chosen) or (d > 0 and 0 or #view + 1)
+        i = math.max(1, math.min(#view, i + math.floor(d + (d > 0 and 0.5 or -0.5))))
+        chosen = view[i].value
+        keep_in_view()
+        show()
+        preview_soon()
+    end)
+    on("font_pick", function(i)
+        local e = view[top + math.floor((tonumber(i) or 0) + 0.5) + 1]
+        if not e then return end
+        chosen = e.value
+        show()
+        preview()
+    end)
+    on("font_apply", function()
+        if chosen == saved[theme()] then return end
+        saved[theme()] = chosen
+        pcall(sys.call, "files.write", "fonts.json", { glass = saved.glass, retro = saved.retro })
+        show()
+        after(500, function() run("pkill", { "-f", "pleamar --scene .*/vitreus/vitreus\\.plm" }, function() end) end)
     end)
 end
 -- A wallpaper that Vitreus sets is known at once (see `wp_apply`); this is only for one changed from elsewhere, so it
@@ -4952,7 +5146,7 @@ end
         { "Workspace overview", "action", function() spawn('pleamar --say vitreus "emit ov_toggle"') end, "workspaces windows switch expose desktops" },
         { "Random wallpaper", "action", function() local f = wp_random_pick(); if f then wp_apply(f) end end, "shuffle background change surprise" },
         { "Lock session", "action", function() spawn('pleamar --say lockscreen "fact locked true"') end, "lockscreen lock screen secure away password" },
-        { "Settings: Theme", "open", open_settings("pg_theme"), "colours colors palette preset tokyo night catppuccin gruvbox nord rose pine dracula iris accent monochrome wallpaper" },
+        { "Settings: Theme", "open", open_settings("pg_theme"), "colours colors palette theme glass retro cassette plastic iris accent wallpaper" },
         { "Settings: Widgets", "open", open_settings("pg_clock"), "widgets clock system monitor audio visualiser visualizer cava desktop clock glass digits time wallpaper layout inline stacked staggered hero position corner size weight tint 12 24 hour" },
         { "Settings: Weather location", "open", open_settings("pg_vpn"), "weather forecast location city zip code place celsius fahrenheit units vpn calendar temperature" },
         { "Desktop clock: toggle", "action", function()
