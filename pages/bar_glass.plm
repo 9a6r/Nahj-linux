@@ -65,6 +65,129 @@ part BarGlass {
             show: cas_k > 0.004
             include "bar_shapes.plm"
         }
+        //  The Cassette's detail on each drawer, only while it is plastic and the drawer is out: an accent-coloured tab at the top left (opposite the grips) (a console's button), a row of straight vertical grip slots in the bottom right
+        //  corner (like the vents of a handheld: dark, with a lit edge) that run a few pixels past the drawer's bottom edge as if they wrapped round the base, and a screw in the bottom left.
+        //  Inside the drawer they stay in its margin, so they never touch what it holds.
+        group {
+            show: cas_k > 0.01 and dk0 > 0.9
+            opacity: cas_k * clamp(dk0 * 3 - 2, 0, 1)
+            let gdk.l = dk.ex - dk.ew / 2
+            let gdk.r = dk.ex + dk.ew / 2
+            let gdk.t = dk.ey - dk.eh / 2
+            let gdk.b = dk.ey + dk.eh / 2
+            box { at: gdk.l + 58.5 * u + 2, gdk.t + 9 + 3; size: 58 * u, 24; corner: 5; color: deep; opacity: 38% }
+            box { at: gdk.l + 58.5 * u, gdk.t + 9; size: 58 * u, 24; corner: 5; color: mintlo }
+            box { at: gdk.l + 58.5 * u, gdk.t + 9 - 2.5; size: 58 * u, 24 - 5; corner: 5; color: mint }
+            line { from: gdk.l + 58.5 * u - 24 * u, gdk.t + 9 - 2.5 - (24 - 5) / 2 + 4; to: gdk.l + 58.5 * u + 24 * u, gdk.t + 9 - 2.5 - (24 - 5) / 2 + 4; width: 2.2; color: minthi; opacity: 70% }
+            box { at: gdk.l + 58.5 * u, gdk.t + 9; size: 58 * u, 24; corner: 5; stroke: 1.4; color: deep }
+            repeat k in 0..8 {
+                line { from: gdk.r - 20 * u - k * 11 * u, gdk.b + 4; to: gdk.r - 20 * u - k * 11 * u, gdk.b - 18; width: 6; color: mix(deep, #ffffff, 6%) }
+                line { from: gdk.r - 20 * u - k * 11 * u + 3.6, gdk.b + 4; to: gdk.r - 20 * u - k * 11 * u + 3.6, gdk.b - 18; width: 1.2; color: #ffffff; opacity: 45% }
+            }
+            ellipse { at: gdk.l + 11 * u, gdk.b - 9; radius: 3.6; color: mix(deep, #ffffff, 38%) }
+            ellipse { at: gdk.l + 11 * u, gdk.b - 9; radius: 3.6; stroke: 1.1; color: deep }
+            line { from: gdk.l + 11 * u - 2, gdk.b - 7; to: gdk.l + 11 * u + 2, gdk.b - 11; width: 1.3; color: deep }
+        }
+        group {
+            show: cas_k > 0.01 and dc0 > 0.9
+            opacity: cas_k * clamp(dc0 * 3 - 2, 0, 1)
+            let gdc.l = dc.ex - dc.ew / 2
+            let gdc.r = dc.ex + dc.ew / 2
+            let gdc.t = dc.ey - dc.eh / 2
+            let gdc.b = dc.ey + dc.eh / 2
+            box { at: gdc.l + 58.5 * u + 2, gdc.t + 9 + 3; size: 58 * u, 24; corner: 5; color: deep; opacity: 38% }
+            box { at: gdc.l + 58.5 * u, gdc.t + 9; size: 58 * u, 24; corner: 5; color: mintlo }
+            box { at: gdc.l + 58.5 * u, gdc.t + 9 - 2.5; size: 58 * u, 24 - 5; corner: 5; color: mint }
+            line { from: gdc.l + 58.5 * u - 24 * u, gdc.t + 9 - 2.5 - (24 - 5) / 2 + 4; to: gdc.l + 58.5 * u + 24 * u, gdc.t + 9 - 2.5 - (24 - 5) / 2 + 4; width: 2.2; color: minthi; opacity: 70% }
+            box { at: gdc.l + 58.5 * u, gdc.t + 9; size: 58 * u, 24; corner: 5; stroke: 1.4; color: deep }
+            repeat k in 0..8 {
+                line { from: gdc.r - 20 * u - k * 11 * u, gdc.b + 4; to: gdc.r - 20 * u - k * 11 * u, gdc.b - 18; width: 6; color: mix(deep, #ffffff, 6%) }
+                line { from: gdc.r - 20 * u - k * 11 * u + 3.6, gdc.b + 4; to: gdc.r - 20 * u - k * 11 * u + 3.6, gdc.b - 18; width: 1.2; color: #ffffff; opacity: 45% }
+            }
+            ellipse { at: gdc.l + 11 * u, gdc.b - 9; radius: 3.6; color: mix(deep, #ffffff, 38%) }
+            ellipse { at: gdc.l + 11 * u, gdc.b - 9; radius: 3.6; stroke: 1.1; color: deep }
+            line { from: gdc.l + 11 * u - 2, gdc.b - 7; to: gdc.l + 11 * u + 2, gdc.b - 11; width: 1.3; color: deep }
+        }
+        group {
+            show: cas_k > 0.01 and ds0 > 0.9
+            opacity: cas_k * clamp(ds0 * 3 - 2, 0, 1)
+            let gds.l = ds.ex - ds.ew / 2
+            let gds.r = ds.ex + ds.ew / 2
+            let gds.t = ds.ey - ds.eh / 2
+            let gds.b = ds.ey + ds.eh / 2
+            box { at: gds.l + 58.5 * u + 2, gds.t + 9 + 3; size: 58 * u, 24; corner: 5; color: deep; opacity: 38% }
+            box { at: gds.l + 58.5 * u, gds.t + 9; size: 58 * u, 24; corner: 5; color: mintlo }
+            box { at: gds.l + 58.5 * u, gds.t + 9 - 2.5; size: 58 * u, 24 - 5; corner: 5; color: mint }
+            line { from: gds.l + 58.5 * u - 24 * u, gds.t + 9 - 2.5 - (24 - 5) / 2 + 4; to: gds.l + 58.5 * u + 24 * u, gds.t + 9 - 2.5 - (24 - 5) / 2 + 4; width: 2.2; color: minthi; opacity: 70% }
+            box { at: gds.l + 58.5 * u, gds.t + 9; size: 58 * u, 24; corner: 5; stroke: 1.4; color: deep }
+            repeat k in 0..8 {
+                line { from: gds.r - 20 * u - k * 11 * u, gds.b + 4; to: gds.r - 20 * u - k * 11 * u, gds.b - 18; width: 6; color: mix(deep, #ffffff, 6%) }
+                line { from: gds.r - 20 * u - k * 11 * u + 3.6, gds.b + 4; to: gds.r - 20 * u - k * 11 * u + 3.6, gds.b - 18; width: 1.2; color: #ffffff; opacity: 45% }
+            }
+            ellipse { at: gds.l + 11 * u, gds.b - 9; radius: 3.6; color: mix(deep, #ffffff, 38%) }
+            ellipse { at: gds.l + 11 * u, gds.b - 9; radius: 3.6; stroke: 1.1; color: deep }
+            line { from: gds.l + 11 * u - 2, gds.b - 7; to: gds.l + 11 * u + 2, gds.b - 11; width: 1.3; color: deep }
+        }
+        group {
+            show: cas_k > 0.01 and dl0 > 0.9
+            opacity: cas_k * clamp(dl0 * 3 - 2, 0, 1)
+            let gdl.l = dl.ex - dl.ew / 2
+            let gdl.r = dl.ex + dl.ew / 2
+            let gdl.t = dl.ey - dl.eh / 2
+            let gdl.b = dl.ey + dl.eh / 2
+            box { at: gdl.l + 58.5 * u + 2, gdl.t + 9 + 3; size: 58 * u, 24; corner: 5; color: deep; opacity: 38% }
+            box { at: gdl.l + 58.5 * u, gdl.t + 9; size: 58 * u, 24; corner: 5; color: mintlo }
+            box { at: gdl.l + 58.5 * u, gdl.t + 9 - 2.5; size: 58 * u, 24 - 5; corner: 5; color: mint }
+            line { from: gdl.l + 58.5 * u - 24 * u, gdl.t + 9 - 2.5 - (24 - 5) / 2 + 4; to: gdl.l + 58.5 * u + 24 * u, gdl.t + 9 - 2.5 - (24 - 5) / 2 + 4; width: 2.2; color: minthi; opacity: 70% }
+            box { at: gdl.l + 58.5 * u, gdl.t + 9; size: 58 * u, 24; corner: 5; stroke: 1.4; color: deep }
+            repeat k in 0..8 {
+                line { from: gdl.r - 20 * u - k * 11 * u, gdl.b + 4; to: gdl.r - 20 * u - k * 11 * u, gdl.b - 18; width: 6; color: mix(deep, #ffffff, 6%) }
+                line { from: gdl.r - 20 * u - k * 11 * u + 3.6, gdl.b + 4; to: gdl.r - 20 * u - k * 11 * u + 3.6, gdl.b - 18; width: 1.2; color: #ffffff; opacity: 45% }
+            }
+            ellipse { at: gdl.l + 11 * u, gdl.b - 9; radius: 3.6; color: mix(deep, #ffffff, 38%) }
+            ellipse { at: gdl.l + 11 * u, gdl.b - 9; radius: 3.6; stroke: 1.1; color: deep }
+            line { from: gdl.l + 11 * u - 2, gdl.b - 7; to: gdl.l + 11 * u + 2, gdl.b - 11; width: 1.3; color: deep }
+        }
+        group {
+            show: cas_k > 0.01 and dm0 > 0.9
+            opacity: cas_k * clamp(dm0 * 3 - 2, 0, 1)
+            let gdm.l = dm.ex - dm.ew / 2
+            let gdm.r = dm.ex + dm.ew / 2
+            let gdm.t = dm.ey - dm.eh / 2
+            let gdm.b = dm.ey + dm.eh / 2
+            box { at: gdm.l + 58.5 * u + 2, gdm.t + 9 + 3; size: 58 * u, 24; corner: 5; color: deep; opacity: 38% }
+            box { at: gdm.l + 58.5 * u, gdm.t + 9; size: 58 * u, 24; corner: 5; color: mintlo }
+            box { at: gdm.l + 58.5 * u, gdm.t + 9 - 2.5; size: 58 * u, 24 - 5; corner: 5; color: mint }
+            line { from: gdm.l + 58.5 * u - 24 * u, gdm.t + 9 - 2.5 - (24 - 5) / 2 + 4; to: gdm.l + 58.5 * u + 24 * u, gdm.t + 9 - 2.5 - (24 - 5) / 2 + 4; width: 2.2; color: minthi; opacity: 70% }
+            box { at: gdm.l + 58.5 * u, gdm.t + 9; size: 58 * u, 24; corner: 5; stroke: 1.4; color: deep }
+            repeat k in 0..8 {
+                line { from: gdm.r - 20 * u - k * 11 * u, gdm.b + 4; to: gdm.r - 20 * u - k * 11 * u, gdm.b - 18; width: 6; color: mix(deep, #ffffff, 6%) }
+                line { from: gdm.r - 20 * u - k * 11 * u + 3.6, gdm.b + 4; to: gdm.r - 20 * u - k * 11 * u + 3.6, gdm.b - 18; width: 1.2; color: #ffffff; opacity: 45% }
+            }
+            ellipse { at: gdm.l + 11 * u, gdm.b - 9; radius: 3.6; color: mix(deep, #ffffff, 38%) }
+            ellipse { at: gdm.l + 11 * u, gdm.b - 9; radius: 3.6; stroke: 1.1; color: deep }
+            line { from: gdm.l + 11 * u - 2, gdm.b - 7; to: gdm.l + 11 * u + 2, gdm.b - 11; width: 1.3; color: deep }
+        }
+        group {
+            show: cas_k > 0.01 and dz0 > 0.9
+            opacity: cas_k * clamp(dz0 * 3 - 2, 0, 1)
+            let gdz.l = dz.fx - dz.fw / 2
+            let gdz.r = dz.fx + dz.fw / 2
+            let gdz.t = dz.fcy - dz.fh / 2
+            let gdz.b = dz.fcy + dz.fh / 2
+            box { at: gdz.l + 58.5 * u + 2, gdz.t + 9 + 3; size: 58 * u, 24; corner: 5; color: deep; opacity: 38% }
+            box { at: gdz.l + 58.5 * u, gdz.t + 9; size: 58 * u, 24; corner: 5; color: mintlo }
+            box { at: gdz.l + 58.5 * u, gdz.t + 9 - 2.5; size: 58 * u, 24 - 5; corner: 5; color: mint }
+            line { from: gdz.l + 58.5 * u - 24 * u, gdz.t + 9 - 2.5 - (24 - 5) / 2 + 4; to: gdz.l + 58.5 * u + 24 * u, gdz.t + 9 - 2.5 - (24 - 5) / 2 + 4; width: 2.2; color: minthi; opacity: 70% }
+            box { at: gdz.l + 58.5 * u, gdz.t + 9; size: 58 * u, 24; corner: 5; stroke: 1.4; color: deep }
+            repeat k in 0..8 {
+                line { from: gdz.r - 20 * u - k * 11 * u, gdz.b + 4; to: gdz.r - 20 * u - k * 11 * u, gdz.b - 18; width: 6; color: mix(deep, #ffffff, 6%) }
+                line { from: gdz.r - 20 * u - k * 11 * u + 3.6, gdz.b + 4; to: gdz.r - 20 * u - k * 11 * u + 3.6, gdz.b - 18; width: 1.2; color: #ffffff; opacity: 45% }
+            }
+            ellipse { at: gdz.l + 11 * u, gdz.b - 9; radius: 3.6; color: mix(deep, #ffffff, 38%) }
+            ellipse { at: gdz.l + 11 * u, gdz.b - 9; radius: 3.6; stroke: 1.1; color: deep }
+            line { from: gdz.l + 11 * u - 2, gdz.b - 7; to: gdz.l + 11 * u + 2, gdz.b - 11; width: 1.3; color: deep }
+        }
         //  The three dots on each tab (the volume card's hint), fading out as the panel they open comes out.
         group {
             show: lm > 0.35 and max(nt_vis_t, nt_vis_b) > 0.05
