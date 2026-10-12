@@ -2,6 +2,8 @@
 
   <a href="https://youtu.be/k6_TMKBE_Oc"><img src="assets/banner.jpeg" alt="VITREUS: a glass-themed desktop shell" width="100%" /></a>
 
+  <p><sub>Click the banner to see a demo</sub></p>
+
   <p><strong>A liquid-glass desktop shell: a bar, and panels that flow out of it.</strong></p>
 
   <p>
