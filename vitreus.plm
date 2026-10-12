@@ -659,6 +659,8 @@ scene Vitreus {
     text rec_time = ""             // how long, 1:23
     fact rec_mic = false           // a recording takes the microphone too (the default input), set from the Capture window
     event rec_mic_toggle ->
+    fact rec_sys = false           // a recording takes the system sound instead (the default output's monitor); one audio source only, so it excludes the mic
+    event rec_sys_toggle ->
     fact pow_prof = -1             // 0 power saver, 1 balanced, 2 performance, -1 no power-profiles-daemon
     event shot ->                  // 0 a region, 1 the whole screen
     event rec_start ->             // the same
@@ -1212,6 +1214,8 @@ scene Vitreus {
     prop night_pill = 0 ~pop
     prop rec_mic_pill = 0 ~pop
     follow rec_mic_pill = if(rec_mic, 1, 0)
+    prop rec_sys_pill = 0 ~pop
+    follow rec_sys_pill = if(rec_sys, 1, 0)
     prop night_auto_pill = 0 ~pop
     follow night_pill = if(night_on, 1, 0)
     follow night_auto_pill = if(night_auto, 1, 0)

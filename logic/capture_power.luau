@@ -25,7 +25,7 @@ return function(set_panel)
     end)
 
     -- ── Screen recording ─────────────────────────────────────────────────────────────────────────────────────────
-    -- `wf-recorder`, video only (or with the microphone, when `rec_mic` is on), into ~/Videos. The whole-screen one names the focused monitor (`-o`): with two, wf-recorder
+    -- `wf-recorder`, video only (or with the microphone, when `rec_mic` is on, or the system sound, when `rec_sys` is), into ~/Videos. The whole-screen one names the focused monitor (`-o`): with two, wf-recorder
     -- otherwise asks which one on a terminal that is not there, and records nothing. Pressing the tile's button again (or Stop) ends it cleanly, which is
     -- what makes the file playable. Whether it is running is asked of `pgrep`, so a recording started from anywhere counts.
     local seen = nil                                -- when it was first seen running
@@ -49,7 +49,8 @@ return function(set_panel)
         if fact.rec_on then return end
         starting_until = os.time() + 120
         after_closed(function()
-            local a = fact.rec_mic and " -a" or ""             -- -a: the default input (the microphone) goes into the file too
+            local a = fact.rec_sys and ' -a"$(pactl get-default-sink).monitor"'   -- the system sound: the monitor of the default output
+                or (fact.rec_mic and " -a" or "")                          -- -a: the default input (the microphone) goes into the file too
             local pick = (mode == 0) and ('g=$(slurp) || exit 0; wf-recorder' .. a .. ' -g "$g" -f "$f"') or ('wf-recorder' .. a .. ' -o "$(hyprctl monitors -j | jq -r ".[] | select(.focused) | .name")" -f "$f"')
             spawn(sh('d="$HOME/Videos"; mkdir -p "$d"; f="$d/recording_$(date +%F_%H-%M-%S).mp4"; '
                 .. pick .. '; if [ -s "$f" ]; then notify-send -a Vitreus "Recording saved" "$f"; else notify-send -a Vitreus "Recording failed" "Nothing was saved"; fi'))
@@ -61,7 +62,8 @@ return function(set_panel)
     end
     on("rec_start", rec_start)
     on("rec_stop", rec_stop)
-    on("rec_mic_toggle", function() fact.rec_mic = not fact.rec_mic end)
+    on("rec_mic_toggle", function() fact.rec_mic = not fact.rec_mic; if fact.rec_mic then fact.rec_sys = false end end)
+    on("rec_sys_toggle", function() fact.rec_sys = not fact.rec_sys; if fact.rec_sys then fact.rec_mic = false end end)
     -- The tile's button: stop if recording, else record a region.
     on("rec_toggle", function()
         if fact.rec_on then rec_stop() else rec_start(0) end
