@@ -813,6 +813,21 @@ scene Vitreus {
     prop pq.ds = 0 ~600ms
     prop pq.dl = 0 ~600ms
     prop pq.do = 0 ~600ms
+    //  The UwU's star burst (bar_glass.plm): a clock for each drawer, 0 just born, 1 gone, restarted when the drawer has closed.
+    prop sb_dc = 1 ~900ms
+    prop sb_dk = 1 ~900ms
+    prop sb_dm = 1 ~900ms
+    prop sb_dz = 1 ~900ms
+    prop sb_ds = 1 ~900ms
+    prop sb_dl = 1 ~900ms
+    prop sb_do = 1 ~900ms
+    on change dc < 0.06 while dc < 0.06 and lm > 0.5 { sb_dc: 0 ~16ms; sb_dc: 1 ~900ms after 30ms }
+    on change dk < 0.06 while dk < 0.06 and lm > 0.5 { sb_dk: 0 ~16ms; sb_dk: 1 ~900ms after 30ms }
+    on change dm < 0.06 while dm < 0.06 and lm > 0.5 { sb_dm: 0 ~16ms; sb_dm: 1 ~900ms after 30ms }
+    on change dz < 0.06 while dz < 0.06 and lm > 0.5 { sb_dz: 0 ~16ms; sb_dz: 1 ~900ms after 30ms }
+    on change ds < 0.06 while ds < 0.06 and lm > 0.5 { sb_ds: 0 ~16ms; sb_ds: 1 ~900ms after 30ms }
+    on change dl < 0.06 while dl < 0.06 and lm > 0.5 { sb_dl: 0 ~16ms; sb_dl: 1 ~900ms after 30ms }
+    on change do < 0.06 while do < 0.06 and lm > 0.5 { sb_do: 0 ~16ms; sb_do: 1 ~900ms after 30ms }
     prop fl    = 0 ~300ms         // what is in it, fading in
     prop lr    = 1 ~calm          // how many rows it has room for
     prop fo    = 0 ~300ms         // what is in it, fading in
@@ -2996,7 +3011,7 @@ scene Vitreus {
     let dj.sag = max((26 * dj.tension + pbounce) * u * lm * (1 - att), 0.3)
     let dj.neck = 52 * u * 4 * dj.out * (1 - dj.out)
     let dj.ripx = (12 + 90 * prip) * u
-    let dj.riph = 20 * u * (1 - prip) * clamp(prip * 6, 0, 1) * lm * (1 - att)
+    let dj.riph = 20 * u * (1 - prip) * clamp(prip * 6, 0, 1) * lm * (1 - att) * (1 - uwu_k)
     let dj.stray = 10 * u * pstray * lm * (1 - att)
     let dj.stretch = clamp(vel(dtrav) * 0.07, 0, 0.5) * lm * (1 - cas_k)
     let dj.y0 = lp.sy0
@@ -3120,7 +3135,7 @@ scene Vitreus {
     //  never zero-size, and off the screen when nothing is happening (`show:` does not take a shape off the glass).
     let dz.sag = max((24 * 4 * dz.det * (1 - dz.det) * (1 - 0.5 * dz.det) + dbounce) * u * lm, 0.3)
     let dz.ripx = (12 + 90 * dprip) * u
-    let dz.riph = 20 * u * (1 - dprip) * clamp(dprip * 6, 0, 1) * lm
+    let dz.riph = 20 * u * (1 - dprip) * clamp(dprip * 6, 0, 1) * lm * (1 - uwu_k)
     let dz.stray = 10 * u * dpstray * lm
     let dz.act = if(cas_k < 0.5 and lm > 0.5 and desk_open and (abs(desk_ox + (desk_s - 1) * dsk_w) > 4 * du or dprip < 0.98 or dpstray > 0.01 or abs(dbounce) > 0.2), 1, 0)
     let dz.px = if(dz.act > 0.5, 0, 30000)
@@ -3467,7 +3482,7 @@ scene Vitreus {
     on change dk > 0.84 while dk > 0.84 and lm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~1100ms after 30ms }
     on change dk < 0.06 while dk < 0.06 and lm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~600ms after 30ms }
     let tq.x = (12 + 90 * tprip) * u
-    let tq.h = max(20 * u * (1 - tprip) * clamp(tprip * 6, 0, 1) * lm, 0.3)
+    let tq.h = max(20 * u * (1 - tprip) * clamp(tprip * 6, 0, 1) * lm * (1 - uwu_k), 0.3)
     let tq.act = if(cas_k < 0.5 and lm > 0.5 and tprip < 0.98 and pown > 0.5, 1, 0)
     on change dm > 0.5 while dm > 0.5 and panel == player { lp_k = 6; lp_w = 312 }
     //  Where the contents hang from: the panel's old middle, so they keep their
