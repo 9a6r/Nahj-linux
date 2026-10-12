@@ -11,9 +11,9 @@ import "clockface_styled.plm"
 //  Its settings are kept in desktopclock.json, in ~/.local/share/pleamar/desktopclock (see desktopclock.luau).
 
 scene DesktopClock {
-    surface { size: full, full; anchor: top_left; margin: 0; level: bottom; screens: all; reserve: -1 }
+    surface { size: full, full; anchor: top_left; margin: 0; level: bottom; screens: each; reserve: -1 }
 
-    permissions { services: "clock", "files", "files.write"; run: "pleamar" }
+    permissions { services: "clock", "files", "files.write"; run: "pleamar", "hyprctl" }
 
     service clock as now { hour: number }
 
@@ -24,6 +24,28 @@ scene DesktopClock {
     fact g0x = 0           // while it is dragged: the cell it was at when it was pressed
     fact g0y = 0
     fact dragging = false
+    fact mon = 0           // which monitor shows the card (the scene has a copy on each, only this one draws it and takes the pointer); the logic keeps it
+    //  Where the monitors lie in the desktop (logical pixels) and how big they are, up to four (the logic asks `hyprctl`; a monitor that is not there is 0 x 0).
+    fact m0x = 0
+    fact m0y = 0
+    fact m0w = 0
+    fact m0h = 0
+    fact m1x = 0
+    fact m1y = 0
+    fact m1w = 0
+    fact m1h = 0
+    fact m2x = 0
+    fact m2y = 0
+    fact m2w = 0
+    fact m2h = 0
+    fact m3x = 0
+    fact m3y = 0
+    fact m3w = 0
+    fact m3h = 0
+    fact pcx = 0           // while it is dragged: the face's centre when it was pressed, in the desktop's own coordinates
+    fact pcy = 0
+    fact dcx = 0           // and where that centre is now
+    fact dcy = 0
     fact zpx = 0           // while it is dragged: where the middle of the face was when it was pressed (the zone stays there)
     fact zpy = 0
     fact shown = false     // the logic sets it from desktopclock.json (so that `sh` follows it from nothing)
@@ -85,8 +107,15 @@ scene DesktopClock {
     //  takes as many cells as it needs (`cfw`, `cfh`, which Settings > Widgets asks for). Against an edge of the grid it sits against that edge, between them it is centred in its cells.
     //  `gx` and `gy` below 0 are an older settings file: it is put where `where` says (one of the nine places, which is what the cells are made of).
     let gm = 40
-    let gw = (screen.width - 2 * gm) / 16
-    let gh = (screen.height - 2 * gm) / 9
+    let mi = clamp(screen.index, 0, 3)
+    //  The scene's copies are not in the order `hyprctl` lists the monitors: the logic learns it and numbers the `m0x`.. facts and `mon` by the copies.
+    let here = if(mi == mon, 1, 0)
+    let scw = pick(mi, m0w, m1w, m2w, m3w)        // what this monitor measures (`screen.width` is 0 in a copy made for each monitor)
+    let sch = pick(mi, m0h, m1h, m2h, m3h)
+    let mox = pick(mon, m0x, m1x, m2x, m3x)       // where the monitor that shows it has its top left in the desktop
+    let moy = pick(mon, m0y, m1y, m2y, m3y)
+    let gw = (scw - 2 * gm) / 16
+    let gh = (sch - 2 * gm) / 9
     let fw = clamp(ceil(2 * hw / gw), 1, 16)
     let fh = clamp(ceil(2 * hh / gh), 1, 9)
     let ex0 = clamp(if(gx < 0, if(isl > 0.5, 0, if(isr > 0.5, 16 - fw, (16 - fw) / 2)), gx), 0, 16 - fw)
@@ -94,15 +123,15 @@ scene DesktopClock {
     //  In Edit mode what is drawn follows the cell with a spring (`erx`, `ery`); otherwise it is the cell.
     prop erx = 0 ~quick
     prop ery = 0 ~quick
-    follow erx = ex0
-    follow ery = ey0
-    let ex = mix(ex0, erx, edp)
-    let ey = mix(ey0, ery, edp)
+    follow erx = if(gx < 0, ex0, gx)      // (one for all the copies, so it must not depend on this monitor's size: `ex` clamps it)
+    follow ery = if(gy < 0, ey0, gy)
+    let ex = clamp(mix(ex0, erx, edp), 0, 16 - fw)
+    let ey = clamp(mix(ey0, ery, edp), 0, 9 - fh)
     //  Against the grid's edge the face is against the edge, between them it is in the middle of its cells, and in between it moves from one to the other (so that it never jumps).
     let cxm = gm + (ex + fw / 2) * gw
     let cym = gm + (ey + fh / 2) * gh
-    let fx = cxm + (gm + hw - cxm) * clamp(1 - ex, 0, 1) + (screen.width - gm - hw - cxm) * clamp(ex + fw - 15, 0, 1)
-    let fy = cym + (gm + hh - cym) * clamp(1 - ey, 0, 1) + (screen.height - gm - hh - cym) * clamp(ey + fh - 8, 0, 1)
+    let fx = cxm + (gm + hw - cxm) * clamp(1 - ex, 0, 1) + (scw - gm - hw - cxm) * clamp(ex + fw - 15, 0, 1)
+    let fy = cym + (gm + hh - cym) * clamp(1 - ey, 0, 1) + (sch - gm - hh - cym) * clamp(ey + fh - 8, 0, 1)
     //  Edit mode: the cells it takes are outlined, and a press on them takes the widget; it moves a whole cell at a time under the pointer, and keeps its place (the settings
     //  file is written for each cell it lands on). The zone stays where the press was while it is dragged, as a zone that moves itself would lose the drag.
     prop edp = 0 ~calm
@@ -113,17 +142,34 @@ scene DesktopClock {
     let pad = 10
     let zx = if(dragging, zpx, fx) - hw - pad
     let zy = if(dragging, zpy, fy) - hh - pad
-    zone box edz { from: zx, zy; size: 2 * (hw + pad), 2 * (hh + pad); corner: 16; cursor: pointer; active: edit; label: "Move clock" }
-    on press edz { g0x = ex0; g0y = ey0; zpx = fx; zpy = fy; dragging = true }
-    on drag edz { gx = clamp(floor(g0x + drag.dx / gw + 0.5), 0, 16 - fw); gy = clamp(floor(g0y + drag.dy / gh + 0.5), 0, 9 - fh) }
-    on release edz { dragging = false }
+    //  Dragged over to another monitor it lands there: the monitor under the card's centre is the one that shows it, and the cell is worked out against that one's grid.
+    let in0 = if(dcx >= m0x and dcx < m0x + m0w and dcy >= m0y and dcy < m0y + m0h, 1, 0)
+    let in1 = if(dcx >= m1x and dcx < m1x + m1w and dcy >= m1y and dcy < m1y + m1h, 1, 0)
+    let in2 = if(dcx >= m2x and dcx < m2x + m2w and dcy >= m2y and dcy < m2y + m2h, 1, 0)
+    let in3 = if(dcx >= m3x and dcx < m3x + m3w and dcy >= m3y and dcy < m3y + m3h, 1, 0)
+    let tmon = if(in0 > 0.5, 0, if(in1 > 0.5, 1, if(in2 > 0.5, 2, if(in3 > 0.5, 3, mon))))
+    let tox = pick(tmon, m0x, m1x, m2x, m3x)
+    let toy = pick(tmon, m0y, m1y, m2y, m3y)
+    let tgw = (max(pick(tmon, m0w, m1w, m2w, m3w), 800) - 2 * gm) / 16
+    let tgh = (max(pick(tmon, m0h, m1h, m2h, m3h), 600) - 2 * gm) / 9
+    let tfw = clamp(ceil(2 * hw / tgw), 1, 16)
+    let tfh = clamp(ceil(2 * hh / tgh), 1, 9)
+    zone box edz { from: zx, zy; size: 2 * (hw + pad), 2 * (hh + pad); corner: 16; cursor: pointer; active: edit and (here > 0.5 or dragging); label: "Move clock" }
+    on press edz { pcx = mox + gm + (ex0 + fw / 2) * gw; pcy = moy + gm + (ey0 + fh / 2) * gh; dcx = pcx; dcy = pcy; zpx = fx; zpy = fy; dragging = true }
+    on drag edz { dcx = pcx + drag.dx; dcy = pcy + drag.dy }
+    on change dcx { mon = tmon; gx = clamp(floor((dcx - tox - gm) / tgw - tfw / 2 + 0.5), 0, 16 - tfw); gy = clamp(floor((dcy - toy - gm) / tgh - tfh / 2 + 0.5), 0, 9 - tfh) }
+    on change dcy { mon = tmon; gx = clamp(floor((dcx - tox - gm) / tgw - tfw / 2 + 0.5), 0, 16 - tfw); gy = clamp(floor((dcy - toy - gm) / tgh - tfh / 2 + 0.5), 0, 9 - tfh) }
+    on release edz { dragging = false; mon = tmon; gx = clamp(floor((dcx - tox - gm) / tgw - tfw / 2 + 0.5), 0, 16 - tfw); gy = clamp(floor((dcy - toy - gm) / tgh - tfh / 2 + 0.5), 0, 9 - tfh) }   // (the rules above read the frame before: once more, now that it is still)
     group {
-        show: edp > 0.01
+        show: edp > 0.01 and here > 0.5
         opacity: edp
         box { from: fx - hw - pad, fy - hh - pad; size: 2 * (hw + pad), 2 * (hh + pad); corner: 16; color: mint; opacity: 7% + 9% * dgp }
         box { from: fx - hw - pad, fy - hh - pad; size: 2 * (hw + pad), 2 * (hh + pad); corner: 16; stroke: 1.6; color: mint; opacity: 55% + 45% * dgp }
         text "Clock" { at: fx - hw - pad + 14, fy - hh - pad + 16; anchor: left center; size: 12; weight: 700; color: mint; family: "Space Grotesk"; shadow: 0, 1, 5, 70% }
     }
 
-    ClockFaceStyled(k, lay, d0, d1, d2, d3, fx, fy, tint, 1, 0.4, sh * clr, wt, mint, ink, alert, faint, ob, pl, uk, deep)
+    group {
+        show: here > 0.5
+        ClockFaceStyled(k, lay, d0, d1, d2, d3, fx, fy, tint, 1, 0.4, sh * clr, wt, mint, ink, alert, faint, ob, pl, uk, deep)
+    }
 }

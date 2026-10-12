@@ -9,12 +9,13 @@
 --   layout       0 pipe (12 | 34), 1 rule (a line between the hour and the minutes), 2 tower (a column), 3 digital (12:34), 4 slash, 5 hero
 --   gx, gy       the cell of its top left corner on the 16 x 9 grid of the desktop (-1: not chosen yet, `position` says)
 --   position     "top_left", "top", "top_right", "left", "center", "right", "bottom_left", "bottom" or "bottom_right"
+--   monitor      the name of the monitor that shows the clock ("": not chosen yet, DP-2)
 --   weight       the strokes: 0 thin, 1 regular, 2 bold
 --   clarity      the glass: 0 clear, 1 soft, 2 full
 --   glyphs       a style for the hours ("h"), the minutes ("m") and the divider ("s"): { w = weight multiplier, z = size multiplier, c = tint }, tint 0 the shell's glass,
 --                1 mint, 2 light, 3 rose, 4 grey. What is not there is the normal style (1, 1, 0)
 local POSITIONS = { top_left = true, top = true, top_right = true, left = true, center = true, right = true, bottom_left = true, bottom = true, bottom_right = true }
-local cfg = { shown = true, use_12_hour = true, size = 220, layout = 0, position = "center", gx = -1, gy = -1, weight = 1, clarity = 1 }
+local cfg = { shown = true, use_12_hour = true, size = 220, layout = 0, position = "center", gx = -1, gy = -1, monitor = "", weight = 1, clarity = 1 }
 local GL = { "h", "m", "s" }
 local glyphs = {}
 for _, g in ipairs(GL) do glyphs[g] = { w = 1, z = 1, c = 0 } end
@@ -59,6 +60,59 @@ fact.wti = cfg.weight
 fact.cli = cfg.clarity
 fact.shown = cfg.shown
 
+-- Where the monitors lie, in the order of the scene's copies (`screen.index`), which is not the order `hyprctl monitors` lists them in: the copies' sizes
+-- are read from `pleamar --say desktopclock describe` and matched to hyprctl's monitors by size. The card is kept by the monitor's name; when none was
+-- chosen yet it goes to DP-2, where the shell lives.
+local names = {}
+local function refresh_monitors()
+    run("hyprctl", { "monitors", "-j" }, function(out, code)
+        if code ~= 0 or not out then return end
+        local ok, list = pcall(json.decode, out)
+        if not ok or type(list) ~= "table" or #list == 0 then return end
+        table.sort(list, function(a, b) return (a.id or 0) < (b.id or 0) end)
+        local mons = {}
+        for i, d in ipairs(list) do
+            if i > 4 then break end
+            local sc = tonumber(d.scale) or 1
+            local w, h = (tonumber(d.width) or 0) / sc, (tonumber(d.height) or 0) / sc
+            if (tonumber(d.transform) or 0) % 2 == 1 then w, h = h, w end
+            mons[i] = { name = d.name, x = tonumber(d.x) or 0, y = tonumber(d.y) or 0, w = math.floor(w + 0.5), h = math.floor(h + 0.5) }
+        end
+        run("pleamar", { "--say", "desktopclock", "describe" }, function(desc, code2)
+            local order = {}
+            if code2 == 0 and desc then
+                -- each line says which copy it is (`screen N`, the copy's `screen.index`): the copies are not always in the same order from one start to the next
+                local used = {}
+                for n, w, h in desc:gmatch("%(screen (%d+)%) [^\n]-panel (%d+)\xC3\x97(%d+)") do
+                    n, w, h = tonumber(n), tonumber(w), tonumber(h)
+                    for i, m in ipairs(mons) do
+                        if not used[i] and m.w == w and m.h == h and n < 4 and not order[n + 1] then used[i] = true; order[n + 1] = m; break end
+                    end
+                end
+                for k = 1, #mons do if not order[k] then order = {}; break end end
+            end
+            if #order ~= #mons then order = mons end   -- (what describe says does not fit: hyprctl's own order)
+            names = {}
+            local primary, mine = 0, nil
+            for k = 1, 4 do
+                local d = order[k]
+                fact["m" .. (k - 1) .. "x"] = d and d.x or 0
+                fact["m" .. (k - 1) .. "y"] = d and d.y or 0
+                fact["m" .. (k - 1) .. "w"] = d and d.w or 0
+                fact["m" .. (k - 1) .. "h"] = d and d.h or 0
+                names[k] = d and d.name or nil
+                if d and d.name == "DP-2" then primary = k - 1 end
+                if d and d.name == cfg.monitor then mine = k - 1 end
+            end
+            -- the monitor it was on, or (when that one is gone, or none was chosen yet) the main one
+            fact.mon = mine or primary
+            if cfg.monitor == "" then cfg.monitor = names[primary + 1] or ""; save() end
+        end)
+    end)
+end
+refresh_monitors()
+every(5000, function() if not fact.dragging then refresh_monitors() end end)
+
 -- The glyph styles: a fact each (`ghw` is the hours' weight, `ghz` their size, `ghc` their tint; `gm…` the minutes', `gs…` the divider's), and all of them in `gpack`,
 -- "w,z,c;" for each glyph in order, so that the Settings page reads them at once.
 local function pack()
@@ -96,6 +150,7 @@ on("fact:where", function(v) if POSITIONS[v] then cfg.position = v; save() end e
 on("fact:gx", function(v) if type(v) == "number" then cfg.gx = v; save() end end)
 on("fact:gy", function(v) if type(v) == "number" then cfg.gy = v; save() end end)
 on("fact:wti", function(v) if type(v) == "number" then cfg.weight = clampi(v, 0, 2); save() end end)
+on("fact:mon", function(v) local n = type(v) == "number" and names[clampi(v, 0, 3) + 1]; if n and n ~= cfg.monitor then cfg.monitor = n; save() end end)
 on("fact:cli", function(v) if type(v) == "number" then cfg.clarity = clampi(v, 0, 2); save() end end)
 for _, g in ipairs(GL) do
     on("fact:g" .. g .. "w", function(v) if type(v) == "number" then glyphs[g].w = math.max(0.4, math.min(2, v)); pack(); save() end end)
