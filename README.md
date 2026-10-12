@@ -103,7 +103,7 @@ The packages `install.sh` installs (pacman, and the AUR for the last two):
 
 | Package | Used for |
 | --- | --- |
-| `git`, `curl`, `fontconfig` | fetching Vitreus, weather and cover art, the launcher's web answers, and the font |
+| `git`, `curl`, `fontconfig` | fetching Vitreus, weather and cover art, the launcher's web answers, and the fonts |
 | `hyprsunset` | Night mode |
 | `awww` | the wallpaper picker |
 | `iris-colors` (AUR) | theming from the wallpaper |
@@ -129,7 +129,7 @@ The packages `install.sh` installs (pacman, and the AUR for the last two):
 
 ## 🚀 Installation
 
-**The quick way.** One script installs the packages Vitreus uses, pleamar itself, the font and the shell, and offers to
+**The quick way.** One script installs the packages Vitreus uses, pleamar itself, the fonts and the shell, and offers to
 start it with your desktop. On Arch and its relatives it does everything; on other distributions it installs the shell
 and lists what to add by hand.
 
