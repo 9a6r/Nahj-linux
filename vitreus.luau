@@ -7152,3 +7152,28 @@ require("logic/ask")()
 require("logic/clipboard")(with_dirs)
 -- the charger, read from the kernel instead of pleamar's 20 s battery poll: see logic/charger.luau
 require("logic/charger")()
+
+-- The panel sound (Settings > Theme): Synoptik's own click, once each time a panel opens. The OSDs (volume, notifications) are not panels.
+do
+    local snd_on, home, last_at = true, nil, 0
+    local file = "sounds.json"
+    local ok, saved = pcall(sys.ask, "files.read", file, "json")
+    if ok and type(saved) == "table" and type(saved.panel) == "boolean" then snd_on = saved.panel end
+    fact.snd_on = snd_on
+    run("printenv", { "HOME" }, function(out) home = (out or ""):gsub("%s+$", "") end)
+    on("snd_toggle", function()
+        snd_on = not snd_on
+        fact.snd_on = snd_on
+        pcall(sys.call, "files.write", file, { panel = snd_on })
+    end)
+    local function chime()
+        if not snd_on or not home or home == "" then return end
+        local now = os.clock()
+        if now - last_at < 0.25 then return end   -- one sound at a time, however fast the panels change
+        last_at = now
+        run("pw-play", { "--volume", "0.25", home .. "/.config/pleamar/shells/vitreus/assets/panel.wav" }, function() end)
+    end
+    local quiet = { none = true, volume = true, notif = true }
+    on("fact:panel", function(v) if not quiet[tostring(v)] then chime() end end)
+    on("fact:desk_open", function(v) if v == true then chime() end end)   -- the Desk is not one of the panels: it has its own fact
+end

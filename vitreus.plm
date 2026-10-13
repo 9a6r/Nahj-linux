@@ -542,6 +542,8 @@ scene Vitreus {
     fact theme_sel = 0               // Settings > Theme: 0 the wallpaper's colours, 1 to 6 a named palette, 7 monochrome
     fact iris_int = 1                // how strongly the wallpaper's accent is pushed: 0 subtle, 1 medium, 2 bold
     event theme_pick ->
+    fact snd_on = true               // Settings > Theme: the little sound when a panel opens
+    event snd_toggle ->
     event iris_int_set ->
     fact iris_on = true             // Iris, the palette from the wallpaper, is on; off, the shell is monochrome
     event iris_toggle ->
@@ -1084,6 +1086,7 @@ scene Vitreus {
     prop rcn = 0 ~calm                // the recording dot's slot on the bar, 1 while a recording runs
     prop trn = 0 ~calm                // how many tray icons the bar holds, smoothly: the bar widens with it
     prop disp_auto_pill = 0 ~pop
+    prop snd_pill = 0 ~pop
     prop disp_dd = 0 ~calm            // the resolution dropdown, 0 shut .. 1 open
     prop disp_scroll = 0 ~quick       // the page's scroll, following disp_scroll_to
     prop disp_pn_s = 0 ~calm          // the profiles card's rows, smoothed: it grows and shrinks with them
@@ -1704,6 +1707,7 @@ scene Vitreus {
     follow hy_k2 = if(hy_anim, 1, 0)
     follow hy_k3 = if(hy_nat, 1, 0)
     follow disp_auto_pill = if(disp_auto, 1, 0)
+    follow snd_pill = if(snd_on, 1, 0)
     follow disp_dd = if(disp_res_open, 1, 0)
     follow disp_scroll = disp_scroll_to
     follow disp_pn_s = disp_pcount
