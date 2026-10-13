@@ -218,6 +218,14 @@ part BarGlass {
                 path { at: ex, wdk.t; stroke: 3 * u; color: deep; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8 }
                 path { at: ex, wdk.t; color: #ff8fc8; move -14 * u, 5; line sg * 9 * u, -19 * u; line 14 * u, 5; close }
             }
+            //  Whiskers: three on each side of the drawer, fanning out of its edges at the bottom corners.
+            repeat wk in 0..6 {
+                let wks = if(wk < 3, -1, 1)
+                let wkx = if(wk < 3, wdk.l, wdk.r)
+                let wky = wdk.b - 20 * u + (mod(wk, 3) - 1) * 7 * u
+                line { from: wkx - wks * 6 * u, wky; to: wkx + wks * 26 * u, wky + (mod(wk, 3) - 1) * 6 * u; width: 4; color: deep }
+                line { from: wkx - wks * 6 * u, wky; to: wkx + wks * 26 * u, wky + (mod(wk, 3) - 1) * 6 * u; width: 1.8; color: #ffffff }
+            }
             repeat s in 0..3 {
                 let sx = wdk.m + (s - 1) * 44 * u
                 let sr = if(s == 1, 7, 5) * u
@@ -270,6 +278,14 @@ part BarGlass {
                 path { at: ex, wdc.t; color: obsidian; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8; close }
                 path { at: ex, wdc.t; stroke: 3 * u; color: deep; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8 }
                 path { at: ex, wdc.t; color: #ff8fc8; move -14 * u, 5; line sg * 9 * u, -19 * u; line 14 * u, 5; close }
+            }
+            //  Whiskers: three on each side of the drawer, fanning out of its edges at the bottom corners.
+            repeat wk in 0..6 {
+                let wks = if(wk < 3, -1, 1)
+                let wkx = if(wk < 3, wdc.l, wdc.r)
+                let wky = wdc.b - 20 * u + (mod(wk, 3) - 1) * 7 * u
+                line { from: wkx - wks * 6 * u, wky; to: wkx + wks * 26 * u, wky + (mod(wk, 3) - 1) * 6 * u; width: 4; color: deep }
+                line { from: wkx - wks * 6 * u, wky; to: wkx + wks * 26 * u, wky + (mod(wk, 3) - 1) * 6 * u; width: 1.8; color: #ffffff }
             }
             repeat s in 0..3 {
                 let sx = wdc.m + (s - 1) * 44 * u
@@ -324,6 +340,14 @@ part BarGlass {
                 path { at: ex, wds.t; stroke: 3 * u; color: deep; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8 }
                 path { at: ex, wds.t; color: #ff8fc8; move -14 * u, 5; line sg * 9 * u, -19 * u; line 14 * u, 5; close }
             }
+            //  Whiskers: three on each side of the drawer, fanning out of its edges at the bottom corners.
+            repeat wk in 0..6 {
+                let wks = if(wk < 3, -1, 1)
+                let wkx = if(wk < 3, wds.l, wds.r)
+                let wky = wds.b - 20 * u + (mod(wk, 3) - 1) * 7 * u
+                line { from: wkx - wks * 6 * u, wky; to: wkx + wks * 26 * u, wky + (mod(wk, 3) - 1) * 6 * u; width: 4; color: deep }
+                line { from: wkx - wks * 6 * u, wky; to: wkx + wks * 26 * u, wky + (mod(wk, 3) - 1) * 6 * u; width: 1.8; color: #ffffff }
+            }
             repeat s in 0..3 {
                 let sx = wds.m + (s - 1) * 44 * u
                 let sr = if(s == 1, 7, 5) * u
@@ -376,6 +400,14 @@ part BarGlass {
                 path { at: ex, wdl.t; color: obsidian; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8; close }
                 path { at: ex, wdl.t; stroke: 3 * u; color: deep; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8 }
                 path { at: ex, wdl.t; color: #ff8fc8; move -14 * u, 5; line sg * 9 * u, -19 * u; line 14 * u, 5; close }
+            }
+            //  Whiskers: three on each side of the drawer, fanning out of its edges at the bottom corners.
+            repeat wk in 0..6 {
+                let wks = if(wk < 3, -1, 1)
+                let wkx = if(wk < 3, wdl.l, wdl.r)
+                let wky = wdl.b - 20 * u + (mod(wk, 3) - 1) * 7 * u
+                line { from: wkx - wks * 6 * u, wky; to: wkx + wks * 26 * u, wky + (mod(wk, 3) - 1) * 6 * u; width: 4; color: deep }
+                line { from: wkx - wks * 6 * u, wky; to: wkx + wks * 26 * u, wky + (mod(wk, 3) - 1) * 6 * u; width: 1.8; color: #ffffff }
             }
             repeat s in 0..3 {
                 let sx = wdl.m + (s - 1) * 44 * u
@@ -430,6 +462,14 @@ part BarGlass {
                 path { at: ex, wdm.t; stroke: 3 * u; color: deep; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8 }
                 path { at: ex, wdm.t; color: #ff8fc8; move -14 * u, 5; line sg * 9 * u, -19 * u; line 14 * u, 5; close }
             }
+            //  Whiskers: three on each side of the drawer, fanning out of its edges at the bottom corners.
+            repeat wk in 0..6 {
+                let wks = if(wk < 3, -1, 1)
+                let wkx = if(wk < 3, wdm.l, wdm.r)
+                let wky = wdm.b - 20 * u + (mod(wk, 3) - 1) * 7 * u
+                line { from: wkx - wks * 6 * u, wky; to: wkx + wks * 26 * u, wky + (mod(wk, 3) - 1) * 6 * u; width: 4; color: deep }
+                line { from: wkx - wks * 6 * u, wky; to: wkx + wks * 26 * u, wky + (mod(wk, 3) - 1) * 6 * u; width: 1.8; color: #ffffff }
+            }
             repeat s in 0..3 {
                 let sx = wdm.m + (s - 1) * 44 * u
                 let sr = if(s == 1, 7, 5) * u
@@ -482,6 +522,14 @@ part BarGlass {
                 path { at: ex, wdz.t; color: obsidian; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8; close }
                 path { at: ex, wdz.t; stroke: 3 * u; color: deep; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8 }
                 path { at: ex, wdz.t; color: #ff8fc8; move -14 * u, 5; line sg * 9 * u, -19 * u; line 14 * u, 5; close }
+            }
+            //  Whiskers: three on each side of the drawer, fanning out of its edges at the bottom corners.
+            repeat wk in 0..6 {
+                let wks = if(wk < 3, -1, 1)
+                let wkx = if(wk < 3, wdz.l, wdz.r)
+                let wky = wdz.b - 20 * u + (mod(wk, 3) - 1) * 7 * u
+                line { from: wkx - wks * 6 * u, wky; to: wkx + wks * 26 * u, wky + (mod(wk, 3) - 1) * 6 * u; width: 4; color: deep }
+                line { from: wkx - wks * 6 * u, wky; to: wkx + wks * 26 * u, wky + (mod(wk, 3) - 1) * 6 * u; width: 1.8; color: #ffffff }
             }
             repeat s in 0..3 {
                 let sx = wdz.m + (s - 1) * 44 * u

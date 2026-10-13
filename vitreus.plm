@@ -3637,6 +3637,89 @@ scene Vitreus {
             box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * cas_k); show: mfl > 0.01 and media_open > 0.01 }
         }
     }
+    //  The volume / notification drawer's decorations (Retro: tab and grips; UwU: ears, stars, hearts, paws). They are drawn here, after the glass it has of its own along the top
+    //  (above), which would cover them in bar_glass.plm.
+    group {
+        show: cas_k > 0.01 and do0 > 0.9
+        opacity: cas_k * clamp(do0 * 3 - 2, 0, 1)
+        let gdo.l = do.ix - do.iw / 2
+        let gdo.r = do.ix + do.iw / 2
+        let gdo.t = do.ey - do.eh / 2
+        let gdo.b = min(do.ey + do.eh / 2, vb - lf.t - 1)
+        box { at: gdo.l + 58.5 * u + 2, gdo.t + 9 + 3; size: 58 * u, 24; corner: 5; color: deep; opacity: 38% }
+        box { at: gdo.l + 58.5 * u, gdo.t + 9; size: 58 * u, 24; corner: 5; color: mintlo }
+        box { at: gdo.l + 58.5 * u, gdo.t + 9 - 2.5; size: 58 * u, 24 - 5; corner: 5; color: mint }
+        line { from: gdo.l + 58.5 * u - 24 * u, gdo.t + 9 - 2.5 - (24 - 5) / 2 + 4; to: gdo.l + 58.5 * u + 24 * u, gdo.t + 9 - 2.5 - (24 - 5) / 2 + 4; width: 2.2; color: minthi; opacity: 70% }
+        box { at: gdo.l + 58.5 * u, gdo.t + 9; size: 58 * u, 24; corner: 5; stroke: 1.4; color: deep }
+        repeat k in 0..8 {
+            line { from: gdo.r - 20 * u - k * 11 * u, gdo.b + 4; to: gdo.r - 20 * u - k * 11 * u, gdo.b - 18; width: 6; color: mix(deep, #ffffff, 6%) }
+            line { from: gdo.r - 20 * u - k * 11 * u + 3.6, gdo.b + 4; to: gdo.r - 20 * u - k * 11 * u + 3.6, gdo.b - 18; width: 1.2; color: #ffffff; opacity: 45% }
+        }
+        ellipse { at: gdo.l + 12, gdo.b - 12; radius: 3.6; color: mix(deep, #ffffff, 38%) }
+        ellipse { at: gdo.l + 12, gdo.b - 12; radius: 3.6; stroke: 1.1; color: deep }
+        line { from: gdo.l + 10, gdo.b - 10; to: gdo.l + 14, gdo.b - 14; width: 1.3; color: deep }
+    }
+    group {
+        show: uwu_k > 0.01 and do0 > 0.9
+        opacity: uwu_k * clamp(do0 * 3 - 2, 0, 1)
+        let wdo.l = do.ix - do.iw / 2
+        let wdo.r = do.ix + do.iw / 2
+        let wdo.t = do.ey - do.eh / 2
+        let wdo.b = min(do.ey + do.eh / 2, vb - lf.t - 1)
+        let wdo.m = do.ix
+        repeat side in 0..2 {
+            let ex = if(side == 0, wdo.l + 50 * u, wdo.r - 50 * u)
+            let sg = if(side == 0, -1, 1)
+            path { at: ex, wdo.t; color: obsidian; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8; close }
+            path { at: ex, wdo.t; stroke: 3 * u; color: deep; move -23 * u, 8; line sg * 13 * u, -30 * u; line 23 * u, 8 }
+            path { at: ex, wdo.t; color: #ff8fc8; move -14 * u, 5; line sg * 9 * u, -19 * u; line 14 * u, 5; close }
+        }
+        //  Whiskers: three on each side of the drawer, fanning out of its edges at the bottom corners.
+        repeat wk in 0..6 {
+            let wks = if(wk < 3, -1, 1)
+            let wkx = if(wk < 3, wdo.l, wdo.r)
+            let wky = wdo.b - 20 * u + (mod(wk, 3) - 1) * 7 * u
+            line { from: wkx - wks * 6 * u, wky; to: wkx + wks * 26 * u, wky + (mod(wk, 3) - 1) * 6 * u; width: 4; color: deep }
+            line { from: wkx - wks * 6 * u, wky; to: wkx + wks * 26 * u, wky + (mod(wk, 3) - 1) * 6 * u; width: 1.8; color: #ffffff }
+        }
+        repeat s in 0..3 {
+            let sx = wdo.m + (s - 1) * 44 * u
+            let sr = if(s == 1, 7, 5) * u
+            group { scale: 1 + 0.22 * sin(time * 160 + s * 120); pivot: sx, wdo.b - 12
+                path { at: sx, wdo.b - 12; stroke: 3; color: deep; move 0, -sr; line 0.3 * sr, -0.3 * sr; line sr, 0; line 0.3 * sr, 0.3 * sr; line 0, sr; line -0.3 * sr, 0.3 * sr; line -sr, 0; line -0.3 * sr, -0.3 * sr; close }
+                path { at: sx, wdo.b - 12; color: pick(s, #ffe27a, #ffffff, #7fd3ff); move 0, -sr; line 0.3 * sr, -0.3 * sr; line sr, 0; line 0.3 * sr, 0.3 * sr; line 0, sr; line -0.3 * sr, 0.3 * sr; line -sr, 0; line -0.3 * sr, -0.3 * sr; close }
+            }
+        }
+        repeat hh in 0..2 {
+            let hx = wdo.l + (22 + hh * 22) * u
+            let hy = wdo.b - 11
+            let hr = if(hh == 0, 5.5, 4.5) * u
+            group { scale: 1 + 0.13 * sin(time * 200 + hh * 150); pivot: hx, hy
+                ellipse { at: hx - 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62 + 1.5; color: deep }
+                ellipse { at: hx + 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62 + 1.5; color: deep }
+                path { at: hx, hy; stroke: 3; color: deep; move -1.12 * hr, -0.1 * hr; line 0, 1.2 * hr; line 1.12 * hr, -0.1 * hr; close }
+                ellipse { at: hx - 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62; color: pick(hh, #ff6eb4, #b69cff) }
+                ellipse { at: hx + 0.52 * hr, hy - 0.3 * hr; radius: hr * 0.62; color: pick(hh, #ff6eb4, #b69cff) }
+                path { at: hx, hy; color: pick(hh, #ff6eb4, #b69cff); move -1.1 * hr, -0.1 * hr; line 0, 1.15 * hr; line 1.1 * hr, -0.1 * hr; close }
+                ellipse { at: hx - 0.7 * hr, hy - 0.5 * hr; radius: hr * 0.2; color: #ffffff; opacity: 80% }
+            }
+        }
+        repeat pw in 0..3 {
+            let px = wdo.r - (26 + pw * 28) * u
+            let py = wdo.b - 12 + if(mod(pw, 2) == 0, 0, -3)
+            ellipse { at: px, py + 2.4; radius: 6; color: deep }
+            ellipse { at: px - 6.4, py - 3.2; radius: 3.4; color: deep }
+            ellipse { at: px - 2.4, py - 7.6; radius: 3.4; color: deep }
+            ellipse { at: px + 2.4, py - 7.6; radius: 3.4; color: deep }
+            ellipse { at: px + 6.4, py - 3.2; radius: 3.4; color: deep }
+            ellipse { at: px, py + 2.4; radius: 4.6; color: #ff8fc8 }
+            ellipse { at: px - 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
+            ellipse { at: px - 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
+            ellipse { at: px + 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
+            ellipse { at: px + 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
+        }
+        particles { at: wdo.l + 36 * u, wdo.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff, #7fd3ff, #5fe3d6, #ffe27a; shape: spark }
+    }
     //  The desk's contents (and its tab and opener): drawn after the island's glass above, so the glass is under them and not over them.
         //  The right tab's three dots (stacked, since the tab is on the side).
         group {
