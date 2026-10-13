@@ -9,6 +9,7 @@
 #   ./install.sh --no-autostart    don't touch ~/.config/pleamar/autostart
 #   ./install.sh --no-binds        don't touch ~/.config/hypr (the key binds, and what Settings saves there)
 #   ./install.sh --no-wm           don't set up pleamar-wm (its login-screen entry, keys, window scene and autostart lines)
+#   ./install.sh --force           install even when another Quickshell desktop shell is in use
 #   ./install.sh --uninstall       take the shell away (your data in ~/.local/share stays)
 #
 # What it does, in order:
@@ -56,6 +57,7 @@ deps=true
 do_autostart=true
 do_binds=true
 do_wm=true
+force=false
 action=install
 for a in "$@"; do
     case "$a" in
@@ -65,6 +67,7 @@ for a in "$@"; do
         --no-autostart) do_autostart=false ;;
         --no-binds) do_binds=false ;;
         --no-wm) do_wm=false ;;
+        --force) force=true ;;
         --uninstall) action=uninstall ;;
         --help|-h) sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) printf 'vitreus · I do not know "%s" (try --help)\n' "$a" >&2; exit 1 ;;
@@ -178,6 +181,33 @@ if [ "$action" = uninstall ]; then
     say "left as they were: your data in $data/pleamar/vitreus, the caches in ${XDG_CACHE_HOME:-$HOME/.cache}/pleamar/vitreus"
     say "and .../pleamar/lockscreen, and pleamar and the packages. To remove the data too: rm -rf $data/pleamar/vitreus"
     exit 0
+fi
+
+# ── another desktop shell ──────────────────────────────────────────────────
+# Vitreus is a whole desktop shell, not an add-on: it starts its own bar, notifications, launcher, lock screen and wallpaper, takes SUPER + Space,
+# L, B, D and TAB, and sets Hyprland's gaps, borders, layout and monitors. Next to another shell the two fight over the same jobs (only one can
+# own the notifications, the wallpaper or the polkit agent), so this stops before touching anything. Which shell does not matter: Quickshell is
+# running (qs or quickshell) and it has a configuration of any kind in ~/.config/quickshell.
+# --yes does not skip it, since it is not a question of packages: only --force does. An update of Vitreus itself is not stopped.
+if [ "$action" = install ] && ! $force && ! { [ -f "$autostart" ] && grep -q 'vitreus.plm' "$autostart"; }; then
+    if pgrep -x qs > /dev/null 2>&1 || pgrep -x quickshell > /dev/null 2>&1; then
+        qsdir="$conf/quickshell"
+        # Any configuration at all: a folder, or a shell.qml directly in it.
+        if [ -n "$(find "$qsdir" -mindepth 1 -maxdepth 1 2> /dev/null | head -n 1)" ]; then
+            warn "Quickshell is running, and $qsdir has a configuration: another desktop shell is in use"
+            warn "Vitreus is a whole shell, not an add-on. Installed next to it, both start at login and fight over the notifications, the wallpaper,"
+            warn "the lock screen and the polkit agent; it also takes SUPER + Space, L, B, D and TAB from you and sets Hyprland's gaps, borders,"
+            warn "layout and monitors. To switch to Vitreus: take the other shell's autostart line out of your hyprland.lua (and its key binds), log out,"
+            warn "and run this again. To install anyway: ./install.sh --force"
+            if $dry; then
+                say "(--dry-run: this is where it would stop)"
+            elif ! $assume_yes && tty_ok && ask_no "install Vitreus next to it anyway?"; then
+                say "going on, as you said"
+            else
+                fail "stopped before changing anything. Nothing was installed."
+            fi
+        fi
+    fi
 fi
 
 # ── 1. packages ────────────────────────────────────────────────────────────

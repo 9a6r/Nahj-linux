@@ -144,6 +144,10 @@ and running it again updates Vitreus. An update keeps what Settings changed in t
 show the bar and the lock screen) and any edits of yours; if an edit of yours clashes with the new version, nothing is
 updated and the script says so. `./install.sh --uninstall` takes it away and leaves your data.
 
+Vitreus is a whole desktop shell, not an add-on to another one. If Quickshell is running and `~/.config/quickshell` holds
+a configuration, the installer stops before changing anything, because two shells at once fight over the notifications,
+the wallpaper, the lock screen and the key binds. Log out of the other shell first, or run `./install.sh --force` to go on anyway.
+
 **By hand.** Vitreus must live in pleamar's shells folder under the name `vitreus`: the palette it writes and the data
 it keeps are found from there.
 
