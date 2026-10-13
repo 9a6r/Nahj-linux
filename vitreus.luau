@@ -3032,7 +3032,13 @@ do
         saved[theme()] = chosen
         pcall(sys.call, "files.write", "fonts.json", { glass = saved.glass, retro = saved.retro, uwu = saved.uwu })
         show()
-        after(500, function() run("pkill", { "-f", "pleamar --scene .*/vitreus/(vitreus\\.plm|desktop)" }, function() end) end)
+        -- The lock screen is drawn in the same typeface, so it starts again too, unless the session is locked right now (that would unlock it).
+        after(500, function()
+            run("pleamar", { "--say", "lockscreen", "get locked" }, function(locked)
+                local pat = tostring(locked):match("true") and "(vitreus\\.plm|desktop)" or "(vitreus\\.plm|desktop|lockscreen/lockscreen\\.plm)"
+                run("pkill", { "-f", "pleamar --scene .*/vitreus/" .. pat }, function() end)
+            end)
+        end)
     end)
 end
 -- A wallpaper that Vitreus sets is known at once (see `wp_apply`); this is only for one changed from elsewhere, so it
