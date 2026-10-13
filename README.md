@@ -107,6 +107,7 @@ The packages `install.sh` installs (pacman, and the AUR for the last two):
 | --- | --- |
 | `git`, `curl`, `fontconfig` | fetching Vitreus, weather and cover art, the launcher's web answers, and the fonts |
 | `hyprsunset` | Night mode |
+| `socat` | sending the palette and other changes to the lock screen and desktop widgets, and Hyprland's events (urgent windows, screen-share light) |
 | `awww` | the wallpaper picker |
 | `iris-colors` (AUR) | theming from the wallpaper |
 | `mpvpaper` (AUR), `ffmpeg` | video wallpapers, and the webcam (`ffmpeg` reads the camera) |
