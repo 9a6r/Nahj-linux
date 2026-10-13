@@ -187,13 +187,16 @@ fi
 # Vitreus is a whole desktop shell, not an add-on: it starts its own bar, notifications, launcher, lock screen and wallpaper, takes SUPER + Space,
 # L, B, D and TAB, and sets Hyprland's gaps, borders, layout and monitors. Next to another shell the two fight over the same jobs (only one can
 # own the notifications, the wallpaper or the polkit agent), so this stops before touching anything. Which shell does not matter: Quickshell is
-# running (qs or quickshell) and it has a configuration of any kind in ~/.config/quickshell.
+# running (qs or quickshell) and it has a configuration of any kind in ~/.config/quickshell or the system's XDG_CONFIG_DIRS (/etc/xdg).
 # --yes does not skip it, since it is not a question of packages: only --force does. An update of Vitreus itself is not stopped.
 if [ "$action" = install ] && ! $force && ! { [ -f "$autostart" ] && grep -q 'vitreus.plm' "$autostart"; }; then
     if pgrep -x qs > /dev/null 2>&1 || pgrep -x quickshell > /dev/null 2>&1; then
-        qsdir="$conf/quickshell"
-        # Any configuration at all: a folder, or a shell.qml directly in it.
-        if [ -n "$(find "$qsdir" -mindepth 1 -maxdepth 1 2> /dev/null | head -n 1)" ]; then
+        # Any configuration at all (a folder, or a shell.qml directly in it), where Quickshell looks: the user's, then the system's (XDG_CONFIG_DIRS).
+        qsdir=""
+        for d in "$conf" $(printf '%s' "${XDG_CONFIG_DIRS:-/etc/xdg}" | tr ':' ' '); do
+            if [ -n "$(find "$d/quickshell" -mindepth 1 -maxdepth 1 2> /dev/null | head -n 1)" ]; then qsdir="$d/quickshell"; break; fi
+        done
+        if [ -n "$qsdir" ]; then
             warn "Quickshell is running, and $qsdir has a configuration: another desktop shell is in use"
             warn "Vitreus is a whole shell, not an add-on. Installed next to it, both start at login and fight over the notifications, the wallpaper,"
             warn "the lock screen and the polkit agent; it also takes SUPER + Space, L, B, D and TAB from you and sets Hyprland's gaps, borders,"
