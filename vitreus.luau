@@ -2895,7 +2895,7 @@ do
             with_dirs(function(d)
                 pv_n = pv_n + 1
                 local out = d.data .. "/font-preview.png"
-                run("magick", { "-background", "none", "-fill", pal.ink or "#ffffff", "-font", file,
+                run("magick", { "-background", "none", "-fill", "#ffffff", "-font", file,
                     "-pointsize", "78", "label:Aa Bb Cc 0123", "-pointsize", "40", "label:The quick brown fox jumps over",
                     "-pointsize", "32", "label:Settings · 12:45 PM · Wi-Fi 78%",
                     "-gravity", "west", "-background", "none", "-append", "-gravity", "northwest", "-extent", "1420x440", out },

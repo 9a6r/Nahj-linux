@@ -5,7 +5,7 @@
 -- scene afresh. ssh is told not to ask for anything, so a fetch that needs a passphrase fails instead of hanging.
 return function(key, with_dirs)
     local A = { busy = false, dir = nil, src = nil, shell_behind = 0, pl_behind = 0 }
-    -- pleamar's source folders that matter to this shell: pleamar itself, and pleamar-wm only while it is the session in use. (The
+    -- pleamar's source folders that matter to this shell: pleamar itself, and pleamar-wm when it is installed (a pleamar-alone install has no pleamar-wm, and nothing to tell about it). (The
     -- installer, `pleamar-update`, also keeps Marea's source, another shell: nothing of Vitreus's to be told about.)
     local RESTART = [[
 P="$1"; L="$2"
@@ -53,6 +53,18 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
         local full = { "-C", A.src .. "/" .. repo, "-c", SSH }
         for _, a in ipairs(args) do full[#full + 1] = a end
         run("git", full, cb)
+    end
+
+    -- Is version a ("0.3.11") newer than b ("0.3.9")? Numbers, part by part: as text, 0.3.9 would come out ahead.
+    local function newer(a, b)
+        local x, y = {}, {}
+        for n in a:gmatch("%d+") do x[#x + 1] = tonumber(n) end
+        for n in b:gmatch("%d+") do y[#y + 1] = tonumber(n) end
+        for i = 1, math.max(#x, #y) do
+            local p, q = x[i] or 0, y[i] or 0
+            if p ~= q then return p > q end
+        end
+        return false
     end
 
     local function lines(out)
@@ -110,20 +122,40 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                     -- Then pleamar itself: its source folders, fetched and counted the same way.
                     A.pl_behind = 0
                     local repos = { "pleamar" }
+                    local pl_unreachable = false
                     local function repo(i)
                         local r = repos[i]
                         if not r then
-                            local total = A.shell_behind + A.pl_behind
-                            fact.about_behind = total
-                            local parts = {}
-                            if msg then parts[#parts + 1] = msg end
-                            if A.pl_behind > 0 then parts[#parts + 1] = "pleamar has " .. A.pl_behind .. " update" .. (A.pl_behind == 1 and "" or "s") .. "." end
-                            busy(false, #parts > 0 and table.concat(parts, " ") or "Up to date.")
-                            if after then after() end
+                            -- The source folder being current says nothing about the program that runs: that one only changes when
+                            -- `pleamar-update` builds it. So the version it reports is also compared with the one the source holds.
+                            run("pleamar", { "--version" }, function(vout)
+                                run("grep", { "-m1", "^version", A.src .. "/pleamar/Cargo.toml" }, function(gout)
+                                    local have = (vout or ""):match("pleamar (%d[%d%.]*)")
+                                    local src = (gout or ""):match('"(%d[%d%.]*)"')
+                                    local unbuilt = have ~= nil and src ~= nil and newer(src, have)
+                                    local waiting = A.pl_behind
+                                    if unbuilt and waiting == 0 then waiting = 1 end
+                                    fact.about_behind = A.shell_behind + waiting
+                                    A.pl_behind = waiting
+                                    local parts = {}
+                                    if msg then parts[#parts + 1] = msg end
+                                    if unbuilt then
+                                        parts[#parts + 1] = "pleamar " .. src .. " is downloaded but not installed (you have " .. have .. ")."
+                                    elseif waiting > 0 then
+                                        parts[#parts + 1] = "pleamar has " .. waiting .. " update" .. (waiting == 1 and "" or "s") .. "."
+                                    end
+                                    if pl_unreachable then parts[#parts + 1] = "Couldn't reach pleamar's source to look for newer ones." end
+                                    busy(false, #parts > 0 and table.concat(parts, " ") or "Up to date.")
+                                    if after then after() end
+                                end)
+                            end)
                             return
                         end
                         git_in(r, { "fetch", "--quiet" }, function(_, fc)
-                            if fc ~= 0 then return repo(i + 1) end
+                            if fc ~= 0 then
+                                if r == "pleamar" then pl_unreachable = true end
+                                return repo(i + 1)
+                            end
                             git_in(r, { "rev-list", "--count", "HEAD..@{u}" }, function(o, rc)
                                 local k = tonumber(lines(o)[1] or "")
                                 if rc == 0 and k then A.pl_behind = A.pl_behind + k end
@@ -131,7 +163,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                             end)
                         end)
                     end
-                    run("pgrep", { "-x", "pleamar-wm" }, function(_, c)
+                    run("which", { "pleamar-wm" }, function(_, c)
                         if c == 0 then repos[#repos + 1] = "pleamar-wm" end
                         repo(1)
                     end)
