@@ -2902,7 +2902,7 @@ scene Vitreus {
     //  The Power window lists the battery levels (this computer, then each connected device that says) between the session tiles and the profile.
     let bat_rows = (if(pwr.present, 1, 0)) + bat_n
     let bat_h = if(bat_rows > 0, 20 + 56 * bat_rows, 0)
-    let sub_content = if(showing_sub == capview, 142, if(showing_sub == powview, 151 + bat_h, max(sub_min, if(showing_sub == cafview, 38, if(showing_sub == notifview, 60, if(showing_sub == btview, 40, 0)) + list_view_h))))
+    let sub_content = if(showing_sub == capview, if(rec_on, 142, 186), if(showing_sub == powview, 151 + bat_h, max(sub_min, if(showing_sub == cafview, 38, if(showing_sub == notifview, 60, if(showing_sub == btview, 40, 0)) + list_view_h))))
     let sub_bot = tiles_top + 54 + sub_content + 16
     //  The output list drops over what is under the volume row; with more than a couple of outputs
     //  it reaches past the drawer, so the drawer grows to hold it while it is open.
