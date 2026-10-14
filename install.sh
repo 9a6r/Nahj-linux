@@ -48,7 +48,7 @@ fonts_dot="$data/fonts/Audiowide"
 fonts_mochiy="$data/fonts/MochiyPopOne"
 
 # Official-repo packages, then AUR ones: what each is for is in the README.
-pacman_pkgs="git curl python fontconfig socat imagemagick cava playerctl networkmanager bluez bluez-utils brightnessctl hypridle hyprsunset libnotify xdg-user-dirs xdg-utils wl-clipboard cliphist awww ffmpeg grim slurp wf-recorder power-profiles-daemon polkit python-gobject python-pyte ttf-space-mono-nerd pipewire-audio sound-theme-freedesktop tesseract tesseract-data-eng"
+pacman_pkgs="git curl jq python fontconfig socat imagemagick cava playerctl networkmanager bluez bluez-utils brightnessctl hypridle hyprsunset libnotify xdg-user-dirs xdg-utils wl-clipboard cliphist awww ffmpeg grim slurp wf-recorder power-profiles-daemon polkit python-gobject python-pyte ttf-space-mono-nerd pipewire-audio sound-theme-freedesktop tesseract tesseract-data-eng"
 aur_pkgs="iris-colors mpvpaper"
 
 assume_yes=false
@@ -255,13 +255,14 @@ if $deps; then
     awww            the wallpaper picker
     mpvpaper (AUR), ffmpeg  video wallpapers (mp4, webm, mov): mpvpaper plays them, ffmpeg takes the frame the rest of the shell reads; ffmpeg also reads the webcam
     iris            theming from the wallpaper (https://aur.archlinux.org/packages/iris-colors)
-    imagemagick     wallpaper thumbnails, the launcher's picture previews
+    imagemagick     wallpaper thumbnails, the launcher's picture previews, Snap's marked-up picture
     wl-clipboard    the launcher copying (wl-copy: results, snippets), and Capture copying a screenshot
     polkit, python-gobject  the authentication dialog (Vitreus asks for your password when something wants admin rights)
     python-pyte, SpaceMono Nerd Font  the Desk's terminal (pyte keeps its screen; the font is Space Grotesk's monospaced sibling)
     pipewire (pw-play), sound-theme-freedesktop  the sounds notifications make
-    tesseract       reading the text of a screenshot (Copy text, Ask), on the screenshot card
-    grim, slurp     Capture's screenshots (slurp picks the region)
+    tesseract       reading the text of a screenshot (Copy text, Ask), on the screenshot card, and in Snap (Copy text, Blur private info)
+    grim, slurp     Capture's screenshots (slurp picks the region for a recording; Snap picks a screenshot's)
+    jq              Snap finding the focused monitor and its windows (from Hyprland's monitors and clients)
     wf-recorder     Capture's screen recording (slurp picks the region)
     power-profiles-daemon  the power profile in Power (powerprofilesctl)
     cliphist        the launcher's clipboard search (something must run: wl-paste --watch cliphist store)

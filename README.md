@@ -75,6 +75,10 @@ layout all run in the renderer, and the logic only reports facts.
 * **Controls** — Wi-Fi, Bluetooth, brightness, volume with a per-app mixer, Do Not Disturb, Caffeine, screenshots and
   screen recording, and power (lock, sleep, log out, restart, power off). A screenshot comes up as a card with its picture:
   open it, copy its text, ask about it, or delete it.
+* **Snap** (Controls › Screenshot › Region) — the monitor you are on, frozen: click a window or drag an area, then draw on it
+  (pen, arrow, rectangle, ellipse, text, numbered markers, blur, highlighter, eraser, with undo), copy its text, blur what is
+  private (addresses, links, long numbers) in one click, and copy it, save it, or drag it straight into another app. It is drawn
+  in the shell's look.
 * **Player** — cover art, a live spectrum, and your running windows.
 * **Launcher** (`SUPER + Space`) — apps, files, commands, emoji, clipboard history and wallpapers, with previews. A sum or a conversion (`5 km to mi`, `20 c in f`, `15% of 80`) is answered as you type; `?` or `!yt lofi` searches the web (twenty-one `!bang` sites, and DuckDuckGo's instant answer); `@` switches to an open window; `$` expands snippets and quicklinks from `snippets.json`.
 * **Settings** (`SUPER + SHIFT + Space`) — wallpaper, theme, glass, display, Hyprland, notifications, clock and a system monitor.
@@ -92,7 +96,8 @@ layout all run in the renderer, and the logic only reports facts.
 * **Lock screen**, **Night mode**, and a **desktop clock** drawn as glass.
 * **Audio visualiser** — cava's bars on your wallpaper, in six styles (bars, mirror, wave, line, dots, radial), five places (bottom, top, left, right, middle), three sizes and four looks (the shell's glass, accent, light, warm). Switch it from Settings > Widgets or the desktop's right-click menu; it fades out while nothing plays.
 * **Desktop** — right-click the bare wallpaper for a menu: **Webcam** (your camera in a round glass pane over everything; drag it, and pull its edge to resize it, as the Desk's corners do), the clock, the system monitor, the **audio visualiser**, and **New sticky note**. Stickers are glass notes, tinted from your palette, that stay where you put them and can be dragged onto other monitors.
-* **Theme** — Iris recolours Vitreus from your wallpaper, or pick Tokyo Night, Catppuccin Mocha, Gruvbox, Nord, Rosé Pine or Dracula.
+* **Theme** — four looks, each with its own typeface: **Glass**, which Iris recolours from your wallpaper; **Retro**, moulded
+  plastic; **UwU**, candy plastic with cat ears; and **Cyber**, a neon HUD on black glass.
 
 ---
 
@@ -122,11 +127,12 @@ The packages `install.sh` installs (pacman, and the AUR for the last two):
 | `xdg-user-dirs`, `xdg-utils` | finding your Pictures folder, opening files and web searches |
 | `wl-clipboard`, `cliphist` | the launcher's clipboard and copying (results, snippets) |
 | `grim`, `slurp`, `wf-recorder` | screenshots and screen recording |
+| `jq` | Snap finding the focused monitor and its windows |
 | `power-profiles-daemon` | the power profile |
 | `polkit`, `python-gobject` | the authentication dialog |
 | `python-pyte`, `ttf-space-mono-nerd` | the Desk's terminal |
 | `pipewire-audio`, `sound-theme-freedesktop` | notification sounds |
-| `tesseract`, `tesseract-data-eng` | the text of a screenshot |
+| `tesseract`, `tesseract-data-eng` | the text of a screenshot, and Snap's Copy text and Blur private info |
 
 ---
 
