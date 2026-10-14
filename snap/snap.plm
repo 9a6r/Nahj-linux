@@ -29,12 +29,12 @@ scene Snap {
     event do_save ->
     event do_quit ->
 
-    fact tool = 1          // 0 select, 1 move the area, 2 pen, 3 arrow, 4 rectangle, 5 ellipse, 6 text, 7 marker, 8 blur, 9 highlighter, 10 eraser
+    fact tool = 1          // 0 select, 1 move the area, 2 pen, 3 arrow, 4 rectangle, 5 ellipse, 6 text, 7 marker, 8 redact, 9 highlighter, 10 eraser
     fact col = 0           // which of the nine colours (red, orange, yellow, green, blue, indigo, violet, white, black)
     fact sz = 1            // the stroke size: 0 thin, 1 medium, 2 thick (each tool turns it into its own width, see snap.luau)
 
     //  What is drawn on the picture. The logic keeps the marks (and their history, for undo); the scene draws them. Coordinates are the scene's.
-    //  `k` is the tool that made it (2 pen, 3 arrow, 4 rectangle, 5 ellipse, 6 text, 7 marker, 8 blur, 9 highlighter), `w` its width (a text's size, a
+    //  `k` is the tool that made it (2 pen, 3 arrow, 4 rectangle, 5 ellipse, 6 text, 7 marker, 8 redact, 9 highlighter), `w` its width (a text's size, a
     //  marker's radius), `n` a marker's number, `s` a text's words, `bx0`..`by1` its bounds, for the Select tool's outline.
     model marks max 128 { k: number; x0: number; y0: number; x1: number; y1: number; c: number; w: number; n: number; s: text; bx0: number; by0: number; bx1: number; by1: number }
     //  The pen's and the highlighter's strokes, as segments: `m` the mark each belongs to (so a mark being moved takes them along), `hl` 1 for the highlighter.
@@ -78,7 +78,7 @@ scene Snap {
     text drag_path = ""
     fact drag_ready = false
     event do_dropped ->
-    //  The text in the picture (tesseract): copied, or the private bits of it (addresses, links, long numbers) blurred. `busy` while it reads.
+    //  The text in the picture (tesseract): copied, or the private bits of it (addresses, links, long numbers) covered with black bars. `busy` while it reads.
     fact busy = 0
     //  The button whose tooltip shows: 0 none, else its number in the bar (left to right, from 1), after 400 ms over it.
     fact tip = 0
@@ -184,7 +184,7 @@ scene Snap {
     image shot { at: vx, vy; size: W * vs, H * vs; show: phase > 0 and full == 1 }
 
     //  ── The marks, inside the selection only (what is outside it is not in the picture) ─────────────────────────────────
-    //  In the order the picture gets them (snap.luau, `export`): blur, highlighter, shapes, pen, markers, text. A mark that Select is dragging is drawn moved
+    //  In the order the picture gets them (snap.luau, `export`): redactions, highlighter, shapes, pen, markers, text. A mark that Select is dragging is drawn moved
     //  by `mvx`, `mvy` until it is let go.
     group {
         show: phase > 0 and sw > 1
@@ -193,10 +193,8 @@ scene Snap {
             group {
                 show: r.k == 8
                 clip inset 0 box { from: r.x0 + if(r.index == selm, mvx, 0), r.y0 + if(r.index == selm, mvy, 0); size: max(1, r.x1 - r.x0), max(1, r.y1 - r.y0) }
-                group {
-                    blur: 12
-                    image shot { at: vx, vy; size: W * vs, H * vs }
-                }
+                //  a redaction: a solid black bar, as it is saved
+                box { from: r.x0 + if(r.index == selm, mvx, 0), r.y0 + if(r.index == selm, mvy, 0); size: max(1, r.x1 - r.x0), max(1, r.y1 - r.y0); color: #000000 }
             }
         }
         group {
@@ -234,7 +232,7 @@ scene Snap {
             show: dragging == 1 and tool >= 3 and tool <= 5
             Shape(tool, ax, ay, qx, qy, pick(col, #ff5c5c, #ff9f45, #ffd93d, #5fd068, #3fa9ff, #5b5bf0, #b66cff, #ffffff, #000000), pick(sz, 3, 5, 9))
         }
-        box { from: min(ax, qx), min(ay, qy); size: max(1, abs(qx - ax)), max(1, abs(qy - ay)); corner: 3; color: ink; opacity: 14%; show: dragging == 1 and tool == 8 }
+        box { from: min(ax, qx), min(ay, qy); size: max(1, abs(qx - ax)), max(1, abs(qy - ay)); corner: 0; color: #000000; opacity: 85%; show: dragging == 1 and tool == 8 }
         box { from: min(ax, qx), min(ay, qy); size: max(1, abs(qx - ax)), max(1, abs(qy - ay)); corner: 3; stroke: 1.5; color: ink; opacity: 80%; show: dragging == 1 and tool == 8 }
     }
     //  where the eraser is, while it is held
@@ -545,7 +543,7 @@ scene Snap {
         //  7 marker
         ellipse { at: tl + 7 * 40, ty; radius: 9; stroke: 2.2; color: mix(ink, onmint, tool == 7) }
         text "1" { at: tl + 7 * 40, ty; anchor: center; size: 12; weight: 700; color: mix(ink, onmint, tool == 7); family: "Space Grotesk" }
-        //  8 blur
+        //  8 redact
         repeat j in 0..9 {
             box { at: tl + 8 * 40 - 6 + mod(j, 3) * 6, ty - 6 + floor(j / 3) * 6; size: 5, 5; corner: 1; color: mix(ink, onmint, tool == 8); opacity: pick(mod(j * 4, 5), 100%, 55%, 80%, 35%, 65%) }
         }
@@ -564,7 +562,7 @@ scene Snap {
         zone box tz5 { at: tl + 5 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Ellipse" }
         zone box tz6 { at: tl + 6 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Text" }
         zone box tz7 { at: tl + 7 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Marker" }
-        zone box tz8 { at: tl + 8 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Blur" }
+        zone box tz8 { at: tl + 8 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Redact" }
         zone box tz9 { at: tl + 9 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Highlighter" }
         zone box tz10 { at: tl + 10 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Eraser" }
         on press tz0 { tool = 0 }
@@ -654,7 +652,7 @@ scene Snap {
         path { at: abx + 192, ty; stroke: 1.8; color: ink; opacity: if(busy == 1, 38%, 100%); move -10, 0; curve 10, 0 via 0, -9; curve -10, 0 via 0, 9 }
         ellipse { at: abx + 192, ty; radius: 3; color: ink; opacity: if(busy == 1, 38%, 100%) }
         path { at: abx + 192, ty; stroke: 1.8; color: ink; opacity: if(busy == 1, 38%, 100%); move -8, 8; line 8, -8 }
-        zone box zhide { at: abx + 192, ty; size: 36, 36; corner: 13; cursor: pointer; active: busy == 0; label: "Blur what is private" }
+        zone box zhide { at: abx + 192, ty; size: 36, 36; corner: 13; cursor: pointer; active: busy == 0; label: "Redact what is private" }
         on press zhide { scrw = W; busy = 1; emit do_hide }
         box { at: abx + 216, ty; size: 1, 24; color: ink; opacity: 22% }
 
@@ -770,7 +768,7 @@ scene Snap {
         Tip(6, tl + 5 * 40, tipy, 80, "Ellipse")
         Tip(7, tl + 6 * 40, tipy, 58, "Text")
         Tip(8, tl + 7 * 40, tipy, 139, "Numbered marker")
-        Tip(9, tl + 8 * 40, tipy, 117, "Blur an area")
+        Tip(9, tl + 8 * 40, tipy, 124, "Redact an area")
         Tip(10, tl + 9 * 40, tipy, 109, "Highlighter")
         Tip(11, tl + 10 * 40, tipy, 72, "Eraser")
         Tip(12, tbx + 474 + 0 * 26, tipy, 50, "Red")
@@ -787,7 +785,7 @@ scene Snap {
         Tip(23, abx + 64, tipy, 161, "Redo  Ctrl+Shift+Z")
         Tip(24, abx + 112, tipy, 154, "Drag into any app")
         Tip(25, abx + 152, tipy, 124, "Copy the text")
-        Tip(26, abx + 192, tipy, 154, "Blur private info")
+        Tip(26, abx + 192, tipy, 168, "Redact private info")
         Tip(27, abx + 272, tipy, 117, "Save  Ctrl+S")
         Tip(28, abx + 368, tipy, 109, "Copy  Enter")
 

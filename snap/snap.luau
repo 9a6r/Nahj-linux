@@ -192,7 +192,7 @@ on("pen_pt", function()
 end)
 on("pen_up", function() stroke = nil end)
 
--- An arrow, a rectangle, an ellipse or a blurred area, dragged out in the scene. Too small to see is a slip, not a mark.
+-- An arrow, a rectangle, an ellipse or a redacted area, dragged out in the scene. Too small to see is a slip, not a mark.
 on("shape_add", function()
     local k = fact.tool
     local x0, y0, x1, y1 = fact.ax, fact.ay, fact.qx, fact.qy
@@ -310,7 +310,7 @@ on("mk_del", function()
 end)
 
 -- ── Copy and Save ──────────────────────────────────────────────────────────────────────────────────────────────
--- The picked part is cut out of the picture and the marks are drawn into it, in the order the scene draws them: blur, highlighter, shapes, pen,
+-- The picked part is cut out of the picture and the marks are drawn into it, in the order the scene draws them: redaction, highlighter, shapes, pen,
 -- markers, text. Everything is scaled from the scene's pixels to the picture's (`k`: more than 1 on a scaled monitor). The colours are fixed, the same as the scene's `pick(col, …)` (the shell's mint is no longer one of them).
 -- (`mint` is still read from the palette Iris writes, and passed along).
 local COLOURS = { "#ff5c5c", "#ff9f45", "#ffd93d", "#5fd068", "#3fa9ff", "#5b5bf0", "#b66cff", "#ffffff", "#000000" }  -- as the scene's `pick(col, …)`
@@ -337,12 +337,12 @@ local function export(mint, out, then_fn, keep_typing)
              "-draw", "stroke-linecap round stroke-linejoin round polyline " .. table.concat(pts, " "))
     end
 
+    -- "Blur" is a redaction: a solid black bar over the area, which keeps nothing of what is under it (blur and pixelation left small text, and
+    -- short strings, guessable). It is the scene's own black box, so what is on screen is what is saved.
     for _, m in ipairs(marks) do
         if m.k == BLUR then
-            local w, h = math.floor((m.x1 - m.x0) * k + 0.5), math.floor((m.y1 - m.y0) * k + 0.5)
-            if w > 0 and h > 0 then
-                push("-region", string.format("%dx%d%+d%+d", w, h, math.floor(X(m.x0) + 0.5), math.floor(Y(m.y0) + 0.5)), "-blur", "0x" .. f(12 * k), "+region")
-            end
+            push("-fill", "#000000", "-stroke", "none",
+                 "-draw", string.format("rectangle %s,%s %s,%s", f(X(m.x0)), f(Y(m.y0)), f(X(m.x1)), f(Y(m.y1))))
         end
     end
     for _, m in ipairs(marks) do if m.k == HIGHLIGHT then polyline(m, colour(m.c) .. HL_ALPHA) end end
@@ -584,7 +584,7 @@ on("do_hide", function()
             return
         end
         local s = 1 / (2 * k)
-        toast(string.format("Blurred %d %s  ·  Ctrl+Z to undo", #boxes, #boxes == 1 and "thing" or "things"), 3200)
+        toast(string.format("Redacted %d %s  ·  Ctrl+Z to undo", #boxes, #boxes == 1 and "thing" or "things"), 3200)
         change(function()
             for _, b in ipairs(boxes) do
                 if #marks >= MAX_MARKS then break end

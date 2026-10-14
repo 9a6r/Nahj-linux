@@ -76,7 +76,7 @@ layout all run in the renderer, and the logic only reports facts.
   screen recording, and power (lock, sleep, log out, restart, power off). A screenshot comes up as a card with its picture:
   open it, copy its text, ask about it, or delete it.
 * **Snap** (Controls › Screenshot › Region) — the monitor you are on, frozen: click a window or drag an area, then draw on it
-  (pen, arrow, rectangle, ellipse, text, numbered markers, blur, highlighter, eraser, with undo), copy its text, blur what is
+  (pen, arrow, rectangle, ellipse, text, numbered markers, redact, highlighter, eraser, with undo), copy its text, black out what is
   private (addresses, links, long numbers) in one click, and copy it, save it, or drag it straight into another app. It is drawn
   in the shell's look.
 * **Player** — cover art, a live spectrum, and your running windows.
@@ -132,7 +132,7 @@ The packages `install.sh` installs (pacman, and the AUR for the last two):
 | `polkit`, `python-gobject` | the authentication dialog |
 | `python-pyte`, `ttf-space-mono-nerd` | the Desk's terminal |
 | `pipewire-audio`, `sound-theme-freedesktop` | notification sounds |
-| `tesseract`, `tesseract-data-eng` | the text of a screenshot, and Snap's Copy text and Blur private info |
+| `tesseract`, `tesseract-data-eng` | the text of a screenshot, and Snap's Copy text and Redact private info |
 
 ---
 
