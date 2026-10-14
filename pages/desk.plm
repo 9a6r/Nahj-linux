@@ -201,7 +201,8 @@ part Desk {
                     on press pad_mode_z.$i { pad_mode = i }
                 }
             }
-            //  The board: draw with the pointer; five pens, two thicknesses, undo and clear.
+            //  The board: draw with the pointer; five pens, two thicknesses, undo and clear. The Desk is drawn scaled by `desk_s` about its top left corner, but the pointer is
+            //  in screen pixels: it is taken back into the layout's own pixels (the ones `bd_x`, `bd_y` and the strokes are in) before it is used.
             group {
                 show: desk_tab == 0 and pad_mode == 1
                 opacity: fd2
@@ -228,8 +229,8 @@ part Desk {
                     ellipse { at: dr_px, dr_py; radius: pick(dr_thick, 7, 12, 20) * du; stroke: 1.4 * du; color: ink; opacity: if(dr_held and dr_tool == 1, 85%, 0%) }
                 }
                 zone box dr_pad { at: dsk_xc, bd_y + 118 * du; size: 312 * du, 236 * du; cursor: pointer }
-                on press dr_pad { dr_held = true; dr_px = pointer.x; dr_py = pointer.y; emit dr_down(floor((pointer.x - bd_x) / du * 2) * 1000 + floor((pointer.y - bd_y) / du * 2)) }
-                on drag dr_pad { dr_px = pointer.x; dr_py = pointer.y; emit dr_pt(floor((pointer.x - bd_x) / du * 2) * 1000 + floor((pointer.y - bd_y) / du * 2)) }
+                on press dr_pad { dr_held = true; dr_px = (dsk_x0 + (pointer.x - dsk_x0) / desk_s); dr_py = (dsk_y0 + (pointer.y - dsk_y0) / desk_s); emit dr_down(floor(((dsk_x0 + (pointer.x - dsk_x0) / desk_s) - bd_x) / du * 2) * 1000 + floor(((dsk_y0 + (pointer.y - dsk_y0) / desk_s) - bd_y) / du * 2)) }
+                on drag dr_pad { dr_px = (dsk_x0 + (pointer.x - dsk_x0) / desk_s); dr_py = (dsk_y0 + (pointer.y - dsk_y0) / desk_s); emit dr_pt(floor(((dsk_x0 + (pointer.x - dsk_x0) / desk_s) - bd_x) / du * 2) * 1000 + floor(((dsk_y0 + (pointer.y - dsk_y0) / desk_s) - bd_y) / du * 2)) }
                 on release dr_pad { dr_held = false; emit dr_up }
                 //  The tools: a rainbow of eight pens on one row; two thicknesses, undo and clear on the next.
                 let tl_y = dsk_y0 + 380 * du
