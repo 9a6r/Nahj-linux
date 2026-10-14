@@ -2730,8 +2730,12 @@ end
 iris_fx.CASSETTE = 8
 -- UwU (preset 9): bubblegum plastic, bright and over the top. Cream bodies, a deep grape for text and outlines, hot pink for the accent.
 iris_fx.UWU = 9
+-- Cyber (preset 10): a neon HUD. Near-black glass, cyan for the accent and magenta for the second neon (`deep`, which the theme's outlines and brackets use).
+iris_fx.CYBER = 10
 iris_fx.uwu = { ink = "#5a2a8c", faint = "#9a6bc4", mint = "#ff5fae", mintlo = "#e03a93", minthi = "#ff9ccf", onmint = "#ffffff",
                 tint = "#ffe3f2", panel = "#ffc9e6", deep = "#4a2b6b", off = "#e7c8f0", alert = "#ff3d6e" }
+iris_fx.cyber = { ink = "#d6f7ff", faint = "#6f93a8", mint = "#00e5ff", mintlo = "#00a9c4", minthi = "#7df3ff", onmint = "#001018",
+                  tint = "#04070d", panel = "#0a1220", deep = "#ff2bd6", off = "#26384a", alert = "#ff3b5c" }
 iris_fx.cassette = { ink = "#2b2833", faint = "#6a665a", mint = "#e63a3a", mintlo = "#a8242b", minthi = "#ff7b5c", onmint = "#fff3dc",
                      tint = "#d6d0bd", panel = "#bfb9a5", deep = "#2b2833", off = "#a39e8e", alert = "#d81b60" }
 do
@@ -2739,10 +2743,10 @@ do
     if ok and type(saved) == "table" then
         if saved.enabled ~= nil then iris_cfg.enabled = saved.enabled and true or false end
         local pr = tonumber(saved.preset)
-        if pr and (math.floor(pr) == iris_fx.CASSETTE or math.floor(pr) == iris_fx.UWU) then iris_cfg.preset = math.floor(pr) end
+        if pr and (math.floor(pr) == iris_fx.CASSETTE or math.floor(pr) == iris_fx.UWU or math.floor(pr) == iris_fx.CYBER) then iris_cfg.preset = math.floor(pr) end
         -- The look (Glass, Retro, UwU) is its own setting, apart from where the colours come from: Iris may colour a Retro or UwU shell and it stays one.
         local lk = tonumber(saved.look)
-        if lk and (math.floor(lk) == iris_fx.CASSETTE or math.floor(lk) == iris_fx.UWU) then iris_cfg.look = math.floor(lk)
+        if lk and (math.floor(lk) == iris_fx.CASSETTE or math.floor(lk) == iris_fx.UWU or math.floor(lk) == iris_fx.CYBER) then iris_cfg.look = math.floor(lk)
         elseif lk == nil then iris_cfg.look = iris_cfg.preset end      -- an older file: the look was the palette
     else
         pcall(sys.call, "files.write", "iris.json", iris_cfg)     -- so there is a file to edit
@@ -2752,7 +2756,7 @@ do
     local INTENSITIES = { "subtle", "medium", "bold" }
     -- The desktop clock and system monitor draw themselves as plastic with Retro and UwU: they are told the theme (0 Glass, 1 Retro, 2 UwU).
     local function push_look()
-        local v = iris_cfg.look == iris_fx.CASSETTE and 1 or iris_cfg.look == iris_fx.UWU and 2 or 0
+        local v = iris_cfg.look == iris_fx.CASSETTE and 1 or iris_cfg.look == iris_fx.UWU and 2 or iris_cfg.look == iris_fx.CYBER and 3 or 0
         run("pleamar", { "--say", "desktopclock", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopsysmon", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopnotes", "fact look " .. v }, function() end)
@@ -2764,6 +2768,7 @@ do
         fact.theme_sel = iris_cfg.look or (iris_cfg.enabled and 0 or 7)       -- 0 Glass, 8 Retro, 9 UwU (7: Iris switched off on the Wallpaper page, greys)
         fact.cas = iris_cfg.look == iris_fx.CASSETTE
         fact.uwu = iris_cfg.look == iris_fx.UWU
+        fact.cyber_on = iris_cfg.look == iris_fx.CYBER
         for k, name in ipairs(INTENSITIES) do if name == iris_cfg.intensity then fact.iris_int = k - 1 end end
     end
     local function save()
@@ -2775,6 +2780,7 @@ do
     show()
     if iris_cfg.preset == iris_fx.CASSETTE then iris_fx.apply_palette(iris_fx.cassette)
     elseif iris_cfg.preset == iris_fx.UWU then iris_fx.apply_palette(iris_fx.uwu)
+    elseif iris_cfg.preset == iris_fx.CYBER then iris_fx.apply_palette(iris_fx.cyber)
     elseif not iris_cfg.enabled then iris_fx.apply_mono() end
     -- The switch on the Wallpaper page. Off: greys at once. On: Iris is run on the wallpaper in use, and the colours come back (a theme's own palette is
     -- let go too: the switch says Iris is off while one is in use, and turning it on is asking for the wallpaper's colours). The look stays: Retro or UwU
@@ -2801,6 +2807,9 @@ do
         elseif k == iris_fx.UWU then
             iris_cfg.look, iris_cfg.preset, iris_cfg.enabled = k, k, true
             iris_fx.apply_palette(iris_fx.uwu)
+        elseif k == iris_fx.CYBER then
+            iris_cfg.look, iris_cfg.preset, iris_cfg.enabled = k, k, true
+            iris_fx.apply_palette(iris_fx.cyber)
         else
             return
         end
@@ -2827,7 +2836,7 @@ end
 -- has narrowed it (`view`); a picture of the chosen typeface (ImageMagick, from its file) is the preview, since a scene can only draw in its own font.
 -- The arrows move the choice with the dropdown open or shut, and typing opens it and searches.
 do
-    local DEFAULTS = { glass = "Space Grotesk", retro = "Audiowide", uwu = "Mochiy Pop One" }
+    local DEFAULTS = { glass = "Space Grotesk", retro = "Audiowide", uwu = "Mochiy Pop One", cyber = "Orbitron" }
     local ROWS = 8
     local saved = {}                       -- what the shell is drawn in; a theme with no entry has its default
     local all = { { label = "", value = nil } }       -- the theme's default first, then the installed families, sorted
@@ -2837,8 +2846,8 @@ do
     local inuse                            -- the family the running shell is drawn in (set once the choice is read; only a start changes it)
     local top = 0                          -- the first row shown
     local pv_n, pv_token = 0, 0
-    local function theme() return iris_cfg.look == iris_fx.CASSETTE and "retro" or iris_cfg.look == iris_fx.UWU and "uwu" or "glass" end
-    local function label() return theme() == "retro" and "Retro" or theme() == "uwu" and "UwU" or "Glass" end
+    local function theme() return iris_cfg.look == iris_fx.CASSETTE and "retro" or iris_cfg.look == iris_fx.UWU and "uwu" or iris_cfg.look == iris_fx.CYBER and "cyber" or "glass" end
+    local function label() return theme() == "retro" and "Retro" or theme() == "uwu" and "UwU" or theme() == "cyber" and "Cyber" or "Glass" end
     local function index_of(v)
         for i, e in ipairs(view) do if e.value == v then return i end end
         return nil
@@ -2914,6 +2923,7 @@ do
         if type(file.glass) == "string" and file.glass ~= "" then saved.glass = file.glass end
         if type(file.retro) == "string" and file.retro ~= "" then saved.retro = file.retro end
         if type(file.uwu) == "string" and file.uwu ~= "" then saved.uwu = file.uwu end
+        if type(file.cyber) == "string" and file.cyber ~= "" then saved.cyber = file.cyber end
     end
     chosen = saved[theme()]
     inuse = chosen or DEFAULTS[theme()]
@@ -3030,7 +3040,7 @@ do
     on("font_apply", function()
         if (chosen or DEFAULTS[theme()]) == inuse and chosen == saved[theme()] then return end
         saved[theme()] = chosen
-        pcall(sys.call, "files.write", "fonts.json", { glass = saved.glass, retro = saved.retro, uwu = saved.uwu })
+        pcall(sys.call, "files.write", "fonts.json", { glass = saved.glass, retro = saved.retro, uwu = saved.uwu, cyber = saved.cyber })
         show()
         -- The lock screen is drawn in the same typeface, so it starts again too, unless the session is locked right now (that would unlock it).
         after(500, function()

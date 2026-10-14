@@ -286,6 +286,12 @@ scene Vitreus {
     prop uwu_k = 0 ~calm
     follow uwu_k = if(uwu, 1, 0)
     let pk = max(cas_k, uwu_k)
+    //  The Cyber theme: a neon HUD. The glass stays glass (the palette makes it near-black); on top of it each drawer gets a hairline neon outline, corner brackets and
+    //  scan ticks (see bar_glass.plm). `cy_k` travels between glass and Cyber. `deep` is its second neon.
+    fact cyber_on = false
+    let cy_dark = 1.0                  // how far Cyber takes the glass's tint towards black (0 none, 1 black); the glass stays as see-through as it was
+    prop cy_k = 0 ~calm
+    follow cy_k = if(cyber_on, 1, 0)
     event glass_obs_toggle ->
     let obsidian = mix(tint, #000000, 0.7 * (1 - pk))      // the theme's own tint, taken most of the way to black (the plastic's own colour on the Cassette): static themes and Iris both change it
     fact hy_blur = 3
@@ -691,6 +697,7 @@ scene Vitreus {
 
     shader wave = file "wave.wgsl"
     shader pixelate = file "pixelate.wgsl"
+    shader matrix = file "matrix.wgsl"                  // the Cyber theme's digital rain
     spring dripl = 46, 8          // the drip down the left: slow enough to see the neck stretch, thin and snap, and loose enough to swing past where it lands
     spring drip = 170, 18         // underdamped: it overshoots and settles back, like a real drop landing
     spring pop  = 300, 12         // snappier and much less damped: a toggle knob popping past where it lands
@@ -2970,7 +2977,9 @@ scene Vitreus {
     //  empty glass at its foot. It never goes below the sidebar's last row.
     let set.h = max(side.ab + 40, 456)
     //  A held Power button counts its second on this clock, and a recording pulses on it, so they need it too.
-    let need_clock = ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on
+    //  The Cyber's terminal readouts (bar_glass.plm) flicker and blink on this clock, so it runs while one of them can be seen: only while a drawer is out (`cy_on`).
+    let cy_on = clamp(max(max(dk0, dc0), max(max(ds0, dl0), max(dm0, max(dz0, do0)))) * 50, 0, 1) * cy_k
+    let need_clock = (cy_on > 0.01) or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on
     spin time by if(need_clock, 1, 0)
     let ss.w = (120 + 500 * (min(1, ds0 * 1.6) + max(0, ds0 - 1) * 0.6)) * pu
     let ss.hh = bar.h / 2 + (8 + 36 + 8 + set.h + 16) * pu * ds0 + max(0, sag)
@@ -3559,7 +3568,7 @@ scene Vitreus {
     //  and these panels are not part of the bar. (In the left layout the shape stays in the main glass, where it joins the right frame.)
     group {
         body {
-            color: tint
+            color: mix(tint, #000000, cy_dark * cy_k)
             glass: 100%
             opacity: glass_op * (1 - obs)
             lens: glass_bend
@@ -3576,7 +3585,7 @@ scene Vitreus {
         }
         //  The same glass with `frost: auto` (frosted only where what is behind is busy): `frost:` cannot take `auto` from an expression, so it is a body of its own.
         body {
-            color: tint
+            color: mix(tint, #000000, cy_dark * cy_k)
             glass: 100%
             opacity: glass_op * (1 - obs)
             lens: glass_bend
@@ -3662,6 +3671,32 @@ scene Vitreus {
         ellipse { at: gdo.l + 12, gdo.b - 12; radius: 3.6; color: mix(deep, #ffffff, 38%) }
         ellipse { at: gdo.l + 12, gdo.b - 12; radius: 3.6; stroke: 1.1; color: deep }
         line { from: gdo.l + 10, gdo.b - 10; to: gdo.l + 14, gdo.b - 14; width: 1.3; color: deep }
+    }
+    //  The Cyber's HUD marks and digital rain on the volume / notification banner (see bar_glass.plm).
+    group {
+        show: cy_k > 0.01 and do0 > 0.9
+        opacity: cy_k * clamp(do0 * 3 - 2, 0, 1)
+        let cydol = do.ix - do.iw / 2
+        let cydor = do.ix + do.iw / 2
+        let cydot = do.ey - do.eh / 2
+        let cydob = min(do.ey + do.eh / 2, vb - lf.t - 1)
+        shader matrix { at: cydol, cydot; size: cydor - cydol, cydob - cydot; corner: 24 * u; values: 0.28, 1; colors: mint, minthi }
+        repeat cydoc in 0..4 {
+            let cydox = if(mod(cydoc, 2) == 0, cydol - 7 * u, cydor + 7 * u)
+            let cydoy = if(cydoc < 2, cydot - 7 * u, cydob + 7 * u)
+            let cydosx = if(mod(cydoc, 2) == 0, -1, 1)
+            let cydosy = if(cydoc < 2, -1, 1)
+            path { at: cydox, cydoy; stroke: 5 * u; color: mint; opacity: 16%; move 0, -cydosy * 15 * u; line 0, 0; line -cydosx * 15 * u, 0 }
+            path { at: cydox, cydoy; stroke: 1.7; color: minthi; move 0, -cydosy * 15 * u; line 0, 0; line -cydosx * 15 * u, 0 }
+        }
+        repeat cydok in 0..13 {
+            line { from: cydol + 22 * u + cydok * 6 * u, cydob + 7 * u + 1; to: cydol + 22 * u + cydok * 6 * u, cydob + 7 * u + 1 + if(mod(cydok, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
+        }
+    
+        text "SYS 2B6D·F418" { at: cydor - 9 * u, cydob + 7 * u + 11 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 0, 85%, 0) }
+        text "SYS E90C·57A3" { at: cydor - 9 * u, cydob + 7 * u + 11 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 1, 85%, 0) }
+        text "SYS 30D8·B166" { at: cydor - 9 * u, cydob + 7 * u + 11 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 2, 85%, 0) }
+        box { at: cydor - 3 * u, cydob + 7 * u + 11 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
     }
     group {
         show: uwu_k > 0.01 and do0 > 0.9
@@ -4261,7 +4296,7 @@ scene Vitreus {
         box { at: cx, screen.height / 2; size: screen.width, screen.height; color: #000000; opacity: 34% }
         zone box pk_block { at: cx, screen.height / 2; size: screen.width, screen.height; cursor: pointer }
         body {
-            color: tint
+            color: mix(tint, #000000, cy_dark * cy_k)
             glass: 100%
             opacity: glass_op * (1 - obs)
             lens: glass_bend
@@ -4275,7 +4310,7 @@ scene Vitreus {
         }
         //  The same glass with `frost: auto` (frosted only where what is behind is busy): `frost:` cannot take `auto` from an expression, so it is a body of its own.
         body {
-            color: tint
+            color: mix(tint, #000000, cy_dark * cy_k)
             glass: 100%
             opacity: glass_op * (1 - obs)
             lens: glass_bend

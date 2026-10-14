@@ -18,14 +18,14 @@ def load(name):
 
 iris = load("iris.json")
 preset = iris.get("look", iris.get("preset"))      # the look (Glass, Retro 8, UwU 9); an older file has only the palette
-theme = "retro" if preset == 8 else "uwu" if preset == 9 else "glass"
+theme = "retro" if preset == 8 else "uwu" if preset == 9 else "cyber" if preset == 10 else "glass"
 choice = load("fonts.json").get(theme)
-family = choice or {"retro": "Audiowide", "uwu": "Mochiy Pop One"}.get(theme)
+family = choice or {"retro": "Audiowide", "uwu": "Mochiy Pop One", "cyber": "Orbitron"}.get(theme)
 if not family or family == "Space Grotesk":
     sys.exit(0)
 
 # Typefaces that run wide are drawn a little smaller, so the shell's fixed-width labels still fit.
-SCALE = {"Audiowide": 1.1, "Bitcount Prop Single": 0.95, "Press Start 2P": 1.7, "DotGothic16": 1.0, "SUPER-VCR MONO": 1.1, "Better VCR-JP": 1.15, "Mochiy Pop One": 1.08, "Cherry Bomb One": 1.12}.get(family, 1.0)
+SCALE = {"Audiowide": 1.1, "Bitcount Prop Single": 0.95, "Press Start 2P": 1.7, "DotGothic16": 1.0, "SUPER-VCR MONO": 1.1, "Better VCR-JP": 1.15, "Mochiy Pop One": 1.08, "Orbitron": 1.12, "Cherry Bomb One": 1.12}.get(family, 1.0)
 WEIGHTS = ((300, "Light"), (400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold"))
 
 def faces():

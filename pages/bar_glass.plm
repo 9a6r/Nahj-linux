@@ -8,7 +8,7 @@ part BarGlass {
         box { from: 0, 0; size: screen.width, screen.height; color: deep; opacity: 1.2% * cas_k }
         // ── the liquid ───────────────────────────────────────────────
         body {
-            color: tint
+            color: mix(tint, #000000, cy_dark * cy_k)
             glass: 100%
             opacity: glass_op * (1 - obs)
             lens: glass_bend
@@ -23,7 +23,7 @@ part BarGlass {
         }
         //  The same glass with `frost: auto` (frosted only where what is behind is busy): `frost:` cannot take `auto` from an expression, so it is a body of its own.
         body {
-            color: tint
+            color: mix(tint, #000000, cy_dark * cy_k)
             glass: 100%
             opacity: glass_op * (1 - obs)
             lens: glass_bend
@@ -201,6 +201,182 @@ part BarGlass {
             ellipse { at: gdz.l + 12, gdz.b - 12; radius: 3.6; color: mix(deep, #ffffff, 38%) }
             ellipse { at: gdz.l + 12, gdz.b - 12; radius: 3.6; stroke: 1.1; color: deep }
             line { from: gdz.l + 10, gdz.b - 10; to: gdz.l + 14, gdz.b - 14; width: 1.3; color: deep }
+        }
+        //  The Cyber's HUD marks: bright corner brackets (with a soft glow) round the bar and round every drawer that is out, and a little ruler of ticks under each. At each one's bottom right a terminal readout: hex digits that jump between three values, and a block cursor that blinks.
+        //  They are drawn on the glass, outside it, and never outline it.
+        group {
+            show: cy_k > 0.01 and lm < 0.5
+            opacity: cy_k * (1 - lm)
+            let cybarl = pcx - (bar.w + pv * 10 * u) / 2
+            let cybarr = pcx + (bar.w + pv * 10 * u) / 2
+            let cybart = bar.y - bar.h / 2
+            let cybarb = bar.y - bar.h / 2 + bar.h + pop
+            repeat cybarc in 0..4 {
+                let cybarx = if(mod(cybarc, 2) == 0, cybarl - 6 * u, cybarr + 6 * u)
+                let cybary = if(cybarc < 2, cybart - 6 * u, cybarb + 6 * u)
+                let cybarsx = if(mod(cybarc, 2) == 0, -1, 1)
+                let cybarsy = if(cybarc < 2, -1, 1)
+                path { at: cybarx, cybary; stroke: 5 * u; color: mint; opacity: 16%; move 0, -cybarsy * 13 * u; line 0, 0; line -cybarsx * 13 * u, 0 }
+                path { at: cybarx, cybary; stroke: 1.7; color: minthi; move 0, -cybarsy * 13 * u; line 0, 0; line -cybarsx * 13 * u, 0 }
+            }
+            repeat cybark in 0..13 {
+                line { from: cybarl + 22 * u + cybark * 6 * u, cybarb + 6 * u + 1; to: cybarl + 22 * u + cybark * 6 * u, cybarb + 6 * u + 1 + if(mod(cybark, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
+            }
+        
+            text "SYS 7F3A·9C21" { at: cybarr - 9 * u, cybarb + 6 * u + 11 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 0), 3) == 0, 85%, 0) }
+            text "SYS A1E4·03BD" { at: cybarr - 9 * u, cybarb + 6 * u + 11 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 0), 3) == 1, 85%, 0) }
+            text "SYS 5C90·E7F2" { at: cybarr - 9 * u, cybarb + 6 * u + 11 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 0), 3) == 2, 85%, 0) }
+            box { at: cybarr - 3 * u, cybarb + 6 * u + 11 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
+        }
+        group {
+            show: cy_k > 0.01 and dk0 > 0.9
+            opacity: cy_k * clamp(dk0 * 3 - 2, 0, 1)
+            let cydkl = dk.ex - dk.ew / 2
+            let cydkr = dk.ex + dk.ew / 2
+            let cydkt = dk.ey - dk.eh / 2
+            let cydkb = min(dk.ey + dk.eh / 2, vb - lf.t - 1)
+            shader matrix { at: cydkl, cydkt; size: cydkr - cydkl, cydkb - cydkt; corner: 24 * u; values: 0.28, 1; colors: mint, minthi }
+            repeat cydkc in 0..4 {
+                let cydkx = if(mod(cydkc, 2) == 0, cydkl - 7 * u, cydkr + 7 * u)
+                let cydky = if(cydkc < 2, cydkt - 7 * u, cydkb + 7 * u)
+                let cydksx = if(mod(cydkc, 2) == 0, -1, 1)
+                let cydksy = if(cydkc < 2, -1, 1)
+                path { at: cydkx, cydky; stroke: 5 * u; color: mint; opacity: 16%; move 0, -cydksy * 15 * u; line 0, 0; line -cydksx * 15 * u, 0 }
+                path { at: cydkx, cydky; stroke: 1.7; color: minthi; move 0, -cydksy * 15 * u; line 0, 0; line -cydksx * 15 * u, 0 }
+            }
+            repeat cydkk in 0..13 {
+                line { from: cydkl + 22 * u + cydkk * 6 * u, cydkb + 7 * u + 1; to: cydkl + 22 * u + cydkk * 6 * u, cydkb + 7 * u + 1 + if(mod(cydkk, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
+            }
+        
+            text "SYS 2B6D·F418" { at: cydkr - 16 * u, cydkb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 0, 85%, 0) }
+            text "SYS E90C·57A3" { at: cydkr - 16 * u, cydkb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 1, 85%, 0) }
+            text "SYS 30D8·B166" { at: cydkr - 16 * u, cydkb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 2, 85%, 0) }
+            box { at: cydkr - 10 * u, cydkb - 9 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
+        }
+        group {
+            show: cy_k > 0.01 and dc0 > 0.9
+            opacity: cy_k * clamp(dc0 * 3 - 2, 0, 1)
+            let cydcl = dc.ex - dc.ew / 2
+            let cydcr = dc.ex + dc.ew / 2
+            let cydct = dc.ey - dc.eh / 2
+            let cydcb = min(dc.ey + dc.eh / 2, vb - lf.t - 1)
+            shader matrix { at: cydcl, cydct; size: cydcr - cydcl, cydcb - cydct; corner: 24 * u; values: 0.28, 1; colors: mint, minthi }
+            repeat cydcc in 0..4 {
+                let cydcx = if(mod(cydcc, 2) == 0, cydcl - 7 * u, cydcr + 7 * u)
+                let cydcy = if(cydcc < 2, cydct - 7 * u, cydcb + 7 * u)
+                let cydcsx = if(mod(cydcc, 2) == 0, -1, 1)
+                let cydcsy = if(cydcc < 2, -1, 1)
+                path { at: cydcx, cydcy; stroke: 5 * u; color: mint; opacity: 16%; move 0, -cydcsy * 15 * u; line 0, 0; line -cydcsx * 15 * u, 0 }
+                path { at: cydcx, cydcy; stroke: 1.7; color: minthi; move 0, -cydcsy * 15 * u; line 0, 0; line -cydcsx * 15 * u, 0 }
+            }
+            repeat cydck in 0..13 {
+                line { from: cydcl + 22 * u + cydck * 6 * u, cydcb + 7 * u + 1; to: cydcl + 22 * u + cydck * 6 * u, cydcb + 7 * u + 1 + if(mod(cydck, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
+            }
+        
+            text "SYS C4F1·0A9E" { at: cydcr - 16 * u, cydcb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 2), 3) == 0, 85%, 0) }
+            text "SYS 18B7·D620" { at: cydcr - 16 * u, cydcb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 2), 3) == 1, 85%, 0) }
+            text "SYS 9E05·4CF3" { at: cydcr - 16 * u, cydcb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 2), 3) == 2, 85%, 0) }
+            box { at: cydcr - 10 * u, cydcb - 9 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
+        }
+        group {
+            show: cy_k > 0.01 and ds0 > 0.9
+            opacity: cy_k * clamp(ds0 * 3 - 2, 0, 1)
+            let cydsl = ds.ex - ds.ew / 2
+            let cydsr = ds.ex + ds.ew / 2
+            let cydst = ds.ey - ds.eh / 2
+            let cydsb = min(ds.ey + ds.eh / 2, vb - lf.t - 1)
+            shader matrix { at: cydsl, cydst; size: cydsr - cydsl, cydsb - cydst; corner: 24 * u; values: 0.28, 1; colors: mint, minthi }
+            repeat cydsc in 0..4 {
+                let cydsx = if(mod(cydsc, 2) == 0, cydsl - 7 * u, cydsr + 7 * u)
+                let cydsy = if(cydsc < 2, cydst - 7 * u, cydsb + 7 * u)
+                let cydssx = if(mod(cydsc, 2) == 0, -1, 1)
+                let cydssy = if(cydsc < 2, -1, 1)
+                path { at: cydsx, cydsy; stroke: 5 * u; color: mint; opacity: 16%; move 0, -cydssy * 15 * u; line 0, 0; line -cydssx * 15 * u, 0 }
+                path { at: cydsx, cydsy; stroke: 1.7; color: minthi; move 0, -cydssy * 15 * u; line 0, 0; line -cydssx * 15 * u, 0 }
+            }
+            repeat cydsk in 0..13 {
+                line { from: cydsl + 22 * u + cydsk * 6 * u, cydsb + 7 * u + 1; to: cydsl + 22 * u + cydsk * 6 * u, cydsb + 7 * u + 1 + if(mod(cydsk, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
+            }
+        
+            text "SYS 7F3A·9C21" { at: cydsr - 16 * u, cydsb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 3), 3) == 0, 85%, 0) }
+            text "SYS A1E4·03BD" { at: cydsr - 16 * u, cydsb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 3), 3) == 1, 85%, 0) }
+            text "SYS 5C90·E7F2" { at: cydsr - 16 * u, cydsb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 3), 3) == 2, 85%, 0) }
+            box { at: cydsr - 10 * u, cydsb - 9 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
+        }
+        group {
+            show: cy_k > 0.01 and dl0 > 0.9
+            opacity: cy_k * clamp(dl0 * 3 - 2, 0, 1)
+            let cydll = dl.ex - dl.ew / 2
+            let cydlr = dl.ex + dl.ew / 2
+            let cydlt = dl.ey - dl.eh / 2
+            let cydlb = min(dl.ey + dl.eh / 2, vb - lf.t - 1)
+            shader matrix { at: cydll, cydlt; size: cydlr - cydll, cydlb - cydlt; corner: 24 * u; values: 0.28, 1; colors: mint, minthi }
+            repeat cydlc in 0..4 {
+                let cydlx = if(mod(cydlc, 2) == 0, cydll - 7 * u, cydlr + 7 * u)
+                let cydly = if(cydlc < 2, cydlt - 7 * u, cydlb + 7 * u)
+                let cydlsx = if(mod(cydlc, 2) == 0, -1, 1)
+                let cydlsy = if(cydlc < 2, -1, 1)
+                path { at: cydlx, cydly; stroke: 5 * u; color: mint; opacity: 16%; move 0, -cydlsy * 15 * u; line 0, 0; line -cydlsx * 15 * u, 0 }
+                path { at: cydlx, cydly; stroke: 1.7; color: minthi; move 0, -cydlsy * 15 * u; line 0, 0; line -cydlsx * 15 * u, 0 }
+            }
+            repeat cydlk in 0..13 {
+                line { from: cydll + 22 * u + cydlk * 6 * u, cydlb + 7 * u + 1; to: cydll + 22 * u + cydlk * 6 * u, cydlb + 7 * u + 1 + if(mod(cydlk, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
+            }
+        
+            text "SYS 2B6D·F418" { at: cydlr - 16 * u, cydlb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 4), 3) == 0, 85%, 0) }
+            text "SYS E90C·57A3" { at: cydlr - 16 * u, cydlb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 4), 3) == 1, 85%, 0) }
+            text "SYS 30D8·B166" { at: cydlr - 16 * u, cydlb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 4), 3) == 2, 85%, 0) }
+            box { at: cydlr - 10 * u, cydlb - 9 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
+        }
+        group {
+            show: cy_k > 0.01 and dm0 > 0.9
+            opacity: cy_k * clamp(dm0 * 3 - 2, 0, 1)
+            let cydml = dm.ex - dm.ew / 2
+            let cydmr = dm.ex + dm.ew / 2
+            let cydmt = dm.ey - dm.eh / 2
+            let cydmb = min(dm.ey + dm.eh / 2, vb - lf.t - 1)
+            shader matrix { at: cydml, cydmt; size: cydmr - cydml, cydmb - cydmt; corner: 24 * u; values: 0.28, 1; colors: mint, minthi }
+            repeat cydmc in 0..4 {
+                let cydmx = if(mod(cydmc, 2) == 0, cydml - 7 * u, cydmr + 7 * u)
+                let cydmy = if(cydmc < 2, cydmt - 7 * u, cydmb + 7 * u)
+                let cydmsx = if(mod(cydmc, 2) == 0, -1, 1)
+                let cydmsy = if(cydmc < 2, -1, 1)
+                path { at: cydmx, cydmy; stroke: 5 * u; color: mint; opacity: 16%; move 0, -cydmsy * 15 * u; line 0, 0; line -cydmsx * 15 * u, 0 }
+                path { at: cydmx, cydmy; stroke: 1.7; color: minthi; move 0, -cydmsy * 15 * u; line 0, 0; line -cydmsx * 15 * u, 0 }
+            }
+            repeat cydmk in 0..13 {
+                line { from: cydml + 22 * u + cydmk * 6 * u, cydmb + 7 * u + 1; to: cydml + 22 * u + cydmk * 6 * u, cydmb + 7 * u + 1 + if(mod(cydmk, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
+            }
+        
+            text "SYS C4F1·0A9E" { at: cydmr - 16 * u, cydmb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 5), 3) == 0, 85%, 0) }
+            text "SYS 18B7·D620" { at: cydmr - 16 * u, cydmb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 5), 3) == 1, 85%, 0) }
+            text "SYS 9E05·4CF3" { at: cydmr - 16 * u, cydmb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 5), 3) == 2, 85%, 0) }
+            box { at: cydmr - 10 * u, cydmb - 9 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
+        }
+        group {
+            show: cy_k > 0.01 and dz0 > 0.9
+            opacity: cy_k * clamp(dz0 * 3 - 2, 0, 1)
+            let cydzl = dz.six - dz.siw / 2
+            let cydzr = dz.six + dz.siw / 2
+            let cydzt = dz.siy - dz.sih / 2
+            let cydzb = min(dz.siy + dz.sih / 2, vb - lf.t - 1)
+            shader matrix { at: cydzl, cydzt; size: cydzr - cydzl, cydzb - cydzt; corner: 24 * u; values: 0.28, 1; colors: mint, minthi }
+            repeat cydzc in 0..4 {
+                let cydzx = if(mod(cydzc, 2) == 0, cydzl - 7 * u, cydzr + 7 * u)
+                let cydzy = if(cydzc < 2, cydzt - 7 * u, cydzb + 7 * u)
+                let cydzsx = if(mod(cydzc, 2) == 0, -1, 1)
+                let cydzsy = if(cydzc < 2, -1, 1)
+                path { at: cydzx, cydzy; stroke: 5 * u; color: mint; opacity: 16%; move 0, -cydzsy * 15 * u; line 0, 0; line -cydzsx * 15 * u, 0 }
+                path { at: cydzx, cydzy; stroke: 1.7; color: minthi; move 0, -cydzsy * 15 * u; line 0, 0; line -cydzsx * 15 * u, 0 }
+            }
+            repeat cydzk in 0..13 {
+                line { from: cydzl + 22 * u + cydzk * 6 * u, cydzb + 7 * u + 1; to: cydzl + 22 * u + cydzk * 6 * u, cydzb + 7 * u + 1 + if(mod(cydzk, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
+            }
+        
+            text "SYS 7F3A·9C21" { at: cydzr - 16 * u, cydzb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 6), 3) == 0, 85%, 0) }
+            text "SYS A1E4·03BD" { at: cydzr - 16 * u, cydzb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 6), 3) == 1, 85%, 0) }
+            text "SYS 5C90·E7F2" { at: cydzr - 16 * u, cydzb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 6), 3) == 2, 85%, 0) }
+            box { at: cydzr - 10 * u, cydzb - 9 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
         }
         //  The UwU theme's graphics, on every drawer that is out (and round the screen, below): cat ears on its top corners, three twinkling stars along its
         //  top, two hearts that bob and a trail of paw prints in its bottom corners, and sparkles rising from the hearts. The ears are the only part outside
