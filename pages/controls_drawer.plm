@@ -808,7 +808,7 @@ part ControlsDrawer {
             row cap_shots {
                 at: floor(pcx - 138 * cu + 0.5), floor(qx_top + 66 * cu + 0.5)
                 gap: 8 * cu
-                CapBtn("Region", "Saved and copied", 0, 0, shot, 0)
+                CapBtn("Region", "Draw, then save", 0, 0, shot, 0)
                 CapBtn("Full screen", "Saved and copied", 1, 0, shot, 1)
             }
             text "SCREEN RECORDING" { at: floor(pcx - 138 * cu + 0.5), floor(qx_top + 134 * cu + 0.5); anchor: left center; size: 11; weight: 700; color: faint; family: "Space Grotesk" }

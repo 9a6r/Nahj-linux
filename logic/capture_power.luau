@@ -15,12 +15,22 @@ return function(set_panel)
     end
 
     -- ── Screenshots ──────────────────────────────────────────────────────────────────────────────────────────────
-    -- Region (0) or the whole screen (1). The picture is kept in ~/Pictures/Screenshots and copied to the clipboard, and comes up as a card (`shot_done`, in vitreus.luau).
+    -- Region (0) opens Snap (snap/snap.plm): the screen frozen, a part of it picked and drawn on, then copied or saved; a saved one comes up as the
+    -- card (`shot_done`, in vitreus.luau), told by Snap itself. Only one Snap at a time: a press while it is open does nothing. It is put on the
+    -- focused monitor (`--screen`) and takes that one (SNAP_OUTPUT): left to choose, pleamar opened it on the other monitor, over a picture of this one.
+    -- And in the theme's typeface: the font setup bin/vitreus-fonts makes for the shell (nothing for Space Grotesk). Snap reads the look itself.
+    -- The whole screen (1) is kept in ~/Pictures/Screenshots and copied to the clipboard, and comes up as the card.
     on("shot", function(mode)
         after_closed(function()
-            local pick = (mode == 0) and 'g=$(slurp) || exit 0; grim -g "$g" "$f"' or 'grim "$f"'
+            if mode == 0 then
+                spawn(sh('p="$HOME/.config/pleamar/shells/vitreus/snap/snap.plm"; pgrep -f "pleamar --scene $p" > /dev/null && exit 0; '
+                    .. 'o=$(hyprctl -j monitors 2> /dev/null | jq -r ".[] | select(.focused) | .name" 2> /dev/null | head -n 1); '
+                    .. 'fc=$("$HOME/.config/pleamar/shells/vitreus/bin/vitreus-fonts" "${XDG_DATA_HOME:-$HOME/.local/share}/pleamar/vitreus" 2> /dev/null) && [ -n "$fc" ] && export FONTCONFIG_FILE="$fc"; '
+                    .. 'if [ -n "$o" ]; then SNAP_OUTPUT="$o" exec pleamar --scene "$p" --no-hud --screen "$o"; else exec pleamar --scene "$p" --no-hud; fi'))
+                return
+            end
             spawn(sh('d="$HOME/Pictures/Screenshots"; mkdir -p "$d"; f="$d/screenshot_$(date +%F_%H-%M-%S).png"; '
-                .. pick .. ' && wl-copy < "$f" && pleamar --say vitreus "text shot_path $f" && pleamar --say vitreus "emit shot_done"'))
+                .. 'grim "$f" && wl-copy < "$f" && pleamar --say vitreus "text shot_path $f" && pleamar --say vitreus "emit shot_done"'))
         end)
     end)
 
