@@ -292,6 +292,8 @@ scene Vitreus {
     let cy_dark = 1.0                  // how far Cyber takes the glass's tint towards black (0 none, 1 black); the glass stays as see-through as it was
     prop cy_k = 0 ~calm
     follow cy_k = if(cyber_on, 1, 0)
+    //  How square the corners are: Retro's plastic and Cyber's HUD both take the drawers' rounding down by the same 73 % (`corner: R * (1 - 0.73 * sq)`).
+    let sq = max(cas_k, cy_k)
     event glass_obs_toggle ->
     let obsidian = mix(tint, #000000, 0.7 * (1 - pk))      // the theme's own tint, taken most of the way to black (the plastic's own colour on the Cassette): static themes and Iris both change it
     fact hy_blur = 3
@@ -1774,8 +1776,8 @@ scene Vitreus {
     //  about its own anchor point (and its `width:` is divided by `rs` to make up for it).
     let rs = clamp(screen.height / 1350, 0.55, 1)
     let cu = 1.5525                  // u * 1.15: the control center, the calendar and the player and tray are laid out 15% larger than the rest
-    let rc = (26 - 19 * cas_k) * u              // a drawer's corner
-    let bk = 1 - 0.85 * cas_k                   // how much of a melt (a neck) is left
+    let rc = (26 - 19 * sq) * u              // a drawer's corner
+    let bk = 1 - 0.85 * sq                   // how much of a melt (a neck) is left
     let du = 1.5525 * rs             // the Desk's own unit: cu (u * 1.15) at the scale of the screen
     let pu = 1.6875 * rs             // u * 1.25: the Settings and the launcher are laid out 25% larger than the rest, at real size (not zoomed)
     //  One reminder of the chosen day: a circle to tick it off, its time, its words, a cross.
@@ -2426,9 +2428,9 @@ scene Vitreus {
         zone box touch { from: 0, 0; size: 288 * cu, 28 * cu; corner: 9 * cu; cursor: pointer; active: r.enabled and not r.sep }
         //  Under the pointer a row lights in the accent: a soft wash over the usual veil, a bar growing from the left edge, a dot where the check goes, the label stepping
         //  in and the arrow leaning; on the UwU a little star twinkles at the right. All of it is the theme's own colour and corner, so each look keeps its own.
-        box { from: 0, 0; size: 288 * cu, 28 * cu; corner: 9 * cu * (1 - 0.73 * cas_k); color: ink; opacity: if(r.sep, 0%, 6% * touch.hover) }
-        box { from: 0, 0; size: 288 * cu, 28 * cu; corner: 9 * cu * (1 - 0.73 * cas_k); color: mint; opacity: if(r.sep, 0%, 15% * touch.hover) }
-        box { at: 2.5 * cu, 14 * cu; size: 3 * cu, 16 * cu * touch.hover; corner: 1.5 * cu * (1 - 0.8 * cas_k); color: mint; opacity: if(r.sep, 0%, 100%) }
+        box { from: 0, 0; size: 288 * cu, 28 * cu; corner: 9 * cu * (1 - 0.73 * sq); color: ink; opacity: if(r.sep, 0%, 6% * touch.hover) }
+        box { from: 0, 0; size: 288 * cu, 28 * cu; corner: 9 * cu * (1 - 0.73 * sq); color: mint; opacity: if(r.sep, 0%, 15% * touch.hover) }
+        box { at: 2.5 * cu, 14 * cu; size: 3 * cu, 16 * cu * touch.hover; corner: 1.5 * cu * (1 - 0.8 * sq); color: mint; opacity: if(r.sep, 0%, 100%) }
         ellipse { at: 15 * cu, 14 * cu; radius: 2.2 * cu * touch.hover; color: mint; opacity: if(r.checked or r.sep, 0%, 100%) }
         //  A separator is a line with a small diamond of the accent in the middle.
         box { at: 144 * cu, 5 * cu; size: 264 * cu, 1 * cu; color: ink; opacity: if(r.sep, 12%, 0%) }
@@ -2687,7 +2689,7 @@ scene Vitreus {
     //  Down the left the panels come out of the strip at the height of their button: `pw_y` is where the open panel's top is (see `lp.top`), and
     //  the bar's "middle line" is half a bar above it, so that the first plate keeps the 12 it has under a panel's top (`bar.y` + 32).
     let bar.y = bar.y0
-    let bar.rad = 14 * u * (1 - 0.5 * cas_k)                 // the bar's corner when shut: the same as the plates', not a full pill
+    let bar.rad = 14 * u * (1 - 0.5 * sq)                 // the bar's corner when shut: the same as the plates', not a full pill
     //  The bar's pieces sit in a row in the order Settings > Bar gives them (`bo.*`), 16 in from each end and
     //  `bar.gap` apart. Each one is as wide as what it draws (`fw.*`) and takes that and a gap (`bw.*`: less while
     //  it is being hidden, and the player's only while there is something playing); the title takes none, it is
@@ -3580,8 +3582,8 @@ scene Vitreus {
             shadow: 0, 7, 20, 24%, deep
             show: obs < 0.996 and not glass_auto
             box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
-            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * cas_k); show: mfl > 0.01 and media_open > 0.01 }
+            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
+            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and media_open > 0.01 }
         }
         //  The same glass with `frost: auto` (frosted only where what is behind is busy): `frost:` cannot take `auto` from an expression, so it is a body of its own.
         body {
@@ -3597,8 +3599,8 @@ scene Vitreus {
             shadow: 0, 7, 20, 24%, deep
             show: obs < 0.996 and glass_auto
             box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
-            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * cas_k); show: mfl > 0.01 and media_open > 0.01 }
+            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
+            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and media_open > 0.01 }
         }
         //  Blur behind the obsidian: a glass body asks the compositor for it (100 % glass at 34 %: the request needs glass x opacity of 30 % or more, and a more opaque layer would hide the blur), and the obsidian over it (60 % opaque while blur is on, solid when it is off) hides the glass's look.
         body {
@@ -3612,8 +3614,8 @@ scene Vitreus {
             opacity: obs * 0.34 * (1 - pk)
             show: obs > 0.97
             box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
-            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * cas_k); show: mfl > 0.01 and media_open > 0.01 }
+            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
+            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and media_open > 0.01 }
         }
         body {
             color: obsidian
@@ -3622,8 +3624,8 @@ scene Vitreus {
             shadow: 0, 7, 24, (38%) * (1 - pk), #000000
             show: obs > 0.004
             box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
-            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * cas_k); show: mfl > 0.01 and media_open > 0.01 }
+            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
+            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and media_open > 0.01 }
         }
         //  The Cassette's plastic over it (see `cas_k`): a lit lip, a dark outline, a hard shadow.
         body {
@@ -3634,8 +3636,8 @@ scene Vitreus {
             opacity: cas_k
             show: cas_k > 0.004
             box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
-            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * cas_k); show: mfl > 0.01 and media_open > 0.01 }
+            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
+            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and media_open > 0.01 }
         }
         //  The UwU's candy plastic over it: a pastel gradient across the whole screen (pink, lilac, sky, mint), a thick grape outline, a lit lip and a hard pink shadow.
         body {
@@ -3646,8 +3648,8 @@ scene Vitreus {
             opacity: uwu_k
             show: uwu_k > 0.004
             box { at: do.ix + if(lm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
-            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * cas_k); show: mfl > 0.01 and media_open > 0.01 }
+            box { at: dz.six + if(lm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
+            box { at: mf.cx + if(lm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and media_open > 0.01 }
         }
     }
     //  The volume / notification drawer's decorations (Retro: tab and grips; UwU: ears, stars, hearts, paws). They are drawn here, after the glass it has of its own along the top
@@ -3856,7 +3858,7 @@ scene Vitreus {
     //  wallpapers have a preview beside the rows: the picture, or the text, and the file's details.
     group {
         shader: pixelate, px.dl
-        clip inset 2 box { at: mix(pcx, dl.gx, lm), mix(bar.y + dl.hh / 2, lp.cy, lm); size: mix(dl.w, dl.gw, lm), mix(dl.hh, dl.gh, lm); corner: 26 * pu * (1 - 0.73 * cas_k) }
+        clip inset 2 box { at: mix(pcx, dl.gx, lm), mix(bar.y + dl.hh / 2, lp.cy, lm); size: mix(dl.w, dl.gw, lm), mix(dl.hh, dl.gh, lm); corner: 26 * pu * (1 - 0.73 * sq) }
         opacity: fl * pown
         move: 0, (1 - fl) * 12 * pu
         let lx = pcx - 215 * pu

@@ -3,7 +3,7 @@ part PanelFrame {
     group {
         //  The calendar's content is clipped to the calendar's shape.
         opacity: pown
-        clip inset 2 box { at: mix(pcx, dc.gx, lm), mix(bar.y + dc.hh / 2, lp.cy, lm); size: mix(dc.w, dc.gw, lm), mix(dc.hh, dc.gh, lm); corner: 26 * cu * (1 - 0.73 * cas_k) }
+        clip inset 2 box { at: mix(pcx, dc.gx, lm), mix(bar.y + dc.hh / 2, lp.cy, lm); size: mix(dc.w, dc.gw, lm), mix(dc.hh, dc.gh, lm); corner: 26 * cu * (1 - 0.73 * sq) }
         //  Down the left it comes out of the strip: what is inside grows with the drawer's shape (`dc.lf`), from the strip's edge at the panel's middle, instead of waiting still under the clip.
         group {
             shader: pixelate, px.dc

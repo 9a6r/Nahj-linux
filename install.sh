@@ -19,7 +19,7 @@
 #                                      on any other distribution it lists what to install by hand).
 #                                      hyprsunset is required on Hyprland (Night mode): without it, this stops
 #   2. pleamar, the runtime           (its own installer, into your home; a few minutes to build)
-#   3. the fonts                      (Space Grotesk, and the two the Retro and UwU themes are drawn in: Audiowide and Mochiy Pop One;
+#   3. the fonts                      (Space Grotesk, and the three the Retro, UwU and Cyber themes are drawn in: Audiowide, Mochiy Pop One and Orbitron;
 #                                      into ~/.local/share/fonts, no sudo)
 #   4. the shell                      (into ~/.config/pleamar/shells/vitreus: cloned, or updated)
 #   5. your palette, autostart entry  (made once and never written over)
@@ -40,6 +40,9 @@ font_url="https://github.com/google/fonts/raw/main/ofl/spacegrotesk/SpaceGrotesk
 dot_url="https://github.com/google/fonts/raw/main/ofl/audiowide/Audiowide-Regular.ttf"
 dot_licence_url="https://github.com/google/fonts/raw/main/ofl/audiowide/OFL.txt"
 mochiy_url="https://github.com/google/fonts/raw/main/ofl/mochiypopone/MochiyPopOne-Regular.ttf"
+# The Cyber theme's typeface, Orbitron (a squared techno face; Google Fonts, OFL).
+orbitron_url="https://github.com/google/fonts/raw/main/ofl/orbitron/Orbitron%5Bwght%5D.ttf"
+orbitron_licence_url="https://github.com/google/fonts/raw/main/ofl/orbitron/OFL.txt"
 
 conf="${XDG_CONFIG_HOME:-$HOME/.config}"
 data="${XDG_DATA_HOME:-$HOME/.local/share}"
@@ -48,6 +51,7 @@ autostart="$conf/pleamar/autostart"
 fonts="$data/fonts/SpaceGrotesk"
 fonts_dot="$data/fonts/Audiowide"
 fonts_mochiy="$data/fonts/MochiyPopOne"
+fonts_orbitron="$data/fonts/Orbitron"
 
 # Official-repo packages, then AUR ones: what each is for is in the README.
 pacman_pkgs="git curl jq python fontconfig socat imagemagick cava playerctl networkmanager bluez bluez-utils brightnessctl hypridle hyprsunset libnotify xdg-user-dirs xdg-utils wl-clipboard cliphist awww ffmpeg grim slurp wf-recorder power-profiles-daemon polkit python-gobject python-pyte ttf-space-mono-nerd pipewire-audio sound-theme-freedesktop tesseract tesseract-data-eng"
@@ -286,7 +290,7 @@ if $deps; then
     xdg-user-dirs   finding your Pictures folder
     git, fontconfig
     python          the font setup of the Retro and UwU themes and the font picker (bin/vitreus-fonts)
-    Audiowide, Mochiy Pop One  the typefaces of the Retro and UwU themes (Space Grotesk's neighbours, installed into ~/.local/share/fonts)
+    Audiowide, Mochiy Pop One, Orbitron  the typefaces of the Retro, UwU and Cyber themes (Space Grotesk's neighbours, installed into ~/.local/share/fonts)
 LIST
     fi
     # On Hyprland hyprsunset is not optional: Night mode is driven by it. Without it the shell would have to fall back to a Hyprland
@@ -323,15 +327,17 @@ LIST
     fi
 
     # ── 3. the font ──
-    if ! $refresh; then
+    # (Settings > About runs this with --refresh, which downloads what a theme draws in without asking: a theme added by an update has its typeface.)
+    ask_font() { $refresh && return 0; ask "$1"; }
+    if $deps; then
     if have fc-list && fc-list 2> /dev/null | grep -qi 'space grotesk'; then
         say "the Space Grotesk font is installed"
-    elif ask "install the Space Grotesk font (into $fonts)?"; then
+    elif ask_font "install the Space Grotesk font (into $fonts)?"; then
         if $dry; then
             echo "    would download $font_url"
         else
             mkdir -p "$fonts"
-            curl -fsSL "$font_url" -o "$fonts/SpaceGrotesk[wght].ttf" || warn "could not download the font: install Space Grotesk yourself"
+            curl -fsSL -m 120 "$font_url" -o "$fonts/SpaceGrotesk[wght].ttf" || warn "could not download the font: install Space Grotesk yourself"
             have fc-cache && fc-cache -f "$fonts" > /dev/null 2>&1 || true
         fi
     fi
@@ -339,25 +345,37 @@ LIST
     # choose any other). Without them the theme keeps Space Grotesk.
     if have fc-list && fc-list 2> /dev/null | grep -qi 'audiowide'; then
         say "the Audiowide font is installed"
-    elif ask "install the Audiowide font, for the Retro theme (into $fonts_dot)?"; then
+    elif ask_font "install the Audiowide font, for the Retro theme (into $fonts_dot)?"; then
         if $dry; then
             echo "    would download $dot_url"
         else
             mkdir -p "$fonts_dot"
-            curl -fsSL "$dot_url" -o "$fonts_dot/Audiowide-Regular.ttf" || warn "could not download Audiowide: the Retro theme will use Space Grotesk until you install it"
-            curl -fsSL "$dot_licence_url" -o "$fonts_dot/OFL.txt" 2> /dev/null || true
+            curl -fsSL -m 120 "$dot_url" -o "$fonts_dot/Audiowide-Regular.ttf" || warn "could not download Audiowide: the Retro theme will use Space Grotesk until you install it"
+            curl -fsSL -m 120 "$dot_licence_url" -o "$fonts_dot/OFL.txt" 2> /dev/null || true
             have fc-cache && fc-cache -f "$fonts_dot" > /dev/null 2>&1 || true
         fi
     fi
     if have fc-list && fc-list 2> /dev/null | grep -qi 'mochiy pop one'; then
         say "the Mochiy Pop One font is installed"
-    elif ask "install the Mochiy Pop One font, for the UwU theme (into $fonts_mochiy)?"; then
+    elif ask_font "install the Mochiy Pop One font, for the UwU theme (into $fonts_mochiy)?"; then
         if $dry; then
             echo "    would download $mochiy_url"
         else
             mkdir -p "$fonts_mochiy"
-            curl -fsSL "$mochiy_url" -o "$fonts_mochiy/MochiyPopOne-Regular.ttf" || warn "could not download Mochiy Pop One: the UwU theme will use Space Grotesk until you install it"
+            curl -fsSL -m 120 "$mochiy_url" -o "$fonts_mochiy/MochiyPopOne-Regular.ttf" || warn "could not download Mochiy Pop One: the UwU theme will use Space Grotesk until you install it"
             have fc-cache && fc-cache -f "$fonts_mochiy" > /dev/null 2>&1 || true
+        fi
+    fi
+    if have fc-list && fc-list 2> /dev/null | grep -qi 'orbitron'; then
+        say "the Orbitron font is installed"
+    elif ask_font "install the Orbitron font, for the Cyber theme (into $fonts_orbitron)?"; then
+        if $dry; then
+            echo "    would download $orbitron_url"
+        else
+            mkdir -p "$fonts_orbitron"
+            curl -fsSL -m 120 "$orbitron_url" -o "$fonts_orbitron/Orbitron[wght].ttf" || warn "could not download Orbitron: the Cyber theme will use Space Grotesk until you install it"
+            curl -fsSL -m 120 "$orbitron_licence_url" -o "$fonts_orbitron/OFL.txt" 2> /dev/null || true
+            have fc-cache && fc-cache -f "$fonts_orbitron" > /dev/null 2>&1 || true
         fi
     fi
     fi
@@ -518,10 +536,12 @@ clockline="vitreus-keep $dest/desktopclock/desktopclock.plm"
 sysmonline="vitreus-keep $dest/desktopsysmon/desktopsysmon.plm"
 cavaline="vitreus-keep $dest/desktopcava/desktopcava.plm"
 if $do_autostart; then
-    # Lines from before the keeper started the scenes straight, once: they go through it now.
-    if [ -f "$autostart" ] && grep -q "^pleamar --scene $dest/.*\.plm --no-hud\$" "$autostart"; then
+    # Lines from before the keeper started the scenes straight, once: they go through it now (with or without VAR=value words in front: a line that
+    # keeps the shell outside the keeper is one that nothing starts again when Settings stops it to apply a theme's font).
+    envp='([A-Za-z_][A-Za-z0-9_]*=[^ ]+ )*'
+    if [ -f "$autostart" ] && grep -qE "^${envp}pleamar --scene $dest/.*\.plm --no-hud\$" "$autostart"; then
         if $dry; then echo "    would put the scenes in $autostart under vitreus-keep"; else
-            sed -i "s|^pleamar --scene \($dest/vitreus\.plm\) --no-hud\$|vitreus-keep \1 \"\$HOME/.local/share/pleamar/vitreus/vitreus.log\"|; s|^pleamar --scene \($dest/[^ ]*\.plm\) --no-hud\$|vitreus-keep \1|" "$autostart"
+            sed -i -E "s|^(${envp})pleamar --scene ($dest/vitreus\.plm) --no-hud\$|\1vitreus-keep \3 \"\$HOME/.local/share/pleamar/vitreus/vitreus.log\"|; s|^(${envp})pleamar --scene ($dest/[^ ]*\.plm) --no-hud\$|\1vitreus-keep \3|" "$autostart"
             say "the scenes in $autostart now run under vitreus-keep, which starts them again if they stop"
         fi
     fi

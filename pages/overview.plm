@@ -38,10 +38,10 @@ part Overview {
             let ovc.top = ovl.t + ovc.row * 224 * ovu
             let ovc.act = if(ws.active == c + 1, 1, 0)
             let ovc.drop = if(ovl.moving > 0 and ovl.col == c, 1, 0)
-            zone box ov_hz.$c { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu; cursor: pointer; active: ov_show > 0.5 }
+            zone box ov_hz.$c { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu * (1 - 0.73 * cy_k); cursor: pointer; active: ov_show > 0.5 }
             on press ov_hz.$c { ov_open = false; emit ov_go(c + 1) }
             body {
-                color: tint
+                color: mix(tint, #000000, cy_dark * cy_k)
                 glass: 100%
                 opacity: glass_op * (1 - obs)
                 lens: glass_bend
@@ -50,7 +50,7 @@ part Overview {
                 rim: 14% * glass_rim
                 shadow: 0, 14 * ovu, 36 * ovu, 45%, deep
                 show: obs < 0.996
-                box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu }
+                box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu * (1 - 0.73 * cy_k) }
             }
             //  Blur behind the obsidian: a glass body asks the compositor for it (100 % glass at 34 %: the request needs glass x opacity of 30 % or more, and a more opaque layer would hide the blur), and the obsidian over it (60 % opaque while blur is on, solid when it is off) hides the glass's look.
             body {
@@ -63,7 +63,7 @@ part Overview {
                 shine: 9000, 9000
                 opacity: obs * 0.34 * (1 - pk)
                 show: obs > 0.97
-                box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu }
+                box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu * (1 - 0.73 * cy_k) }
             }
             body {
                 color: obsidian
@@ -71,7 +71,7 @@ part Overview {
                 opacity: obs * (1 - 0.4 * clamp(hy_blur, 0, 1))
                 shadow: 0, 14 * ovu, 42 * ovu, (55%) * (1 - pk), #000000
                 show: obs > 0.004
-                box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu }
+                box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu * (1 - 0.73 * cy_k) }
             }
             //  The Cassette's plastic over it (see `cas_k`): a lit lip, a dark outline, a hard shadow.
             body {
@@ -81,7 +81,7 @@ part Overview {
                 shadow: 4.5 * u * cas_k, 5.5 * u * cas_k, 0, 55% * cas_k, deep
                 opacity: cas_k
                 show: cas_k > 0.004
-                box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu }
+                box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu * (1 - 0.73 * cy_k) }
             }
             //  The UwU's candy plastic over it: a pastel gradient across the whole screen (pink, lilac, sky, mint), a thick grape outline, a lit lip and a hard pink shadow.
             body {
@@ -91,12 +91,26 @@ part Overview {
                 shadow: 4 * u * uwu_k, 5 * u * uwu_k, 0, 90% * uwu_k, mix(deep, #ff6ec7, 0.75)
                 opacity: uwu_k
                 show: uwu_k > 0.004
-                box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu }
+                box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu * (1 - 0.73 * cy_k) }
             }
-            box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu; color: mix(ink, mint, max(ovc.act, ovc.drop)); opacity: 6% + 9% * ovc.act + 14% * ovc.drop + 4% * ov_hz.$c.hover }
-            box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu; stroke: 1.4 * ovu; color: mint; opacity: max(50% * ovc.act, 90% * ovc.drop) }
+            //  The Cyber's HUD over each card, as on its drawers (bar_glass.plm): a neon hairline outline and bright corner brackets, outside the glass.
+            group {
+                show: cy_k > 0.01
+                opacity: cy_k
+                shader matrix { at: ovc.x - 145 * ovu, ovc.top; size: 290 * ovu, 208 * ovu; corner: 18 * ovu * (1 - 0.73 * cy_k); values: 0.28, 1; colors: mint, minthi }
+                repeat ovbc in 0..4 {
+                    let ovbx = if(mod(ovbc, 2) == 0, ovc.x - 145 * ovu - 6 * ovu, ovc.x + 145 * ovu + 6 * ovu)
+                    let ovby = if(ovbc < 2, ovc.top - 6 * ovu, ovc.top + 208 * ovu + 6 * ovu)
+                    let ovbsx = if(mod(ovbc, 2) == 0, -1, 1)
+                    let ovbsy = if(ovbc < 2, -1, 1)
+                    path { at: ovbx, ovby; stroke: 4 * ovu; color: mint; opacity: 16%; move 0, -ovbsy * 12 * ovu; line 0, 0; line -ovbsx * 12 * ovu, 0 }
+                    path { at: ovbx, ovby; stroke: 1.5; color: minthi; move 0, -ovbsy * 12 * ovu; line 0, 0; line -ovbsx * 12 * ovu, 0 }
+                }
+            }
+            box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu * (1 - 0.73 * cy_k); color: mix(ink, mint, max(ovc.act, ovc.drop)); opacity: 6% + 9% * ovc.act + 14% * ovc.drop + 4% * ov_hz.$c.hover }
+            box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu * (1 - 0.73 * cy_k); stroke: 1.4 * ovu; color: mint; opacity: max(50% * ovc.act, 90% * ovc.drop) }
             //  The 16:9 screen the windows lie on.
-            box { at: ovc.x, ovc.top + 120 * ovu; size: 270 * ovu, 152 * ovu; corner: 10 * ovu; color: #05070d; opacity: 38% }
+            box { at: ovc.x, ovc.top + 120 * ovu; size: 270 * ovu, 152 * ovu; corner: 10 * ovu * (1 - 0.73 * cy_k); color: #05070d; opacity: 38% }
             text number(c + 1, 0, "") { at: floor(ovc.x - 128 * ovu + 0.5), floor(ovc.top + 22 * ovu + 0.5); anchor: left center; size: 22 * ovu; weight: 700; color: mix(ink, mint, ovc.act); family: "Space Grotesk" }
             text number(ov_cnt.$c, 0, " windows") { at: floor(ovc.x + 130 * ovu + 0.5), floor(ovc.top + 22 * ovu + 0.5); anchor: right center; align: right; size: 10.5 * ovu; width: 110 * ovu; lines: 1; color: faint; family: "Space Grotesk"; show: ov_cnt.$c != 1 }
             text "1 window" { at: floor(ovc.x + 130 * ovu + 0.5), floor(ovc.top + 22 * ovu + 0.5); anchor: right center; align: right; size: 10.5 * ovu; width: 110 * ovu; lines: 1; color: faint; family: "Space Grotesk"; show: ov_cnt.$c == 1 }
@@ -126,18 +140,18 @@ part Overview {
                     color: #05070d
                     opacity: 40%
                     shadow: 0, 2 * ovu, 8 * ovu, 50%, #000000
-                    box { at: ovr.x, ovr.y; size: ovr.tw, ovr.th; corner: 6 * ovu }
+                    box { at: ovr.x, ovr.y; size: ovr.tw, ovr.th; corner: 6 * ovu * (1 - 0.73 * cy_k) }
                 }
                 group {
-                    clip box { at: ovr.x, ovr.y; size: ovr.tw, ovr.th; corner: 6 * ovu }
+                    clip box { at: ovr.x, ovr.y; size: ovr.tw, ovr.th; corner: 6 * ovu * (1 - 0.73 * cy_k) }
                     image ovw.$n.thumb { at: ovr.x - ovr.tw / 2, ovr.y - ovr.th / 2; size: ovr.tw, ovr.th; show: ovw.$n.snap }
                     //  No picture taken yet: the app's icon.
                     image ovw.$n.icon { at: floor(ovr.x - 11 * ovu + 0.5), floor(ovr.y - 11 * ovu + 0.5); size: floor(22 * ovu + 0.5), floor(22 * ovu + 0.5); show: not ovw.$n.snap and ovr.tw > 100 * ovu }
                     box { at: ovr.x, ovr.y; size: ovr.tw, ovr.th; color: #ffffff; opacity: 10% * ov_rz.$n.hover }
                 }
-                box { at: ovr.x, ovr.y; size: ovr.tw, ovr.th; corner: 6 * ovu; stroke: if(ovw.$n.active, 2 * ovu, 1.2 * ovu); color: if(ovw.$n.active, mint, #ffffff); opacity: if(ovw.$n.active, 100%, 16% + 34% * ov_rz.$n.hover) }
+                box { at: ovr.x, ovr.y; size: ovr.tw, ovr.th; corner: 6 * ovu * (1 - 0.73 * cy_k); stroke: if(ovw.$n.active, 2 * ovu, 1.2 * ovu); color: if(ovw.$n.active, mint, mix(#ffffff, mint, cy_k)); opacity: if(ovw.$n.active, 100%, 16% + 34% * ov_rz.$n.hover + 24% * cy_k) }
             }
-            zone box ov_rz.$n { at: ovr.x, ovr.y; size: ovr.tw, ovr.th; corner: 6 * ovu; cursor: pointer; active: ovr.on and ov_show > 0.5 }
+            zone box ov_rz.$n { at: ovr.x, ovr.y; size: ovr.tw, ovr.th; corner: 6 * ovu * (1 - 0.73 * cy_k); cursor: pointer; active: ovr.on and ov_show > 0.5 }
             on enter ov_rz.$n { ov_hot = n }
             on away ov_rz.$n for 80ms while ov_hot == n { ov_hot = -1 }
             on press ov_rz.$n { ov_drag = n; ov_dx = 0; ov_dy = 0; ov_px = pointer.x; ov_py = pointer.y }
@@ -168,16 +182,16 @@ part Overview {
                     color: #05070d
                     opacity: 40%
                     shadow: 0, 12 * ovu, 26 * ovu, 70%, #000000
-                    box { at: ovm.x, ovm.y; size: ovg.tw, ovg.th; corner: 9 * ovu }
+                    box { at: ovm.x, ovm.y; size: ovg.tw, ovg.th; corner: 9 * ovu * (1 - 0.73 * cy_k) }
                 }
                 group {
-                    clip box { at: ovm.x, ovm.y; size: ovg.tw, ovg.th; corner: 9 * ovu }
+                    clip box { at: ovm.x, ovm.y; size: ovg.tw, ovg.th; corner: 9 * ovu * (1 - 0.73 * cy_k) }
                     image ovw.$n.thumb { at: ovm.x - ovg.tw / 2, ovm.y - ovg.th / 2; size: ovg.tw, ovg.th; show: ovw.$n.snap }
                     image ovw.$n.icon { at: floor(ovm.x - 11 * ovu + 0.5), floor(ovm.y - 11 * ovu + 0.5); size: floor(22 * ovu + 0.5), floor(22 * ovu + 0.5); show: not ovw.$n.snap }
                     box { at: ovm.x, ovm.y + ovg.th / 2 - 12 * ovu; size: ovg.tw, 24 * ovu; color: #05070d; opacity: 70% }
                     text ovw.$n.title { at: floor(ovm.x - ovg.tw / 2 + 10 * ovu + 0.5), floor(ovm.y + ovg.th / 2 - 12 * ovu + 0.5); anchor: left center; size: 10.5 * ovu; width: ovg.tw - 20 * ovu; lines: 1; color: #f2f4f2; family: "Space Grotesk" }
                 }
-                box { at: ovm.x, ovm.y; size: ovg.tw, ovg.th; corner: 9 * ovu; stroke: 2 * ovu; color: mint }
+                box { at: ovm.x, ovm.y; size: ovg.tw, ovg.th; corner: 9 * ovu * (1 - 0.73 * cy_k); stroke: 2 * ovu; color: mint }
             }
         }
     }

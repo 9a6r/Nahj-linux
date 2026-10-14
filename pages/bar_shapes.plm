@@ -28,14 +28,14 @@ part BarShapes {
             box mdrawer { at: dm.ex, dm.ey; size: dm.ew * (1 + dj.stretch - 0.07 * dm.bell + 0.003 * wobble), dm.eh * (1 - dj.stretch * 0.5 - 0.002 * wobble); corner: mix(min(dm.ew, dm.eh) / 2, rc, clamp(dm0 * 1.6 - 0.1, 0, 1)); blend: (mix((26 + 20 * dm.bell) * u * min(1, dm0 * 4), mix(dj.neck, (26 + 20 * dm.bell) * u * min(1, dm0 * 4), att), lm)) * bk; show: dm0 > 0.004 }
             //  The notches, melted into the frame like the drawers: as tall as the frame while they are in it, and they grow out of it by `nt_vis_*`.
             //  (Moved off the screen outside the Frame layout: `show:` does not take a shape off the glass.)
-            box { at: ccx + if(lm > 0.35, 0, 30000), yo + (lf.t + nt_d * nt_vis_t) / 2; size: nt_w, lf.t + nt_d * nt_vis_t; corner: 9 * cu * (1 - 0.73 * cas_k); blend: (9 * u) * bk }
-            box { at: ccx + if(lm > 0.35, 0, 30000), vb - (lf.t + nt_d * nt_vis_b) / 2; size: nt_w, lf.t + nt_d * nt_vis_b; corner: 9 * cu * (1 - 0.73 * cas_k); blend: (9 * u) * bk }
-            box { at: screen.width - (lf.t + nt_d * nt_vis_r) / 2 + if(lm > 0.35, 0, 30000), vc; size: lf.t + nt_d * nt_vis_r, nt_w; corner: 9 * cu * (1 - 0.73 * cas_k); blend: (9 * u) * bk }
+            box { at: ccx + if(lm > 0.35, 0, 30000), yo + (lf.t + nt_d * nt_vis_t) / 2; size: nt_w, lf.t + nt_d * nt_vis_t; corner: 9 * cu * (1 - 0.73 * sq); blend: (9 * u) * bk }
+            box { at: ccx + if(lm > 0.35, 0, 30000), vb - (lf.t + nt_d * nt_vis_b) / 2; size: nt_w, lf.t + nt_d * nt_vis_b; corner: 9 * cu * (1 - 0.73 * sq); blend: (9 * u) * bk }
+            box { at: screen.width - (lf.t + nt_d * nt_vis_r) / 2 + if(lm > 0.35, 0, 30000), vc; size: lf.t + nt_d * nt_vis_r, nt_w; corner: 9 * cu * (1 - 0.73 * sq); blend: (9 * u) * bk }
             //  The title's small tab: `ptab_d` out of the strip's edge while the title is under the pointer. At rest it is off the screen,
             //  not tucked into the strip: the glass melts shapes that are near each other, and a tucked tab would still bulge the edge.
-            box { at: lf.w - 6 * u + (6 * u + ptab_d * ptab_vis) / 2 + if(lm > 0.35 and ptab_vis > 0.01, 0, 30000), lv.tm; size: 6 * u + ptab_d * ptab_vis, ptab_h; corner: 5 * u * (1 - 0.5 * cas_k); blend: (6 * u * ptab_vis) * bk }
+            box { at: lf.w - 6 * u + (6 * u + ptab_d * ptab_vis) / 2 + if(lm > 0.35 and ptab_vis > 0.01, 0, 30000), lv.tm; size: 6 * u + ptab_d * ptab_vis, ptab_h; corner: 5 * u * (1 - 0.5 * sq); blend: (6 * u * ptab_vis) * bk }
             //  Along the top it hangs from the pill's bottom edge instead, under the title button.
-            box { at: ptab_ix + if(lm < 0.65 and ptab_vis > 0.01, 0, 30000), bar.y + bar.h / 2 - 6 * u + (6 * u + ptab_d * ptab_vis) / 2; size: ptab_iw, 6 * u + ptab_d * ptab_vis; corner: 5 * u * (1 - 0.5 * cas_k); blend: (6 * u * ptab_vis) * bk }
+            box { at: ptab_ix + if(lm < 0.65 and ptab_vis > 0.01, 0, 30000), bar.y + bar.h / 2 - 6 * u + (6 * u + ptab_d * ptab_vis) / 2; size: ptab_iw, 6 * u + ptab_d * ptab_vis; corner: 5 * u * (1 - 0.5 * sq); blend: (6 * u * ptab_vis) * bk }
             //  The title's panel's ripple (see `tprip`): the two crests run out along the strip's edge from the panel, as a drop's do. Off the screen when it is not running.
             ellipse { at: lf.w + if(tq.act > 0.5, 0, 30000), lp.cy - tq.x; radius: 9 * u; scale: tq.h / (9 * u), 1; blend: (8 * u * clamp(tq.h / (3 * u), 0, 1)) * bk }
             ellipse { at: lf.w + if(tq.act > 0.5, 0, 30000), lp.cy + tq.x; radius: 9 * u; scale: tq.h / (9 * u), 1; blend: (8 * u * clamp(tq.h / (3 * u), 0, 1)) * bk }
@@ -44,7 +44,7 @@ part BarShapes {
             ellipse { at: screen.width - lf.t + dz.rpx, dz.fy - dz.ripx; radius: 9 * u; scale: max(dz.riph, 0.3) / (9 * u), 1; blend: (8 * u * clamp(dz.riph / (3 * u), 0, 1)) * bk }
             ellipse { at: screen.width - lf.t + dz.rpx, dz.fy + dz.ripx; radius: 9 * u; scale: max(dz.riph, 0.3) / (9 * u), 1; blend: (8 * u * clamp(dz.riph / (3 * u), 0, 1)) * bk }
             ellipse { at: screen.width - lf.t - dz.stray * 0.7 + dz.px, dz.fy; radius: max(dz.stray, 0.3); blend: (7 * u * clamp(dz.stray / (3 * u), 0, 1)) * bk }
-            box zdrawer { at: dz.fx + if(lm > 0.5, 0, 30000), dz.fcy; size: dz.fw * (1 + dz.stretch - 0.07 * dz.bell), dz.fh * (1 - dz.stretch * 0.5); corner: mix(min(dz.fw, dz.fh) / 2, 26 * u * desk_s * (1 - 0.73 * cas_k), clamp(dz0 * 1.6 - 0.1, 0, 1)); blend: ((26 + 20 * dz.bell) * u * min(1, dz0 * 4)) * bk; show: dz0 > 0.004 }
+            box zdrawer { at: dz.fx + if(lm > 0.5, 0, 30000), dz.fcy; size: dz.fw * (1 + dz.stretch - 0.07 * dz.bell), dz.fh * (1 - dz.stretch * 0.5); corner: mix(min(dz.fw, dz.fh) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)); blend: ((26 + 20 * dz.bell) * u * min(1, dz0 * 4)) * bk; show: dz0 > 0.004 }
             //  The floating media card's side of the frame (`mf.f*`): the same, melted into the frame where it is carried against it.
-            box { at: mf.fx + if(lm > 0.5, 0, 30000), mf.fcy; size: max(0.3, mf.fw * mf.g), max(0.3, mf.fh * mf.g); corner: mix(min(mf.fw, mf.fh) / 2, 26 * u * mf.k * (1 - 0.73 * cas_k), clamp(mf.g * 1.6 - 0.1, 0, 1)); blend: (26 * u * min(1, mf.g * 4)) * bk; show: mf.g > 0.004 }
+            box { at: mf.fx + if(lm > 0.5, 0, 30000), mf.fcy; size: max(0.3, mf.fw * mf.g), max(0.3, mf.fh * mf.g); corner: mix(min(mf.fw, mf.fh) / 2, 26 * u * mf.k * (1 - 0.73 * sq), clamp(mf.g * 1.6 - 0.1, 0, 1)); blend: (26 * u * min(1, mf.g * 4)) * bk; show: mf.g > 0.004 }
 }

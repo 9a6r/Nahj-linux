@@ -3,7 +3,7 @@ part OsdDrawer {
     //  (the same 8% veil as the others), 12 in from the drawer's edge; `osd_kind` picks which is drawn.
     group {
         shader: pixelate, px.do
-        clip inset 2 box { at: mix(do.ix, do.ex, lm), do.ey; size: mix(do.iw, do.ew, lm), do.eh; corner: 26 * u * (1 - 0.73 * cas_k) }
+        clip inset 2 box { at: mix(do.ix, do.ex, lm), do.ey; size: mix(do.iw, do.ew, lm), do.eh; corner: 26 * u * (1 - 0.73 * sq) }
         opacity: fo
         move: 0, (1 - fo) * 12 * u
         //  The same as the calendar's: what is inside grows with the drawer, from the edge it comes out of (the strip's, or the right frame's for the volume and the notifications, which grow leftwards).

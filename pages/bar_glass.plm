@@ -356,10 +356,12 @@ part BarGlass {
         group {
             show: cy_k > 0.01 and dz0 > 0.9
             opacity: cy_k * clamp(dz0 * 3 - 2, 0, 1)
-            let cydzl = dz.six - dz.siw / 2
-            let cydzr = dz.six + dz.siw / 2
-            let cydzt = dz.siy - dz.sih / 2
-            let cydzb = min(dz.siy + dz.sih / 2, vb - lf.t - 1)
+            //  The glass the Desk's body is drawn as (`dz.f*`, as `box zdrawer` has it), not the rectangle it would have along the top (`dz.s*`): in the frame
+            //  layout the two differ by a few pixels, and the corner lines stood off the glass unevenly.
+            let cydzl = dz.fl
+            let cydzr = dz.fr
+            let cydzt = dz.ft
+            let cydzb = min(dz.fb, vb - lf.t - 1)
             shader matrix { at: cydzl, cydzt; size: cydzr - cydzl, cydzb - cydzt; corner: 24 * u; values: 0.28, 1; colors: mint, minthi }
             repeat cydzc in 0..4 {
                 let cydzx = if(mod(cydzc, 2) == 0, cydzl - 7 * u, cydzr + 7 * u)
