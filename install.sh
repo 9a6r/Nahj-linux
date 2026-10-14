@@ -496,7 +496,9 @@ fi
 # ── start with the desktop ─────────────────────────────────────────────────
 # Each scene runs under bin/vitreus-keep, which starts it again if it stops while the session lasts.
 line="vitreus-keep $dest/vitreus.plm \"\$HOME/.local/share/pleamar/vitreus/vitreus.log\""
-lockline="vitreus-keep $dest/lockscreen/lockscreen.plm"
+# PLEAMAR_SWAPCHAIN=1: pleamar 0.4's own frames let the lock commit its region before its first frame, and Hyprland kills a lock
+# surface for that ("Null buffer attached"): the lock screen died the moment it showed. Take it out once pleamar fixes it.
+lockline="PLEAMAR_SWAPCHAIN=1 vitreus-keep $dest/lockscreen/lockscreen.plm"
 transline="vitreus-keep $dest/wptrans/wptrans.plm"
 clockline="vitreus-keep $dest/desktopclock/desktopclock.plm"
 sysmonline="vitreus-keep $dest/desktopsysmon/desktopsysmon.plm"
@@ -517,7 +519,12 @@ if $do_autostart; then
     fi
     # The lock screen is a scene of its own (a session lock has to be its own program, so that restarting the shell cannot unlock
     # the session), and the lock buttons and SUPER + L only work while it runs: it always starts with the desktop.
-    if [ -f "$autostart" ] && grep -q 'lockscreen/lockscreen.plm' "$autostart"; then
+    if [ -f "$autostart" ] && grep -q "^vitreus-keep $dest/lockscreen/lockscreen\.plm" "$autostart"; then
+        if $dry; then echo "    would start the lock screen in $autostart with PLEAMAR_SWAPCHAIN=1"; else
+            sed -i "s|^vitreus-keep \($dest/lockscreen/lockscreen\.plm\)|PLEAMAR_SWAPCHAIN=1 vitreus-keep \1|" "$autostart"
+            say "the lock screen in $autostart now starts with PLEAMAR_SWAPCHAIN=1 (pleamar 0.4 otherwise crashes it on lock)"
+        fi
+    elif [ -f "$autostart" ] && grep -q 'lockscreen/lockscreen.plm' "$autostart"; then
         say "the lock screen is already in $autostart"
     else
         run mkdir -p "$(dirname "$autostart")"
