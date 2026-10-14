@@ -16,6 +16,12 @@ scene Snap {
     //  2 UwU (candy plastic: a pastel gradient, a thick grape outline, a hard pink shadow, cat ears), 3 Cyber (near-black glass, a neon hairline,
     //  magenta corner brackets). The colours are Vitreus's own already (../palette.plm), whichever the look.
     fact look = 0
+    //  1 for the whole screen (Controls > Screen, Shift+Print): the picture is taken as it is, shown smaller with the bar underneath, and `vs`, `vx`, `vy` are its scale and
+    //  where its corner is (1, 0, 0 when it fills the screen). The logic sets `full`; the scene lays the picture out.
+    fact full = 0
+    fact vs = 1
+    fact vx = 0
+    fact vy = 0
     let pink_shadow = mix(deep, #ff6ec7, 0.75)
     text shot_path = ""    // the picture: its file, `?` and a number
     image shot = from shot_path, 1920, 1080
@@ -23,8 +29,8 @@ scene Snap {
     event do_save ->
     event do_quit ->
 
-    fact tool = 3          // 0 select, 1 crop, 2 pen, 3 arrow, 4 rectangle, 5 ellipse, 6 text, 7 marker, 8 blur, 9 highlighter, 10 eraser
-    fact col = 0           // which of the five colours
+    fact tool = 1          // 0 select, 1 move the area, 2 pen, 3 arrow, 4 rectangle, 5 ellipse, 6 text, 7 marker, 8 blur, 9 highlighter, 10 eraser
+    fact col = 0           // which of the nine colours (red, orange, yellow, green, blue, indigo, violet, white, black)
     fact sz = 1            // the stroke size: 0 thin, 1 medium, 2 thick (each tool turns it into its own width, see snap.luau)
 
     //  What is drawn on the picture. The logic keeps the marks (and their history, for undo); the scene draws them. Coordinates are the scene's.
@@ -68,7 +74,7 @@ scene Snap {
     //  shows undimmed with an outline, and a click (not a drag) picks it.
     model wins max 32 { x: number; y: number; w: number; h: number }
     //  Dragging the picture out: the logic keeps a finished copy (marks and all) in the runtime folder, made again a moment after each change;
-    //  `drag_ready` while the one there is up to date. Dropped somewhere, Snap is done.
+    //  `drag_ready` while the one there is up to date. Once it is dragged out, Snap hides (see do_dropped in snap.luau) and quits a while later.
     text drag_path = ""
     fact drag_ready = false
     event do_dropped ->
@@ -86,8 +92,8 @@ scene Snap {
     spring pop = 230, 17
     prop toast_k = 0 ~pop
     follow toast_k = if(toast_on, 1, 0)
-    prop hx = 0 ~pop
-    prop cx_ = 0 ~pop
+    prop ti = 0 ~pop       // which tool and which colour the beads are at: sprung as a number, so moving the bar moves them with it (no lag)
+    prop ci = 0 ~pop
     prop pv = 0 ~pop
 
     let W = screen.width
@@ -113,7 +119,7 @@ scene Snap {
     //  One grid for the whole bar: the icon buttons 40 apart (the tools, undo and redo, drag, text, private), the colours 26 apart, each hairline
     //  24 from what is either side of it, and the same 7 px round the ends (a bead's edge to the bar's). `tl` is the first tool's middle, `abx`
     //  the hairline before undo; everything after it is measured from there.
-    let bw_ = 1074
+    let bw_ = 1178
     let tbx = clamp(sx + sw / 2 - bw_ / 2, 16, max(16, W - bw_ - 16))
     let ears_ = if(look == 2, 16, 0)
     let below_ = sy + sh + 22 + ears_
@@ -121,12 +127,14 @@ scene Snap {
     let tby = if(below_ + 52 + 34 <= H, below_, if(above_ >= 8 + ears_ * 2, above_, H - 52 - 50))
     let tl = tbx + 26
     let ty = tby + 26
-    let abx = tbx + 650
+    let abx = tbx + 754
 
     let cyc = if(sy > 40, sy - 34, sy + 8)
     follow pv = if(phase == 2, 1, 0)
-    follow hx = tl + tool * 40
-    follow cx_ = tbx + 474 + col * 26
+    follow ti = tool
+    follow ci = col
+    let hx = tl + ti * 40
+    let cx_ = tbx + 474 + ci * 26
 
     //  A tooltip over a button of the bar: its words in a small chip, in the look's material. `w` is worked out from the words' length (and the
     //  look's typeface, some of which run wide); `x` is the button's middle.
@@ -170,7 +178,10 @@ scene Snap {
     }
 
     //  ── The frozen screen ───────────────────────────────────────────────────────────────────────────────────────
-    image shot { at: 0, 0; size: W, H; show: phase > 0 }
+    image shot { at: 0, 0; size: W, H; show: phase > 0 and full == 0 }
+    //  the whole-screen picture: the screen behind it, blurred and dimmed, and the picture smaller in front, with the bar under it
+    group { show: phase > 0 and full == 1; blur: 14; image shot { at: 0, 0; size: W, H } }
+    image shot { at: vx, vy; size: W * vs, H * vs; show: phase > 0 and full == 1 }
 
     //  ── The marks, inside the selection only (what is outside it is not in the picture) ─────────────────────────────────
     //  In the order the picture gets them (snap.luau, `export`): blur, highlighter, shapes, pen, markers, text. A mark that Select is dragging is drawn moved
@@ -184,36 +195,36 @@ scene Snap {
                 clip inset 0 box { from: r.x0 + if(r.index == selm, mvx, 0), r.y0 + if(r.index == selm, mvy, 0); size: max(1, r.x1 - r.x0), max(1, r.y1 - r.y0) }
                 group {
                     blur: 12
-                    image shot { at: 0, 0; size: W, H }
+                    image shot { at: vx, vy; size: W * vs, H * vs }
                 }
             }
         }
         group {
             opacity: 42%
             for sg in segs {
-                line { from: sg.x0 + if(sg.m == selm, mvx, 0), sg.y0 + if(sg.m == selm, mvy, 0); to: sg.x1 + if(sg.m == selm, mvx, 0), sg.y1 + if(sg.m == selm, mvy, 0); width: sg.w; color: pick(sg.c, #ff6b6b, #ffc857, mint, #5cc8ff, #ffffff); show: sg.hl == 1 }
+                line { from: sg.x0 + if(sg.m == selm, mvx, 0), sg.y0 + if(sg.m == selm, mvy, 0); to: sg.x1 + if(sg.m == selm, mvx, 0), sg.y1 + if(sg.m == selm, mvy, 0); width: sg.w; color: pick(sg.c, #ff5c5c, #ff9f45, #ffd93d, #5fd068, #3fa9ff, #5b5bf0, #b66cff, #ffffff, #000000); show: sg.hl == 1 }
             }
         }
         for r in marks {
-            Shape(r.k, r.x0 + if(r.index == selm, mvx, 0), r.y0 + if(r.index == selm, mvy, 0), r.x1 + if(r.index == selm, mvx, 0), r.y1 + if(r.index == selm, mvy, 0), pick(r.c, #ff6b6b, #ffc857, mint, #5cc8ff, #ffffff), r.w)
+            Shape(r.k, r.x0 + if(r.index == selm, mvx, 0), r.y0 + if(r.index == selm, mvy, 0), r.x1 + if(r.index == selm, mvx, 0), r.y1 + if(r.index == selm, mvy, 0), pick(r.c, #ff5c5c, #ff9f45, #ffd93d, #5fd068, #3fa9ff, #5b5bf0, #b66cff, #ffffff, #000000), r.w)
         }
         for sg in segs {
-            line { from: sg.x0 + if(sg.m == selm, mvx, 0), sg.y0 + if(sg.m == selm, mvy, 0); to: sg.x1 + if(sg.m == selm, mvx, 0), sg.y1 + if(sg.m == selm, mvy, 0); width: sg.w; color: pick(sg.c, #ff6b6b, #ffc857, mint, #5cc8ff, #ffffff); show: sg.hl == 0 }
+            line { from: sg.x0 + if(sg.m == selm, mvx, 0), sg.y0 + if(sg.m == selm, mvy, 0); to: sg.x1 + if(sg.m == selm, mvx, 0), sg.y1 + if(sg.m == selm, mvy, 0); width: sg.w; color: pick(sg.c, #ff5c5c, #ff9f45, #ffd93d, #5fd068, #3fa9ff, #5b5bf0, #b66cff, #ffffff, #000000); show: sg.hl == 0 }
         }
         for r in marks {
-            ellipse { at: r.x0 + if(r.index == selm, mvx, 0), r.y0 + if(r.index == selm, mvy, 0); radius: r.w; color: pick(r.c, #ff6b6b, #ffc857, mint, #5cc8ff, #ffffff); show: r.k == 7 }
+            ellipse { at: r.x0 + if(r.index == selm, mvx, 0), r.y0 + if(r.index == selm, mvy, 0); radius: r.w; color: pick(r.c, #ff5c5c, #ff9f45, #ffd93d, #5fd068, #3fa9ff, #5b5bf0, #b66cff, #ffffff, #000000); show: r.k == 7 }
             //  a text's size is a fixed number, so the words are drawn at one size and scaled to the mark's
             group {
                 show: r.k == 7
                 pivot: r.x0 + if(r.index == selm, mvx, 0), r.y0 + if(r.index == selm, mvy, 0)
                 scale: r.w / 16
-                text number(r.n, 0) { at: r.x0 + if(r.index == selm, mvx, 0), r.y0 + if(r.index == selm, mvy, 0); anchor: center; size: 18; weight: 800; color: #10161a; family: "Space Grotesk" }
+                text number(r.n, 0) { at: r.x0 + if(r.index == selm, mvx, 0), r.y0 + if(r.index == selm, mvy, 0); anchor: center; size: 18; weight: 800; color: if(r.c == 8, #ffffff, #10161a); family: "Space Grotesk" }
             }
             group {
                 show: r.k == 6
                 pivot: r.x0 + if(r.index == selm, mvx, 0), r.y0 + if(r.index == selm, mvy, 0)
                 scale: r.w / 26
-                text r.s { at: r.x0 + if(r.index == selm, mvx, 0), r.y0 + if(r.index == selm, mvy, 0); anchor: left center; size: 26; weight: 700; color: pick(r.c, #ff6b6b, #ffc857, mint, #5cc8ff, #ffffff); family: "Space Grotesk" }
+                text r.s { at: r.x0 + if(r.index == selm, mvx, 0), r.y0 + if(r.index == selm, mvy, 0); anchor: left center; size: 26; weight: 700; color: pick(r.c, #ff5c5c, #ff9f45, #ffd93d, #5fd068, #3fa9ff, #5b5bf0, #b66cff, #ffffff, #000000); family: "Space Grotesk" }
             }
             //  the one Select picked: a hairline round it
             box { from: r.bx0 - 6 + if(r.index == selm, mvx, 0), r.by0 - 6 + if(r.index == selm, mvy, 0); size: r.bx1 - r.bx0 + 12, r.by1 - r.by0 + 12; corner: 6; stroke: 1.4; color: ink; opacity: 85%; show: r.index == selm and tool == 0 }
@@ -221,7 +232,7 @@ scene Snap {
         //  the shape being dragged out
         group {
             show: dragging == 1 and tool >= 3 and tool <= 5
-            Shape(tool, ax, ay, qx, qy, pick(col, #ff6b6b, #ffc857, mint, #5cc8ff, #ffffff), pick(sz, 3, 5, 9))
+            Shape(tool, ax, ay, qx, qy, pick(col, #ff5c5c, #ff9f45, #ffd93d, #5fd068, #3fa9ff, #5b5bf0, #b66cff, #ffffff, #000000), pick(sz, 3, 5, 9))
         }
         box { from: min(ax, qx), min(ay, qy); size: max(1, abs(qx - ax)), max(1, abs(qy - ay)); corner: 3; color: ink; opacity: 14%; show: dragging == 1 and tool == 8 }
         box { from: min(ax, qx), min(ay, qy); size: max(1, abs(qx - ax)), max(1, abs(qy - ay)); corner: 3; stroke: 1.5; color: ink; opacity: 80%; show: dragging == 1 and tool == 8 }
@@ -233,7 +244,7 @@ scene Snap {
         show: typing == 1
         pivot: tx, ty_
         scale: pick(sz, 18, 26, 38) / 26
-        input tq { at: tx, ty_; width: 640; size: 26; weight: 700; color: pick(col, #ff6b6b, #ffc857, mint, #5cc8ff, #ffffff); family: "Space Grotesk"; placeholder: "Type, then Enter"; label: "Text on the picture" }
+        input tq { at: tx, ty_; width: 640; size: 26; weight: 700; color: pick(col, #ff5c5c, #ff9f45, #ffd93d, #5fd068, #3fa9ff, #5b5bf0, #b66cff, #ffffff, #000000); family: "Space Grotesk"; placeholder: "Type, then Enter"; label: "Text on the picture" }
     }
 
     //  Everything outside the selection is dimmed
@@ -278,7 +289,7 @@ scene Snap {
     //  ── Dragging out a selection ───────────────────────────────────────────────────────────────────────────────────
     //  Under everything else, so a press on the selection or its handles is theirs; a press anywhere else begins a new selection. A drag belongs to every zone that was under the press,
     //  so this one only follows it if the press itself was on the bare screen (`picking`): a click on a button that moves a pixel is not a new selection.
-    zone box zpick { from: 0, 0; size: W, H; cursor: crosshair; active: phase > 0 }
+    zone box zpick { from: 0, 0; size: W, H; cursor: crosshair; active: phase > 0 and full == 0 }
     on press zpick { picking = 1; x0 = pointer.x; y0 = pointer.y; phase = 1; sw = 0; sh = 0 }
     on drag zpick while picking == 1 {
         sx = min(x0, clamp(x0 + drag.dx, 0, W))
@@ -288,6 +299,9 @@ scene Snap {
     }
     on release zpick { picking = 0; phase = if(sw > 8 and sh > 8, 2, 1) }
     on change phase { scrw = W }
+    //  The whole screen: the picture shrinks to leave room under it for the bar (the margin above, and 130 below its edge), centred, and is the selection
+    //  already. Only the picture itself can be cropped then: the drag and the handles stay inside it (vx, vy, vs).
+    on change full while full == 1 { vs = (H - 166) / H; vx = (W - W * (H - 166) / H) / 2; vy = 36; sx = vx; sy = 36; sw = W * vs; sh = H * vs; scrw = W; phase = 2 }
 
     //  ── Windows ─────────────────────────────────────────────────────────────────────────────────────────────────
     //  Over the bare screen, under the selection and its handles: a press here begins a selection as on the bare screen (the drag then goes to
@@ -304,7 +318,7 @@ scene Snap {
             image shot { at: 0, 0; size: W, H }
         }
         box { from: wa, wb; size: max(1, wc - wa), max(1, wd - wb); corner: pick(look, 6, 0, 8, 0); stroke: pick(look, 2, 2.2, 3, 1.5); color: mint; show: phase == 1 and sw <= 8 and wz.$i.hover > 0.5 }
-        zone box wz.$i { from: wa, wb; size: max(1, wc - wa), max(1, wd - wb); cursor: crosshair; active: phase > 0 and wc - wa > 4 and wd - wb > 4; label: "Window" }
+        zone box wz.$i { from: wa, wb; size: max(1, wc - wa), max(1, wd - wb); cursor: crosshair; active: phase > 0 and full == 0 and wc - wa > 4 and wd - wb > 4; label: "Window" }
         on press wz.$i { picking = 1; x0 = pointer.x; y0 = pointer.y; phase = 1; sw = 0; sh = 0 }
         on release wz.$i while sw > 8 and sh > 8 { picking = 0; phase = 2 }
         on release wz.$i while not (sw > 8 and sh > 8) { picking = 0; sx = wa; sy = wb; sw = wc - wa; sh = wd - wb; phase = 2 }
@@ -312,10 +326,10 @@ scene Snap {
 
     //  ── Moving and resizing the selection ──────────────────────────────────────────────────────────────────────
     //  The body carries it. The handles come after, so they win where they overlap it. A handle pulls its own side or corner; the rest stays where it was when the press began.
-    //  Only with Crop: with the other tools a press inside the selection draws (below).
+    //  Only with Move: with the other tools a press inside the selection draws (below).
     zone box zsel { from: sx + 6, sy + 6; size: max(1, sw - 12), max(1, sh - 12); cursor: grab; active: phase == 2 and tool == 1 }
     on press zsel { bx = sx; by = sy }
-    on drag zsel { sx = clamp(bx + drag.dx, 0, W - sw); sy = clamp(by + drag.dy, 0, H - sh) }
+    on drag zsel { sx = clamp(bx + drag.dx, vx, vx + W * vs - sw); sy = clamp(by + drag.dy, vy, vy + H * vs - sh) }
 
     //  ── Drawing ─────────────────────────────────────────────────────────────────────────────────────────────────
     //  Select: a press picks the mark under it (the logic looks), a drag moves it.
@@ -341,32 +355,32 @@ scene Snap {
     zone box zh0 { at: sx + 0 * sw, sy + 0 * sh; size: 26, 26; corner: 13; cursor: nwse_resize; active: phase == 2 }
     on press zh0 { bx = sx; by = sy; bw = sw; bh = sh }
     on drag zh0 {
-        sx = clamp(bx + drag.dx, 0, bx + bw - 24)
-        sw = bw + bx - clamp(bx + drag.dx, 0, bx + bw - 24)
-        sy = clamp(by + drag.dy, 0, by + bh - 24)
-        sh = bh + by - clamp(by + drag.dy, 0, by + bh - 24)
+        sx = clamp(bx + drag.dx, vx, bx + bw - 24)
+        sw = bw + bx - clamp(bx + drag.dx, vx, bx + bw - 24)
+        sy = clamp(by + drag.dy, vy, by + bh - 24)
+        sh = bh + by - clamp(by + drag.dy, vy, by + bh - 24)
     }
     zone box zh1 { at: sx + 0.5 * sw, sy + 0 * sh; size: 26, 26; corner: 13; cursor: ns_resize; active: phase == 2 }
     on press zh1 { bx = sx; by = sy; bw = sw; bh = sh }
     on drag zh1 {
         sx = bx
         sw = bw
-        sy = clamp(by + drag.dy, 0, by + bh - 24)
-        sh = bh + by - clamp(by + drag.dy, 0, by + bh - 24)
+        sy = clamp(by + drag.dy, vy, by + bh - 24)
+        sh = bh + by - clamp(by + drag.dy, vy, by + bh - 24)
     }
     zone box zh2 { at: sx + 1 * sw, sy + 0 * sh; size: 26, 26; corner: 13; cursor: nesw_resize; active: phase == 2 }
     on press zh2 { bx = sx; by = sy; bw = sw; bh = sh }
     on drag zh2 {
         sx = bx
-        sw = clamp(bw + drag.dx, 24, W - bx)
-        sy = clamp(by + drag.dy, 0, by + bh - 24)
-        sh = bh + by - clamp(by + drag.dy, 0, by + bh - 24)
+        sw = clamp(bw + drag.dx, 24, vx + W * vs - bx)
+        sy = clamp(by + drag.dy, vy, by + bh - 24)
+        sh = bh + by - clamp(by + drag.dy, vy, by + bh - 24)
     }
     zone box zh3 { at: sx + 1 * sw, sy + 0.5 * sh; size: 26, 26; corner: 13; cursor: ew_resize; active: phase == 2 }
     on press zh3 { bx = sx; by = sy; bw = sw; bh = sh }
     on drag zh3 {
         sx = bx
-        sw = clamp(bw + drag.dx, 24, W - bx)
+        sw = clamp(bw + drag.dx, 24, vx + W * vs - bx)
         sy = by
         sh = bh
     }
@@ -374,9 +388,9 @@ scene Snap {
     on press zh4 { bx = sx; by = sy; bw = sw; bh = sh }
     on drag zh4 {
         sx = bx
-        sw = clamp(bw + drag.dx, 24, W - bx)
+        sw = clamp(bw + drag.dx, 24, vx + W * vs - bx)
         sy = by
-        sh = clamp(bh + drag.dy, 24, H - by)
+        sh = clamp(bh + drag.dy, 24, vy + H * vs - by)
     }
     zone box zh5 { at: sx + 0.5 * sw, sy + 1 * sh; size: 26, 26; corner: 13; cursor: ns_resize; active: phase == 2 }
     on press zh5 { bx = sx; by = sy; bw = sw; bh = sh }
@@ -384,21 +398,21 @@ scene Snap {
         sx = bx
         sw = bw
         sy = by
-        sh = clamp(bh + drag.dy, 24, H - by)
+        sh = clamp(bh + drag.dy, 24, vy + H * vs - by)
     }
     zone box zh6 { at: sx + 0 * sw, sy + 1 * sh; size: 26, 26; corner: 13; cursor: nesw_resize; active: phase == 2 }
     on press zh6 { bx = sx; by = sy; bw = sw; bh = sh }
     on drag zh6 {
-        sx = clamp(bx + drag.dx, 0, bx + bw - 24)
-        sw = bw + bx - clamp(bx + drag.dx, 0, bx + bw - 24)
+        sx = clamp(bx + drag.dx, vx, bx + bw - 24)
+        sw = bw + bx - clamp(bx + drag.dx, vx, bx + bw - 24)
         sy = by
-        sh = clamp(bh + drag.dy, 24, H - by)
+        sh = clamp(bh + drag.dy, 24, vy + H * vs - by)
     }
     zone box zh7 { at: sx + 0 * sw, sy + 0.5 * sh; size: 26, 26; corner: 13; cursor: ew_resize; active: phase == 2 }
     on press zh7 { bx = sx; by = sy; bw = sw; bh = sh }
     on drag zh7 {
-        sx = clamp(bx + drag.dx, 0, bx + bw - 24)
-        sw = bw + bx - clamp(bx + drag.dx, 0, bx + bw - 24)
+        sx = clamp(bx + drag.dx, vx, bx + bw - 24)
+        sw = bw + bx - clamp(bx + drag.dx, vx, bx + bw - 24)
         sy = by
         sh = bh
     }
@@ -510,9 +524,13 @@ scene Snap {
         move: 0, 14 * (1 - pv)
         //  0 select
         path { at: tl + 0 * 40, ty; color: mix(ink, onmint, tool == 0); move -5, -8; line -5, 8; line -1, 4; line 3, 10; line 5, 9; line 1, 3; line 6, 3; close }
-        //  1 crop
-        path { at: tl + 1 * 40, ty; stroke: 2.2; color: mix(ink, onmint, tool == 1); move -4, -9; line -4, 4; line 9, 4 }
-        path { at: tl + 1 * 40, ty; stroke: 2.2; color: mix(ink, onmint, tool == 1); move -9, -4; line 4, -4; line 4, 9 }
+        //  1 move the area: a cross with an arrowhead at each end
+        path { at: tl + 1 * 40, ty; stroke: 2.2; color: mix(ink, onmint, tool == 1); move -9, 0; line 9, 0 }
+        path { at: tl + 1 * 40, ty; stroke: 2.2; color: mix(ink, onmint, tool == 1); move 0, -9; line 0, 9 }
+        path { at: tl + 1 * 40, ty; stroke: 2.2; color: mix(ink, onmint, tool == 1); move -6, -3; line -9, 0; line -6, 3 }
+        path { at: tl + 1 * 40, ty; stroke: 2.2; color: mix(ink, onmint, tool == 1); move 6, -3; line 9, 0; line 6, 3 }
+        path { at: tl + 1 * 40, ty; stroke: 2.2; color: mix(ink, onmint, tool == 1); move -3, -6; line 0, -9; line 3, -6 }
+        path { at: tl + 1 * 40, ty; stroke: 2.2; color: mix(ink, onmint, tool == 1); move -3, 6; line 0, 9; line 3, 6 }
         //  2 pen
         path { at: tl + 2 * 40, ty; stroke: 2.4; color: mix(ink, onmint, tool == 2); move -9, 5; curve -2, -3 via -6, -9; curve 4, 3 via 2, 6; curve 9, -5 via 8, 0 }
         //  3 arrow
@@ -539,7 +557,7 @@ scene Snap {
         box { at: tl + 10 * 40 + 5, ty + 8; size: 14, 3; corner: 1; color: mix(ink, onmint, tool == 10); opacity: 70% }
 
         zone box tz0 { at: tl + 0 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Select" }
-        zone box tz1 { at: tl + 1 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Crop" }
+        zone box tz1 { at: tl + 1 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Move the area" }
         zone box tz2 { at: tl + 2 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Pen" }
         zone box tz3 { at: tl + 3 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Arrow" }
         zone box tz4 { at: tl + 4 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Rectangle" }
@@ -564,30 +582,43 @@ scene Snap {
         //  a hairline between the tools and the colours
         box { at: tbx + 450, ty; size: 1, 24; color: ink; opacity: 22% }
 
-        //  the five colours, with a ring that slides to the one picked
+        //  the nine colours (the rainbow from red to violet, then white and black), with a ring that slides to the one picked
         ellipse { at: cx_, ty; radius: 12; stroke: 2; color: ink }
-        ellipse { at: tbx + 474 + 0 * 26, ty; radius: 8; color: #ff6b6b }
-        ellipse { at: tbx + 474 + 1 * 26, ty; radius: 8; color: #ffc857 }
-        ellipse { at: tbx + 474 + 2 * 26, ty; radius: 8; color: mint }
-        ellipse { at: tbx + 474 + 3 * 26, ty; radius: 8; color: #5cc8ff }
-        ellipse { at: tbx + 474 + 4 * 26, ty; radius: 8; color: #ffffff }
-        zone box cz0 { at: tbx + 474 + 0 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Coral" }
-        zone box cz1 { at: tbx + 474 + 1 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Amber" }
-        zone box cz2 { at: tbx + 474 + 2 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Mint" }
-        zone box cz3 { at: tbx + 474 + 3 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Sky" }
-        zone box cz4 { at: tbx + 474 + 4 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "White" }
+        ellipse { at: tbx + 474 + 0 * 26, ty; radius: 8; color: #ff5c5c }
+        ellipse { at: tbx + 474 + 1 * 26, ty; radius: 8; color: #ff9f45 }
+        ellipse { at: tbx + 474 + 2 * 26, ty; radius: 8; color: #ffd93d }
+        ellipse { at: tbx + 474 + 3 * 26, ty; radius: 8; color: #5fd068 }
+        ellipse { at: tbx + 474 + 4 * 26, ty; radius: 8; color: #3fa9ff }
+        ellipse { at: tbx + 474 + 5 * 26, ty; radius: 8; color: #5b5bf0 }
+        ellipse { at: tbx + 474 + 6 * 26, ty; radius: 8; color: #b66cff }
+        ellipse { at: tbx + 474 + 7 * 26, ty; radius: 8; color: #ffffff }
+        ellipse { at: tbx + 474 + 8 * 26, ty; radius: 8; color: #000000 }
+        ellipse { at: tbx + 474 + 8 * 26, ty; radius: 8; stroke: 1; color: #ffffff; opacity: 35% }
+        zone box cz0 { at: tbx + 474 + 0 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Red" }
+        zone box cz1 { at: tbx + 474 + 1 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Orange" }
+        zone box cz2 { at: tbx + 474 + 2 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Yellow" }
+        zone box cz3 { at: tbx + 474 + 3 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Green" }
+        zone box cz4 { at: tbx + 474 + 4 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Blue" }
+        zone box cz5 { at: tbx + 474 + 5 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Indigo" }
+        zone box cz6 { at: tbx + 474 + 6 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Violet" }
+        zone box cz7 { at: tbx + 474 + 7 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "White" }
+        zone box cz8 { at: tbx + 474 + 8 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Black" }
         on press cz0 { col = 0 }
         on press cz1 { col = 1 }
         on press cz2 { col = 2 }
         on press cz3 { col = 3 }
         on press cz4 { col = 4 }
+        on press cz5 { col = 5 }
+        on press cz6 { col = 6 }
+        on press cz7 { col = 7 }
+        on press cz8 { col = 8 }
 
-        box { at: tbx + 602, ty; size: 1, 24; color: ink; opacity: 22% }
+        box { at: tbx + 706, ty; size: 1, 24; color: ink; opacity: 22% }
 
         //  the stroke size: a dot as thick as the line will be
-        ellipse { at: tbx + 626, ty; radius: pick(sz, 2.5, 4, 6); color: ink }
-        ellipse { at: tbx + 626, ty; radius: 11; stroke: 1.2; color: ink; opacity: 35% }
-        zone box zsz { at: tbx + 626, ty; size: 30, 30; corner: 15; cursor: pointer; label: "Stroke size" }
+        ellipse { at: tbx + 730, ty; radius: pick(sz, 2.5, 4, 6); color: ink }
+        ellipse { at: tbx + 730, ty; radius: 11; stroke: 1.2; color: ink; opacity: 35% }
+        zone box zsz { at: tbx + 730, ty; size: 30, 30; corner: 15; cursor: pointer; label: "Stroke size" }
         on press zsz { sz = mod(sz + 1, 3) }
 
         //  ── The actions pill ─────────────────────────────────────────────────────────────────────────────────────────
@@ -695,28 +726,40 @@ scene Snap {
         on hover cz4 for 400ms { tip = 16 }
         on leave cz4 { tip = 0 }
         on press cz4 { tip = 0 }
-        on hover zsz for 400ms { tip = 17 }
+        on hover cz5 for 400ms { tip = 17 }
+        on leave cz5 { tip = 0 }
+        on press cz5 { tip = 0 }
+        on hover cz6 for 400ms { tip = 18 }
+        on leave cz6 { tip = 0 }
+        on press cz6 { tip = 0 }
+        on hover cz7 for 400ms { tip = 19 }
+        on leave cz7 { tip = 0 }
+        on press cz7 { tip = 0 }
+        on hover cz8 for 400ms { tip = 20 }
+        on leave cz8 { tip = 0 }
+        on press cz8 { tip = 0 }
+        on hover zsz for 400ms { tip = 21 }
         on leave zsz { tip = 0 }
         on press zsz { tip = 0 }
-        on hover zundo for 400ms { tip = 18 }
+        on hover zundo for 400ms { tip = 22 }
         on leave zundo { tip = 0 }
         on press zundo { tip = 0 }
-        on hover zredo for 400ms { tip = 19 }
+        on hover zredo for 400ms { tip = 23 }
         on leave zredo { tip = 0 }
         on press zredo { tip = 0 }
-        on hover zdrag for 400ms { tip = 20 }
+        on hover zdrag for 400ms { tip = 24 }
         on leave zdrag { tip = 0 }
         on press zdrag { tip = 0 }
-        on hover zocr for 400ms { tip = 21 }
+        on hover zocr for 400ms { tip = 25 }
         on leave zocr { tip = 0 }
         on press zocr { tip = 0 }
-        on hover zhide for 400ms { tip = 22 }
+        on hover zhide for 400ms { tip = 26 }
         on leave zhide { tip = 0 }
         on press zhide { tip = 0 }
-        on hover zsave for 400ms { tip = 23 }
+        on hover zsave for 400ms { tip = 27 }
         on leave zsave { tip = 0 }
         on press zsave { tip = 0 }
-        on hover zcopy for 400ms { tip = 24 }
+        on hover zcopy for 400ms { tip = 28 }
         on leave zcopy { tip = 0 }
         on press zcopy { tip = 0 }
         Tip(1, tl + 0 * 40, tipy, 183, "Select and move marks")
@@ -730,19 +773,23 @@ scene Snap {
         Tip(9, tl + 8 * 40, tipy, 117, "Blur an area")
         Tip(10, tl + 9 * 40, tipy, 109, "Highlighter")
         Tip(11, tl + 10 * 40, tipy, 72, "Eraser")
-        Tip(12, tbx + 474 + 0 * 26, tipy, 65, "Coral")
-        Tip(13, tbx + 474 + 1 * 26, tipy, 65, "Amber")
-        Tip(14, tbx + 474 + 2 * 26, tipy, 117, "Theme colour")
-        Tip(15, tbx + 474 + 3 * 26, tipy, 50, "Sky")
-        Tip(16, tbx + 474 + 4 * 26, tipy, 65, "White")
-        Tip(17, tbx + 626, tipy, 109, "Stroke size")
-        Tip(18, abx + 24, tipy, 117, "Undo  Ctrl+Z")
-        Tip(19, abx + 64, tipy, 161, "Redo  Ctrl+Shift+Z")
-        Tip(20, abx + 112, tipy, 154, "Drag into any app")
-        Tip(21, abx + 152, tipy, 124, "Copy the text")
-        Tip(22, abx + 192, tipy, 154, "Blur private info")
-        Tip(23, abx + 272, tipy, 117, "Save  Ctrl+S")
-        Tip(24, abx + 368, tipy, 109, "Copy  Enter")
+        Tip(12, tbx + 474 + 0 * 26, tipy, 50, "Red")
+        Tip(13, tbx + 474 + 1 * 26, tipy, 80, "Orange")
+        Tip(14, tbx + 474 + 2 * 26, tipy, 80, "Yellow")
+        Tip(15, tbx + 474 + 3 * 26, tipy, 80, "Green")
+        Tip(16, tbx + 474 + 4 * 26, tipy, 65, "Blue")
+        Tip(17, tbx + 474 + 5 * 26, tipy, 80, "Indigo")
+        Tip(18, tbx + 474 + 6 * 26, tipy, 80, "Violet")
+        Tip(19, tbx + 474 + 7 * 26, tipy, 65, "White")
+        Tip(20, tbx + 474 + 8 * 26, tipy, 65, "Black")
+        Tip(21, tbx + 730, tipy, 109, "Stroke size")
+        Tip(22, abx + 24, tipy, 117, "Undo  Ctrl+Z")
+        Tip(23, abx + 64, tipy, 161, "Redo  Ctrl+Shift+Z")
+        Tip(24, abx + 112, tipy, 154, "Drag into any app")
+        Tip(25, abx + 152, tipy, 124, "Copy the text")
+        Tip(26, abx + 192, tipy, 154, "Blur private info")
+        Tip(27, abx + 272, tipy, 117, "Save  Ctrl+S")
+        Tip(28, abx + 368, tipy, 109, "Copy  Enter")
 
         //  Snap's own word (`toast`): where the tooltips go, over them, a little bigger, in the look's material.
         group {

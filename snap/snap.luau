@@ -5,6 +5,15 @@
 local shot_w = 0       -- the picture's width in pixels: with a scaled monitor it is more than the scene's width
 local dir = nil        -- the runtime folder the picture is in
 
+-- Where the picture is in the scene, as pixels: `k` takes a length in the scene to the picture's (a scaled monitor, or the whole screen shown smaller,
+-- makes it more than 1), and the picked part starts at `cx`, `cy` in the picture.
+local function view()
+    local v = tonumber(fact.vs) or 1
+    if v <= 0 then v = 1 end
+    local k = (shot_w > 0 and fact.scrw > 0) and shot_w / (fact.scrw * v) or 1
+    return k, (fact.sx - (tonumber(fact.vx) or 0)) * k, (fact.sy - (tonumber(fact.vy) or 0)) * k
+end
+
 local function trim(s) return (s or ""):gsub("%s+$", "") end
 
 local function say_quit()
@@ -34,7 +43,7 @@ local function capture()
         .. 'o="$SNAP_OUTPUT"; [ -n "$o" ] || o=$(hyprctl -j monitors 2>/dev/null | jq -r \'.[] | select(.focused) | .name\' 2>/dev/null | head -n 1); '
         .. 'if [ -z "$SNAP_NO_CAPTURE" ]; then grim -l 0 ${o:+-o "$o"} "$d/shot.png" || exit 1; fi; '
         .. 'echo "$d"; od -An -tu1 -j16 -N4 "$d/shot.png" | awk "{ print \\$1 * 16777216 + \\$2 * 65536 + \\$3 * 256 + \\$4 }"; '
-        .. [[l="${SNAP_LOOK-}"; [ -n "$l" ] || l=$(sed -n 's/.*"look": *\([0-9]*\).*/\1/p' "${XDG_DATA_HOME:-$HOME/.local/share}/pleamar/vitreus/iris.json" 2> /dev/null | head -n 1); echo "$l"; ]]
+        .. [[l="${SNAP_LOOK-}"; [ -n "$l" ] || l=$(sed -n 's/.*"look": *\([0-9]*\).*/\1/p' "${XDG_DATA_HOME:-$HOME/.local/share}/pleamar/vitreus/iris.json" 2> /dev/null | head -n 1); echo "$l"; echo "${SNAP_FULL:-0}"; ]]
         -- The windows on that monitor's workspace (and its special one, if it is out), as "x y w h" in the monitor's own plane, bottom first:
         -- tiled under floating, floating under fullscreen, the special workspace over the rest, and among equals the one used last on top.
         -- SNAP_WINDOWS ("x y w h;x y w h") gives them instead, to try it without Hyprland.
@@ -45,18 +54,18 @@ local function capture()
         .. [[| sort_by([(.workspace.id == $mon.specialWorkspace.id), (.fullscreen > 0), .floating, -.focusHistoryID]) ]]
         .. [[| .[] | "\(.at[0] - $mon.x) \(.at[1] - $mon.y) \(.size[0]) \(.size[1])"' 2> /dev/null; fi]]
     run("sh", { "-c", script }, function(out, code)
-        local d, w, look, rest = (out or ""):match("^(.-)\n(%d+)\n(%d*)\n?(.*)$")
+        local d, w, look, whole, rest = (out or ""):match("^(.-)\n(%d+)\n(%d*)\n(%d)\n?(.*)$")
         if code ~= 0 or not d then fail("The screen could not be captured.") return end
         fact.look = LOOKS[look] or 0
         local wins = {}
         for x, y, ww, hh in (rest or ""):gmatch("(%-?%d+) (%-?%d+) (%d+) (%d+)") do
             if #wins < 32 then wins[#wins + 1] = { x = tonumber(x), y = tonumber(y), w = tonumber(ww), h = tonumber(hh) } end
         end
-        model.wins = wins
+        model.wins = whole == "1" and {} or wins
         dir = d
         shot_w = tonumber(w) or 0
         text.shot_path = d .. "/shot.png?1"
-        fact.phase = 1
+        if whole == "1" then fact.full = 1 else fact.phase = 1 end
     end)
 end
 
@@ -302,22 +311,22 @@ end)
 
 -- ── Copy and Save ──────────────────────────────────────────────────────────────────────────────────────────────
 -- The picked part is cut out of the picture and the marks are drawn into it, in the order the scene draws them: blur, highlighter, shapes, pen,
--- markers, text. Everything is scaled from the scene's pixels to the picture's (`k`: more than 1 on a scaled monitor). Mint is the shell's, read
--- from the palette Iris writes, so the picture has the colour that was on screen.
-local COLOURS = { "#ff6b6b", "#ffc857", nil, "#5cc8ff", "#ffffff" }
+-- markers, text. Everything is scaled from the scene's pixels to the picture's (`k`: more than 1 on a scaled monitor). The colours are fixed, the same as the scene's `pick(col, …)` (the shell's mint is no longer one of them).
+-- (`mint` is still read from the palette Iris writes, and passed along).
+local COLOURS = { "#ff5c5c", "#ff9f45", "#ffd93d", "#5fd068", "#3fa9ff", "#5b5bf0", "#b66cff", "#ffffff", "#000000" }  -- as the scene's `pick(col, …)`
 local HL_ALPHA = "6B"   -- the highlighter's 42 %
 
 local function export(mint, out, then_fn, keep_typing)
     if not keep_typing then commit_text() end
-    local k = (shot_w > 0 and fact.scrw > 0) and shot_w / fact.scrw or 1
+    local k, cx, cy = view()
     local ox, oy = fact.sx, fact.sy
     local cw, ch = math.max(1, math.floor(fact.sw * k + 0.5)), math.max(1, math.floor(fact.sh * k + 0.5))
     local function X(x) return (x - ox) * k end
     local function Y(y) return (y - oy) * k end
-    local function colour(c) return (c == 2 and mint) or COLOURS[c + 1] or "#ffffff" end
+    local function colour(c) return COLOURS[c + 1] or "#ffffff" end
     local function f(v) return string.format("%.1f", v) end
 
-    local a = { dir .. "/shot.png", "-crop", string.format("%dx%d+%d+%d", cw, ch, math.floor(ox * k + 0.5), math.floor(oy * k + 0.5)), "+repage",
+    local a = { dir .. "/shot.png", "-crop", string.format("%dx%d+%d+%d", cw, ch, math.floor(cx + 0.5), math.floor(cy + 0.5)), "+repage",
                 "-gravity", "NorthWest" }
     local function push(...) for _, v in ipairs({ ... }) do a[#a + 1] = v end end
     local function polyline(m, col)
@@ -373,7 +382,7 @@ local function export(mint, out, then_fn, keep_typing)
     push("-family", "Space Grotesk", "-stroke", "none")
     for _, m in ipairs(marks) do
         if m.k == MARKER then
-            push("-gravity", "Center", "-weight", "800", "-fill", "#10161a", "-pointsize", f(m.w / 16 * 18 * k),
+            push("-gravity", "Center", "-weight", "800", "-fill", (m.c == 8 and "#ffffff" or "#10161a"), "-pointsize", f(m.w / 16 * 18 * k),
                  "-annotate", string.format("%+d%+d", math.floor(X(m.x0) - cw / 2 + 0.5), math.floor(Y(m.y0) - ch / 2 + 0.5)), tostring(m.n))
         elseif m.k == TEXT then
             push("-gravity", "West", "-weight", "700", "-fill", colour(m.c), "-pointsize", f(m.w * k),
@@ -457,7 +466,13 @@ end
 for _, f in ipairs({ "sx", "sy", "sw", "sh", "phase" }) do on("fact:" .. f, drag_soon) end
 local show_marks = show
 show = function() show_marks(); drag_soon() end
-on("do_dropped", say_quit)
+-- `carry` fires when the drag LEAVES Snap, not when it lands: quitting then took the source away mid-drag, and the drag died with it. Snap covers the
+-- whole screen, so it also has to get out of the way for the drop to reach the program underneath: the phase goes to 0 (nothing drawn, no zone, no
+-- keyboard), and the process stays until the drop has had time to happen.
+on("do_dropped", function()
+    fact.phase = 0
+    after(15000, say_quit)
+end)
 
 -- Snap's own word, over its bar (`toast`): notifications open under Snap while it covers the screen. Gone after `ms` (none: it stays, until the
 -- next word).
@@ -474,9 +489,9 @@ end
 -- tesseract reads the picked part of the picture (not the marks), twice the size and in greys, which reads small screen text much better.
 -- `how` is "" for the text, "tsv" for every word with its box (in those doubled pixels).
 local function read_text(how, fn)
-    local k = (shot_w > 0 and fact.scrw > 0) and shot_w / fact.scrw or 1
+    local k, cx, cy = view()
     local geo = string.format("%dx%d+%d+%d", math.max(1, math.floor(fact.sw * k + 0.5)), math.max(1, math.floor(fact.sh * k + 0.5)),
-        math.floor(fact.sx * k + 0.5), math.floor(fact.sy * k + 0.5))
+        math.floor(cx + 0.5), math.floor(cy + 0.5))
     toast("Reading the text…")
     run("sh", { "-c", 'magick "$1" -crop "$2" +repage -colorspace Gray -resize 200% png:- | tesseract stdin stdout $3 2> /dev/null',
         "sh", dir .. "/shot.png", geo, how }, function(out, code)

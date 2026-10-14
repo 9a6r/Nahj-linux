@@ -19,14 +19,15 @@ return function(set_panel)
     -- card (`shot_done`, in vitreus.luau), told by Snap itself. Only one Snap at a time: a press while it is open does nothing. It is put on the
     -- focused monitor (`--screen`) and takes that one (SNAP_OUTPUT): left to choose, pleamar opened it on the other monitor, over a picture of this one.
     -- And in the theme's typeface: the font setup bin/vitreus-fonts makes for the shell (nothing for Space Grotesk). Snap reads the look itself.
-    -- The whole screen (1) is kept in ~/Pictures/Screenshots and copied to the clipboard, and comes up as the card.
+    -- The whole screen (1) opens Snap too (SNAP_FULL=1): the picture shown smaller with the bar under it, to draw on, copy or save like a region.
     on("shot", function(mode)
         -- Snap is started at once, while the drawer closes: it takes the picture only once the drawer is gone (SNAP_NOT_BEFORE, the 450 ms
-        -- `after_closed` waits), and pleamar's own start (~220 ms) happens meanwhile instead of after.
-        if mode == 0 then
+        -- `after_closed` waits; the whole screen waits 800, since its picture shows the drawer's closing ripple if it is taken sooner), and pleamar's own start (~220 ms) happens meanwhile instead of after.
+        if mode == 0 or mode == 1 then
             set_panel("none")
             spawn(sh('p="$HOME/.config/pleamar/shells/vitreus/snap/snap.plm"; pgrep -f "pleamar --scene $p" > /dev/null && exit 0; '
-                .. 'export SNAP_NOT_BEFORE=$(( $(date +%s%3N) + 450 )); '
+                .. 'export SNAP_NOT_BEFORE=$(( $(date +%s%3N) + ' .. (mode == 1 and 800 or 450) .. ' )); '
+                .. (mode == 1 and 'export SNAP_FULL=1; ' or '')
                 .. 'o=$(hyprctl -j monitors 2> /dev/null | jq -r ".[] | select(.focused) | .name" 2> /dev/null | head -n 1); '
                 .. 'fc=$("$HOME/.config/pleamar/shells/vitreus/bin/vitreus-fonts" "${XDG_DATA_HOME:-$HOME/.local/share}/pleamar/vitreus" 2> /dev/null) && [ -n "$fc" ] && export FONTCONFIG_FILE="$fc"; '
                 .. 'if [ -n "$o" ]; then SNAP_OUTPUT="$o" exec pleamar --scene "$p" --no-hud --screen "$o"; else exec pleamar --scene "$p" --no-hud; fi'))
