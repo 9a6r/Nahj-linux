@@ -9,6 +9,8 @@
 #   ./install.sh --no-autostart    don't touch ~/.config/pleamar/autostart
 #   ./install.sh --no-binds        don't touch ~/.config/hypr (the key binds, and what Settings saves there)
 #   ./install.sh --no-wm           don't set up pleamar-wm (its login-screen entry, keys, window scene and autostart lines)
+#   ./install.sh --refresh         what Settings > About runs after it has pulled: no questions, no sudo, nothing downloaded; it
+#                                  links the new helpers, adds the new autostart lines and binds, and lists the packages that are missing
 #   ./install.sh --force           install even when another Quickshell desktop shell is in use
 #   ./install.sh --uninstall       take the shell away (your data in ~/.local/share stays)
 #
@@ -58,6 +60,7 @@ do_autostart=true
 do_binds=true
 do_wm=true
 force=false
+refresh=false
 action=install
 for a in "$@"; do
     case "$a" in
@@ -67,6 +70,7 @@ for a in "$@"; do
         --no-autostart) do_autostart=false ;;
         --no-binds) do_binds=false ;;
         --no-wm) do_wm=false ;;
+        --refresh) refresh=true ;;
         --force) force=true ;;
         --uninstall) action=uninstall ;;
         --help|-h) sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
@@ -88,6 +92,7 @@ run() {
 # ask_no "question": the same, default no, for what cannot be undone; with no keyboard (and no --yes) it is a no.
 tty_ok() { [ -r /dev/tty ] && ( exec < /dev/tty ) 2> /dev/null; }
 ask() {
+    $refresh && return 1
     $assume_yes && return 0
     if tty_ok; then
         printf '\033[1;36mvitreus ·\033[0m %s [Y/n] ' "$1" > /dev/tty
@@ -98,6 +103,7 @@ ask() {
     return 0
 }
 ask_no() {
+    $refresh && return 1
     $assume_yes && return 0
     if tty_ok; then
         printf '\033[1;36mvitreus ·\033[0m %s [y/N] ' "$1" > /dev/tty
@@ -189,7 +195,7 @@ fi
 # own the notifications, the wallpaper or the polkit agent), so this stops before touching anything. Which shell does not matter: Quickshell is
 # running (qs or quickshell) and it has a configuration of any kind in ~/.config/quickshell or the system's XDG_CONFIG_DIRS (/etc/xdg).
 # --yes does not skip it, since it is not a question of packages: only --force does. An update of Vitreus itself is not stopped.
-if [ "$action" = install ] && ! $force && ! { [ -f "$autostart" ] && grep -q 'vitreus.plm' "$autostart"; }; then
+if [ "$action" = install ] && ! $force && ! $refresh && ! { [ -f "$autostart" ] && grep -q 'vitreus.plm' "$autostart"; }; then
     if pgrep -x qs > /dev/null 2>&1 || pgrep -x quickshell > /dev/null 2>&1; then
         # Any configuration at all (a folder, or a shell.qml directly in it), where Quickshell looks: the user's, then the system's (XDG_CONFIG_DIRS).
         qsdir=""
@@ -218,7 +224,10 @@ if $deps; then
     if have pacman; then
         missing=""
         for p in $pacman_pkgs; do pacman -Qi "$p" > /dev/null 2>&1 || missing="$missing $p"; done
-        if [ -n "$missing" ]; then
+        if [ -n "$missing" ] && $refresh; then
+            # Settings reads this line: the update itself needs no sudo, so it only says what is missing.
+            printf 'vitreus-missing:%s\n' "$missing"
+        elif [ -n "$missing" ]; then
             say "packages to install:$missing"
             if ask "install them with sudo pacman?"; then
                 run sudo pacman -S --needed --noconfirm $missing
@@ -230,7 +239,7 @@ if $deps; then
         fi
         aur_missing=""
         for p in $aur_pkgs; do pacman -Qi "$p" > /dev/null 2>&1 || aur_missing="$aur_missing $p"; done
-        if [ -n "$aur_missing" ]; then
+        if [ -n "$aur_missing" ] && ! $refresh; then
             helper=""
             have yay && helper=yay
             [ -z "$helper" ] && have paru && helper=paru
@@ -284,7 +293,7 @@ LIST
     # screen shader, which makes Hyprland rebuild its buffers on every change and flicker while a panel is open. Elsewhere Night
     # mode is not there anyway, so it is only a note.
     if ! $dry && ! have hyprsunset; then
-        if have Hyprland || have hyprland; then
+        if { have Hyprland || have hyprland; } && ! $refresh; then
             fail "hyprsunset is required on Hyprland (it is what Night mode uses) and it is not installed. Install it and run this again: sudo pacman -S hyprsunset (Arch), or your distribution's package (https://github.com/hyprwm/hyprsunset)"
         fi
         warn "hyprsunset is not installed: Night mode (Hyprland only) will not work"
@@ -292,7 +301,8 @@ LIST
     have hyprctl || warn "Hyprland was not found. Vitreus needs a Wayland compositor with layer-shell; the list of running windows needs Hyprland."
 
     # ── 2. pleamar ──
-    if have pleamar || [ -x "$HOME/.local/bin/pleamar" ]; then
+    if $refresh; then :  # pleamar and the fonts are not touched here
+    elif have pleamar || [ -x "$HOME/.local/bin/pleamar" ]; then
         pv=$( { pleamar --version 2> /dev/null || "$HOME/.local/bin/pleamar" --version 2> /dev/null; } | sed -n 's/^pleamar \([0-9][0-9.]*\).*/\1/p' | head -1)
         say "pleamar is installed${pv:+ ($pv)}"
         case "$pv" in
@@ -313,6 +323,7 @@ LIST
     fi
 
     # ── 3. the font ──
+    if ! $refresh; then
     if have fc-list && fc-list 2> /dev/null | grep -qi 'space grotesk'; then
         say "the Space Grotesk font is installed"
     elif ask "install the Space Grotesk font (into $fonts)?"; then
@@ -349,11 +360,14 @@ LIST
             have fc-cache && fc-cache -f "$fonts_mochiy" > /dev/null 2>&1 || true
         fi
     fi
+    fi
 fi
 
 # ── 4. the shell itself ────────────────────────────────────────────────────
 have git || fail "git is needed to fetch Vitreus"
-if [ -d "$dest/.git" ]; then
+if $refresh; then
+    :  # Settings has pulled already
+elif [ -d "$dest/.git" ]; then
     if $dry; then echo "    would run: git -C $dest pull --ff-only (your changes, and the monitors Settings chose, carried across)"; else
         g() { git -C "$dest" -c user.name=vitreus -c user.email=vitreus@localhost "$@"; }
         before=$(g rev-parse HEAD)
@@ -650,6 +664,7 @@ if have systemctl; then
 fi
 
 say "done."
+$refresh && exit 0
 echo
 echo "  Start it now:          $line"
 echo "  Lock screen, too:      $lockline"

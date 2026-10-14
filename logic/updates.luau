@@ -2,7 +2,7 @@
 -- checkout in its config folder, so its build is that commit plus pleamar's version. Checking is a `git fetch`,
 -- updating is `git pull --ff-only` (it will not merge over changes of yours), and after it the shell is started again
 -- the way the Bar page does it: a command left running on its own (`setsid`) that asks this one to quit and opens the
--- scene afresh. ssh is told not to ask for anything, so a fetch that needs a passphrase fails instead of hanging.
+-- scene afresh (after the pull, `install.sh --refresh` sets up what the new version needs). ssh is told not to ask for anything, so a fetch that needs a passphrase fails instead of hanging.
 return function(key, with_dirs)
     local A = { busy = false, dir = nil, src = nil, shell_behind = 0, pl_behind = 0 }
     -- pleamar's source folders that matter to this shell: pleamar itself, and pleamar-wm when it is installed (a pleamar-alone install has no pleamar-wm, and nothing to tell about it). (The
@@ -251,7 +251,18 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                                     if code ~= 0 then
                                         return busy(false, "Couldn't update: something of yours is in the way. Try `git pull` in the shell's folder.")
                                     end
-                                    pleamar_then_restart()
+                                    -- What this version needs besides the pull (new helpers, autostart lines, binds) is what install.sh
+                                    -- does without questions or sudo (--refresh); it also says which packages are missing, and the shell
+                                    -- tells you once it is back, since only you can install those.
+                                    busy(true, "Updating…")
+                                    run("setsid", { "-w", "sh", A.dir .. "/install.sh", "--refresh" }, function(out)
+                                        local missing = (out or ""):match("vitreus%-missing:([^\n]*)")
+                                        if missing and missing:match("^[%w%-%._+ ]+$") then
+                                            local pk = missing:gsub("^%s+", "")
+                                            run("setsid", { "-f", "sh", "-c", 'sleep 10; notify-send -a Vitreus "Vitreus updated" "Some features need packages: sudo pacman -S $1"', "sh", pk }, function() end)
+                                        end
+                                        pleamar_then_restart()
+                                    end)
                                 end)
                             end)
                         end)
