@@ -21,14 +21,18 @@ return function(set_panel)
     -- And in the theme's typeface: the font setup bin/vitreus-fonts makes for the shell (nothing for Space Grotesk). Snap reads the look itself.
     -- The whole screen (1) is kept in ~/Pictures/Screenshots and copied to the clipboard, and comes up as the card.
     on("shot", function(mode)
+        -- Snap is started at once, while the drawer closes: it takes the picture only once the drawer is gone (SNAP_NOT_BEFORE, the 450 ms
+        -- `after_closed` waits), and pleamar's own start (~220 ms) happens meanwhile instead of after.
+        if mode == 0 then
+            set_panel("none")
+            spawn(sh('p="$HOME/.config/pleamar/shells/vitreus/snap/snap.plm"; pgrep -f "pleamar --scene $p" > /dev/null && exit 0; '
+                .. 'export SNAP_NOT_BEFORE=$(( $(date +%s%3N) + 450 )); '
+                .. 'o=$(hyprctl -j monitors 2> /dev/null | jq -r ".[] | select(.focused) | .name" 2> /dev/null | head -n 1); '
+                .. 'fc=$("$HOME/.config/pleamar/shells/vitreus/bin/vitreus-fonts" "${XDG_DATA_HOME:-$HOME/.local/share}/pleamar/vitreus" 2> /dev/null) && [ -n "$fc" ] && export FONTCONFIG_FILE="$fc"; '
+                .. 'if [ -n "$o" ]; then SNAP_OUTPUT="$o" exec pleamar --scene "$p" --no-hud --screen "$o"; else exec pleamar --scene "$p" --no-hud; fi'))
+            return
+        end
         after_closed(function()
-            if mode == 0 then
-                spawn(sh('p="$HOME/.config/pleamar/shells/vitreus/snap/snap.plm"; pgrep -f "pleamar --scene $p" > /dev/null && exit 0; '
-                    .. 'o=$(hyprctl -j monitors 2> /dev/null | jq -r ".[] | select(.focused) | .name" 2> /dev/null | head -n 1); '
-                    .. 'fc=$("$HOME/.config/pleamar/shells/vitreus/bin/vitreus-fonts" "${XDG_DATA_HOME:-$HOME/.local/share}/pleamar/vitreus" 2> /dev/null) && [ -n "$fc" ] && export FONTCONFIG_FILE="$fc"; '
-                    .. 'if [ -n "$o" ]; then SNAP_OUTPUT="$o" exec pleamar --scene "$p" --no-hud --screen "$o"; else exec pleamar --scene "$p" --no-hud; fi'))
-                return
-            end
             spawn(sh('d="$HOME/Pictures/Screenshots"; mkdir -p "$d"; f="$d/screenshot_$(date +%F_%H-%M-%S).png"; '
                 .. 'grim "$f" && wl-copy < "$f" && pleamar --say vitreus "text shot_path $f" && pleamar --say vitreus "emit shot_done"'))
         end)

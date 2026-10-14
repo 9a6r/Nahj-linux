@@ -64,9 +64,28 @@ scene Snap {
     event erase_pt ->
     event erase_up ->
     event do_undo ->
+    //  The windows on the monitor taken, as the logic gets them from Hyprland (bottom first, the one on top last), in the scene's plane: hovered, one
+    //  shows undimmed with an outline, and a click (not a drag) picks it.
+    model wins max 32 { x: number; y: number; w: number; h: number }
+    //  Dragging the picture out: the logic keeps a finished copy (marks and all) in the runtime folder, made again a moment after each change;
+    //  `drag_ready` while the one there is up to date. Dropped somewhere, Snap is done.
+    text drag_path = ""
+    fact drag_ready = false
+    event do_dropped ->
+    //  The text in the picture (tesseract): copied, or the private bits of it (addresses, links, long numbers) blurred. `busy` while it reads.
+    fact busy = 0
+    //  The button whose tooltip shows: 0 none, else its number in the bar (left to right, from 1), after 400 ms over it.
+    fact tip = 0
+    //  A word from Snap itself, over the bar: a notification would open under Snap, which covers the screen, and never be seen while it is open.
+    text toast = ""
+    fact toast_on = false
+    event do_ocr_copy ->
+    event do_hide ->
     event do_redo ->
 
     spring pop = 230, 17
+    prop toast_k = 0 ~pop
+    follow toast_k = if(toast_on, 1, 0)
     prop hx = 0 ~pop
     prop cx_ = 0 ~pop
     prop pv = 0 ~pop
@@ -91,21 +110,39 @@ scene Snap {
 
     //  The bar: under the selection if it fits there with its hint (and, on UwU, room for the cat ears above it); else above the selection, clear
     //  of the size chip; else, the selection filling the screen, inside it at the bottom. Pushed against the bottom edge, the hint was cut off.
-    let tw = 674
-    let aw = 300
-    let tbx = clamp(sx + sw / 2 - (tw + 12 + aw) / 2, 16, max(16, W - tw - aw - 28))
+    //  One grid for the whole bar: the icon buttons 40 apart (the tools, undo and redo, drag, text, private), the colours 26 apart, each hairline
+    //  24 from what is either side of it, and the same 7 px round the ends (a bead's edge to the bar's). `tl` is the first tool's middle, `abx`
+    //  the hairline before undo; everything after it is measured from there.
+    let bw_ = 1074
+    let tbx = clamp(sx + sw / 2 - bw_ / 2, 16, max(16, W - bw_ - 16))
     let ears_ = if(look == 2, 16, 0)
     let below_ = sy + sh + 22 + ears_
     let above_ = sy - 34 - 30 - 52
     let tby = if(below_ + 52 + 34 <= H, below_, if(above_ >= 8 + ears_ * 2, above_, H - 52 - 50))
-    let tl = tbx + 30
+    let tl = tbx + 26
     let ty = tby + 26
-    let abx = tbx + tw + 12
+    let abx = tbx + 650
 
     let cyc = if(sy > 40, sy - 34, sy + 8)
     follow pv = if(phase == 2, 1, 0)
-    follow hx = tl + tool * 42
-    follow cx_ = tbx + 10 + 460 + 14 + 13 + col * 26
+    follow hx = tl + tool * 40
+    follow cx_ = tbx + 474 + col * 26
+
+    //  A tooltip over a button of the bar: its words in a small chip, in the look's material. `w` is worked out from the words' length (and the
+    //  look's typeface, some of which run wide); `x` is the button's middle.
+    component Tip(n: number, x: number, y: number, w: number, words: text) {
+        group {
+            show: tip == n and pv > 0.9
+            body {
+                color: if(look == 3, mix(tint, #000000, 0.8), tint)
+                rim: 10% + 30% * (look == 1) + 45% * (look == 2)
+                border: pick(look, 0, 1.5, 2.5, 1.2), if(look == 3, mint, deep)
+                shadow: pick(look, 0, 2.5, 2.5, 0), pick(look, 4, 3, 3, 4), pick(look, 12, 0, 0, 12), pick(look, 30%, 55%, 90%, 30%), if(look == 2, pink_shadow, deep)
+                box { at: x, y; size: w * pick(look, 1, 1.12, 1.1, 1.16), 28; corner: pick(look, 14, 4, 14, 3) }
+            }
+            text words { at: x, y; anchor: center; size: 13; weight: 700; color: ink; family: "Space Grotesk" }
+        }
+    }
 
     //  An arrow, a rectangle or an ellipse from (x0, y0) to (x1, y1): a mark in the list, or the one being dragged out. The ellipse is eight quadratic curves
     //  (a path has no ellipse of two radii), each control point at 1 / cos 22.5° of the radius, which is within a third of a percent of the real one.
@@ -230,6 +267,13 @@ scene Snap {
         path { at: bkx, bky; stroke: 2; color: deep; show: phase > 0 and sw > 1 and look == 3; move 0, bsy * 18; line 0, 0; line bsx * 18, 0 }
     }
 
+    //  What to do, while nothing is picked yet.
+    group {
+        show: phase == 1 and sw <= 8
+        text "Click a window, or drag an area" { at: W / 2, 46; anchor: center; size: 17; weight: 700; color: if(look == 1 or look == 2, tint, ink); family: "Space Grotesk" }
+        text "Esc  close" { at: W / 2, 70; anchor: center; size: 12; color: if(look == 1 or look == 2, tint, ink); opacity: 62%; family: "Space Grotesk" }
+    }
+
 
     //  ── Dragging out a selection ───────────────────────────────────────────────────────────────────────────────────
     //  Under everything else, so a press on the selection or its handles is theirs; a press anywhere else begins a new selection. A drag belongs to every zone that was under the press,
@@ -243,6 +287,28 @@ scene Snap {
         sh = abs(clamp(y0 + drag.dy, 0, H) - y0)
     }
     on release zpick { picking = 0; phase = if(sw > 8 and sh > 8, 2, 1) }
+    on change phase { scrw = W }
+
+    //  ── Windows ─────────────────────────────────────────────────────────────────────────────────────────────────
+    //  Over the bare screen, under the selection and its handles: a press here begins a selection as on the bare screen (the drag then goes to
+    //  `zpick` too, which was under the press), and a press that does not drag picks the window, cut to the screen.
+    repeat i in 0..32 {
+        let wa = clamp(wins.$i.x, 0, W)
+        let wb = clamp(wins.$i.y, 0, H)
+        let wc = clamp(wins.$i.x + wins.$i.w, 0, W)
+        let wd = clamp(wins.$i.y + wins.$i.h, 0, H)
+        //  the window under the pointer, while nothing is picked yet: undimmed, outlined
+        group {
+            show: phase == 1 and sw <= 8 and wz.$i.hover > 0.5
+            clip inset 0 box { from: wa, wb; size: max(1, wc - wa), max(1, wd - wb) }
+            image shot { at: 0, 0; size: W, H }
+        }
+        box { from: wa, wb; size: max(1, wc - wa), max(1, wd - wb); corner: pick(look, 6, 0, 8, 0); stroke: pick(look, 2, 2.2, 3, 1.5); color: mint; show: phase == 1 and sw <= 8 and wz.$i.hover > 0.5 }
+        zone box wz.$i { from: wa, wb; size: max(1, wc - wa), max(1, wd - wb); cursor: crosshair; active: phase > 0 and wc - wa > 4 and wd - wb > 4; label: "Window" }
+        on press wz.$i { picking = 1; x0 = pointer.x; y0 = pointer.y; phase = 1; sw = 0; sh = 0 }
+        on release wz.$i while sw > 8 and sh > 8 { picking = 0; phase = 2 }
+        on release wz.$i while not (sw > 8 and sh > 8) { picking = 0; sx = wa; sy = wb; sw = wc - wa; sh = wd - wb; phase = 2 }
+    }
 
     //  ── Moving and resizing the selection ──────────────────────────────────────────────────────────────────────
     //  The body carries it. The handles come after, so they win where they overlap it. A handle pulls its own side or corner; the rest stays where it was when the press began.
@@ -373,7 +439,6 @@ scene Snap {
     //  One bar: the tools, then (after a hairline) undo, redo, Save and Copy.
     //  Glass and Cyber: glass that bends (Cyber's near-black, with a neon hairline and magenta brackets). Retro and UwU: plastic, as Vitreus's drawers are.
     let pty = tby + 14 * (1 - pv)
-    let bw_ = tw + 12 + aw
     body {
         color: if(look == 3, mix(tint, #000000, 0.8), tint)
         glass: 100%
@@ -411,7 +476,7 @@ scene Snap {
     box { from: tbx + 22, pty - 4; size: 30, 6; corner: 2; stroke: 1.5; color: deep; opacity: pv; show: pv > 0.01 and look == 1 }
     //  UwU: candy plastic, pastel across both pills, a thick grape outline, a hard pink shadow; and cat ears at the two ends of the bar.
     body {
-        gradient: tbx, pty to abx + aw, pty + 52, #ffcfe8, #e6d6ff 38%, #cfeaff 68%, #d2fff0
+        gradient: tbx, pty to tbx + bw_, pty + 52, #ffcfe8, #e6d6ff 38%, #cfeaff 68%, #d2fff0
         rim: 55%
         border: 3, deep
         shadow: 4, 5, 0, 90%, pink_shadow
@@ -422,7 +487,7 @@ scene Snap {
     //  The ears, as Vitreus's drawers wear them (bar_glass.plm): one over each end of the bar —the tools pill's left, the actions pill's right—,
     //  leaning outwards, in the pastel of that end, with the grape outline and a pink inside.
     repeat side in 0..2 {
-        let ex = if(side == 0, tbx + 50, abx + aw - 50)
+        let ex = if(side == 0, tbx + 50, tbx + bw_ - 50)
         let sg = if(side == 0, -1, 1)
         path { at: ex, pty; color: if(side == 0, #ffcfe8, #d2fff0); opacity: pv; show: pv > 0.01 and look == 2; move -23, 8; line sg * 13, -30; line 23, 8; close }
         path { at: ex, pty; stroke: 3; color: deep; opacity: pv; show: pv > 0.01 and look == 2; move -23, 8; line sg * 13, -30; line 23, 8 }
@@ -444,46 +509,46 @@ scene Snap {
         opacity: pv
         move: 0, 14 * (1 - pv)
         //  0 select
-        path { at: tl + 0 * 42, ty; color: mix(ink, onmint, tool == 0); move -5, -8; line -5, 8; line -1, 4; line 3, 10; line 5, 9; line 1, 3; line 6, 3; close }
+        path { at: tl + 0 * 40, ty; color: mix(ink, onmint, tool == 0); move -5, -8; line -5, 8; line -1, 4; line 3, 10; line 5, 9; line 1, 3; line 6, 3; close }
         //  1 crop
-        path { at: tl + 1 * 42, ty; stroke: 2.2; color: mix(ink, onmint, tool == 1); move -4, -9; line -4, 4; line 9, 4 }
-        path { at: tl + 1 * 42, ty; stroke: 2.2; color: mix(ink, onmint, tool == 1); move -9, -4; line 4, -4; line 4, 9 }
+        path { at: tl + 1 * 40, ty; stroke: 2.2; color: mix(ink, onmint, tool == 1); move -4, -9; line -4, 4; line 9, 4 }
+        path { at: tl + 1 * 40, ty; stroke: 2.2; color: mix(ink, onmint, tool == 1); move -9, -4; line 4, -4; line 4, 9 }
         //  2 pen
-        path { at: tl + 2 * 42, ty; stroke: 2.4; color: mix(ink, onmint, tool == 2); move -9, 5; curve -2, -3 via -6, -9; curve 4, 3 via 2, 6; curve 9, -5 via 8, 0 }
+        path { at: tl + 2 * 40, ty; stroke: 2.4; color: mix(ink, onmint, tool == 2); move -9, 5; curve -2, -3 via -6, -9; curve 4, 3 via 2, 6; curve 9, -5 via 8, 0 }
         //  3 arrow
-        path { at: tl + 3 * 42, ty; stroke: 2.4; color: mix(ink, onmint, tool == 3); move -8, 8; line 7, -7 }
-        path { at: tl + 3 * 42, ty; stroke: 2.4; color: mix(ink, onmint, tool == 3); move -1, -8; line 8, -8; line 8, 1 }
+        path { at: tl + 3 * 40, ty; stroke: 2.4; color: mix(ink, onmint, tool == 3); move -8, 8; line 7, -7 }
+        path { at: tl + 3 * 40, ty; stroke: 2.4; color: mix(ink, onmint, tool == 3); move -1, -8; line 8, -8; line 8, 1 }
         //  4 rectangle
-        box { at: tl + 4 * 42, ty; size: 18, 13; corner: 3; stroke: 2.2; color: mix(ink, onmint, tool == 4) }
+        box { at: tl + 4 * 40, ty; size: 18, 13; corner: 3; stroke: 2.2; color: mix(ink, onmint, tool == 4) }
         //  5 ellipse
-        ellipse { at: tl + 5 * 42, ty; radius: 8; stroke: 2.2; color: mix(ink, onmint, tool == 5) }
+        ellipse { at: tl + 5 * 40, ty; radius: 8; stroke: 2.2; color: mix(ink, onmint, tool == 5) }
         //  6 text
-        text "T" { at: tl + 6 * 42, ty; anchor: center; size: 20; weight: 700; color: mix(ink, onmint, tool == 6); family: "Space Grotesk" }
+        text "T" { at: tl + 6 * 40, ty; anchor: center; size: 20; weight: 700; color: mix(ink, onmint, tool == 6); family: "Space Grotesk" }
         //  7 marker
-        ellipse { at: tl + 7 * 42, ty; radius: 9; stroke: 2.2; color: mix(ink, onmint, tool == 7) }
-        text "1" { at: tl + 7 * 42, ty; anchor: center; size: 12; weight: 700; color: mix(ink, onmint, tool == 7); family: "Space Grotesk" }
+        ellipse { at: tl + 7 * 40, ty; radius: 9; stroke: 2.2; color: mix(ink, onmint, tool == 7) }
+        text "1" { at: tl + 7 * 40, ty; anchor: center; size: 12; weight: 700; color: mix(ink, onmint, tool == 7); family: "Space Grotesk" }
         //  8 blur
         repeat j in 0..9 {
-            box { at: tl + 8 * 42 - 6 + mod(j, 3) * 6, ty - 6 + floor(j / 3) * 6; size: 5, 5; corner: 1; color: mix(ink, onmint, tool == 8); opacity: pick(mod(j * 4, 5), 100%, 55%, 80%, 35%, 65%) }
+            box { at: tl + 8 * 40 - 6 + mod(j, 3) * 6, ty - 6 + floor(j / 3) * 6; size: 5, 5; corner: 1; color: mix(ink, onmint, tool == 8); opacity: pick(mod(j * 4, 5), 100%, 55%, 80%, 35%, 65%) }
         }
         //  9 highlighter: a chisel-tipped pen over the broad stripe it leaves
-        box { at: tl + 9 * 42, ty + 6; size: 22, 7; corner: 2; color: mix(ink, onmint, tool == 9); opacity: 45% }
-        path { at: tl + 9 * 42 + 1, ty - 3; color: mix(ink, onmint, tool == 9); move -7, 6; line 3, -6; line 8, -2; line -2, 10; close }
+        box { at: tl + 9 * 40, ty + 6; size: 22, 7; corner: 2; color: mix(ink, onmint, tool == 9); opacity: 45% }
+        path { at: tl + 9 * 40 + 1, ty - 3; color: mix(ink, onmint, tool == 9); move -7, 6; line 3, -6; line 8, -2; line -2, 10; close }
         //  10 eraser
-        box { at: tl + 10 * 42, ty; size: 9, 20; corner: 3; rotate: 40deg; color: mix(ink, onmint, tool == 10) }
-        box { at: tl + 10 * 42 + 5, ty + 8; size: 14, 3; corner: 1; color: mix(ink, onmint, tool == 10); opacity: 70% }
+        box { at: tl + 10 * 40, ty; size: 9, 20; corner: 3; rotate: 40deg; color: mix(ink, onmint, tool == 10) }
+        box { at: tl + 10 * 40 + 5, ty + 8; size: 14, 3; corner: 1; color: mix(ink, onmint, tool == 10); opacity: 70% }
 
-        zone box tz0 { at: tl + 0 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Select" }
-        zone box tz1 { at: tl + 1 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Crop" }
-        zone box tz2 { at: tl + 2 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Pen" }
-        zone box tz3 { at: tl + 3 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Arrow" }
-        zone box tz4 { at: tl + 4 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Rectangle" }
-        zone box tz5 { at: tl + 5 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Ellipse" }
-        zone box tz6 { at: tl + 6 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Text" }
-        zone box tz7 { at: tl + 7 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Marker" }
-        zone box tz8 { at: tl + 8 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Blur" }
-        zone box tz9 { at: tl + 9 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Highlighter" }
-        zone box tz10 { at: tl + 10 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Eraser" }
+        zone box tz0 { at: tl + 0 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Select" }
+        zone box tz1 { at: tl + 1 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Crop" }
+        zone box tz2 { at: tl + 2 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Pen" }
+        zone box tz3 { at: tl + 3 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Arrow" }
+        zone box tz4 { at: tl + 4 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Rectangle" }
+        zone box tz5 { at: tl + 5 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Ellipse" }
+        zone box tz6 { at: tl + 6 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Text" }
+        zone box tz7 { at: tl + 7 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Marker" }
+        zone box tz8 { at: tl + 8 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Blur" }
+        zone box tz9 { at: tl + 9 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Highlighter" }
+        zone box tz10 { at: tl + 10 * 40, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Eraser" }
         on press tz0 { tool = 0 }
         on press tz1 { tool = 1 }
         on press tz2 { tool = 2 }
@@ -497,68 +562,207 @@ scene Snap {
         on press tz10 { tool = 10 }
 
         //  a hairline between the tools and the colours
-        box { at: tbx + 10 + 460 + 7, ty; size: 1, 24; color: ink; opacity: 22% }
+        box { at: tbx + 450, ty; size: 1, 24; color: ink; opacity: 22% }
 
         //  the five colours, with a ring that slides to the one picked
         ellipse { at: cx_, ty; radius: 12; stroke: 2; color: ink }
-        ellipse { at: tbx + 10 + 460 + 14 + 13 + 0 * 26, ty; radius: 8; color: #ff6b6b }
-        ellipse { at: tbx + 10 + 460 + 14 + 13 + 1 * 26, ty; radius: 8; color: #ffc857 }
-        ellipse { at: tbx + 10 + 460 + 14 + 13 + 2 * 26, ty; radius: 8; color: mint }
-        ellipse { at: tbx + 10 + 460 + 14 + 13 + 3 * 26, ty; radius: 8; color: #5cc8ff }
-        ellipse { at: tbx + 10 + 460 + 14 + 13 + 4 * 26, ty; radius: 8; color: #ffffff }
-        zone box cz0 { at: tbx + 10 + 460 + 14 + 13 + 0 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Coral" }
-        zone box cz1 { at: tbx + 10 + 460 + 14 + 13 + 1 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Amber" }
-        zone box cz2 { at: tbx + 10 + 460 + 14 + 13 + 2 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Mint" }
-        zone box cz3 { at: tbx + 10 + 460 + 14 + 13 + 3 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Sky" }
-        zone box cz4 { at: tbx + 10 + 460 + 14 + 13 + 4 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "White" }
+        ellipse { at: tbx + 474 + 0 * 26, ty; radius: 8; color: #ff6b6b }
+        ellipse { at: tbx + 474 + 1 * 26, ty; radius: 8; color: #ffc857 }
+        ellipse { at: tbx + 474 + 2 * 26, ty; radius: 8; color: mint }
+        ellipse { at: tbx + 474 + 3 * 26, ty; radius: 8; color: #5cc8ff }
+        ellipse { at: tbx + 474 + 4 * 26, ty; radius: 8; color: #ffffff }
+        zone box cz0 { at: tbx + 474 + 0 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Coral" }
+        zone box cz1 { at: tbx + 474 + 1 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Amber" }
+        zone box cz2 { at: tbx + 474 + 2 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Mint" }
+        zone box cz3 { at: tbx + 474 + 3 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Sky" }
+        zone box cz4 { at: tbx + 474 + 4 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "White" }
         on press cz0 { col = 0 }
         on press cz1 { col = 1 }
         on press cz2 { col = 2 }
         on press cz3 { col = 3 }
         on press cz4 { col = 4 }
 
-        box { at: tbx + 10 + 460 + 14 + 130 + 7, ty; size: 1, 24; color: ink; opacity: 22% }
+        box { at: tbx + 602, ty; size: 1, 24; color: ink; opacity: 22% }
 
         //  the stroke size: a dot as thick as the line will be
-        ellipse { at: tbx + tw - 28, ty; radius: pick(sz, 2.5, 4, 6); color: ink }
-        ellipse { at: tbx + tw - 28, ty; radius: 11; stroke: 1.2; color: ink; opacity: 35% }
-        zone box zsz { at: tbx + tw - 28, ty; size: 30, 30; corner: 15; cursor: pointer; label: "Stroke size" }
+        ellipse { at: tbx + 626, ty; radius: pick(sz, 2.5, 4, 6); color: ink }
+        ellipse { at: tbx + 626, ty; radius: 11; stroke: 1.2; color: ink; opacity: 35% }
+        zone box zsz { at: tbx + 626, ty; size: 30, 30; corner: 15; cursor: pointer; label: "Stroke size" }
         on press zsz { sz = mod(sz + 1, 3) }
 
         //  ── The actions pill ─────────────────────────────────────────────────────────────────────────────────────────
         //  undo, redo
         //  where the tools end and the actions begin (the bar was two pills once)
-        box { at: tbx + tw + 6, ty; size: 1, 24; color: ink; opacity: 22% }
-        path { at: abx + 28, ty; stroke: 2.4; color: ink; opacity: if(can_undo, 100%, 38%); move 6, 6; curve -4, -2 via 5, -6; line -2, -6 }
-        path { at: abx + 28, ty; stroke: 2.4; color: ink; opacity: if(can_undo, 100%, 38%); move 1, -10; line -5, -5; line 1, 0 }
+        box { at: abx, ty; size: 1, 24; color: ink; opacity: 22% }
+        path { at: abx + 24, ty; stroke: 2.4; color: ink; opacity: if(can_undo, 100%, 38%); move 6, 6; curve -4, -2 via 5, -6; line -2, -6 }
+        path { at: abx + 24, ty; stroke: 2.4; color: ink; opacity: if(can_undo, 100%, 38%); move 1, -10; line -5, -5; line 1, 0 }
         path { at: abx + 64, ty; stroke: 2.4; color: ink; opacity: if(can_redo, 100%, 38%); move -6, 6; curve 4, -2 via -5, -6; line 2, -6 }
         path { at: abx + 64, ty; stroke: 2.4; color: ink; opacity: if(can_redo, 100%, 38%); move -1, -10; line 5, -5; line -1, 0 }
-        zone box zundo { at: abx + 28, ty; size: 34, 34; corner: 13; cursor: pointer; label: "Undo"; active: can_undo }
+        zone box zundo { at: abx + 24, ty; size: 34, 34; corner: 13; cursor: pointer; label: "Undo"; active: can_undo }
         zone box zredo { at: abx + 64, ty; size: 34, 34; corner: 13; cursor: pointer; label: "Redo"; active: can_redo }
         on press zundo { emit do_undo }
         on press zredo { emit do_redo }
         box { at: abx + 88, ty; size: 1, 24; color: ink; opacity: 22% }
 
+        //  Drag out: six grip dots and a small picture. Pressed and moved, the finished picture goes with the pointer to whatever it is let go on.
+        repeat j in 0..6 {
+            ellipse { at: abx + 101 + mod(j, 2) * 5, ty - 6 + floor(j / 2) * 6; radius: 1.6; color: ink; opacity: if(drag_ready, 100%, 38%) }
+        }
+        box { at: abx + 118, ty; size: 14, 12; corner: 2; stroke: 1.8; color: ink; opacity: if(drag_ready, 100%, 38%) }
+        path { at: abx + 118, ty; color: ink; opacity: if(drag_ready, 100%, 38%); move -5, 4; line -1, -1; line 2, 2; line 5, -1; line 5, 4; close }
+        zone box zdrag { at: abx + 112, ty; size: 36, 36; corner: 13; cursor: grab; carries: "{drag_path}"; active: drag_ready; label: "Drag the picture out" }
+        on carry zdrag { emit do_dropped }
+        //  Copy the text: lines of text in a page.
+        box { at: abx + 152, ty; size: 18, 22; corner: 3; stroke: 1.8; color: ink; opacity: if(busy == 1, 38%, 100%) }
+        repeat j in 0..3 {
+            box { at: abx + 152 - if(j == 2, 2, 0), ty - 5 + j * 5; size: if(j == 2, 6, 10), 1.8; corner: 0.9; color: ink; opacity: if(busy == 1, 38%, 100%) }
+        }
+        zone box zocr { at: abx + 152, ty; size: 36, 36; corner: 13; cursor: pointer; active: busy == 0; label: "Copy the text" }
+        on press zocr { scrw = W; busy = 1; emit do_ocr_copy }
+        //  Hide what is private: an eye, struck through.
+        path { at: abx + 192, ty; stroke: 1.8; color: ink; opacity: if(busy == 1, 38%, 100%); move -10, 0; curve 10, 0 via 0, -9; curve -10, 0 via 0, 9 }
+        ellipse { at: abx + 192, ty; radius: 3; color: ink; opacity: if(busy == 1, 38%, 100%) }
+        path { at: abx + 192, ty; stroke: 1.8; color: ink; opacity: if(busy == 1, 38%, 100%); move -8, 8; line 8, -8 }
+        zone box zhide { at: abx + 192, ty; size: 36, 36; corner: 13; cursor: pointer; active: busy == 0; label: "Blur what is private" }
+        on press zhide { scrw = W; busy = 1; emit do_hide }
+        box { at: abx + 216, ty; size: 1, 24; color: ink; opacity: 22% }
+
         //  save, a clear pill, and copy, the one that is filled
-        box { at: abx + 88 + 8 + 40, ty; size: 80, 36; corner: pick(look, 18, 5, 18, 3); stroke: pick(look, 1.4, 1.7, 2.5, 1.2); color: pick(look, ink, deep, deep, mint); opacity: pick(look, 55%, 100%, 100%, 90%) }
-        text "Save" { at: abx + 88 + 8 + 40, ty; anchor: center; size: 15; weight: 700; color: ink; family: "Space Grotesk" }
+        box { at: abx + 272, ty; size: 80, 36; corner: pick(look, 18, 5, 18, 3); stroke: pick(look, 1.4, 1.7, 2.5, 1.2); color: pick(look, ink, deep, deep, mint); opacity: pick(look, 55%, 100%, 100%, 90%) }
+        text "Save" { at: abx + 272, ty; anchor: center; size: 15; weight: 700; color: ink; family: "Space Grotesk" }
         body {
             color: mint
             opacity: 100%
             rim: 22%
             border: pick(look, 0, 1.5, 2.5, 0), deep
             shadow: pick(look, 0, 2.5, 2.5, 0), pick(look, 0, 3, 3, 0), pick(look, 10, 0, 0, 14), pick(look, 38%, 55%, 90%, 75%), pick(look, mint, deep, pink_shadow, mint)
-            box { at: abx + 88 + 8 + 80 + 8 + 48, ty; size: 96, 36; corner: pick(look, 18, 5, 18, 3) }
+            box { at: abx + 368, ty; size: 96, 36; corner: pick(look, 18, 5, 18, 3) }
         }
-        text "Copy" { at: abx + 88 + 8 + 80 + 8 + 48, ty; anchor: center; size: 15; weight: 800; color: onmint; family: "Space Grotesk" }
+        text "Copy" { at: abx + 368, ty; anchor: center; size: 15; weight: 800; color: onmint; family: "Space Grotesk" }
 
-        zone box zsave { at: abx + 136, ty; size: 80, 36; corner: 18; cursor: pointer; label: "Save" }
-        zone box zcopy { at: abx + 232, ty; size: 96, 36; corner: 18; cursor: pointer; label: "Copy" }
+        zone box zsave { at: abx + 272, ty; size: 80, 36; corner: 18; cursor: pointer; label: "Save" }
+        zone box zcopy { at: abx + 368, ty; size: 96, 36; corner: 18; cursor: pointer; label: "Copy" }
         on press zsave { scrw = W; emit do_save }
         on press zcopy { scrw = W; emit do_copy }
 
+        //  The tooltips: above the bar, or under its hint when the bar is at the top of the screen.
+        let tipy = if(tby > 60, ty - 46, ty + 74)
+        on hover tz0 for 400ms { tip = 1 }
+        on leave tz0 { tip = 0 }
+        on press tz0 { tip = 0 }
+        on hover tz1 for 400ms { tip = 2 }
+        on leave tz1 { tip = 0 }
+        on press tz1 { tip = 0 }
+        on hover tz2 for 400ms { tip = 3 }
+        on leave tz2 { tip = 0 }
+        on press tz2 { tip = 0 }
+        on hover tz3 for 400ms { tip = 4 }
+        on leave tz3 { tip = 0 }
+        on press tz3 { tip = 0 }
+        on hover tz4 for 400ms { tip = 5 }
+        on leave tz4 { tip = 0 }
+        on press tz4 { tip = 0 }
+        on hover tz5 for 400ms { tip = 6 }
+        on leave tz5 { tip = 0 }
+        on press tz5 { tip = 0 }
+        on hover tz6 for 400ms { tip = 7 }
+        on leave tz6 { tip = 0 }
+        on press tz6 { tip = 0 }
+        on hover tz7 for 400ms { tip = 8 }
+        on leave tz7 { tip = 0 }
+        on press tz7 { tip = 0 }
+        on hover tz8 for 400ms { tip = 9 }
+        on leave tz8 { tip = 0 }
+        on press tz8 { tip = 0 }
+        on hover tz9 for 400ms { tip = 10 }
+        on leave tz9 { tip = 0 }
+        on press tz9 { tip = 0 }
+        on hover tz10 for 400ms { tip = 11 }
+        on leave tz10 { tip = 0 }
+        on press tz10 { tip = 0 }
+        on hover cz0 for 400ms { tip = 12 }
+        on leave cz0 { tip = 0 }
+        on press cz0 { tip = 0 }
+        on hover cz1 for 400ms { tip = 13 }
+        on leave cz1 { tip = 0 }
+        on press cz1 { tip = 0 }
+        on hover cz2 for 400ms { tip = 14 }
+        on leave cz2 { tip = 0 }
+        on press cz2 { tip = 0 }
+        on hover cz3 for 400ms { tip = 15 }
+        on leave cz3 { tip = 0 }
+        on press cz3 { tip = 0 }
+        on hover cz4 for 400ms { tip = 16 }
+        on leave cz4 { tip = 0 }
+        on press cz4 { tip = 0 }
+        on hover zsz for 400ms { tip = 17 }
+        on leave zsz { tip = 0 }
+        on press zsz { tip = 0 }
+        on hover zundo for 400ms { tip = 18 }
+        on leave zundo { tip = 0 }
+        on press zundo { tip = 0 }
+        on hover zredo for 400ms { tip = 19 }
+        on leave zredo { tip = 0 }
+        on press zredo { tip = 0 }
+        on hover zdrag for 400ms { tip = 20 }
+        on leave zdrag { tip = 0 }
+        on press zdrag { tip = 0 }
+        on hover zocr for 400ms { tip = 21 }
+        on leave zocr { tip = 0 }
+        on press zocr { tip = 0 }
+        on hover zhide for 400ms { tip = 22 }
+        on leave zhide { tip = 0 }
+        on press zhide { tip = 0 }
+        on hover zsave for 400ms { tip = 23 }
+        on leave zsave { tip = 0 }
+        on press zsave { tip = 0 }
+        on hover zcopy for 400ms { tip = 24 }
+        on leave zcopy { tip = 0 }
+        on press zcopy { tip = 0 }
+        Tip(1, tl + 0 * 40, tipy, 183, "Select and move marks")
+        Tip(2, tl + 1 * 40, tipy, 124, "Move the area")
+        Tip(3, tl + 2 * 40, tipy, 50, "Pen")
+        Tip(4, tl + 3 * 40, tipy, 65, "Arrow")
+        Tip(5, tl + 4 * 40, tipy, 95, "Rectangle")
+        Tip(6, tl + 5 * 40, tipy, 80, "Ellipse")
+        Tip(7, tl + 6 * 40, tipy, 58, "Text")
+        Tip(8, tl + 7 * 40, tipy, 139, "Numbered marker")
+        Tip(9, tl + 8 * 40, tipy, 117, "Blur an area")
+        Tip(10, tl + 9 * 40, tipy, 109, "Highlighter")
+        Tip(11, tl + 10 * 40, tipy, 72, "Eraser")
+        Tip(12, tbx + 474 + 0 * 26, tipy, 65, "Coral")
+        Tip(13, tbx + 474 + 1 * 26, tipy, 65, "Amber")
+        Tip(14, tbx + 474 + 2 * 26, tipy, 117, "Theme colour")
+        Tip(15, tbx + 474 + 3 * 26, tipy, 50, "Sky")
+        Tip(16, tbx + 474 + 4 * 26, tipy, 65, "White")
+        Tip(17, tbx + 626, tipy, 109, "Stroke size")
+        Tip(18, abx + 24, tipy, 117, "Undo  Ctrl+Z")
+        Tip(19, abx + 64, tipy, 161, "Redo  Ctrl+Shift+Z")
+        Tip(20, abx + 112, tipy, 154, "Drag into any app")
+        Tip(21, abx + 152, tipy, 124, "Copy the text")
+        Tip(22, abx + 192, tipy, 154, "Blur private info")
+        Tip(23, abx + 272, tipy, 117, "Save  Ctrl+S")
+        Tip(24, abx + 368, tipy, 109, "Copy  Enter")
+
+        //  Snap's own word (`toast`): where the tooltips go, over them, a little bigger, in the look's material.
+        group {
+            show: toast_k > 0.01 and pv > 0.9
+            opacity: clamp(toast_k, 0, 1)
+            scale: 0.9 + 0.1 * toast_k
+            pivot: tbx + bw_ / 2, tipy
+            measure toast_m
+            body {
+                color: if(look == 3, mix(tint, #000000, 0.8), tint)
+                rim: 10% + 30% * (look == 1) + 45% * (look == 2)
+                border: pick(look, 0, 1.5, 2.5, 1.2), if(look == 3, mint, deep)
+                shadow: pick(look, 0, 2.5, 2.5, 0), pick(look, 4, 3, 3, 4), pick(look, 14, 0, 0, 14), pick(look, 34%, 55%, 90%, 34%), if(look == 2, pink_shadow, deep)
+                box { at: tbx + bw_ / 2, tipy; size: toast_m.width + 36, 34; corner: pick(look, 17, 5, 17, 3) }
+            }
+            text toast { at: tbx + bw_ / 2, tipy; anchor: center; size: 14; weight: 700; color: ink; family: "Space Grotesk"; measure: toast_m }
+        }
+
         //  a small hint of the keys, under the pills
-        text "Enter  copy      Ctrl+S  save      Ctrl+Z  undo      Esc  close" { at: tbx + (tw + 12 + aw) / 2, tby + 52 + 14 + if(look == 1 or look == 2, 6, 0); anchor: center; size: 12; color: if(look == 1 or look == 2, tint, ink); opacity: if(look == 1 or look == 2, 85%, 62%); family: "Space Grotesk" }
+        text "Enter  copy      Ctrl+S  save      Ctrl+Z  undo      Esc  close" { at: tbx + bw_ / 2, tby + 52 + 14 + if(look == 1 or look == 2, 6, 0); anchor: center; size: 12; color: if(look == 1 or look == 2, tint, ink); opacity: if(look == 1 or look == 2, 85%, 62%); family: "Space Grotesk" }
     }
 
     //  While a text is being written the keys are its own: Esc drops the text instead of closing, Enter keeps it (`submit tq`) instead of copying.

@@ -20,20 +20,39 @@ end
 -- `pleamar --screen` to open Snap there too); with neither, every monitor is taken, as before.
 -- SNAP_NO_CAPTURE=1 keeps a picture that is already there, and SNAP_DIR is another folder for it (a test of the scene without a screen to take it
 -- from, which then never touches the pictures of a real Snap).
+-- What makes it quick: the picture is not compressed (`grim -l 0`: a PNG at the default level took 860 ms of a 2560 × 1440 monitor, this 40; it only
+-- lives in the runtime folder, and Copy and Save write their own); its width comes from its header, not from ImageMagick (80 ms). And SNAP_NOT_BEFORE
+-- (milliseconds since the epoch) is when it may be taken: the Controls drawer starts Snap as it closes, so pleamar starts while the drawer goes, and
+-- only the picture waits for it to be gone.
 -- And the look Vitreus has (Settings > Theme), from its iris.json, so Snap is drawn like it (`fact look`: 0 Glass, 1 Retro, 2 UwU, 3 Cyber). The colours
 -- come with ../palette.plm, which Vitreus rewrites; the typeface with the font setup the Controls drawer starts Snap with. SNAP_LOOK (8, 9, 10, or
 -- anything else for Glass) names one instead, to see them all.
 local LOOKS = { ["8"] = 1, ["9"] = 2, ["10"] = 3 }
 local function capture()
     local script = 'd="${SNAP_DIR:-${XDG_RUNTIME_DIR:-/tmp}/vitreus-snap}"; mkdir -p "$d"; '
+        .. 'if [ -n "${SNAP_NOT_BEFORE-}" ]; then w=$((SNAP_NOT_BEFORE - $(date +%s%3N))); [ "$w" -gt 0 ] && [ "$w" -lt 5000 ] && sleep "$(printf "%d.%03d" $((w / 1000)) $((w % 1000)))"; fi; '
         .. 'o="$SNAP_OUTPUT"; [ -n "$o" ] || o=$(hyprctl -j monitors 2>/dev/null | jq -r \'.[] | select(.focused) | .name\' 2>/dev/null | head -n 1); '
-        .. 'if [ -z "$SNAP_NO_CAPTURE" ]; then grim ${o:+-o "$o"} "$d/shot.png" || exit 1; fi; '
-        .. 'echo "$d"; magick identify -format "%w\n" "$d/shot.png"; '
-        .. [[l="${SNAP_LOOK-}"; [ -n "$l" ] || l=$(sed -n 's/.*"look": *\([0-9]*\).*/\1/p' "${XDG_DATA_HOME:-$HOME/.local/share}/pleamar/vitreus/iris.json" 2> /dev/null | head -n 1); echo "$l"]]
+        .. 'if [ -z "$SNAP_NO_CAPTURE" ]; then grim -l 0 ${o:+-o "$o"} "$d/shot.png" || exit 1; fi; '
+        .. 'echo "$d"; od -An -tu1 -j16 -N4 "$d/shot.png" | awk "{ print \\$1 * 16777216 + \\$2 * 65536 + \\$3 * 256 + \\$4 }"; '
+        .. [[l="${SNAP_LOOK-}"; [ -n "$l" ] || l=$(sed -n 's/.*"look": *\([0-9]*\).*/\1/p' "${XDG_DATA_HOME:-$HOME/.local/share}/pleamar/vitreus/iris.json" 2> /dev/null | head -n 1); echo "$l"; ]]
+        -- The windows on that monitor's workspace (and its special one, if it is out), as "x y w h" in the monitor's own plane, bottom first:
+        -- tiled under floating, floating under fullscreen, the special workspace over the rest, and among equals the one used last on top.
+        -- SNAP_WINDOWS ("x y w h;x y w h") gives them instead, to try it without Hyprland.
+        .. [[if [ -n "${SNAP_WINDOWS-}" ]; then printf '%s\n' "$SNAP_WINDOWS" | tr ';' '\n'; ]]
+        .. [[elif [ -n "$o" ]; then jq -rn --arg o "$o" --argjson m "$(hyprctl -j monitors)" --argjson c "$(hyprctl -j clients)" ]]
+        .. [['($m[] | select(.name == $o)) as $mon | [$c[] | select(.mapped and (.hidden | not) and .monitor == $mon.id ]]
+        .. [[and (.workspace.id == $mon.activeWorkspace.id or .workspace.id == $mon.specialWorkspace.id))] ]]
+        .. [[| sort_by([(.workspace.id == $mon.specialWorkspace.id), (.fullscreen > 0), .floating, -.focusHistoryID]) ]]
+        .. [[| .[] | "\(.at[0] - $mon.x) \(.at[1] - $mon.y) \(.size[0]) \(.size[1])"' 2> /dev/null; fi]]
     run("sh", { "-c", script }, function(out, code)
-        local d, w, look = (out or ""):match("^(.-)\n(%d+)\n(%d*)")
+        local d, w, look, rest = (out or ""):match("^(.-)\n(%d+)\n(%d*)\n?(.*)$")
         if code ~= 0 or not d then fail("The screen could not be captured.") return end
         fact.look = LOOKS[look] or 0
+        local wins = {}
+        for x, y, ww, hh in (rest or ""):gmatch("(%-?%d+) (%-?%d+) (%d+) (%d+)") do
+            if #wins < 32 then wins[#wins + 1] = { x = tonumber(x), y = tonumber(y), w = tonumber(ww), h = tonumber(hh) } end
+        end
+        model.wins = wins
         dir = d
         shot_w = tonumber(w) or 0
         text.shot_path = d .. "/shot.png?1"
@@ -288,8 +307,8 @@ end)
 local COLOURS = { "#ff6b6b", "#ffc857", nil, "#5cc8ff", "#ffffff" }
 local HL_ALPHA = "6B"   -- the highlighter's 42 %
 
-local function export(mint, then_fn)
-    commit_text()
+local function export(mint, out, then_fn, keep_typing)
+    if not keep_typing then commit_text() end
     local k = (shot_w > 0 and fact.scrw > 0) and shot_w / fact.scrw or 1
     local ox, oy = fact.sx, fact.sy
     local cw, ch = math.max(1, math.floor(fact.sw * k + 0.5)), math.max(1, math.floor(fact.sh * k + 0.5))
@@ -361,25 +380,31 @@ local function export(mint, then_fn)
                  "-annotate", string.format("%+d%+d", math.floor(X(m.x0) + 0.5), math.floor(Y(m.y0) - ch / 2 + 0.5)), esc(m.s))
         end
     end
-    push(dir .. "/out.png")
+    push(out)
     run("magick", a, function(_, code)
-        if code ~= 0 then fail("The picture could not be cut out.") return end
+        if code ~= 0 then
+            if not keep_typing then fail("The picture could not be cut out.") end
+            return
+        end
         then_fn()
     end, { output = false })
 end
 
--- Mint as the shell has it now, or the default if the palette cannot be read.
+-- Mint as the shell has it now, or the default if the palette cannot be read. Read once: it does not change while Snap is open.
+local mint_known = nil
 local function with_mint(fn)
+    if mint_known then fn(mint_known) return end
     run("sh", { "-c", [[sed -n 's/^ *let mint *= *\(#[0-9a-fA-F]\{6\}\).*/\1/p' "$HOME/.config/pleamar/shells/vitreus/palette.plm" | head -n 1]] }, function(out)
         local m = trim(out)
-        fn(m:match("^#%x%x%x%x%x%x$") and m or "#9ed6bd")
+        mint_known = m:match("^#%x%x%x%x%x%x$") and m or "#9ed6bd"
+        fn(mint_known)
     end)
 end
 
 local function finish(script, message)
     if not dir then return end
     with_mint(function(mint)
-        export(mint, function()
+        export(mint, dir .. "/out.png", function()
             run("sh", { "-c", 'd="' .. dir .. '"; ' .. script }, function(_, code)
                 if code == 3 then say_quit() return end      -- Vitreus has it, and says so itself (do_save)
                 if code ~= 0 then fail("The picture could not be kept.") return end
@@ -403,6 +428,157 @@ on("do_save", function()
 end)
 
 on("do_quit", say_quit)
+
+-- ── Dragging the picture out ────────────────────────────────────────────────────────────────────────────────────
+-- The drag hands over a file, which has to be there the moment it starts: so a finished copy is kept, made again 350 ms after the last change
+-- (the selection moved or resized, a mark added, moved, undone…), written aside and moved into place so a drop never gets half a file. While
+-- one is due, `drag_ready` is off and the grip is dimmed. Named as Save names it, so it arrives in a chat or an upload as a screenshot.
+local drag_gen = 0
+local function drag_soon()
+    drag_gen = drag_gen + 1
+    local g = drag_gen
+    fact.drag_ready = false
+    after(350, function()
+        if g ~= drag_gen or not dir or fact.phase ~= 2 or fact.sw < 2 or fact.sh < 2 then return end
+        with_mint(function(mint)
+            local tmp = dir .. "/drag-next.png"
+            export(mint, tmp, function()
+                if g ~= drag_gen then return end
+                local name = dir .. "/drag/screenshot_" .. os.date("%Y-%m-%d_%H-%M-%S") .. ".png"
+                run("sh", { "-c", 'mkdir -p "${2%/*}" && rm -f "${2%/*}"/*.png && mv "$1" "$2"', "sh", tmp, name }, function(_, code)
+                    if code ~= 0 or g ~= drag_gen then return end
+                    text.drag_path = name
+                    fact.drag_ready = true
+                end)
+            end, true)
+        end)
+    end)
+end
+for _, f in ipairs({ "sx", "sy", "sw", "sh", "phase" }) do on("fact:" .. f, drag_soon) end
+local show_marks = show
+show = function() show_marks(); drag_soon() end
+on("do_dropped", say_quit)
+
+-- Snap's own word, over its bar (`toast`): notifications open under Snap while it covers the screen. Gone after `ms` (none: it stays, until the
+-- next word).
+local toast_gen = 0
+local function toast(msg, ms)
+    toast_gen = toast_gen + 1
+    local g = toast_gen
+    text.toast = msg
+    fact.toast_on = true
+    if ms then after(ms, function() if g == toast_gen then fact.toast_on = false end end) end
+end
+
+-- ── The text in the picture ──────────────────────────────────────────────────────────────────────────────────────
+-- tesseract reads the picked part of the picture (not the marks), twice the size and in greys, which reads small screen text much better.
+-- `how` is "" for the text, "tsv" for every word with its box (in those doubled pixels).
+local function read_text(how, fn)
+    local k = (shot_w > 0 and fact.scrw > 0) and shot_w / fact.scrw or 1
+    local geo = string.format("%dx%d+%d+%d", math.max(1, math.floor(fact.sw * k + 0.5)), math.max(1, math.floor(fact.sh * k + 0.5)),
+        math.floor(fact.sx * k + 0.5), math.floor(fact.sy * k + 0.5))
+    toast("Reading the text…")
+    run("sh", { "-c", 'magick "$1" -crop "$2" +repage -colorspace Gray -resize 200% png:- | tesseract stdin stdout $3 2> /dev/null',
+        "sh", dir .. "/shot.png", geo, how }, function(out, code)
+        fact.busy = 0
+        fact.toast_on = false
+        fn(code == 0 and out or nil, k)
+    end)
+end
+
+on("do_ocr_copy", function()
+    if not dir then fact.busy = 0 return end
+    read_text("", function(out)
+        local s = trim((out or ""):gsub("\n\n+", "\n\n"))
+        if s == "" then
+            toast("No text found here", 2600)
+            return
+        end
+        run("sh", { "-c", 'printf "%s" "$1" | wl-copy', "sh", s }, function()
+            local first = s:gsub("%s+", " ")
+            if #first > 80 then first = first:sub(1, 77) .. "..." end
+            run("notify-send", { "-a", "Snap", "Text copied", first }, function() say_quit() end)
+        end)
+    end)
+end)
+
+-- What counts as private: an e-mail address, a link, an IP address, anything with six digits or more (a phone number, a card, a code), and a
+-- number written in pieces ("555 123 4567") that adds up to seven digits or more.
+local function private_word(w)
+    if w:find("[%w._%%+%-]+@[%w.%-]+%.%a%a+") then return true end
+    local lw = w:lower()
+    if lw:find("^https?://") or lw:find("^www%.") or lw:find("[%w%-]+%.%a%a+/") then return true end
+    if w:find("%d+%.%d+%.%d+%.%d+") then return true end
+    local _, digits = w:gsub("%d", "")
+    return digits >= 6
+end
+
+on("do_hide", function()
+    if not dir then fact.busy = 0 return end
+    read_text("tsv", function(out, k)
+        -- The words, line by line: level 5 rows of the tsv, keyed by block, paragraph and line.
+        local lines, order = {}, {}
+        for row in (out or ""):gmatch("[^\n]+") do
+            local c = {}
+            for v in (row .. "\t"):gmatch("([^\t]*)\t") do c[#c + 1] = v end
+            if c[1] == "5" and c[12] and trim(c[12]) ~= "" then
+                local key = c[3] .. "." .. c[4] .. "." .. c[5]
+                if not lines[key] then lines[key] = {}; order[#order + 1] = key end
+                local t = lines[key]
+                t[#t + 1] = { s = trim(c[12]), x = tonumber(c[7]), y = tonumber(c[8]), w = tonumber(c[9]), h = tonumber(c[10]) }
+            end
+        end
+        -- Which words, then runs of marked words on a line become one box (the doubled pixels back to the scene's: / 2 / k).
+        local boxes = {}
+        for _, key in ipairs(order) do
+            local ws = lines[key]
+            local hit = {}
+            for i, w in ipairs(ws) do hit[i] = private_word(w.s) end
+            local i = 1
+            while i <= #ws do
+                if ws[i].s:find("^[%d%(%)%+%-%.]+$") then
+                    local j, digits = i, 0
+                    while j <= #ws and ws[j].s:find("^[%d%(%)%+%-%.]+$") do
+                        local _, n = ws[j].s:gsub("%d", "")
+                        digits = digits + n
+                        j = j + 1
+                    end
+                    if digits >= 7 then for m = i, j - 1 do hit[m] = true end end
+                    i = math.max(j, i + 1)
+                else
+                    i = i + 1
+                end
+            end
+            local cur = nil
+            for n, w in ipairs(ws) do
+                if hit[n] then
+                    if cur then
+                        cur.x1, cur.y0, cur.y1 = w.x + w.w, math.min(cur.y0, w.y), math.max(cur.y1, w.y + w.h)
+                    else
+                        cur = { x0 = w.x, y0 = w.y, x1 = w.x + w.w, y1 = w.y + w.h }
+                    end
+                elseif cur then
+                    boxes[#boxes + 1] = cur
+                    cur = nil
+                end
+            end
+            if cur then boxes[#boxes + 1] = cur end
+        end
+        if #boxes == 0 then
+            toast("Nothing private found: no addresses, links or long numbers", 3200)
+            return
+        end
+        local s = 1 / (2 * k)
+        toast(string.format("Blurred %d %s  ·  Ctrl+Z to undo", #boxes, #boxes == 1 and "thing" or "things"), 3200)
+        change(function()
+            for _, b in ipairs(boxes) do
+                if #marks >= MAX_MARKS then break end
+                marks[#marks + 1] = { k = BLUR, c = 0, w = 0, x0 = fact.sx + b.x0 * s - 4, y0 = fact.sy + b.y0 * s - 4,
+                                      x1 = fact.sx + b.x1 * s + 4, y1 = fact.sy + b.y1 * s + 4 }
+            end
+        end)
+    end)
+end)
 
 show()
 capture()
