@@ -1,0 +1,312 @@
+language 0.1
+import "../palette.plm"
+
+//  Snap: the screenshot tool. The logic takes the picture of the screen before anything is drawn (snap.luau); the scene freezes it, dims it, and lets you drag out the part to keep,
+//  then move it and pull its edges. Two pills of glass come up under it: the tools (not working yet) and what to do with the picture (Copy, Save).
+//
+//  Start it with   pleamar --scene ~/.config/pleamar/shells/vitreus/snap/snap.plm --no-hud   (Esc closes it).
+
+scene Snap {
+    surface { size: full, full; anchor: top_left; margin: 0; level: overlay; keyboard: exclusive while phase > 0 }
+
+    permissions { run: "sh", "pleamar", "notify-send" }
+
+    fact phase = 0         // 0 taking the picture (nothing is drawn), 1 picking, 2 a part is picked
+    text shot_path = ""    // the picture: its file, `?` and a number
+    image shot = from shot_path, 1920, 1080
+    event do_copy ->
+    event do_save ->
+    event do_quit ->
+
+    fact tool = 3          // 0 select, 1 crop, 2 pen, 3 arrow, 4 rectangle, 5 ellipse, 6 text, 7 marker, 8 blur, 9 highlighter
+    fact col = 0           // which of the five colours
+
+    spring pop = 230, 17
+    prop hx = 0 ~pop
+    prop cx_ = 0 ~pop
+    prop pv = 0 ~pop
+
+    let W = screen.width
+    let H = screen.height
+    let u = min(W / 1920, H / 1080)
+
+    //  The selection
+    fact sx = 0
+    fact sy = 0
+    fact sw = 0
+    fact sh = 0
+    fact x0 = 0            // where the press that began a new selection was
+    fact y0 = 0
+    fact picking = 0       // a new selection is being dragged out
+    fact scrw = 0          // the scene's width, for the logic to find the picture's scale
+    fact bx = 0            // where the selection was when a drag began
+    fact by = 0
+    fact bw = 0
+    fact bh = 0
+
+    //  The pills, side by side under the selection (above it when there is no room below)
+    let tw = 632
+    let aw = 300
+    let tbx = clamp(sx + sw / 2 - (tw + 12 + aw) / 2, 16, max(16, W - tw - aw - 28))
+    let tby = min(sy + sh + 22, H - 78)
+    let tl = tbx + 30
+    let ty = tby + 26
+    let abx = tbx + tw + 12
+
+    let cyc = if(sy > 40, sy - 34, sy + 8)
+    follow pv = if(phase == 2, 1, 0)
+    follow hx = tl + tool * 42
+    follow cx_ = tbx + 10 + 418 + 14 + 13 + col * 26
+
+    //  ── The frozen screen ───────────────────────────────────────────────────────────────────────────────────────
+    image shot { at: 0, 0; size: W, H; show: phase > 0 }
+
+    //  Everything outside the selection is dimmed
+    box { from: 0, 0; size: W, sy; color: #000000; opacity: 58%; show: phase > 0 }
+    box { from: 0, sy + sh; size: W, H - sy - sh; color: #000000; opacity: 58%; show: phase > 0 }
+    box { from: 0, sy; size: sx, sh; color: #000000; opacity: 58%; show: phase > 0 }
+    box { from: sx + sw, sy; size: W - sx - sw, sh; color: #000000; opacity: 58%; show: phase > 0 }
+
+    //  ── The selection's edge and its handles ──────────────────────────────────────────────────────────────────
+    box { from: sx, sy; size: sw, sh; corner: 2; stroke: 1.5; color: ink; show: phase > 0 and sw > 1 }
+    repeat k in 0..8 {
+        ellipse { at: sx + pick(k, 0, 0.5, 1, 1, 1, 0.5, 0, 0) * sw, sy + pick(k, 0, 0, 0, 0.5, 1, 1, 1, 0.5) * sh; radius: 6; color: #101417; opacity: 70%; show: phase == 2 }
+        ellipse { at: sx + pick(k, 0, 0.5, 1, 1, 1, 0.5, 0, 0) * sw, sy + pick(k, 0, 0, 0, 0.5, 1, 1, 1, 0.5) * sh; radius: 4; color: ink; show: phase == 2 }
+    }
+
+
+    //  ── Dragging out a selection ───────────────────────────────────────────────────────────────────────────────────
+    //  Under everything else, so a press on the selection or its handles is theirs; a press anywhere else begins a new selection. A drag belongs to every zone that was under the press,
+    //  so this one only follows it if the press itself was on the bare screen (`picking`): a click on a button that moves a pixel is not a new selection.
+    zone box zpick { from: 0, 0; size: W, H; cursor: crosshair; active: phase > 0 }
+    on press zpick { picking = 1; x0 = pointer.x; y0 = pointer.y; phase = 1; sw = 0; sh = 0 }
+    on drag zpick while picking == 1 {
+        sx = min(x0, clamp(x0 + drag.dx, 0, W))
+        sy = min(y0, clamp(y0 + drag.dy, 0, H))
+        sw = abs(clamp(x0 + drag.dx, 0, W) - x0)
+        sh = abs(clamp(y0 + drag.dy, 0, H) - y0)
+    }
+    on release zpick { picking = 0; phase = if(sw > 8 and sh > 8, 2, 1) }
+
+    //  ── Moving and resizing the selection ──────────────────────────────────────────────────────────────────────
+    //  The body carries it. The handles come after, so they win where they overlap it. A handle pulls its own side or corner; the rest stays where it was when the press began.
+    zone box zsel { from: sx + 6, sy + 6; size: max(1, sw - 12), max(1, sh - 12); cursor: grab; active: phase == 2 }
+    on press zsel { bx = sx; by = sy }
+    on drag zsel { sx = clamp(bx + drag.dx, 0, W - sw); sy = clamp(by + drag.dy, 0, H - sh) }
+    zone box zh0 { at: sx + 0 * sw, sy + 0 * sh; size: 26, 26; corner: 13; cursor: nwse_resize; active: phase == 2 }
+    on press zh0 { bx = sx; by = sy; bw = sw; bh = sh }
+    on drag zh0 {
+        sx = clamp(bx + drag.dx, 0, bx + bw - 24)
+        sw = bw + bx - clamp(bx + drag.dx, 0, bx + bw - 24)
+        sy = clamp(by + drag.dy, 0, by + bh - 24)
+        sh = bh + by - clamp(by + drag.dy, 0, by + bh - 24)
+    }
+    zone box zh1 { at: sx + 0.5 * sw, sy + 0 * sh; size: 26, 26; corner: 13; cursor: ns_resize; active: phase == 2 }
+    on press zh1 { bx = sx; by = sy; bw = sw; bh = sh }
+    on drag zh1 {
+        sx = bx
+        sw = bw
+        sy = clamp(by + drag.dy, 0, by + bh - 24)
+        sh = bh + by - clamp(by + drag.dy, 0, by + bh - 24)
+    }
+    zone box zh2 { at: sx + 1 * sw, sy + 0 * sh; size: 26, 26; corner: 13; cursor: nesw_resize; active: phase == 2 }
+    on press zh2 { bx = sx; by = sy; bw = sw; bh = sh }
+    on drag zh2 {
+        sx = bx
+        sw = clamp(bw + drag.dx, 24, W - bx)
+        sy = clamp(by + drag.dy, 0, by + bh - 24)
+        sh = bh + by - clamp(by + drag.dy, 0, by + bh - 24)
+    }
+    zone box zh3 { at: sx + 1 * sw, sy + 0.5 * sh; size: 26, 26; corner: 13; cursor: ew_resize; active: phase == 2 }
+    on press zh3 { bx = sx; by = sy; bw = sw; bh = sh }
+    on drag zh3 {
+        sx = bx
+        sw = clamp(bw + drag.dx, 24, W - bx)
+        sy = by
+        sh = bh
+    }
+    zone box zh4 { at: sx + 1 * sw, sy + 1 * sh; size: 26, 26; corner: 13; cursor: nwse_resize; active: phase == 2 }
+    on press zh4 { bx = sx; by = sy; bw = sw; bh = sh }
+    on drag zh4 {
+        sx = bx
+        sw = clamp(bw + drag.dx, 24, W - bx)
+        sy = by
+        sh = clamp(bh + drag.dy, 24, H - by)
+    }
+    zone box zh5 { at: sx + 0.5 * sw, sy + 1 * sh; size: 26, 26; corner: 13; cursor: ns_resize; active: phase == 2 }
+    on press zh5 { bx = sx; by = sy; bw = sw; bh = sh }
+    on drag zh5 {
+        sx = bx
+        sw = bw
+        sy = by
+        sh = clamp(bh + drag.dy, 24, H - by)
+    }
+    zone box zh6 { at: sx + 0 * sw, sy + 1 * sh; size: 26, 26; corner: 13; cursor: nesw_resize; active: phase == 2 }
+    on press zh6 { bx = sx; by = sy; bw = sw; bh = sh }
+    on drag zh6 {
+        sx = clamp(bx + drag.dx, 0, bx + bw - 24)
+        sw = bw + bx - clamp(bx + drag.dx, 0, bx + bw - 24)
+        sy = by
+        sh = clamp(bh + drag.dy, 24, H - by)
+    }
+    zone box zh7 { at: sx + 0 * sw, sy + 0.5 * sh; size: 26, 26; corner: 13; cursor: ew_resize; active: phase == 2 }
+    on press zh7 { bx = sx; by = sy; bw = sw; bh = sh }
+    on drag zh7 {
+        sx = clamp(bx + drag.dx, 0, bx + bw - 24)
+        sw = bw + bx - clamp(bx + drag.dx, 0, bx + bw - 24)
+        sy = by
+        sh = bh
+    }
+
+    //  The size, in a small chip over the top left corner
+    body {
+        color: tint
+        glass: 100%
+        opacity: 100%
+        frost: 70%
+        rim: 10%
+        shadow: 0, 4, 12, 22%, deep
+        show: phase > 0 and sw > 2
+        box { from: sx, cyc; size: 108, 26; corner: 13 }
+    }
+    text number(sw, 0) { at: sx + 46, cyc + 13; anchor: right center; size: 13; weight: 700; color: ink; family: "Space Grotesk" ; show: phase > 0 and sw > 2 }
+    text "×" { at: sx + 54, cyc + 13; anchor: center; size: 13; color: ink; opacity: 60%; family: "Space Grotesk" ; show: phase > 0 and sw > 2 }
+    text number(sh, 0) { at: sx + 62, cyc + 13; anchor: left center; size: 13; weight: 700; color: ink; family: "Space Grotesk" ; show: phase > 0 and sw > 2 }
+
+    //  ── The tools pill ───────────────────────────────────────────────────────────────────────────────────────────
+    body {
+        color: tint
+        glass: 100%
+        opacity: pv
+        show: pv > 0.01
+        lens: true
+        frost: 70%
+        refraction: 100%
+        rim: 10%
+        shine: pointer
+        shadow: 0, 7, 20, 24%, deep
+        box { from: tbx, tby + 14 * (1 - pv); size: tw, 52; corner: 26 }
+        box { from: abx, tby + 14 * (1 - pv); size: aw, 52; corner: 26 }
+    }
+
+    //  the tool that is picked, as a bead of mint that slides to it
+    body {
+        color: mint
+        opacity: pv
+        rim: 22%
+        shadow: 0, 0, 8, 40%, mint
+        show: pv > 0.01
+        box { at: hx, ty + 14 * (1 - pv); size: 38, 38; corner: 13 }
+    }
+
+    group {
+        opacity: pv
+        move: 0, 14 * (1 - pv)
+        //  0 select
+        path { at: tl + 0 * 42, ty; color: mix(ink, onmint, tool == 0); move -5, -8; line -5, 8; line -1, 4; line 3, 10; line 5, 9; line 1, 3; line 6, 3; close }
+        //  1 crop
+        path { at: tl + 1 * 42, ty; stroke: 2.2; color: mix(ink, onmint, tool == 1); move -4, -9; line -4, 4; line 9, 4 }
+        path { at: tl + 1 * 42, ty; stroke: 2.2; color: mix(ink, onmint, tool == 1); move -9, -4; line 4, -4; line 4, 9 }
+        //  2 pen
+        path { at: tl + 2 * 42, ty; stroke: 2.4; color: mix(ink, onmint, tool == 2); move -9, 5; curve -2, -3 via -6, -9; curve 4, 3 via 2, 6; curve 9, -5 via 8, 0 }
+        //  3 arrow
+        path { at: tl + 3 * 42, ty; stroke: 2.4; color: mix(ink, onmint, tool == 3); move -8, 8; line 7, -7 }
+        path { at: tl + 3 * 42, ty; stroke: 2.4; color: mix(ink, onmint, tool == 3); move -1, -8; line 8, -8; line 8, 1 }
+        //  4 rectangle
+        box { at: tl + 4 * 42, ty; size: 18, 13; corner: 3; stroke: 2.2; color: mix(ink, onmint, tool == 4) }
+        //  5 ellipse
+        ellipse { at: tl + 5 * 42, ty; radius: 8; stroke: 2.2; color: mix(ink, onmint, tool == 5) }
+        //  6 text
+        text "T" { at: tl + 6 * 42, ty; anchor: center; size: 20; weight: 700; color: mix(ink, onmint, tool == 6); family: "Space Grotesk" }
+        //  7 marker
+        ellipse { at: tl + 7 * 42, ty; radius: 9; stroke: 2.2; color: mix(ink, onmint, tool == 7) }
+        text "1" { at: tl + 7 * 42, ty; anchor: center; size: 12; weight: 700; color: mix(ink, onmint, tool == 7); family: "Space Grotesk" }
+        //  8 blur
+        repeat j in 0..9 {
+            box { at: tl + 8 * 42 - 6 + mod(j, 3) * 6, ty - 6 + floor(j / 3) * 6; size: 5, 5; corner: 1; color: mix(ink, onmint, tool == 8); opacity: pick(mod(j * 4, 5), 100%, 55%, 80%, 35%, 65%) }
+        }
+        //  9 highlighter
+        box { at: tl + 9 * 42, ty; size: 9, 20; corner: 3; rotate: 40deg; color: mix(ink, onmint, tool == 9) }
+        box { at: tl + 9 * 42 + 5, ty + 8; size: 14, 3; corner: 1; color: mix(ink, onmint, tool == 9); opacity: 70% }
+
+        zone box tz0 { at: tl + 0 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Select" }
+        zone box tz1 { at: tl + 1 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Crop" }
+        zone box tz2 { at: tl + 2 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Pen" }
+        zone box tz3 { at: tl + 3 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Arrow" }
+        zone box tz4 { at: tl + 4 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Rectangle" }
+        zone box tz5 { at: tl + 5 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Ellipse" }
+        zone box tz6 { at: tl + 6 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Text" }
+        zone box tz7 { at: tl + 7 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Marker" }
+        zone box tz8 { at: tl + 8 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Blur" }
+        zone box tz9 { at: tl + 9 * 42, ty; size: 38, 38; corner: 13; cursor: pointer; label: "Highlighter" }
+        on press tz0 { tool = 0 }
+        on press tz1 { tool = 1 }
+        on press tz2 { tool = 2 }
+        on press tz3 { tool = 3 }
+        on press tz4 { tool = 4 }
+        on press tz5 { tool = 5 }
+        on press tz6 { tool = 6 }
+        on press tz7 { tool = 7 }
+        on press tz8 { tool = 8 }
+        on press tz9 { tool = 9 }
+
+        //  a hairline between the tools and the colours
+        box { at: tbx + 10 + 418 + 7, ty; size: 1, 24; color: ink; opacity: 22% }
+
+        //  the five colours, with a ring that slides to the one picked
+        ellipse { at: cx_, ty; radius: 12; stroke: 2; color: ink }
+        ellipse { at: tbx + 10 + 418 + 14 + 13 + 0 * 26, ty; radius: 8; color: #ff6b6b }
+        ellipse { at: tbx + 10 + 418 + 14 + 13 + 1 * 26, ty; radius: 8; color: #ffc857 }
+        ellipse { at: tbx + 10 + 418 + 14 + 13 + 2 * 26, ty; radius: 8; color: mint }
+        ellipse { at: tbx + 10 + 418 + 14 + 13 + 3 * 26, ty; radius: 8; color: #5cc8ff }
+        ellipse { at: tbx + 10 + 418 + 14 + 13 + 4 * 26, ty; radius: 8; color: #ffffff }
+        zone box cz0 { at: tbx + 10 + 418 + 14 + 13 + 0 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Coral" }
+        zone box cz1 { at: tbx + 10 + 418 + 14 + 13 + 1 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Amber" }
+        zone box cz2 { at: tbx + 10 + 418 + 14 + 13 + 2 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Mint" }
+        zone box cz3 { at: tbx + 10 + 418 + 14 + 13 + 3 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "Sky" }
+        zone box cz4 { at: tbx + 10 + 418 + 14 + 13 + 4 * 26, ty; size: 24, 24; corner: 12; cursor: pointer; label: "White" }
+        on press cz0 { col = 0 }
+        on press cz1 { col = 1 }
+        on press cz2 { col = 2 }
+        on press cz3 { col = 3 }
+        on press cz4 { col = 4 }
+
+        box { at: tbx + 10 + 418 + 14 + 130 + 7, ty; size: 1, 24; color: ink; opacity: 22% }
+
+        //  the stroke size: a dot as thick as the line will be
+        ellipse { at: tbx + tw - 28, ty; radius: 5; color: ink }
+        ellipse { at: tbx + tw - 28, ty; radius: 11; stroke: 1.2; color: ink; opacity: 35% }
+
+        //  ── The actions pill ─────────────────────────────────────────────────────────────────────────────────────────
+        //  undo, redo
+        path { at: abx + 28, ty; stroke: 2.4; color: ink; move 6, 6; curve -4, -2 via 5, -6; line -2, -6 }
+        path { at: abx + 28, ty; stroke: 2.4; color: ink; move 1, -10; line -5, -5; line 1, 0 }
+        path { at: abx + 64, ty; stroke: 2.4; color: ink; opacity: 38%; move -6, 6; curve 4, -2 via -5, -6; line 2, -6 }
+        path { at: abx + 64, ty; stroke: 2.4; color: ink; opacity: 38%; move -1, -10; line 5, -5; line -1, 0 }
+        box { at: abx + 88, ty; size: 1, 24; color: ink; opacity: 22% }
+
+        //  save, a clear pill, and copy, the one that is filled
+        box { at: abx + 88 + 8 + 40, ty; size: 80, 36; corner: 18; stroke: 1.4; color: ink; opacity: 55% }
+        text "Save" { at: abx + 88 + 8 + 40, ty; anchor: center; size: 15; weight: 700; color: ink; family: "Space Grotesk" }
+        body {
+            color: mint
+            opacity: 100%
+            rim: 22%
+            shadow: 0, 0, 10, 38%, mint
+            box { at: abx + 88 + 8 + 80 + 8 + 48, ty; size: 96, 36; corner: 18 }
+        }
+        text "Copy" { at: abx + 88 + 8 + 80 + 8 + 48, ty; anchor: center; size: 15; weight: 800; color: onmint; family: "Space Grotesk" }
+
+        zone box zsave { at: abx + 136, ty; size: 80, 36; corner: 18; cursor: pointer; label: "Save" }
+        zone box zcopy { at: abx + 232, ty; size: 96, 36; corner: 18; cursor: pointer; label: "Copy" }
+        on press zsave { scrw = W; emit do_save }
+        on press zcopy { scrw = W; emit do_copy }
+
+        //  a small hint of the keys, under the pills
+        text "Enter  copy      Ctrl+S  save      Esc  close" { at: tbx + (tw + 12 + aw) / 2, tby + 52 + 14; anchor: center; size: 12; color: ink; opacity: 62%; family: "Space Grotesk" }
+    }
+
+    on key Escape { emit do_quit }
+    on key Return while phase == 2 { scrw = W; emit do_copy }
+    on key Ctrl+s while phase == 2 { scrw = W; emit do_save }
+}
