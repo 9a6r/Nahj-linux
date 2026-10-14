@@ -1,7 +1,9 @@
 part BarGlass {
     //  The whole bar, glass and all, is one group so the wave can bend it as one thing.
     group {
-        shader: wave, pv, mix(clamp(ring, 0, 1), 1, lm), mix((mc - (pcx - bar.w / 2)) / bar.w, 0.5, clamp(ring_mid, 0, 1)), lf.w, 2.6 * u * (1 - min(1, drop * 2)) * (1 - lm), bar.w, pxa, lf.t
+        //  Only while it does something: the Retro's pixelation, or a wave that can bend (not on the left, not with the panel half down, and while a beat or a ring is moving).
+        //  The rest of the time the group goes without its shader and its full-surface pass (pleamar 0.3.12 and later).
+        shader: wave, pv, mix(clamp(ring, 0, 1), 1, lm), mix((mc - (pcx - bar.w / 2)) / bar.w, 0.5, clamp(ring_mid, 0, 1)), lf.w, 2.6 * u * (1 - min(1, drop * 2)) * (1 - lm), bar.w, pxa, lf.t while pxa > 1.5 or (lm < 0.999 and drop < 0.5 and (pv > 0.001 or ring < 0.999))
         //  With the Retro on, a barely visible box over the whole surface makes the group's box the surface, so the pixelation (wave.wgsl) knows where the opening is.
         box { from: 0, 0; size: screen.width, screen.height; color: deep; opacity: 1.2% * cas_k }
         // ── the liquid ───────────────────────────────────────────────
