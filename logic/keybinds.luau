@@ -81,7 +81,9 @@ return function()
             if bit32.band(mask, m[1]) ~= 0 then names[#names + 1] = wm() == "hypr" and m[2]:upper() or m[2] end
         end
         local k = key
-        if wm() == "hypr" and #key == 1 then k = key:upper() end
+        if wm() == "hypr" then
+            if #key == 1 then k = key:upper() elseif key == "space" then k = "Space" end    -- as the file has always written them
+        end
         names[#names + 1] = k
         return table.concat(names, wm() == "hypr" and " + " or "+")
     end
