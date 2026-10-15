@@ -53,6 +53,12 @@ layout all run in the renderer, and the logic only reports facts.
 
 <table>
   <tr>
+    <td align="center" colspan="2"><img src="assets/screenshots/dashboard.webp" alt="The dashboard: volume and brightness, clock and reminders, weather, notifications, the user and the power state, a system monitor, and what is playing" /><br /><sub><b>Dashboard</b> (<code>SUPER + SHIFT + D</code>) — everything at a glance, surfacing through the glass</sub></td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2"><img src="assets/screenshots/snap.webp" alt="Snap: a frozen screenshot being drawn on" height="520" /><br /><sub><b>Snap</b> — click a window or drag an area, then draw on it, redact, copy</sub></td>
+  </tr>
+  <tr>
     <td align="center"><img src="assets/screenshots/control-center.webp" alt="The controls drawer" /><br /><sub><b>Controls</b> — Wi-Fi, Bluetooth, brightness and volume</sub></td>
     <td align="center"><img src="assets/screenshots/calendar.webp" alt="Calendar, weather and reminders" /><br /><sub><b>Calendar</b> — weather, month, and reminders</sub></td>
   </tr>
@@ -71,6 +77,9 @@ layout all run in the renderer, and the logic only reports facts.
 ## ✨ Features
 
 * **Two layouts** — an *island* pill along the top, or a *frame*: a strip down the left edge with glass round the screen.
+* **Dashboard** (`SUPER + SHIFT + D`) — one screen of glass cards that surface through the water: volume and brightness, a big clock with reminders,
+  weather with a sky that moves, scrollable notifications (swipe to dismiss), your picture and machine, the power state and a power button that
+  slides over the session options, a system monitor, and what is playing with a cava ring and a wavy progress bar.
 * **Calendar** — month grid, reminders in plain words (`3:30pm Call mom`), and the weather for the week.
 * **Controls** — Wi-Fi, Bluetooth, brightness, volume with a per-app mixer, Do Not Disturb, Caffeine, screenshots and
   screen recording, and power (lock, sleep, log out, restart, power off). A screenshot comes up as a card with its picture:
