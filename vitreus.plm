@@ -102,6 +102,7 @@ scene Vitreus {
     event trackchange              // the logic says the song changed
     //  The calendar: 42 days in the grid (six weeks), what the logic says of each, and the
     //  chosen day's reminders. The logic keeps them in `calendar.json` and paints these.
+    event pal_push ->              // the desktop clock opened and wants the palette (see push_pal in vitreus.luau)
     event cal_pick ->              // a day of the grid, by its place
     event cal_prev ->
     event cal_next ->

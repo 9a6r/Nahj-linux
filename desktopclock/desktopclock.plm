@@ -1,5 +1,5 @@
 language 0.1
-import "../palette.plm"
+import "../palette-live.plm"
 import "clockface.plm"
 import "clockface_styled.plm"
 
@@ -14,6 +14,42 @@ scene DesktopClock {
     surface { size: full, full; anchor: top_left; margin: 0; level: bottom; screens: each; reserve: -1 }
 
     permissions { services: "clock", "files", "files.write"; run: "pleamar", "hyprctl" }
+
+    //  The shell's colours as facts (palette-live.plm reads them): Vitreus sets them when the palette changes (`push_pal` in vitreus.luau), so the theme
+    //  changes the colour at once, not after a reload of this scene as the imported palette.plm did.
+    fact pal_ink_r = 0.9608   // #f5f7f5
+    fact pal_ink_g = 0.9686
+    fact pal_ink_b = 0.9608
+    fact pal_faint_r = 0.7608   // #c2c7cc
+    fact pal_faint_g = 0.7804
+    fact pal_faint_b = 0.8000
+    fact pal_mint_r = 0.6196   // #9ed6bd
+    fact pal_mint_g = 0.8392
+    fact pal_mint_b = 0.7412
+    fact pal_mintlo_r = 0.4235   // #6cbc9c
+    fact pal_mintlo_g = 0.7373
+    fact pal_mintlo_b = 0.6118
+    fact pal_minthi_r = 0.8627   // #dcf8ec
+    fact pal_minthi_g = 0.9725
+    fact pal_minthi_b = 0.9255
+    fact pal_onmint_r = 0.0627   // #10161a
+    fact pal_onmint_g = 0.0863
+    fact pal_onmint_b = 0.1020
+    fact pal_tint_r = 0.1059   // #1b2127
+    fact pal_tint_g = 0.1294
+    fact pal_tint_b = 0.1529
+    fact pal_panel_r = 0.0863   // #161a1f
+    fact pal_panel_g = 0.1020
+    fact pal_panel_b = 0.1216
+    fact pal_deep_r = 0.0431   // #0b0e11
+    fact pal_deep_g = 0.0549
+    fact pal_deep_b = 0.0667
+    fact pal_off_r = 0.2275   // #3a4048
+    fact pal_off_g = 0.2510
+    fact pal_off_b = 0.2824
+    fact pal_alert_r = 0.9373   // #ef4444
+    fact pal_alert_g = 0.2667
+    fact pal_alert_b = 0.2667
 
     service clock as now { hour: number }
 

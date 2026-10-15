@@ -196,6 +196,8 @@ local function ask_look()
         end)
     end)
 end
+-- Its colours come from Vitreus too (as facts): ask for them at start, when this scene has just opened with the stock ones.
+run("pleamar", { "--say", "vitreus", "emit pal_push" }, function() end)
 ask_look()
 after(250, ask_look)             -- a reload (the palette changed with the theme) starts from Glass: ask again at once, not only on the 4 s timer
 after(900, ask_look)

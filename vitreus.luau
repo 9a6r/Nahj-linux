@@ -2428,6 +2428,22 @@ do
     end
 end
 
+-- The desktop clock takes the palette as facts too (a file import made it reload the scene on every theme change, a few seconds): one `--say` with all of them.
+function iris_fx.push_pal(pal)
+    pal = pal or iris_fx.last_pal or iris_fx.saved
+    if not pal then return end
+    local args = { "--say", "desktopclock" }
+    for _, k in ipairs(iris_fx.order) do
+        local r, g, b = hex_to_rgb(pal[k])
+        args[#args + 1] = string.format("fact pal_%s_r %.4f", k, r)
+        args[#args + 1] = string.format("fact pal_%s_g %.4f", k, g)
+        args[#args + 1] = string.format("fact pal_%s_b %.4f", k, b)
+    end
+    run("pleamar", args, function() end)
+end
+
+on("pal_push", function() iris_fx.push_pal() end)
+
 function iris_fx.apply_palette(pal)
     iris_fx.last_pal = pal
     local order = iris_fx.order
@@ -2448,6 +2464,7 @@ function iris_fx.apply_palette(pal)
     if text_out == iris_last_text then return end
     iris_last_text = text_out
     iris_fx.set_facts(pal)
+    iris_fx.push_pal(pal)
     local same_as_saved = iris_fx.saved ~= nil
     if same_as_saved then
         for _, k in ipairs(order) do if iris_fx.saved[k] ~= pal[k] then same_as_saved = false end end
