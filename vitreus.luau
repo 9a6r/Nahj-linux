@@ -2514,9 +2514,11 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
 -- The room round the windows is per monitor: only a monitor the bar is on gets the strip's and the frame's room. `bar_fx.mons` is what is plugged in
 -- and `bar_fx.on` where the bar is ("all", or a monitor's name); the Bar page below keeps both. A rule for each monitor (`m[NAME]`) says what its
 -- own gaps are, and the global gaps are what a monitor without a rule gets, so a monitor plugged in later does not borrow the bar's room.
-function iris_fx.gaps_code()
+-- `left` says where the bar is for this code (false: the gaps as they were before us); left out, it is where the bar is now.
+function iris_fx.gaps_code(left)
+    if left == nil then left = bar_fx.left end
     local o = bar_fx.orig
-    if not bar_fx.left and not o then return nil end
+    if not left and not o then return nil end
     o = o or { 20, 20, 20, 20 }
     local px = math.floor(1.35 * 8 + 0.5) + 13            -- the frame's thickness (8 * u) and a gap
     local lp = math.floor(1.35 * 46 + 0.5) + 14
@@ -2528,10 +2530,10 @@ function iris_fx.gaps_code()
     end
     local bar_gaps = { px, px, px, lp }
     local everywhere = (bar_fx.on or "all") == "all"
-    local parts = { cfg((bar_fx.left and everywhere) and bar_gaps or o) }
+    local parts = { cfg((left and everywhere) and bar_gaps or o) }
     for _, name in ipairs(bar_fx.mons or {}) do
         if name:match("^[%w%._%-]+$") then
-            local has_bar = bar_fx.left and (everywhere or bar_fx.on == name)
+            local has_bar = left and (everywhere or bar_fx.on == name)
             parts[#parts + 1] = rule(name, has_bar and bar_gaps or o)
         end
     end
@@ -2543,6 +2545,9 @@ function iris_fx.apply_hypr()
     if pal then local c = iris_fx.border_code(pal); parts[#parts + 1] = c; keep[#keep + 1] = c end
     local g = iris_fx.gaps_code()
     if g then parts[#parts + 1] = g; if bar_fx.left then keep[#keep + 1] = g end end
+    -- The gaps are Hyprland's settings, so they outlive the shell (a layer's reserved zone does not). gaps-undo.lua says how to give
+    -- them back, and bin/vitreus-keep sends it when it stops for good; empty with the bar on the top, where there is nothing to undo.
+    pcall(sys.call, "files.write", "gaps-undo.lua", bar_fx.left and (iris_fx.gaps_code(false) or "") or "")
     if #parts == 0 then return end
     run("hyprctl", { "eval", table.concat(parts, " ") }, function() end)
     with_dirs(function(d)
