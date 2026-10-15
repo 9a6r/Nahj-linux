@@ -65,7 +65,7 @@ scene Vitreus {
     let wcol.mint = rgb(wcol_mint_r, wcol_mint_g, wcol_mint_b)
     let wcol.alert = rgb(wcol_alert_r, wcol_alert_g, wcol_alert_b)
     surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 68 while bar_anchor == top; screens: "DP-2"; keyboard: exclusive while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or dash_open }
-    permissions { services: "files", "files.write", "auth", "clock", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
+    permissions { services: "files", "files.write", "auth", "clock", "clock.seconds", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
                   run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "claude", "ollama", "codex", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "udevadm" }
 
     model wifi_nets max 16 { ssid: text; strength: number; secure: bool; known: bool; active: bool; band: number; bands: text; bandw: number; chan: number; rate: number; sec: text; busy: number }
@@ -73,6 +73,7 @@ scene Vitreus {
     model bt_devices max 28 { name: text; address: text; paired: bool; connected: bool; battery: number; busy: number; hd: number; kind: number }
 
     service clock as now { time: text = "--:--"; date: text }
+    service clock.seconds as tick { second: number }       // the dashboard clock's ticks: it only runs while the scene reads it
     service audio { volume: number; muted: bool; input_muted: bool }
     service window as win { title: text; class: text }
     service media { playing: bool; title: text; artist: text; player: text; length: number }
@@ -90,6 +91,10 @@ scene Vitreus {
     text bar_date = ""              // the short day stacked above the am/pm: MON
     text datelong = ""
     //  The clock card's pieces: the numerals, the am/pm tucked beside them, and the date as weekday | month day.
+    text dsh_hh = ""                  // the dashboard's clock: the hour, and the minute's tens and ones
+    text dsh_m1 = ""
+    text dsh_m2 = ""
+    measure dsh_hw
     text clock_hm = "--:--"
     text clock_ap = ""
     text date_wd = ""
@@ -334,6 +339,41 @@ scene Vitreus {
     fact sn_y = -1
     event dclock_toggle ->          // the desktop clock
     event dsys_toggle ->            // the desktop system monitor
+    event face_list ->              // the dashboard's picture was pressed: look for pictures to choose from
+    event face_set ->               // one of them was chosen (its place in the grid)
+    //  The notification rows: a new one slides in; one pressed and dragged to the right (`nt_swx`) is swept away when let go far enough.
+    prop nt_in = 1 ~calm
+    on change nt_hist.count { nt_in: 0 ~1ms; nt_in: 1 ~450ms after 20ms }
+    //  The dashboard's power card: the power button slides the state away and the session options (lock, sleep, log out, restart, shut down)
+    //  in; each is held for a second, as in the controls drawer. `dsh_pk` is the one held (-1 none) and `dsh_ps` when it was pressed.
+    fact dsh_pw = false
+    prop dsh_pwk = 0 ~calm
+    follow dsh_pwk = if(dsh_pw, 1, 0)
+    fact dsh_pk = -1
+    fact dsh_ps = 0
+    prop dsh_pp = 0 ~80ms
+    follow dsh_pp = if(dsh_pk >= 0, clamp((time - dsh_ps) / 0.9, 0, 1), 0)
+    on change dash_open while not dash_open { dsh_pw = false; dsh_pk = -1 }
+    fact nt_to = 0                     // how far the notification list is scrolled (px)
+    prop nt_s = 0 ~quick
+    follow nt_s = nt_to
+    on change nt_hist.count { nt_to = 0 }
+    fact nt_sw = -1
+    fact nt_swx = 0
+    prop nt_swp = 0 ~quick
+    follow nt_swp = nt_swx
+    fact face_open = false          // the picture chooser, over the dashboard
+    model face_pics max 72 { thumb: image 200, 200; name: text; dir: bool }
+    text face_path = ""             // the folder being looked at
+    fact face_at_top = false
+    fact fp_to = 0                  // how far the grid is scrolled (px)
+    prop fp_s = 0 ~quick
+    follow fp_s = fp_to
+    event face_nav ->               // a folder in the grid: its place
+    event face_up ->
+    event face_home ->
+    prop face_k = 0 ~calm
+    follow face_k = if(face_open, 1, 0)
     event dcava_toggle ->           // the desktop audio visualiser
     event launch_open ->
     event launch_move ->            // -1 up, +1 down
@@ -563,6 +603,10 @@ scene Vitreus {
     fact wx_kind = 2
     text wx_temp = ""
     text wx_desc = ""
+    text wx_feels = ""                // the details beside the temperature
+    text wx_hum = ""
+    text wx_wind = ""
+    text wx_rain = ""                 // today's chance of rain
     model wx_days max 7 { label: text; kind: number; hi: text; lo: text; today: bool }
     //  Settings > VPN > Weather: where the forecast is for. A city or a ZIP code, typed there (not found by IP, which under a VPN is the VPN's).
     text wx_in = ""                    // the field
@@ -1518,7 +1562,14 @@ scene Vitreus {
     event dash_toggle
     on dash_toggle { toggle dash_open }
     on change dash_open while dash_open { panel = none; ov_open = false; wp_picker_open = false }
-    on key Escape while dash_open { dash_open = false }
+    //  And the other way round: opening any panel, the overview, the wallpaper picker or the desk puts the dashboard away.
+    on change panel while panel != none { dash_open = false }
+    on change ov_open while ov_open { dash_open = false }
+    on change wp_picker_open while wp_picker_open { dash_open = false }
+    on change desk_open while desk_open { dash_open = false }
+    on key Escape while dash_open and not face_open { dash_open = false }
+    on key Escape while face_open { face_open = false }
+    on change dash_open while not dash_open { face_open = false }
     //  Its movement: slow, and nothing overshoots. The cards are there from the start, just under the water, and come up through it.
     prop dsh_water = 0 ~420ms          // the pool: the screen dimmed and deepened
     prop dsh_rise = 0 ~540ms           // the cards coming up: how much they show, and their size
@@ -1533,6 +1584,7 @@ scene Vitreus {
     prop dsh_c5 = 0 ~420ms
     prop dsh_c6 = 0 ~420ms
     prop dsh_c7 = 0 ~420ms
+    measure dsh_nm                     // and the user card's name (the uptime follows it)
     measure dsh_date                   // how wide the clock tile's date is (the battery follows it)
     measure dsh_temp                   // and its temperature (the weather icon sits before it)
     on change dash_open while dash_open {
@@ -1552,21 +1604,23 @@ scene Vitreus {
         dsh_c7: 1 after 530ms
         emit cal_open
     }
+    //  Closing runs the opening backwards, a quarter faster: the same order, each step starting where it ended going up (the last tile in is the first
+    //  out, the water the last to clear).
     on change dash_open while not dash_open {
-        dsh_c0: 0 ~180ms
-        dsh_c1: 0 ~180ms
-        dsh_c2: 0 ~180ms
-        dsh_c3: 0 ~180ms
-        dsh_c4: 0 ~180ms
-        dsh_c5: 0 ~180ms
-        dsh_c6: 0 ~180ms
-        dsh_c7: 0 ~180ms
-        dsh_under: 1 ~540ms after 160ms
+        dsh_c7: 0 ~320ms
+        dsh_c6: 0 ~320ms after 30ms
+        dsh_c5: 0 ~320ms after 60ms
+        dsh_c4: 0 ~320ms after 90ms
+        dsh_c3: 0 ~320ms after 120ms
+        dsh_c2: 0 ~320ms after 150ms
+        dsh_c1: 0 ~320ms after 180ms
+        dsh_c0: 0 ~320ms after 210ms
+        dsh_under: 1 ~585ms after 75ms
         dsh_rq: 0 ~1ms
-        dsh_rh: 10
-        dsh_rq: 1 ~840ms after 30ms
-        dsh_rise: 0 ~480ms after 230ms
-        dsh_water: 0 ~400ms after 340ms
+        dsh_rh: 12
+        dsh_rq: 1 ~750ms after 190ms
+        dsh_rise: 0 ~405ms after 250ms
+        dsh_water: 0 ~315ms after 400ms
     }
     //  The authentication dialog. Vitreus is this session's polkit agent (bin/vitreus-polkit-agent, which the logic starts): when
     //  something asks for admin rights, the agent sets `pk_open` and the texts below; when Authenticate is pressed it reads the
@@ -1620,6 +1674,13 @@ scene Vitreus {
     text sm_host = ""
     text sm_cpu_name = ""
     text sm_kernel = ""
+    text sm_user = ""                   // the account (the dashboard's user card)
+    text sm_name = ""                   // its real name, or the account's if it has none
+    text sm_distro = ""
+    text sm_avatar = ""                 // the picture's path: ~/.face and its like
+    fact sm_has_avatar = false
+    text sm_face = ""                   // where the picture is kept (~/.face), whether or not there is one yet
+    image sm_av = from sm_avatar, 200, 200
     text sm_uptime = ""
     text sm_load = ""
     text sm_cpu_txt = "0%"
@@ -3036,10 +3097,10 @@ scene Vitreus {
     //  every click in the sidebar. A page taller than this scrolls inside it (they have their scroll thumb and "More" cue); a shorter one has
     //  empty glass at its foot. It never goes below the sidebar's last row.
     let set.h = max(side.ab + 40, 456)
-    //  A held Power button counts its second on this clock, and a recording pulses on it, so they need it too.
+    //  A held Power button counts its second on this clock, and a recording pulses on it, so they need it too. So does the dashboard's wavy progress bar while a song is playing in it.
     //  The Cyber's terminal readouts (bar_glass.plm) flicker and blink on this clock, so it runs while one of them can be seen: only while a drawer is out (`cy_on`).
     let cy_on = clamp(max(max(dk0, dc0), max(max(ds0, dl0), max(dm0, max(dz0, do0)))) * 50, 0, 1) * cy_k
-    let need_clock = (cy_on > 0.01) or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on
+    let need_clock = (cy_on > 0.01) or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01
     spin time by if(need_clock, 1, 0)
     let ss.w = (120 + 500 * (min(1, ds0 * 1.6) + max(0, ds0 - 1) * 0.6)) * pu
     let ss.hh = bar.h / 2 + (8 + 36 + 8 + set.h + 16) * pu * ds0 + max(0, sag)

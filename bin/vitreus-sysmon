@@ -235,7 +235,23 @@ def info():
         if line.startswith("model name"):
             model = line.partition(":")[2].strip()
             break
-    return {"cpu": model, "threads": NCPU, "host": socket.gethostname(), "kernel": platform.release()}
+    user = os.environ.get("USER") or os.environ.get("LOGNAME") or ""
+    name = ""
+    try:
+        import pwd
+        name = pwd.getpwuid(os.getuid()).pw_gecos.split(",")[0]
+        user = user or pwd.getpwuid(os.getuid()).pw_name
+    except Exception:
+        pass
+    distro = ""
+    for ln in read("/etc/os-release").splitlines():
+        if ln.startswith("PRETTY_NAME="):
+            distro = ln.partition("=")[2].strip().strip('"')
+            break
+    home = os.path.expanduser("~")
+    avatar = next((p for p in (home + "/.face", home + "/.face.icon", "/var/lib/AccountsService/icons/" + user) if os.path.isfile(p)), "")
+    return {"cpu": model, "threads": NCPU, "host": socket.gethostname(), "kernel": platform.release(),
+            "user": user, "name": name, "distro": distro, "avatar": avatar, "face": home + "/.face"}
 
 
 def main():

@@ -162,6 +162,10 @@ sys.watch("clock", function(c)
     text.bar_ap1 = c.hour < 12 and "a" or "p"
     text.bar_date = days[c.weekday]:sub(1, 3):upper()      -- just the day: MON
     text.datelong = string.format("%s, %s %d, %d", days[c.weekday], months[c.month], c.day, c.year)
+    -- The dashboard's clock: the 24-hour hour, and the minute's two digits apart (they are set staggered).
+    text.dsh_hh = string.format("%02d", c.hour)
+    text.dsh_m1 = string.format("%d", math.floor(c.minute / 10))
+    text.dsh_m2 = string.format("%d", c.minute % 10)
     -- The clock card's pieces.
     text.clock_hm = string.format("%d:%02d", h, c.minute)
     text.clock_ap = c.hour < 12 and "AM" or "PM"
@@ -176,7 +180,7 @@ local cava = nil
 local last = 0
 local spec_last = {}
 local watching = false      -- the player's panel is open: when the equalizer is worth feeding (or while its card floats, `eq_float`)
-function eq_float() return fact.mf_out == true or fact.mf_out == 1 end    -- the media card is floating on the desktop (a global: this chunk is at Luau's limit of locals)
+function eq_float() return fact.mf_out == true or fact.mf_out == 1 or fact.dash_open == true end    -- the media card is floating on the desktop (a global: this chunk is at Luau's limit of locals)
 
 -- cava wants its config as a file. It is kept here rather than in a file next to the scene, so
 -- nothing depends on where Vitreus is installed: it is written into the scene's own data folder (where
@@ -373,7 +377,7 @@ local function mp_read()
     end)
 end
 every(1000, function()
-    if (fact.panel == "player" or fact.mf_out) and fact.media_on and not fact.mp_drag then mp_read() end
+    if (fact.panel == "player" or fact.mf_out or fact.dash_open == true) and fact.media_on and not fact.mp_drag then mp_read() end
 end)
 on("fact:panel", function(v) if v == "player" then mp_read() end end)
 on("fact:mf_out", function(v)
@@ -383,6 +387,7 @@ end)
 sys.watch("media", function(m)
     mp_player = m.player or ""
     local len = tonumber(m.length) or 0
+    if len > 43200 then len = 0 end                       -- half a day or more is a stream with no real end (its "length" is a made-up number)
     fact.mp_len = len
     text.mp_tot = len > 0 and mp_clock(len) or ""
 end)
@@ -626,6 +631,107 @@ on("dnd_for", function(m)
     dnd_refresh()
 end)
 every(1000, function() if dnd_until > 0 then dnd_refresh() end end)   -- the countdown
+-- The dashboard's picture: pressing it opens a browser inside the dashboard (it starts in Pictures): folders to go into, and the
+-- pictures in them as square thumbnails (cropped once into a cache, so they are all the same shape). One pressed is cropped square and kept
+-- as ~/.face (the lock screen reads it too), and the card reloads it (its path is cleared for a moment, so the same path is read again).
+-- (A global table: this chunk is at Luau's limit of locals.)
+FACE = { dir = "", ent = {}, token = 0, cache = "" }
+FACE_MAX = 72
+function FACE.home() return (text.sm_face:match("^(.*)/[^/]*$") or "") end
+function FACE.show(ready)
+    local rows = {}
+    for k, e in ipairs(FACE.ent) do
+        rows[k] = { thumb = (not e.dir and ready[e.key]) and (FACE.cache .. "/" .. e.key .. ".png") or "", name = e.name, dir = e.dir }
+    end
+    model.face_pics = rows
+end
+function FACE.load(dir)
+    local home = FACE.home()
+    if home == "" then return end
+    FACE.token = FACE.token + 1
+    local tok = FACE.token
+    FACE.cache = home .. "/.cache/pleamar/vitreus/face"
+    run("find", { "-L", dir, "-maxdepth", "1", "-mindepth", "1", "-printf", "%y\t%T@\t%f\n" }, function(out, code)
+        if tok ~= FACE.token then return end
+        if code ~= 0 then if dir ~= home then FACE.load(home) end return end
+        FACE.dir = dir
+        text.face_path = dir == home and "~" or (dir:sub(1, #home + 1) == home .. "/" and "~" .. dir:sub(#home + 1) or dir)
+        fact.face_at_top = dir == "/"
+        fact.fp_to = 0
+        local ds, fs = {}, {}
+        for line in (out or ""):gmatch("[^\n]+") do
+            local ty, t, name = line:match("^(%a)\t([%d%.]+)\t(.+)$")
+            if name and name:sub(1, 1) ~= "." then
+                if ty == "d" then ds[#ds + 1] = { name = name, dir = true, path = (dir == "/" and "" or dir) .. "/" .. name }
+                else
+                    local n = name:lower()
+                    if n:match("%.png$") or n:match("%.jpe?g$") or n:match("%.webp$") or n:match("%.avif$") or n:match("%.bmp$") then
+                        local p = (dir == "/" and "" or dir) .. "/" .. name
+                        fs[#fs + 1] = { name = name, dir = false, path = p, t = tonumber(t) or 0, key = hash(p .. "@" .. t) }
+                    end
+                end
+            end
+        end
+        table.sort(ds, function(a, b) return a.name:lower() < b.name:lower() end)
+        table.sort(fs, function(a, b) return a.t > b.t end)
+        FACE.ent = {}
+        for _, e in ipairs(ds) do if #FACE.ent < FACE_MAX then FACE.ent[#FACE.ent + 1] = e end end
+        for _, e in ipairs(fs) do if #FACE.ent < FACE_MAX then FACE.ent[#FACE.ent + 1] = e end end
+        local ready = {}
+        FACE.show(ready)
+        run("mkdir", { "-p", FACE.cache }, function()
+            run("find", { FACE.cache, "-name", "*.png", "-printf", "%f\n" }, function(have)
+                if tok ~= FACE.token then return end
+                for f in (have or ""):gmatch("[^\n]+") do ready[f:gsub("%.png$", "")] = true end
+                FACE.show(ready)
+                local todo = {}
+                for _, e in ipairs(FACE.ent) do if not e.dir and not ready[e.key] then todo[#todo + 1] = e end end
+                local nexti, active = 1, 0
+                local function pump()
+                    while active < 3 and nexti <= #todo do
+                        local e = todo[nexti]
+                        nexti = nexti + 1
+                        active = active + 1
+                        run("magick", { "-define", "jpeg:size=400x400", e.path .. "[0]", "-auto-orient", "-thumbnail", "200x200^", "-gravity", "center", "-extent", "200x200",
+                            "PNG:" .. FACE.cache .. "/" .. e.key .. ".png" }, function(_, c)
+                            active = active - 1
+                            if tok ~= FACE.token then return end
+                            if c == 0 then ready[e.key] = true end
+                            if active == 0 and nexti > #todo or (nexti - 1) % 6 == 0 then FACE.show(ready) end
+                            pump()
+                        end)
+                    end
+                end
+                pump()
+            end)
+        end)
+    end)
+end
+on("face_list", function()
+    local home = FACE.home()
+    if home ~= "" then FACE.load(home .. "/Pictures") end
+end)
+on("face_nav", function(i)
+    local e = FACE.ent[(tonumber(i) or 0) + 1]
+    if e and e.dir then FACE.load(e.path) end
+end)
+on("face_up", function()
+    if FACE.dir ~= "" and FACE.dir ~= "/" then FACE.load(FACE.dir:match("^(.*)/[^/]*$") ~= "" and FACE.dir:match("^(.*)/[^/]*$") or "/") end
+end)
+on("face_home", function() local h = FACE.home(); if h ~= "" then FACE.load(h) end end)
+on("face_set", function(i)
+    local e = FACE.ent[(tonumber(i) or 0) + 1]
+    local face = text.sm_face
+    if not e or e.dir or face == "" then return end
+    run("magick", { e.path .. "[0]", "-auto-orient", "-resize", "512x512^", "-gravity", "center", "-extent", "512x512", "PNG:" .. face }, function(_, code)
+        if code ~= 0 then return end
+        -- A file written again under the same name is read again when asked for with a new version (`?n`).
+        FACE.ver = (FACE.ver or 0) + 1
+        text.sm_avatar = face .. "?" .. FACE.ver
+        fact.sm_has_avatar = true
+    end)
+end)
+
 on("nt_clear", function()
     nt_hist = {}
     nt_save()
@@ -1850,6 +1956,7 @@ on("fact:tasks_watch", function(v)
     cava_want()
 end)
 on("fact:bar_anchor", function() cava_want() end)
+on("fact:dash_open", function() cava_want() end)
 every(1000, function() if watching then refresh_tasks() end end)
 -- This Hyprland takes its dispatchers in Lua. `close` has no way to name a window that is not the
 -- focused one (a selector it does not understand is ignored, and the focused window closes), so a
@@ -4316,6 +4423,18 @@ local function wx_show(w)
     text.wx_temp = wx_round(w.current.temperature_2m or 0) .. sym
     text.wx_desc = WX_DESC[code] or "—"
     fact.wx_kind = wx_kind(code)
+    -- The details beside the temperature (an older cached forecast has none of them: a dash until the next one arrives).
+    local c = w.current
+    local function nz(v, f) if type(v) == "number" then return f(v) end return "—" end
+    text.wx_feels = nz(c.apparent_temperature, function(v) return wx_round(v) .. "°" end)
+    text.wx_hum = nz(c.relative_humidity_2m, function(v) return wx_round(v) .. "%" end)
+    local dirs = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
+    text.wx_wind = nz(c.wind_speed_10m, function(v)
+        local d = type(c.wind_direction_10m) == "number" and (" " .. dirs[math.floor((c.wind_direction_10m + 22.5) / 45) % 8 + 1]) or ""
+        return wx_round(v) .. (wx_cfg.units == "celsius" and " km/h" or " mph") .. d
+    end)
+    local pp = w.daily.precipitation_probability_max
+    text.wx_rain = nz(type(pp) == "table" and pp[1] or nil, function(v) return wx_round(v) .. "%" end)
     local rows = {}
     local dd = w.daily
     for i = 1, math.min(7, #(dd.time or {})) do
@@ -4352,8 +4471,8 @@ end
 local function wx_forecast(d)
     local unit = wx_cfg.units == "celsius" and "celsius" or "fahrenheit"
     local url = "https://api.open-meteo.com/v1/forecast?latitude=" .. wx_loc.lat .. "&longitude=" .. wx_loc.lon
-        .. "&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min"
-        .. "&temperature_unit=" .. unit .. "&timezone=auto&forecast_days=7"
+        .. "&current=temperature_2m,weather_code,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max"
+        .. "&wind_speed_unit=" .. (unit == "celsius" and "kmh" or "mph") .. "&temperature_unit=" .. unit .. "&timezone=auto&forecast_days=7"
     run("curl", { "-s", "-L", "--max-time", "10", "-o", d.data .. "/wx.json", url }, function(_, code)
         wx_done(code == 0 and wx_show(wx_read("wx.json")))
     end)
@@ -6648,6 +6767,12 @@ end)()
             text.sm_host = d.info.host or ""
             text.sm_cpu_name = d.info.cpu or ""
             text.sm_kernel = d.info.kernel or ""
+            text.sm_user = d.info.user or ""
+            text.sm_name = (d.info.name or "") ~= "" and d.info.name or (d.info.user or "")
+            text.sm_distro = d.info.distro or ""
+            text.sm_avatar = d.info.avatar or ""
+            text.sm_face = d.info.face or ""
+            fact.sm_has_avatar = (d.info.avatar or "") ~= ""
             text.sm_threads = string.format("%d threads", d.info.threads or 0)
         end
 
