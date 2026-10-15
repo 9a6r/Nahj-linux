@@ -64,7 +64,7 @@ scene Vitreus {
     let wcol.ink = rgb(wcol_ink_r, wcol_ink_g, wcol_ink_b)
     let wcol.mint = rgb(wcol_mint_r, wcol_mint_g, wcol_mint_b)
     let wcol.alert = rgb(wcol_alert_r, wcol_alert_g, wcol_alert_b)
-    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 68 while bar_anchor == top; screens: each max 2; keyboard: exclusive while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) }
+    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 68 while bar_anchor == top; screens: "DP-2"; keyboard: exclusive while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or dash_open }
     permissions { services: "files", "files.write", "auth", "clock", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
                   run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "claude", "ollama", "codex", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "udevadm" }
 
@@ -1380,6 +1380,8 @@ scene Vitreus {
     //  arrives, and its edge ripples (`liquid.wgsl`).
     shader liquid = file "liquid.wgsl"
     shader cardrip = file "cardrip.wgsl"
+    shader dsh_water = file "dashboard/water.wgsl"            // the dashboard's pool (pages/dashboard.plm)
+    shader dsh_underwater = file "dashboard/underwater.wgsl"  // the dashboard surfacing: its cards seen through water, then ripples that bulge their rims
     spring wp_picker_pop = 240, 14             // a spring that overshoots (about 17%): the snap out to the large size bounces
     fact wp_picker_hx = 0                     // where the hovered hexagon is
     fact wp_picker_hy = 0
@@ -1511,6 +1513,61 @@ scene Vitreus {
     follow ov_show = if(ov_open, 1, 0)
     on key Escape while ov_open { ov_open = false }
     on change ov_open while not ov_open { ov_drag = -1; ov_dx = 0; ov_dy = 0; ov_hot = -1 }
+    //  The dashboard (pages/dashboard.plm): SUPER + SHIFT + D. Opening it puts away whatever else is open.
+    fact dash_open = false
+    event dash_toggle
+    on dash_toggle { toggle dash_open }
+    on change dash_open while dash_open { panel = none; ov_open = false; wp_picker_open = false }
+    on key Escape while dash_open { dash_open = false }
+    //  Its movement: slow, and nothing overshoots. The cards are there from the start, just under the water, and come up through it.
+    prop dsh_water = 0 ~420ms          // the pool: the screen dimmed and deepened
+    prop dsh_rise = 0 ~540ms           // the cards coming up: how much they show, and their size
+    prop dsh_under = 1 ~780ms         // how much water is still over the cards: wavering, murky, soft (1 just under, 0 out)
+    prop dsh_rq = 0 ~1000ms            // the ripples round the cards' rims, as they break the surface and as they sink: how far they have run…
+    prop dsh_rh = 0 ~1ms               // …and how strong they started
+    prop dsh_c0 = 0 ~420ms             // each tile firming up
+    prop dsh_c1 = 0 ~420ms
+    prop dsh_c2 = 0 ~420ms
+    prop dsh_c3 = 0 ~420ms
+    prop dsh_c4 = 0 ~420ms
+    prop dsh_c5 = 0 ~420ms
+    prop dsh_c6 = 0 ~420ms
+    prop dsh_c7 = 0 ~420ms
+    measure dsh_date                   // how wide the clock tile's date is (the battery follows it)
+    measure dsh_temp                   // and its temperature (the weather icon sits before it)
+    on change dash_open while dash_open {
+        dsh_water: 1
+        dsh_rise: 1 after 40ms
+        dsh_under: 0 after 70ms
+        dsh_rq: 0 ~1ms
+        dsh_rh: 12
+        dsh_rq: 1 after 250ms
+        dsh_c0: 1 after 250ms
+        dsh_c1: 1 after 290ms
+        dsh_c2: 1 after 330ms
+        dsh_c3: 1 after 370ms
+        dsh_c4: 1 after 410ms
+        dsh_c5: 1 after 450ms
+        dsh_c6: 1 after 490ms
+        dsh_c7: 1 after 530ms
+        emit cal_open
+    }
+    on change dash_open while not dash_open {
+        dsh_c0: 0 ~180ms
+        dsh_c1: 0 ~180ms
+        dsh_c2: 0 ~180ms
+        dsh_c3: 0 ~180ms
+        dsh_c4: 0 ~180ms
+        dsh_c5: 0 ~180ms
+        dsh_c6: 0 ~180ms
+        dsh_c7: 0 ~180ms
+        dsh_under: 1 ~540ms after 160ms
+        dsh_rq: 0 ~1ms
+        dsh_rh: 10
+        dsh_rq: 1 ~840ms after 30ms
+        dsh_rise: 0 ~480ms after 230ms
+        dsh_water: 0 ~400ms after 340ms
+    }
     //  The authentication dialog. Vitreus is this session's polkit agent (bin/vitreus-polkit-agent, which the logic starts): when
     //  something asks for admin rights, the agent sets `pk_open` and the texts below; when Authenticate is pressed it reads the
     //  password out of `pk_pw` itself and clears the field.
@@ -2675,9 +2732,9 @@ scene Vitreus {
     //  Click away. The surface is the whole screen (its input region is only what has a zone, so the rest lets clicks through), and this
     //  zone, declared before everything else so that everything else wins over it, closes the panel on a press anywhere that is not
     //  the panel or the bar. A second surface for this would take Escape away from the panel, so it is done here.
-    zone box away_z { at: screen.width / 2, screen.height / 2; size: screen.width, screen.height; active: (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open }
-    on press away_z { panel = none; wp_picker_open = false; ov_open = false }
-    on press right away_z { panel = none; wp_picker_open = false; ov_open = false }
+    zone box away_z { at: screen.width / 2, screen.height / 2; size: screen.width, screen.height; active: (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or dash_open }
+    on press away_z { panel = none; wp_picker_open = false; ov_open = false; dash_open = false }
+    on press right away_z { panel = none; wp_picker_open = false; ov_open = false; dash_open = false }
     //  The tray's icons (the pinned apps, or all of them) are a piece of the bar like the others; the bar widens for them.
     let bar.gap = 12 * u
     let tn = trn * bs.tray + rcn + pvn                // what the tray piece holds: the icons (as far as the piece is shown), the recording dot and the privacy lights
@@ -4286,6 +4343,7 @@ scene Vitreus {
     }
 
     include "pages/overview.plm"
+    include "pages/dashboard.plm"
 
     //  ── the authentication dialog ────────────────────────────────────────────────────────────────────────────────────────────
     //  A card in the bar's glass, in the upper third of the screen, over a dimmed desktop. It is modal: the veil takes every press.

@@ -129,7 +129,7 @@ scene Lockscreen {
     //  ── the lock ─────────────────────────────────────────────────────────────
     surface lk {
         kind: lock
-        screens: all
+        screens: "DP-2"
         size: 640, 440
         open: locked
 

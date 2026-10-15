@@ -22,6 +22,10 @@ hl.bind("SUPER + B", hl.dsp.exec_cmd("PATH=\"$HOME/.local/bin:$PATH\" pleamar --
 hl.unbind("SUPER + D")
 hl.bind("SUPER + D", hl.dsp.exec_cmd("PATH=\"$HOME/.local/bin:$PATH\" pleamar --say vitreus \"emit desk_toggle\""))
 
+-- SUPER + SHIFT + D opens or closes the dashboard, the glass that rises out of the middle of the screen.
+hl.unbind("SUPER + SHIFT + D")
+hl.bind("SUPER + SHIFT + D", hl.dsp.exec_cmd("PATH=\"$HOME/.local/bin:$PATH\" pleamar --say vitreus \"emit dash_toggle\""))
+
 -- SUPER + TAB opens or closes the workspace overview.
 hl.unbind("SUPER + TAB")
 hl.bind("SUPER + TAB", hl.dsp.exec_cmd("PATH=\"$HOME/.local/bin:$PATH\" pleamar --say vitreus \"emit ov_toggle\""))

@@ -83,7 +83,9 @@ void main() {
             if code == 0 then return fn() end
             -- Its output goes nowhere: `run` waits for the pipe it reads to close, and the daemon (which logs to stdout) kept it open for
             -- as long as it lived, so the callback never came and the first toggle after a login did nothing (the daemon was started, never told).
-            run("sh", { "-c", "setsid -f hyprsunset -i >/dev/null 2>&1 </dev/null" }, function() after(300, fn) end)
+            -- Through `setsid` (allowed), not `sh` (not in the scene's permissions: the toggle failed with "no permission to run 'sh'"). The
+            -- redirections are made by the shell setsid starts, before it becomes hyprsunset, so run's pipe closes with setsid's parent.
+            run("setsid", { "-f", "sh", "-c", "exec hyprsunset -i >/dev/null 2>&1 </dev/null" }, function() after(300, fn) end)
         end)
     end
 

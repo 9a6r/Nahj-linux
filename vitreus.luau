@@ -706,7 +706,9 @@ local function caf_set(awake)
             run("systemctl", { "--user", "stop", "hypridle.service" }, done)
         end)
     else
-        run("systemctl", { "--user", "start", "hypridle.service" }, done)
+        -- systemctl returns before the daemon is there to be found: looked for at once, it was not, and Awake stayed lit until a
+        -- second press. A moment's wait first.
+        run("systemctl", { "--user", "start", "hypridle.service" }, function() after(400, done) end)
     end
 end
 
@@ -1942,14 +1944,7 @@ local function show_level(row)
         after(450, function() if gen == lvl_gen[row] then fact["osd_" .. row] = false end end)
     end)
 end
--- The microphone: its row comes out when it is muted or unmuted (the mic key, the controls' button, or anything else), and the button toggles it.
-local last_mic = nil
-sys.watch("audio", function(a)
-    local m = a.input_muted and true or false
-    local changed = last_mic ~= nil and m ~= last_mic
-    last_mic = m
-    if changed then show_level("m") end
-end)
+-- The microphone has no row of its own any more (the user did not want a banner for it, 2026-10-15): its state shows on the mic buttons.
 on("mic_toggle", function() sys.call("audio.input_mute") end)
 local last_vol, last_mute = nil, nil
 sys.watch("audio", function(a)
@@ -6755,7 +6750,8 @@ end)()
     end
 
     local function refresh()
-        local want = fact.panel == "settings" and fact.set_page == "pg_sys"
+        -- The page, or the dashboard's System tile (pages/dashboard.plm).
+        local want = (fact.panel == "settings" and fact.set_page == "pg_sys") or fact.dash_open == true
         if want and not proc then
             hist = {}
             local mine
@@ -6769,6 +6765,7 @@ end)()
     end
     on("fact:panel", refresh)
     on("fact:set_page", refresh)
+    on("fact:dash_open", refresh)
     refresh()
 end)()
 

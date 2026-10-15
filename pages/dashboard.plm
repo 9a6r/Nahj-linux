@@ -1,0 +1,318 @@
+part Dashboard {
+    //  ── the dashboard ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+    //  Eight tiles of the shell's glass, of different sizes on a grid four across and three down, that rise softly out of the middle of
+    //  the screen as if from just under the surface of water. The screen goes a little dim and deep like a pool (dashboard/water.wgsl);
+    //  the tiles are already there under it, seen through the water (wavering, tinted, soft, light drifting over them:
+    //  dashboard/underwater.wgsl), and come up through the last of it one after another; as they break the surface, ripples run round
+    //  each tile's rim and bulge it. Closing lets the water back over them, with a last set of ripples.
+    //
+    //    ┌──┬──┬───────────────────────────┬──────────────────┐
+    //    │▮ │▮ │ clock  ·  reminders       │ weather          │
+    //    │▮ │▮ ├─────────┬─────────────────┤                  │
+    //    │▮ │▮ │ notifi- │ quick toggles   ├──────────────────┤
+    //    │▮ │▮ │ cations ├─────────────────┤ now playing      │
+    //    │▮ │▮ │         │ system, network │                  │
+    //    └──┴──┴─────────┴─────────────────┴──────────────────┘
+    //  The tiles are staggered, not a grid: no edge runs straight across (the weather goes further down than the clock, the toggles
+    //  stop short of the player).
+    //
+    //  Down the left, as tall as the dashboard, two sliders of glass of their own (no tile round them): the volume and the screen's
+    //  brightness.
+    //
+    //  Everything on it works, through the same events as the shell's own panels: the volume slider, mute and the microphone, the
+    //  player's buttons, the quick toggles, Do Not Disturb, and ticking off today's reminders (the calendar's). The system tile keeps
+    //  bin/vitreus-sysmon running while the dashboard is open (vitreus.luau).
+    //  SUPER + SHIFT + D (hypr_vitreus.lua) or `pleamar --say vitreus "emit dash_toggle"` opens and closes it; Escape or a click
+    //  outside the tiles closes it.
+
+    //  One tile: its glass (the shell's, like the overview's cards), the water over it until it has run off, and what it holds, all
+    //  through the surfacing effect. `c` is how far it has surfaced (each tile has its own, so they come up one after another).
+    component DshTile(l: number, t: number, w: number, h: number, c: number, k: number = 26) {
+        size: w, h
+        group {
+            pivot: l + w / 2, t + h / 2
+            scale: 0.96 + 0.04 * c
+            opacity: c * dsh.vis
+            shader: dsh_underwater, dsh_under, dsh.wr, dsh.wg, dsh.wb, dsh_rq, dsh_rh, w / 2 while not dsh.still
+            //  A little larger than the tile and all but invisible: it makes the group's box that big, so the ripples have room.
+            box { from: l - 36, t - 36; size: w + 72, h + 72; color: tint; opacity: 0.015; show: not dsh.still }
+            body {
+                color: mix(tint, #000000, cy_dark * cy_k)
+                glass: 100%
+                opacity: glass_op * (1 - obs)
+                lens: glass_bend
+                frost: glass_clear
+                refraction: glass_refr
+                dispersion: glass_disp
+                rim: 14% * glass_rim
+                shine: pointer
+                shadow: 0, 14 * (1 - dsh_under), 36, 34% * (1 - dsh_under), deep
+                show: obs < 0.996
+                box { from: l, t; size: w, h; corner: k }
+            }
+            //  Obsidian, as the overview's: blur behind it asked for by a faint glass body, the obsidian over it.
+            body {
+                color: obsidian
+                glass: 100%
+                lens: false
+                rim: 0%
+                refraction: 0%
+                dispersion: 0%
+                shine: 9000, 9000
+                opacity: obs * 0.34
+                show: obs > 0.97
+                box { from: l, t; size: w, h; corner: k }
+            }
+            body {
+                color: obsidian
+                rim: 0%
+                opacity: obs * (1 - 0.4 * clamp(hy_blur, 0, 1))
+                shadow: 0, 14 * (1 - dsh_under), 42, 45% * (1 - dsh_under), #000000
+                show: obs > 0.004
+                box { from: l, t; size: w, h; corner: k }
+            }
+            box { from: l, t; size: w, h; corner: k; color: rgb(dsh.wr, dsh.wg, dsh.wb); opacity: 0.45 * dsh_under }
+            children
+        }
+    }
+
+    group {
+        show: dsh_water > 0.004 or dsh_rise > 0.004
+        let dsh.gap = 18
+        let dsh.pw = 88                                               // a slider's width
+        let dsh.tw = min(1420, screen.width * 0.74)                   // the whole dashboard: the sliders, then the grid
+        let dsh.gw = dsh.tw - dsh.pw * 2 - dsh.gap * 2                // the grid of tiles, right of the sliders
+        let dsh.gh = min(640, vh * 0.66)
+        let dsh.sl = cx - dsh.tw / 2                                  // the sliders' left edge
+        let dsh.x0 = dsh.sl + dsh.pw * 2 + dsh.gap * 2                // the grid's
+        let dsh.y0 = yo + vh / 2 - dsh.gh / 2
+        let dsh.sc = 0.95 + 0.05 * dsh_rise                           // a little smaller while further down
+        let dsh.vis = clamp(dsh_rise * 1.5, 0, 1)
+        //  Nothing of the surfacing effect is running (the same test as its shader's).
+        let dsh.still = dsh_under < 0.002 and (dsh_rh < 0.01 or dsh_rq >= 0.999)
+        //  The water's colour, as numbers for the effect's shader (a group's shader is given numbers, not colours).
+        let dsh.wr = pal_deep_r * 0.7 + pal_mint_r * 0.3
+        let dsh.wg = pal_deep_g * 0.7 + pal_mint_g * 0.3
+        let dsh.wb = pal_deep_b * 0.7 + pal_mint_b * 0.3
+
+        //  Where each tile is: its left and top edges, its width and height. Laid out as fractions of the grid's width and height, with
+        //  half a gap taken off each edge that has a neighbour.
+        let dsh.hg = dsh.gap / 2
+        let dA.l = dsh.x0
+        let dA.t = dsh.y0
+        let dA.w = dsh.gw * 0.60 - dsh.hg
+        let dA.h = dsh.gh * 0.35 - dsh.hg
+        let dW.l = dsh.x0 + dsh.gw * 0.60 + dsh.hg
+        let dW.t = dsh.y0
+        let dW.w = dsh.gw * 0.40 - dsh.hg
+        let dW.h = dsh.gh * 0.48 - dsh.hg
+        let dD.l = dsh.x0
+        let dD.t = dsh.y0 + dsh.gh * 0.35 + dsh.hg
+        let dD.w = dsh.gw * 0.27 - dsh.hg
+        let dD.h = dsh.gh * 0.65 - dsh.hg
+        let dF.l = dsh.x0 + dsh.gw * 0.27 + dsh.hg
+        let dF.t = dsh.y0 + dsh.gh * 0.35 + dsh.hg
+        let dF.w = dsh.gw * 0.33 - dsh.gap
+        let dF.h = dsh.gh * 0.27 - dsh.gap
+        let dG.l = dsh.x0 + dsh.gw * 0.27 + dsh.hg
+        let dG.t = dsh.y0 + dsh.gh * 0.62 + dsh.hg
+        let dG.w = dsh.gw * 0.33 - dsh.gap
+        let dG.h = dsh.gh * 0.38 - dsh.hg
+        let dC.l = dsh.x0 + dsh.gw * 0.60 + dsh.hg
+        let dC.t = dsh.y0 + dsh.gh * 0.48 + dsh.hg
+        let dC.w = dsh.gw * 0.40 - dsh.hg
+        let dC.h = dsh.gh * 0.52 - dsh.hg
+        let dE.l = dsh.sl                                             // the two sliders, together
+        let dE.t = dsh.y0
+        let dE.w = dsh.pw * 2 + dsh.gap
+        let dE.h = dsh.gh
+
+        //  The pool.
+        shader dsh_water {
+            at: 0, 0; size: screen.width, screen.height
+            values: dsh_water
+            colors: deep
+        }
+
+        group {
+            pivot: cx, yo + vh / 2
+            scale: dsh.sc
+
+            //  Each tile takes its own presses, so a click on one does not reach `away_z` (which closes the dashboard). Declared before the
+            //  tiles: a press goes to the zone declared last, so their buttons, declared after, still get theirs.
+            zone box dsh_hold.0 { from: dA.l, dA.t; size: dA.w, dA.h; corner: 26; active: dash_open; label: "Clock and reminders" }
+            zone box dsh_hold.1 { from: dW.l, dW.t; size: dW.w, dW.h; corner: 26; active: dash_open; label: "Weather" }
+            zone box dsh_hold.2 { from: dC.l, dC.t; size: dC.w, dC.h; corner: 26; active: dash_open; label: "Now playing" }
+            zone box dsh_hold.3 { from: dD.l, dD.t; size: dD.w, dD.h; corner: 26; active: dash_open; label: "Notifications" }
+            zone box dsh_hold.5 { from: dF.l, dF.t; size: dF.w, dF.h; corner: 26; active: dash_open; label: "Quick toggles" }
+            zone box dsh_hold.6 { from: dG.l, dG.t; size: dG.w, dG.h; corner: 26; active: dash_open; label: "System and network" }
+
+            //  ── Clock and reminders: the time, big and light, the date (and the battery, if there is one) under it; on the right today's
+            //  reminders (the calendar's), ticked off with a press ──
+            DshTile(dA.l, dA.t, dA.w, dA.h, dsh_c0) {
+                text now.time { at: dA.l + 28, dA.t + dA.h * 0.46; anchor: left center; size: 84; weight: 300; family: "Space Grotesk"; color: ink }
+                text now.date { at: dA.l + 32, dA.t + dA.h - 40; anchor: left center; size: 18; family: "Space Grotesk"; color: faint; measure: dsh_date }
+                text pick(clamp(floor(pwr.percent / 25), 0, 4), "󰁺", "󰁼", "󰁾", "󰂀", "󰁹") { at: dA.l + 32 + dsh_date.width + 22, dA.t + dA.h - 40; anchor: left center; size: 17; family: "SpaceMono Nerd Font Propo"; color: faint; show: pwr.present and not pwr.charging }
+                text "󰂄" { at: dA.l + 32 + dsh_date.width + 22, dA.t + dA.h - 40; anchor: left center; size: 17; family: "SpaceMono Nerd Font Propo"; color: mint; show: pwr.present and pwr.charging }
+                text number(pwr.percent, 0, "%") { at: dA.l + 32 + dsh_date.width + 44, dA.t + dA.h - 40; anchor: left center; size: 16; family: "Space Grotesk"; color: faint; show: pwr.present }
+                //  Today's reminders, right of the clock, after a hairline.
+                let dR.l = dA.l + 300                                 // their left edge and width
+                let dR.w = dA.l + dA.w - 28 - dR.l
+                box { from: dR.l - 20, dA.t + 26; size: 1, dA.h - 52; color: ink; opacity: 0.1 }
+                text "Reminders" { at: dR.l, dA.t + 34; anchor: left center; size: 15; weight: 600; family: "Space Grotesk"; color: ink }
+                text "Today" { at: dR.l + dR.w, dA.t + 34; anchor: right center; size: 12; family: "Space Grotesk"; color: faint }
+                repeat i in 0..4 {
+                    let dRi.y = dA.t + 68 + i * 32
+                    group {
+                        show: cal_events.count > i
+                        ellipse { at: dR.l + 9, dRi.y; radius: 9; color: if(cal_events.$i.done, mint, ink); opacity: if(cal_events.$i.done, 0.9, 0.12 + 0.1 * dsh_rem.$i.hover) }
+                        text "󰄬" { at: dR.l + 9, dRi.y; anchor: center; size: 11; family: "SpaceMono Nerd Font Propo"; color: onmint; show: cal_events.$i.done }
+                        text cal_events.$i.title { at: dR.l + 28, dRi.y; anchor: left center; size: 14; width: dR.w - 90; lines: 1; family: "Space Grotesk"; color: ink; opacity: if(cal_events.$i.done, 0.5, 1) }
+                        text cal_events.$i.time { at: dR.l + dR.w, dRi.y; anchor: right center; size: 11.5; family: "Space Grotesk"; color: faint }
+                        zone box dsh_rem.$i { from: dR.l - 6, dRi.y - 15; size: dR.w + 12, 30; cursor: pointer; active: dash_open; label: "Done"; role: toggle; checked: cal_events.$i.done }
+                        on press dsh_rem.$i { emit cal_check(i) }
+                    }
+                }
+                text "Nothing for today" { at: dR.l + dR.w / 2, dA.t + dA.h / 2 + 12; anchor: center; size: 14; family: "Space Grotesk"; color: faint; show: cal_events.count < 1 }
+            }
+
+            //  ── Weather: the sky now and the temperature, what it is, and the week ahead ──
+            DshTile(dW.l, dW.t, dW.w, dW.h, dsh_c1) {
+                text pick(wx_kind, "󰖙", "󰖕", "󰖐", "󰖑", "󰖗", "󰖘", "󰖓") { at: dW.l + 28, dW.t + 56; anchor: left center; size: 46; family: "SpaceMono Nerd Font Propo"; color: mint; show: wx_ok }
+                text wx_temp { at: dW.l + dW.w - 28, dW.t + 56; anchor: right center; size: 50; weight: 300; family: "Space Grotesk"; color: ink; show: wx_ok }
+                text wx_desc { at: dW.l + 30, dW.t + 104; anchor: left center; size: 15; width: dW.w - 60; lines: 1; family: "Space Grotesk"; color: faint; show: wx_ok }
+                box { from: dW.l + 24, dW.t + 128; size: dW.w - 48, 1; color: ink; opacity: 0.1; show: wx_ok }
+                repeat i in 0..7 {
+                    let dWi.x = dW.l + 24 + (dW.w - 48) * (i + 0.5) / 7
+                    group {
+                        show: wx_ok and wx_days.count > i
+                        text wx_days.$i.label { at: dWi.x, dW.t + 156; anchor: center; size: 13; family: "Space Grotesk"; color: if(wx_days.$i.today, mint, faint) }
+                        text pick(wx_days.$i.kind, "󰖙", "󰖕", "󰖐", "󰖑", "󰖗", "󰖘", "󰖓") { at: dWi.x, dW.t + 186; anchor: center; size: 21; family: "SpaceMono Nerd Font Propo"; color: ink }
+                        text wx_days.$i.hi { at: dWi.x, dW.t + 216; anchor: center; size: 13; weight: 600; family: "Space Grotesk"; color: ink }
+                        text wx_days.$i.lo { at: dWi.x, dW.t + 236; anchor: center; size: 12; family: "Space Grotesk"; color: faint }
+                    }
+                }
+                text "No weather yet" { at: dW.l + dW.w / 2, dW.t + dW.h / 2; anchor: center; size: 14; family: "Space Grotesk"; color: faint; show: not wx_ok }
+            }
+
+            //  ── Now playing: the cover, the title and the artist, and the player's buttons ──
+            DshTile(dC.l, dC.t, dC.w, dC.h, dsh_c2) {
+                let dC.s = min(dC.h - 36, dC.w * 0.48)                // the cover's side
+                let dC.tx = dC.l + 18 + dC.s + 24                     // the words' left edge and width
+                let dC.tw = dC.w - dC.s - 66
+                box { from: dC.l + 18, dC.t + 18; size: dC.s, dC.s; corner: 18; color: ink; opacity: 0.07 }
+                text "󰝚" { at: dC.l + 18 + dC.s / 2, dC.t + 18 + dC.s / 2; anchor: center; size: 46; family: "SpaceMono Nerd Font Propo"; color: faint; opacity: 0.6 }
+                group {
+                    clip inset 0 box { from: dC.l + 18, dC.t + 18; size: dC.s, dC.s; corner: 18 }
+                    image art { at: dC.l + 18, dC.t + 18; size: dC.s, dC.s }
+                }
+                text "Now playing" { at: dC.tx, dC.t + 40; anchor: left center; size: 12; family: "Space Grotesk"; color: faint }
+                text media.title { at: dC.tx, dC.t + 72; anchor: left top; size: 18; weight: 600; width: dC.tw; lines: 2; family: "Space Grotesk"; color: ink }
+                text media.artist { at: dC.tx, dC.t + 124; anchor: left top; size: 14; width: dC.tw; lines: 1; family: "Space Grotesk"; color: faint }
+                repeat b in 0..3 {
+                    let dCb.x = dC.tx + dC.tw / 2 + (b - 1) * 60
+                    let dCb.y = dC.t + 18 + dC.s - 28
+                    ellipse { at: dCb.x, dCb.y; radius: if(b == 1, 26, 20); color: if(b == 1, mint, ink); opacity: if(b == 1, 0.9, 0.06 + 0.1 * dsh_mb.$b.hover) }
+                    text pick(b + if(b > 1, 1, 0) + if(b == 1 and media.playing, 1, 0), "󰒮", "󰐊", "󰏤", "󰒭") { at: dCb.x, dCb.y; anchor: center; size: 22; family: "SpaceMono Nerd Font Propo"; color: if(b == 1, onmint, ink) }
+                    zone ellipse dsh_mb.$b { at: dCb.x, dCb.y; radius: 26; cursor: pointer; active: dash_open; label: pick(b, "Previous", "Play or pause", "Next") }
+                    on press dsh_mb.$b { emit mcmd(b) }
+                }
+            }
+
+            //  ── Notifications: what came in, newest first, and Do Not Disturb ──
+            DshTile(dD.l, dD.t, dD.w, dD.h, dsh_c3) {
+                text "Notifications" { at: dD.l + 22, dD.t + 32; anchor: left center; size: 16; weight: 600; family: "Space Grotesk"; color: ink }
+                ellipse { at: dD.l + dD.w - 34, dD.t + 32; radius: 17; color: if(dnd_on, mint, ink); opacity: if(dnd_on, 0.9, 0.07 + 0.1 * dsh_dnd.hover) }
+                text pick(if(dnd_on, 1, 0), "󰂚", "󰂛") { at: dD.l + dD.w - 34, dD.t + 32; anchor: center; size: 17; family: "SpaceMono Nerd Font Propo"; color: if(dnd_on, onmint, ink) }
+                zone ellipse dsh_dnd { at: dD.l + dD.w - 34, dD.t + 32; radius: 18; cursor: pointer; active: dash_open; label: "Do Not Disturb" }
+                on press dsh_dnd { emit togglednd }
+                repeat i in 0..5 {
+                    let dDi.y = dD.t + 66 + i * 64
+                    group {
+                        show: nt_hist.count > i and dDi.y + 56 < dD.t + dD.h - 10
+                        box { from: dD.l + 14, dDi.y; size: dD.w - 28, 56; corner: 16; color: ink; opacity: 0.05 }
+                        ellipse { at: dD.l + 30, dDi.y + 18; radius: 3.5; color: mint; opacity: 0.9 }
+                        text nt_hist.$i.title { at: dD.l + 42, dDi.y + 18; anchor: left center; size: 14; weight: 600; width: dD.w - 110; lines: 1; family: "Space Grotesk"; color: ink }
+                        text nt_hist.$i.when { at: dD.l + dD.w - 26, dDi.y + 18; anchor: right center; size: 11; family: "Space Grotesk"; color: faint }
+                        text nt_hist.$i.sub { at: dD.l + 42, dDi.y + 38; anchor: left center; size: 12.5; width: dD.w - 70; lines: 1; family: "Space Grotesk"; color: faint }
+                    }
+                }
+                text "󰄬" { at: dD.l + dD.w / 2, dD.t + dD.h / 2 - 14; anchor: center; size: 30; family: "SpaceMono Nerd Font Propo"; color: mint; show: nt_hist.count < 1 }
+                text "All clear" { at: dD.l + dD.w / 2, dD.t + dD.h / 2 + 18; anchor: center; size: 14; family: "Space Grotesk"; color: faint; show: nt_hist.count < 1 }
+            }
+
+            //  ── Volume and brightness: two tall pills of glass, filled from the bottom as far as the level, dragged up and down. Brightness is
+            //  greyed out where there is no backlight to set (external monitors), as in the controls drawer ──
+            repeat v in 0..2 {
+                let dV.w = dsh.pw
+                let dV.l = dE.l + v * (dV.w + dsh.gap)
+                let dV.k = dV.w * 0.36
+                let dV.on = if(v == 0, 1, if(brightness.present, 1, 0))      // it can be moved
+                let dV.lv = clamp(if(v == 0, volume_level, bright_level), 0, 1)
+                let dV.dim = if(v == 0, audio.muted, 1 - dV.on)               // its fill is grey: muted, or nothing to set
+                DshTile(dV.l, dE.t, dV.w, dE.h, pick(v, dsh_c4, dsh_c1), dV.k) {
+                    group {
+                        clip inset 0 box { from: dV.l, dE.t; size: dV.w, dE.h; corner: dV.k }
+                        box { from: dV.l, dE.t + dE.h * (1 - dV.lv); size: dV.w, dE.h * dV.lv + 1; color: if(dV.dim, faint, mint); opacity: if(dV.dim, 0.22, 0.85) }
+                    }
+                    //  The handle: a bright line just above the top of the fill, reaching a little past the glass on both sides.
+                    box { from: dV.l - 7, clamp(dE.t + dE.h * (1 - dV.lv) - 9, dE.t + 4, dE.t + dE.h - 10); size: dV.w + 14, 6; corner: 3; color: if(dV.dim, faint, ink); opacity: 0.4 + 0.55 * dV.on }
+                    text number(dV.lv * 100, 0, "%") { at: dV.l + dV.w / 2, dE.t + 30; anchor: center; size: 20; weight: 600; family: "Space Grotesk"; color: ink; opacity: 0.5 + 0.5 * dV.on; show: dV.on }
+                    text "No backlight" { at: dV.l + dV.w / 2, dE.t + 30; anchor: center; size: 11.5; width: dV.w - 16; lines: 2; align: center; family: "Space Grotesk"; color: faint; show: not dV.on }
+                    text pick(if(v == 1, 4 + clamp(floor(dV.lv * 3), 0, 2), if(audio.muted, 3, clamp(floor(dV.lv * 3), 0, 2))), "󰕿", "󰖀", "󰕾", "󰖁", "󰃞", "󰃟", "󰃠") {
+                        at: dV.l + dV.w / 2, dE.t + dE.h - 32; anchor: center; size: 24; family: "SpaceMono Nerd Font Propo"; color: if(dV.lv > 0.18 and not dV.dim, onmint, ink); opacity: 0.45 + 0.55 * dV.on }
+                }
+                zone box dsh_sl.$v { from: dV.l, dE.t; size: dV.w, dE.h; corner: dV.k; cursor: ns_resize; active: dash_open and dV.on > 0.5; label: pick(v, "Volume", "Brightness"); role: slider; value: dV.lv }
+            }
+            on press dsh_sl.0 { emit setvol(clamp((dE.t + dE.h - pointer.y) / dE.h, 0, 1)) }
+            on drag dsh_sl.0 { emit setvol(clamp((dE.t + dE.h - pointer.y) / dE.h, 0, 1)) }
+            on press dsh_sl.1 { emit setbright(clamp((dE.t + dE.h - pointer.y) / dE.h, 0, 1)) }
+            on drag dsh_sl.1 { emit setbright(clamp((dE.t + dE.h - pointer.y) / dE.h, 0, 1)) }
+            //  The speaker, at the foot of the volume: a press mutes (declared after the slider, so it takes the press).
+            zone ellipse dsh_mute { at: dE.l + dsh.pw / 2, dE.t + dE.h - 32; radius: 22; cursor: pointer; active: dash_open; label: "Mute"; role: toggle; checked: audio.muted }
+            on press dsh_mute { emit mute }
+
+            //  ── Quick toggles: six round buttons in a row, lit when on ──
+            DshTile(dF.l, dF.t, dF.w, dF.h, dsh_c5) {
+                repeat q in 0..6 {
+                    let dFq.x = dF.l + dF.w * (q + 0.5) / 6
+                    let dFq.y = dF.t + dF.h * 0.4
+                    let dFq.on = pick(q, net.wifi, bt.powered, dnd_on, caf_on, night_on, not audio.input_muted)
+                    ellipse { at: dFq.x, dFq.y; radius: 24 + 2 * dsh_qt.$q.hover; color: if(dFq.on, mint, ink); opacity: if(dFq.on, 0.9, 0.08 + 0.08 * dsh_qt.$q.hover) }
+                    text pick(q, "󰖩", "󰂯", "󰂛", "󰅶", "󰖔", "󰍬") { at: dFq.x, dFq.y; anchor: center; size: 21; family: "SpaceMono Nerd Font Propo"; color: if(dFq.on, onmint, ink) }
+                    text pick(q, "Wi-Fi", "Bluetooth", "Silence", "Awake", "Night", "Mic") { at: dFq.x, dFq.y + 40; anchor: center; size: 11.5; family: "Space Grotesk"; color: faint }
+                    zone ellipse dsh_qt.$q { at: dFq.x, dFq.y; radius: 26; cursor: pointer; active: dash_open; label: pick(q, "Wi-Fi", "Bluetooth", "Do Not Disturb", "Keep awake", "Night mode", "Microphone"); role: toggle; checked: dFq.on }
+                }
+                on press dsh_qt.0 { emit togglewifi(not net.wifi) }
+                on press dsh_qt.1 { emit togglebt(not bt.powered) }
+                on press dsh_qt.2 { emit togglednd }
+                on press dsh_qt.3 { emit togglecaf }
+                on press dsh_qt.4 { emit night_toggle }
+                on press dsh_qt.5 { emit mic_toggle }
+            }
+
+            //  ── System and network: three rings (processor, memory, graphics or swap), and under them the network: its name, how strong, and what
+            //  goes down and up now ──
+            DshTile(dG.l, dG.t, dG.w, dG.h, dsh_c6) {
+                repeat g in 0..3 {
+                    let dGg.x = dG.l + dG.w * (g + 0.5) / 3
+                    let dGg.y = dG.t + 66
+                    let dGg.v = clamp(pick(g, sm_cpu, sm_mem_f, if(sm_gpu_on, sm_gpu_f, sm_swap_f)), 0.002, 1)
+                    arc { at: dGg.x, dGg.y; radius: 36; span: 360deg; width: 7; color: ink; opacity: 0.1 }
+                    arc { at: dGg.x, dGg.y; radius: 36; span: dGg.v * 360deg; rotate: dGg.v * 180deg; width: 7; color: if(dGg.v > 0.85, alert, mint) }
+                    text number(dGg.v * 100, 0, "%") { at: dGg.x, dGg.y; anchor: center; size: 15; weight: 600; family: "Space Grotesk"; color: ink }
+                    text pick(g + if(g == 2 and not sm_gpu_on, 1, 0), "CPU", "Memory", "GPU", "Swap") { at: dGg.x, dGg.y + 52; anchor: center; size: 12; family: "Space Grotesk"; color: faint }
+                }
+                box { from: dG.l + 24, dG.t + 140; size: dG.w - 48, 1; color: ink; opacity: 0.1 }
+                text pick(clamp(floor(net.strength / 34), 0, 2), "󰤟", "󰤢", "󰤨") { at: dG.l + 26, dG.t + 168; anchor: left center; size: 18; family: "SpaceMono Nerd Font Propo"; color: if(net.online, mint, faint); show: net.wifi }
+                text "󰈀" { at: dG.l + 26, dG.t + 168; anchor: left center; size: 18; family: "SpaceMono Nerd Font Propo"; color: if(net.online, mint, faint); show: not net.wifi }
+                text net.name { at: dG.l + 54, dG.t + 168; anchor: left center; size: 15; weight: 600; width: dG.w - 80; lines: 1; family: "Space Grotesk"; color: ink }
+                text "Offline" { at: dG.l + 54, dG.t + 168; anchor: left center; size: 15; weight: 600; family: "Space Grotesk"; color: faint; show: not net.online }
+                text "󰇚" { at: dG.l + 26, dG.t + 196; anchor: left center; size: 14; family: "SpaceMono Nerd Font Propo"; color: faint }
+                text sm_rx_txt { at: dG.l + 46, dG.t + 196; anchor: left center; size: 13; width: dG.w / 2 - 60; lines: 1; family: "Space Grotesk"; color: ink }
+                text "󰕒" { at: dG.l + dG.w / 2, dG.t + 196; anchor: left center; size: 14; family: "SpaceMono Nerd Font Propo"; color: faint }
+                text sm_tx_txt { at: dG.l + dG.w / 2 + 20, dG.t + 196; anchor: left center; size: 13; width: dG.w / 2 - 46; lines: 1; family: "Space Grotesk"; color: ink }
+            }
+        }
+    }
+}
