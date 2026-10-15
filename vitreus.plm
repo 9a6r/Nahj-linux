@@ -65,7 +65,7 @@ scene Vitreus {
     let wcol.mint = rgb(wcol_mint_r, wcol_mint_g, wcol_mint_b)
     let wcol.alert = rgb(wcol_alert_r, wcol_alert_g, wcol_alert_b)
     surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 68 while bar_anchor == top; screens: "DP-2"; keyboard: exclusive while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or dash_open }
-    permissions { services: "files", "files.write", "auth", "clock", "clock.seconds", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
+    permissions { services: "files", "files.write", "auth", "clock", "clock.seconds", "thumbnails", "thumbnails.*", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
                   run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "claude", "ollama", "codex", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "udevadm" }
 
     model wifi_nets max 16 { ssid: text; strength: number; secure: bool; known: bool; active: bool; band: number; bands: text; bandw: number; chan: number; rate: number; sec: text; busy: number }
@@ -354,6 +354,26 @@ scene Vitreus {
     prop dsh_pp = 0 ~80ms
     follow dsh_pp = if(dsh_pk >= 0, clamp((time - dsh_ps) / 0.9, 0, 1), 0)
     on change dash_open while not dash_open { dsh_pw = false; dsh_pk = -1 }
+    //  Settings > Keybinds (logic/keybinds.luau): the shell's binds as the window manager has them, one in edit at a time. Its modifier chips are
+    //  `kb_mod` (1 Super, 2 Shift, 4 Ctrl, 8 Alt), its key is recorded by the rules of pages/keybinds_keys.plm while `kb_cap`.
+    model kb_rows max 12 { name: text; a: text; b: text; c: text; d: text; wa: number; wb: number; wc: number; wd: number; ra: number; rb: number; rc: number; rd: number; chg: bool }
+    fact kb_ok = false                 // the file was read and has binds
+    fact kb_sel = -1                   // the row being changed
+    fact kb_cap = false                // waiting for a key
+    fact kb_mod = 0
+    fact kb_has = false                // a key is chosen
+    fact kb_dirty = false              // what is chosen differs from what is in the file
+    text kb_name = ""
+    text kb_key = ""
+    text kb_msg = ""
+    text kb_where = ""
+    event kb_refresh ->
+    event kb_select ->
+    event kb_mod_toggle ->
+    event kb_press ->
+    event kb_save ->
+    event kb_reset ->
+    event kb_cancel ->
     fact nt_to = 0                     // how far the notification list is scrolled (px)
     prop nt_s = 0 ~quick
     follow nt_s = nt_to
@@ -410,7 +430,7 @@ scene Vitreus {
     event settings_toggle ->        // from a key bind (hypr_vitreus.lua): open or close Settings
     //  The pages of the settings panel, and how far the second is in (for the sidebar's highlight and the
     //  panel's height, which follows the page).
-    fact set_page: pg_wall | pg_glass | pg_disp | pg_bar | pg_night | pg_hypr | pg_about | pg_sys | pg_nt | pg_lock | pg_wm | pg_vpn | pg_clock | pg_theme = pg_wall
+    fact set_page: pg_wall | pg_glass | pg_disp | pg_bar | pg_night | pg_hypr | pg_about | pg_sys | pg_nt | pg_lock | pg_wm | pg_vpn | pg_clock | pg_theme | pg_keys = pg_wall
     //  The Bar page: which monitors the bar is on (see the Bar section of vitreus.luau). `bar_scr` is -1 for all
     //  of them, or which monitor tile is chosen.
     fact bar_scr = -1
@@ -1100,6 +1120,7 @@ scene Vitreus {
     prop set_pgv = 0 ~calm
     prop set_pgk = 0 ~calm
     prop set_pgp = 0 ~calm
+    prop set_pgy = 0 ~calm
     prop set_pgb = 0 ~calm
     prop bs.ws = 1 ~calm              // each piece of the bar, 1 shown .. 0 hidden: its room and its opacity
     prop bs.title = 1 ~calm
@@ -1167,6 +1188,7 @@ scene Vitreus {
     follow set_pgv = if(set_page == pg_vpn, 1, 0)
     follow set_pgk = if(set_page == pg_clock, 1, 0)
     follow set_pgp = if(set_page == pg_theme, 1, 0)
+    follow set_pgy = if(set_page == pg_keys, 1, 0)
     follow bs.ws = if(bv.ws, 1, 0)
     follow bs.title = if(bv.title and bar_anchor == top, 1, 0)
     follow bs.media = if(bv.media and bar_anchor == top, 1, 0)
@@ -1539,7 +1561,11 @@ scene Vitreus {
     //  The workspace overview (the button before the bar's workspace dots, or the launcher): a card for each of the five workspaces,
     //  listing the windows on it. The logic fills `ovw` a slot at a time (nine to a workspace, in order) from `hyprctl clients`, each with a
     //  picture of the window taken while its workspace was in front.
-    model ovw max 45 { gx: number; gy: number; gc: number; gr: number; title: text; active: bool; used: bool; snap: bool; icon: image 37, 37; thumb: image 456, 257 }
+    model ovw max 45 { ws: number; gx: number; gy: number; gc: number; gr: number; title: text; active: bool; used: bool; snap: bool; icon: image 37, 37 }
+    //  The windows' pictures, live, straight from the service (same order as `ovw`: slot n is picture n).
+    model wthumbs max 45 { id: text; title: text; app: text; picture: image 456, 257; stale: bool }
+    service thumbnails { list: wthumbs }
+    fact ov_hotc = 0                          // the workspace of the tile under the pointer
     repeat i in 0..5 { fact ov_cnt.$i = 0 }   // how many windows each workspace has 
     fact ov_else = 0                          // windows that are not on one of the five (special workspaces)
     fact ov_open = false
@@ -1871,6 +1897,8 @@ scene Vitreus {
     //  The Hyprland and Pleamar-WM pages read their settings from the system when they are shown, and only then: reading them on every page change
     //  (a dozen commands and a couple of hundred fact writes) stalled the scene for half a second on each click anywhere in Settings.
     on change set_page while set_page == pg_hypr { emit hy_refresh }
+    on change set_page while set_page == pg_keys { emit kb_refresh }
+    on change panel while panel == settings and set_page == pg_keys { emit kb_refresh }
     on change set_page while set_page == pg_wm { emit wm_refresh }
     on change panel while panel == settings and set_page == pg_hypr { emit hy_refresh }
     on change panel while panel == settings and set_page == pg_wm { emit wm_refresh }
@@ -3076,7 +3104,8 @@ scene Vitreus {
     let side.nt = side.mon + 32
     let side.lk = side.nt + 32
     let side.vpn = side.lk + 32
-    let side.last = side.vpn
+    let side.ky = side.vpn + 32           // the Keybinds row
+    let side.last = side.ky
     let side.ab = side.last + 32
     let sm.ds = (4 - clamp(sm_mnt.count, 1, 4)) * 38
     let sm.dt = (8 - clamp(sm_tmp.count, 1, 8)) * 24
@@ -4095,7 +4124,8 @@ scene Vitreus {
     on submit lq { emit launch_run }
     on key Escape while dd_open { dd_open = false }
     on key Escape while font_dd_open { font_dd_open = false; blur }
-    on key Escape while panel != none and not dd_open and not font_dd_open { panel = none }
+    on key Escape while panel != none and not dd_open and not font_dd_open and not kb_cap { panel = none }
+    on key Escape while kb_cap { kb_cap = false }
     //  The font picker on the Theme page, from the keyboard: the arrows, Page Up and Down, Home and End move the chosen typeface whether the dropdown is open or
     //  not; typing a letter opens it and searches (`font_q`); Return closes it.
     on key Down while panel == settings and set_page == pg_theme { emit font_step(1) }

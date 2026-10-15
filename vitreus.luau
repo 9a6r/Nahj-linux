@@ -5374,6 +5374,7 @@ end
         { "Random wallpaper", "action", function() local f = wp_random_pick(); if f then wp_apply(f) end end, "shuffle background change surprise" },
         { "Lock session", "action", function() spawn('pleamar --say lockscreen "fact locked true"') end, "lockscreen lock screen secure away password" },
         { "Settings: Theme", "open", open_settings("pg_theme"), "colours colors palette theme glass retro cassette plastic iris accent wallpaper" },
+        { "Settings: Keybinds", "open", open_settings("pg_keys"), "keybinds keyboard shortcuts keys hotkeys bindings shortcut super combo remap" },
         { "Settings: Widgets", "open", open_settings("pg_clock"), "widgets clock system monitor audio visualiser visualizer cava desktop clock glass digits time wallpaper layout inline stacked staggered hero position corner size weight tint 12 24 hour" },
         { "Settings: Weather location", "open", open_settings("pg_vpn"), "weather forecast location city zip code place celsius fahrenheit units vpn calendar temperature" },
         { "Desktop clock: toggle", "action", function()
@@ -5971,6 +5972,8 @@ require("logic/tray")(set_panel)
 
 -- nightmode: see logic/nightmode.luau
 require("logic/nightmode")(with_dirs)
+-- Settings > Keybinds.
+require("logic/keybinds")()
 
 -- The wallpaper picker (SUPER + B): every wallpaper as a glass hexagon in a tray under the bar. This is the logic side: one
 -- ImageMagick pass per wallpaper makes its hexagon picture (already cut to the shape) and reads its
@@ -6490,171 +6493,168 @@ end)()
 
 
 -- ── The workspace overview ───────────────────────────────────────────────────────────────────────────────────────────
--- Three windows to a workspace, in the order of `ovw`'s slots: the scene draws slot n as tile n % 3 of column n / 3. Each
--- tile shows a picture of the window. A compositor will not stream a window it is not showing, so the pictures are taken
--- (by grim, from the screen) when a workspace is in front: a moment after you arrive on it, and just before the overview
--- opens. A window on a workspace you are not looking at shows the last picture taken of it.
+-- A card for each of the five workspaces, and on it a live picture of each of its windows. The pictures come from pleamar's `thumbnails`
+-- service (the compositor's own copy of each window, 30 times a second while the overview is open; the scene reads them straight from
+-- the service into `wthumbs`, so the logic never touches a frame). `ovw` is built in the same order as that list: slot n is thumbnail n, and
+-- it says which workspace the window is on, where it lies in that workspace's grid and what it is called (from `hyprctl clients`, matched to
+-- the service's windows by app and title). A window the compositor is not drawing (another workspace) keeps its last picture; one that has
+-- never been seen shows its icon. Pictures are asked for (`thumbnails.want`) for a moment after arriving on a workspace, so those windows
+-- have one for the next time, and live (`thumbnails.live`) for as long as the overview is open.
 ;(function()
     local PER = 9
-    local TW, TH = 456, 257                  -- the tile's picture, in pixels: what the scene draws, a single window filling a screen, at 1.35 scale
     local addrs = {}
     local open = false
     local last_sig = ""
-    local dir = nil                          -- where the pictures go
-    local shots = {}                         -- "addr-pid" -> the file of its latest picture
-    local serial = 0
-    local busy = false
-    local function ensure_dir(fn)
-        if dir then return fn() end
-        with_dirs(function(d)
-            dir = (d.cache:gsub("/wp$", "/ws"))
-            run("mkdir", { "-p", dir }, function()
-                -- Pictures of earlier runs are named in a way this run would repeat: start clean.
-                run("find", { dir, "-type", "f", "-delete" }, function() fn() end)
-            end)
-        end)
-    end
-    local function key_of(w) return (w.addr or "") .. "-" .. (w.pid or "0") end
+    local TH = {}                            -- the service's windows, in its order: { id, title, app, picture, stale }
+    local TH_sig = ""
+    local clients = {}                       -- the windows as last read from `hyprctl clients`; a move edits this at once, so its card does not wait for Hyprland
+    local moving = false                     -- a window was dropped on another workspace and Hyprland has not caught up: do not read the old place back yet
+    local front_ids = {}                     -- the service ids of the windows on the workspace in front
+    local last_open = false                  -- what `set_open` last did
 
-    -- Take a picture of each window on the workspace in front, one after another.
-    local function capture(done)
-        if busy or fact.ov_open or fact.wp_picker_open or fact.pk_open then if done then done() end return end
-        busy = true
-        local function finish() busy = false; if done then done() end end
-        ensure_dir(function()
-            run("pleamar", { "--say", "lockscreen", "get locked" }, function(locked)
-                if tostring(locked):match("true") then finish() return end
-                run("hyprctl", { "clients" }, function(out, code)
-                    if code ~= 0 then finish() return end
-                    local todo = {}
-                    local front = tonumber(fact["ws.active"]) or 1
-                    for _, w in ipairs(parse_clients(out)) do
-                        local id = tonumber((w.workspace or ""):match("^(-?%d+)")) or 0
-                        local x, y = (w.at or ""):match("^(-?%d+),(-?%d+)")
-                        local cw, ch = (w.size or ""):match("^(%d+),(%d+)")
-                        if w.mapped == "1" and w.hidden ~= "1" and id == front and x and cw and tonumber(cw) > 40 and tonumber(ch) > 40 and #todo < 9 then
-                            todo[#todo + 1] = { key = key_of(w), geo = string.format("%d,%d %dx%d", x, y, cw, ch) }
-                        end
-                    end
-                    local i = 0
-                    local function step()
-                        i = i + 1
-                        local t = todo[i]
-                        if not t then finish() return end
-                        serial = serial + 1
-                        local raw, out_f = dir .. "/raw.jpg", dir .. "/" .. t.key .. "-" .. serial .. ".jpg"
-                        run("grim", { "-g", t.geo, "-t", "jpeg", "-q", "92", raw }, function(_, c1)
-                            if c1 ~= 0 then step() return end
-                            run("magick", { raw, "-thumbnail", TW .. "x" .. TH .. "^", "-gravity", "north", "-extent", TW .. "x" .. TH,
-                                            "-strip", "-quality", "85", out_f }, function(_, c2)
-                                if c2 == 0 then
-                                    shots[t.key] = out_f
-                                    -- the window's earlier pictures are not wanted any more
-                                    run("find", { dir, "-name", t.key .. "-*.jpg", "!", "-name", t.key .. "-" .. serial .. ".jpg", "-delete" }, function() end)
-                                end
-                                step()
-                            end)
-                        end)
-                    end
-                    step()
-                end)
-            end)
-        end)
-    end
-    local capture_gen = 0
-    local function capture_soon(ms)
-        capture_gen = capture_gen + 1
-        local g = capture_gen
-        after(ms, function() if g == capture_gen then capture() end end)
-    end
-
-    local clients = {}              -- the windows as last read from `hyprctl clients`; a move edits this at once, so its card does not wait for Hyprland
-    local moving = false            -- a window was dropped on another workspace and Hyprland has not caught up: do not read the old place back yet
-    local function render()
-        do
-            local per = { {}, {}, {}, {}, {} }
-            local elsewhere = 0
-            for _, w in ipairs(clients) do
-                if w.mapped == "1" then
-                    local id = tonumber((w.workspace or ""):match("^(-?%d+)")) or 0
-                    if id >= 1 and id <= 5 then table.insert(per[id], w) else elsewhere += 1 end
-                end
-            end
-            local rows, sig = {}, {}
-            addrs = {}
-            for id = 1, 5 do
-                -- In a fixed order, so that windows do not swap places as you use them.
-                table.sort(per[id], function(a, b) return (a.addr or "") < (b.addr or "") end)
-                fact["ov_cnt." .. (id - 1)] = #per[id]
-                -- How the workspace's windows are laid out: one fills the screen, then side by side, then a grid.
-                local cnt = math.min(#per[id], PER)
-                local gc = cnt <= 1 and 1 or (cnt <= 4 and 2 or 3)
-                local gr = math.max(1, math.ceil(cnt / gc))
-                for k = 1, PER do
-                    local slot = (id - 1) * PER + k
-                    local w = per[id][k]
-                    if w then
-                        local class = (w.class or ""):lower()
-                        local title = w.title
-                        if title == nil or title == "" then title = (w.class ~= nil and w.class ~= "") and w.class or "Window" end
-                        local shot = shots[key_of(w)]
-                        rows[slot] = { gx = (k - 1) % gc, gy = math.floor((k - 1) / gc), gc = gc, gr = gr, title = title, active = w.focusHistoryID == "0", used = true, icon = apps_by_class[class] or class,
-                                       snap = shot ~= nil, thumb = shot or "application-x-executable" }
-                        addrs[slot] = w.addr
-                    else
-                        rows[slot] = { gx = 0, gy = 0, gc = 1, gr = 1, title = "", active = false, used = false, icon = "application-x-executable", snap = false, thumb = "application-x-executable" }
-                    end
-                    sig[slot] = rows[slot].gx .. "," .. rows[slot].gy .. "," .. rows[slot].gc .. "," .. rows[slot].gr .. "|" .. rows[slot].title .. "|" .. tostring(rows[slot].active) .. "|" .. tostring(rows[slot].icon) .. "|" .. rows[slot].thumb
-                end
-            end
-            fact.ov_else = elsewhere
-            local joined = table.concat(sig, "\n")
-            if joined ~= last_sig then
-                last_sig = joined
-                model.ovw = rows
+    -- The windows on the five workspaces, each matched to its entry in the service's list (by app and title; then by app alone).
+    local function match()
+        local per = { {}, {}, {}, {}, {} }
+        local elsewhere = 0
+        for _, w in ipairs(clients) do
+            if w.mapped == "1" then
+                local id = tonumber((w.workspace or ""):match("^(-?%d+)")) or 0
+                if id >= 1 and id <= 5 then table.insert(per[id], w) else elsewhere = elsewhere + 1 end
             end
         end
+        local taken = {}
+        local function find(w, strict)
+            local class, title = (w.class or ""):lower(), w.title or ""
+            for t, e in ipairs(TH) do
+                if not taken[t] and (e.app or ""):lower() == class and (not strict or (e.title or "") == title) then return t end
+            end
+        end
+        local by = {}                        -- thumbnail index -> { w, ws }
+        local front = tonumber(fact["ws.active"]) or 1
+        front_ids = {}
+        for id = 1, 5 do
+            -- In a fixed order, so that windows do not swap places as you use them.
+            table.sort(per[id], function(a, b) return (a.addr or "") < (b.addr or "") end)
+            for k, w in ipairs(per[id]) do
+                local t = find(w, true) or find(w, false)
+                if t then
+                    taken[t] = true
+                    if k <= PER then by[t] = { w = w, ws = id, k = k, n = math.min(#per[id], PER) } end
+                    if id == front and TH[t].id then front_ids[#front_ids + 1] = TH[t].id end
+                end
+            end
+        end
+        return per, by, elsewhere
+    end
+
+    local function render()
+        local per, by, elsewhere = match()
+        local rows, sig = {}, {}
+        addrs = {}
+        for id = 1, 5 do fact["ov_cnt." .. (id - 1)] = #per[id] end
+        fact.ov_else = elsewhere
+        for slot = 1, 45 do
+            local m = by[slot]
+            if m then
+                local w = m.w
+                local class = (w.class or ""):lower()
+                local title = w.title
+                if title == nil or title == "" then title = (w.class ~= nil and w.class ~= "") and w.class or "Window" end
+                local gc = m.n <= 1 and 1 or (m.n <= 4 and 2 or 3)
+                local gr = math.max(1, math.ceil(m.n / gc))
+                local e = TH[slot]
+                rows[slot] = { ws = m.ws - 1, gx = (m.k - 1) % gc, gy = math.floor((m.k - 1) / gc), gc = gc, gr = gr, title = title,
+                               active = w.focusHistoryID == "0", used = true, icon = apps_by_class[class] or class, snap = (e.picture or "") ~= "" }
+                addrs[slot] = w.addr
+            else
+                rows[slot] = { ws = 0, gx = 0, gy = 0, gc = 1, gr = 1, title = "", active = false, used = false, icon = "application-x-executable", snap = false }
+            end
+            local r = rows[slot]
+            sig[slot] = r.ws .. "," .. r.gx .. "," .. r.gy .. "," .. r.gc .. "," .. r.gr .. "|" .. r.title .. "|" .. tostring(r.active) .. "|" .. tostring(r.used) .. "|" .. tostring(r.snap) .. "|" .. r.icon
+        end
+        local joined = table.concat(sig, "\n")
+        if joined ~= last_sig then
+            last_sig = joined
+            model.ovw = rows
+        end
+    end
+    local function read_clients(fn)
+        run("hyprctl", { "clients" }, function(out, code)
+            if code ~= 0 then return end
+            clients = parse_clients(out)
+            if fn then fn() end
+        end)
     end
     local function refresh()
         if moving then return end
-        run("hyprctl", { "clients" }, function(out, code)
-            if code ~= 0 or not open or moving then return end
-            clients = parse_clients(out)
-            render()
+        read_clients(function() if open and not moving then render() end end)
+    end
+
+    -- The service's list: a change in which windows there are (or in whether they have a picture) rebuilds the cards; a new frame does not.
+    sys.watch("thumbnails", function(t)
+        local list = (type(t) == "table" and t.list) or {}
+        local parts = {}
+        for i, e in ipairs(list) do parts[i] = (e.id or "") .. "|" .. (e.app or "") .. "|" .. (e.title or "") .. "|" .. ((e.picture or "") ~= "" and "1" or "0") end
+        local s = table.concat(parts, "\n")
+        TH = list
+        if s ~= TH_sig then
+            TH_sig = s
+            if open then render() end
+        end
+    end)
+
+    -- Pictures of the windows on the workspace in front, for a moment: so each has one when its workspace is not in front.
+    local want_gen = 0
+    local function want_front(ms)
+        if open then return end
+        want_gen = want_gen + 1
+        local g = want_gen
+        read_clients(function()
+            match()
+            if #front_ids == 0 then return end
+            sys.call("thumbnails.want", front_ids)
+            after(ms, function() if g == want_gen and not open then sys.call("thumbnails.want") end end)
         end)
     end
-    on("fact:ov_open", function(v)
-        open = v == 1 or v == true
-        if open then last_sig = ""; refresh() end
-    end)
+
+    -- Opening and closing: live pictures while it is open. Called from the scene's own changes (the bar button, a press outside) through the
+    -- fact, and from `ov_toggle` below: a change the logic makes itself is not told back to it.
+    local function set_open(v)
+        if v == open and v == last_open then return end
+        open = v
+        last_open = v
+        if v then
+            want_gen = want_gen + 1
+            last_sig = ""
+            sys.call("thumbnails.live", "all")
+            refresh()
+        else
+            sys.call("thumbnails.live")
+            want_front(1200)
+        end
+    end
+    on("fact:ov_open", function(v) set_open(v == 1 or v == true) end)
     every(1000, function() if open then refresh() end end)
-    -- Arriving on a workspace: its windows are taken a moment later, when the switch has settled.
+    -- Arriving on a workspace: its windows are copied a moment later, when the switch has settled.
     local was_front = nil
     sys.watch("workspaces", function(w)
-        if was_front ~= nil and w.active ~= was_front then capture_soon(700) end
+        if was_front ~= nil and w.active ~= was_front then after(700, function() want_front(1500) end) end
         was_front = w.active
     end)
-    after(4000, function() capture_soon(0) end)
+    after(4000, function() want_front(2000) end)
     on("ov_toggle", function()
         if not on_hyprland then return end          -- pleamar-wm has its own overview (Super+Tab)
         if fact.ov_open then
             fact.ov_open = false
-            open = false
+            set_open(false)
             return
         end
         fact.wp_picker_open = false
         if wp_prev.close then wp_prev.close() end
-        -- A drawer that is open would be in the pictures: let it go, and wait for it to leave.
-        local wait = 0
-        if tostring(fact.panel) ~= "none" then fact.panel = "none"; wait = 350 end
-        after(wait, function()
-            capture(function()
-                fact.ov_open = true
-                open = true
-                last_sig = ""
-                refresh()
-            end)
-        end)
+        if tostring(fact.panel) ~= "none" then fact.panel = "none" end
+        fact.ov_open = true
+        set_open(true)
+        read_clients(render)
     end)
     -- A window dropped on a column: move it to that workspace, and keep the overview open.
     on("ov_move", function(n)

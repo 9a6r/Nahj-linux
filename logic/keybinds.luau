@@ -1,0 +1,267 @@
+-- Settings > Keybinds: the shell's keybinds as the window manager has them, read from its own file and rewritten there when one is changed.
+--   Hyprland: hypr_vitreus.lua  (`hl.bind("SUPER + SHIFT + D", hl.dsp.exec_cmd("... pleamar --say vitreus \"emit dash_toggle\""))`)
+--   pleamar-wm: keys.conf       (`bind Super+d launch pleamar --say vitreus "emit desk_toggle"`)
+-- Only the binds that talk to the shell (`pleamar --say ...`) are listed. A bind is changed in place (its `unbind` line too), and Hyprland is
+-- reloaded; pleamar-wm reads its keys when it starts. The scene shows the rows (`kb_rows`), the chips for the modifiers and a box that
+-- records the next key (`kb_press`, the codes of pages/keybinds_keys.plm: modifiers * 100 + the key's place in KEYS).
+return function()
+    local KEYS = {}
+    for k in ("a b c d e f g h i j k l m n o p q r s t u v w x y z F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 space Return Tab Print BackSpace Delete Insert Home End Prior Next Left Right Up Down comma period slash semicolon apostrophe bracketleft bracketright backslash minus equal grave"):gmatch("%S+") do
+        KEYS[#KEYS + 1] = k
+    end
+    local KEYIDX = {}
+    for i, k in ipairs(KEYS) do KEYIDX[k:lower()] = i end
+    local DISP = { space = "Space", Return = "Enter", Tab = "Tab", Print = "Print", BackSpace = "Backspace", Delete = "Delete", Insert = "Insert",
+        Home = "Home", End = "End", Prior = "PgUp", Next = "PgDn", Left = "←", Right = "→", Up = "↑", Down = "↓", comma = ",", period = ".",
+        slash = "/", semicolon = ";", apostrophe = "'", bracketleft = "[", bracketright = "]", backslash = "\\", minus = "-", equal = "=", grave = "`" }
+    local function disp_key(k)
+        if #k == 1 then return k:upper() end
+        return DISP[k] or k
+    end
+    local MODS = { { 1, "Super" }, { 4, "Ctrl" }, { 8, "Alt" }, { 2, "Shift" } }   -- the order a combo is written in
+    local MODBIT = { super = 1, mod4 = 1, win = 1, shift = 2, ctrl = 4, control = 4, alt = 8, mod1 = 8 }
+
+    -- What each bind does, by what it says to the shell. Binds that are not here are left out.
+    local ACTS = {
+        ["vitreus emit launch_toggle"] = "Launcher",
+        ["vitreus emit settings_toggle"] = "Settings",
+        ["lockscreen fact locked true"] = "Lock screen",
+        ["vitreus emit wp_picker_toggle"] = "Wallpaper picker",
+        ["vitreus emit desk_toggle"] = "Desk",
+        ["vitreus emit dash_toggle"] = "Dashboard",
+        ["vitreus emit ov_toggle"] = "Workspace overview",
+        ["vitreus emit shot 0"] = "Screenshot: region",
+        ["vitreus emit shot 1"] = "Screenshot: whole screen",
+        ["vitreus emit rec_toggle"] = "Record the screen",
+    }
+    -- The combos this shell ships with, per window manager, as (modifier bits, key); a second one is for an action that has two.
+    local DEFAULTS = {
+        hypr = {
+            ["vitreus emit launch_toggle"] = { { 1, "space" } }, ["vitreus emit settings_toggle"] = { { 3, "space" } },
+            ["lockscreen fact locked true"] = { { 1, "l" } }, ["vitreus emit wp_picker_toggle"] = { { 1, "b" } },
+            ["vitreus emit desk_toggle"] = { { 1, "d" } }, ["vitreus emit dash_toggle"] = { { 3, "d" } }, ["vitreus emit ov_toggle"] = { { 1, "Tab" } },
+        },
+        pwm = {
+            ["vitreus emit launch_toggle"] = { { 1, "space" } }, ["vitreus emit settings_toggle"] = { { 3, "space" } },
+            ["lockscreen fact locked true"] = { { 1, "l" } }, ["vitreus emit wp_picker_toggle"] = { { 1, "b" } },
+            ["vitreus emit desk_toggle"] = { { 1, "d" } }, ["vitreus emit shot 0"] = { { 0, "Print" }, { 1, "c" } },
+            ["vitreus emit shot 1"] = { { 2, "Print" } }, ["vitreus emit rec_toggle"] = { { 3, "c" } },
+        },
+    }
+
+    local K = { rows = {}, sel = 0, mask = 0, key = "" }     -- sel: 1-based, 0 = none
+
+    local function wm() return fact.wm_hypr == true and "hypr" or "pwm" end
+    local function home() return K.home or "" end
+    local function path()
+        if wm() == "hypr" then return home() .. "/.config/hypr/hypr_vitreus.lua" end
+        return home() .. "/.config/pleamar/keys.conf"
+    end
+
+    -- A combo as the file writes it, to (modifier bits, key); nil when it does not make sense.
+    local function parse_combo(s)
+        local parts = {}
+        for p in (s or ""):gmatch("[^%+%s]+") do parts[#parts + 1] = p end
+        if #parts == 0 then return nil end
+        local mask = 0
+        for i = 1, #parts - 1 do
+            local b = MODBIT[parts[i]:lower()]
+            if not b then return nil end
+            mask = bit32.bor(mask, b)
+        end
+        local key = parts[#parts]
+        local idx = KEYIDX[key:lower()]
+        if not idx then return nil end
+        return mask, KEYS[idx]
+    end
+    -- And back: Hyprland writes `SUPER + SHIFT + D`, pleamar-wm `Super+Shift+d`.
+    local function write_combo(mask, key)
+        local names = {}
+        for _, m in ipairs(MODS) do
+            if bit32.band(mask, m[1]) ~= 0 then names[#names + 1] = wm() == "hypr" and m[2]:upper() or m[2] end
+        end
+        local k = key
+        if wm() == "hypr" and #key == 1 then k = key:upper() end
+        names[#names + 1] = k
+        return table.concat(names, wm() == "hypr" and " + " or "+")
+    end
+
+    -- The words on the key caps: modifiers, then the key; each with its width (in the page's own units, which are 1.69 times the text's pixels: a
+    -- cap is 11 of padding and about 4.4 per letter) and how far its middle is from the right end of the row.
+    local function caps(mask, key)
+        local parts = {}
+        for _, m in ipairs(MODS) do if bit32.band(mask, m[1]) ~= 0 then parts[#parts + 1] = m[2] end end
+        parts[#parts + 1] = disp_key(key)
+        local w = {}
+        for i, p in ipairs(parts) do w[i] = math.max(15, 11 + #p * 4.4) end
+        local right, off = 0, {}
+        for i = #parts, 1, -1 do
+            off[i] = right + w[i] / 2
+            right = right + w[i] + 5
+        end
+        return parts, w, off
+    end
+
+    local function show()
+        local model_rows = {}
+        for i, r in ipairs(K.rows) do
+            local parts, w, off = caps(r.mask, r.key)
+            local row = { name = r.name, chg = r.changed }
+            local names = { "a", "b", "c", "d" }
+            for j = 1, 4 do
+                row[names[j]] = parts[j] or ""
+                row["w" .. names[j]] = parts[j] and w[j] or 0
+                row["r" .. names[j]] = parts[j] and off[j] or 0
+            end
+            model_rows[i] = row
+        end
+        model.kb_rows = model_rows
+        fact.kb_ok = #K.rows > 0
+    end
+
+    local function dirty()
+        local r = K.rows[K.sel]
+        fact.kb_dirty = r ~= nil and K.key ~= "" and (K.mask ~= r.mask or K.key ~= r.key)
+    end
+    local function pick_text()
+        text.kb_key = K.key ~= "" and disp_key(K.key) or ""
+        fact.kb_has = K.key ~= ""
+    end
+
+    local function read(fn)
+        run("cat", { path() }, function(out, code)
+            local rows = {}
+            local seen = {}
+            if code == 0 then
+                for line in (out or ""):gmatch("[^\n]+") do
+                    local combo, scene, cmd
+                    if wm() == "hypr" then
+                        combo, scene, cmd = line:match('^hl%.bind%("([^"]+)",.-pleamar %-%-say (%S+) \\"(.-)\\"')
+                    else
+                        combo, scene, cmd = line:match('^bind%s+(%S+)%s+.-pleamar %-%-say (%S+) "(.-)"')
+                    end
+                    if combo then
+                        local act = scene .. " " .. cmd
+                        local name = ACTS[act]
+                        local mask, key = parse_combo(combo)
+                        if name and mask then
+                            seen[act] = (seen[act] or 0) + 1
+                            local d = (DEFAULTS[wm()][act] or {})[seen[act]]
+                            rows[#rows + 1] = { order = #rows + 1, act = act, name = name, mask = mask, key = key, text = combo, def = d,
+                                changed = d ~= nil and (d[1] ~= mask or d[2] ~= key) }
+                        end
+                    end
+                end
+            end
+            table.sort(rows, function(a, b)          -- alphabetical; two binds of one action keep the order they have in the file
+                if a.name ~= b.name then return a.name:lower() < b.name:lower() end
+                return a.order < b.order
+            end)
+            K.rows = rows
+            show()
+            if fn then fn() end
+        end)
+    end
+
+    local function refresh()
+        if K.home then read() return end
+        run("printenv", { "HOME" }, function(out)
+            K.home = (out or ""):gsub("%s+$", "")
+            read()
+        end)
+    end
+
+    on("kb_refresh", function()
+        K.sel = 0
+        fact.kb_sel = -1
+        fact.kb_cap = false
+        fact.kb_dirty = false
+        text.kb_msg = ""
+        text.kb_where = wm() == "hypr" and "Hyprland  ·  hypr_vitreus.lua" or "Pleamar-WM  ·  keys.conf"
+        refresh()
+    end)
+
+    on("kb_select", function(i)
+        i = (tonumber(i) or 0) + 1
+        local r = K.rows[i]
+        if not r then return end
+        K.sel, K.mask, K.key = i, r.mask, r.key
+        fact.kb_sel = i - 1
+        fact.kb_cap = false
+        fact.kb_mod = r.mask
+        text.kb_name = r.name
+        text.kb_msg = ""
+        pick_text()
+        dirty()
+    end)
+
+    on("kb_mod_toggle", function(bit)
+        bit = tonumber(bit) or 0
+        if K.sel == 0 or bit == 0 then return end
+        K.mask = bit32.bxor(K.mask, bit)
+        fact.kb_mod = K.mask
+        text.kb_msg = ""
+        dirty()
+    end)
+
+    -- A key was pressed while recording: its place in KEYS and the modifiers that were down with it.
+    on("kb_press", function(code)
+        code = tonumber(code) or 0
+        local key = KEYS[code % 100 + 1]
+        if not key or K.sel == 0 then return end
+        K.mask, K.key = math.floor(code / 100), key
+        fact.kb_mod = K.mask
+        fact.kb_cap = false
+        text.kb_msg = ""
+        pick_text()
+        dirty()
+    end)
+
+    on("kb_cancel", function()
+        K.sel = 0
+        fact.kb_sel = -1
+        fact.kb_cap = false
+        fact.kb_dirty = false
+        text.kb_msg = ""
+    end)
+
+    -- Writes combo `mask`, `key` in place of what row `r` has, in the file; then reloads the window manager and reads the file again.
+    local function apply(r, mask, key)
+        local old, new = r.text, write_combo(mask, key)
+        if not new:match("^[%w_ %+]+$") or not old:match("^[%w_ %+]+$") then text.kb_msg = "That key cannot be written to the file" return end
+        for i, o in ipairs(K.rows) do
+            if o ~= r and o.mask == mask and o.key == key then text.kb_msg = "Already used by " .. o.name return end
+        end
+        local script
+        if wm() == "hypr" then
+            script = 's|"' .. old .. '"|"' .. new .. '"|g'
+        else
+            script = 's|^\\(unbind[[:space:]]\\{1,\\}\\)' .. old .. '[[:space:]]*$|\\1' .. new .. '|; ' ..
+                     's|^\\(bind[[:space:]]\\{1,\\}\\)' .. old .. '\\([[:space:]]\\)|\\1' .. new .. '\\2|'
+        end
+        run("sed", { "-i", "--follow-symlinks", script, path() }, function(_, code)
+            if code ~= 0 then text.kb_msg = "Could not write " .. path() return end
+            local function done()
+                read(function()
+                    K.sel = 0
+                    fact.kb_sel = -1
+                    fact.kb_dirty = false
+                    text.kb_msg = wm() == "hypr" and "Saved. Hyprland has the new key." or "Saved. Pleamar-WM uses it from its next start."
+                end)
+            end
+            if wm() == "hypr" then run("hyprctl", { "reload" }, function() done() end) else done() end
+        end)
+    end
+
+    on("kb_save", function()
+        local r = K.rows[K.sel]
+        if not r or K.key == "" then return end
+        apply(r, K.mask, K.key)
+    end)
+
+    on("kb_reset", function()
+        local r = K.rows[K.sel]
+        if not r or not r.def then text.kb_msg = "No stock key for this one" return end
+        apply(r, r.def[1], r.def[2])
+    end)
+end

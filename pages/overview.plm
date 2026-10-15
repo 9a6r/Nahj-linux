@@ -117,7 +117,7 @@ part Overview {
             text "Nothing here" { at: floor(ovc.x + 0.5), floor(ovc.top + 120 * ovu + 0.5); anchor: center; align: center; size: 11.5 * ovu; color: faint; opacity: 70%; family: "Space Grotesk"; show: ov_cnt.$c < 1 }
         }
         repeat n in 0..45 {
-            let ovr.c = floor(n / 9)
+            let ovr.c = ovw.$n.ws
             let ovr.row = floor(ovr.c / ovl.nc)
             let ovr.col = ovr.c - ovr.row * ovl.nc
             //  The cell this window has in its workspace's grid (the logic says how big the grid is, and which cell), and the
@@ -144,7 +144,7 @@ part Overview {
                 }
                 group {
                     clip box { at: ovr.x, ovr.y; size: ovr.tw, ovr.th; corner: 6 * ovu * (1 - 0.73 * cy_k) }
-                    image ovw.$n.thumb { at: ovr.x - ovr.tw / 2, ovr.y - ovr.th / 2; size: ovr.tw, ovr.th; show: ovw.$n.snap }
+                    image wthumbs.$n.picture { at: ovr.x - ovr.tw / 2, ovr.y - ovr.th / 2; size: ovr.tw, ovr.th; opacity: if(wthumbs.$n.stale, 70%, 100%); show: ovw.$n.snap }
                     //  No picture taken yet: the app's icon.
                     image ovw.$n.icon { at: floor(ovr.x - 11 * ovu + 0.5), floor(ovr.y - 11 * ovu + 0.5); size: floor(22 * ovu + 0.5), floor(22 * ovu + 0.5); show: not ovw.$n.snap and ovr.tw > 100 * ovu }
                     box { at: ovr.x, ovr.y; size: ovr.tw, ovr.th; color: #ffffff; opacity: 10% * ov_rz.$n.hover }
@@ -152,7 +152,7 @@ part Overview {
                 box { at: ovr.x, ovr.y; size: ovr.tw, ovr.th; corner: 6 * ovu * (1 - 0.73 * cy_k); stroke: if(ovw.$n.active, 2 * ovu, 1.2 * ovu); color: if(ovw.$n.active, mint, mix(#ffffff, mint, cy_k)); opacity: if(ovw.$n.active, 100%, 16% + 34% * ov_rz.$n.hover + 24% * cy_k) }
             }
             zone box ov_rz.$n { at: ovr.x, ovr.y; size: ovr.tw, ovr.th; corner: 6 * ovu * (1 - 0.73 * cy_k); cursor: pointer; active: ovr.on and ov_show > 0.5 }
-            on enter ov_rz.$n { ov_hot = n }
+            on enter ov_rz.$n { ov_hot = n; ov_hotc = ovw.$n.ws }
             on away ov_rz.$n for 80ms while ov_hot == n { ov_hot = -1 }
             on press ov_rz.$n { ov_drag = n; ov_dx = 0; ov_dy = 0; ov_px = pointer.x; ov_py = pointer.y }
             on drag ov_rz.$n { ov_dx = drag.dx; ov_dy = drag.dy }
@@ -164,12 +164,12 @@ part Overview {
         //  The name of the window under the pointer, or of the one in use, in the header between the number and the count (cut
         //  with an ellipsis where it is too long).
         repeat n in 0..45 {
-            let ovt.c = floor(n / 9)
+            let ovt.c = ovw.$n.ws
             let ovt.row = floor(ovt.c / ovl.nc)
             let ovt.x = floor(ovl.l + (145 + (ovt.c - ovt.row * ovl.nc) * 304 - 96) * ovu + 0.5)
             let ovt.y = floor(ovl.t + (22 + ovt.row * 224) * ovu + 0.5)
             let ovt.on = n < ovw.count and ovw.$n.used and ovl.moving < 1
-            text ovw.$n.title { at: ovt.x, ovt.y; anchor: left center; size: 11.5 * ovu; width: 156 * ovu; lines: 1; color: ink; family: "Space Grotesk"; show: ovt.on and (ov_hot == n or (floor(ov_hot / 9) != ovt.c and ovw.$n.active)) }
+            text ovw.$n.title { at: ovt.x, ovt.y; anchor: left center; size: 11.5 * ovu; width: 156 * ovu; lines: 1; color: ink; family: "Space Grotesk"; show: ovt.on and (ov_hot == n or (ov_hotc != ovt.c and ovw.$n.active)) }
         }
         //  The window being carried: a card following the pointer, over everything.
         repeat n in 0..45 {
@@ -186,7 +186,7 @@ part Overview {
                 }
                 group {
                     clip box { at: ovm.x, ovm.y; size: ovg.tw, ovg.th; corner: 9 * ovu * (1 - 0.73 * cy_k) }
-                    image ovw.$n.thumb { at: ovm.x - ovg.tw / 2, ovm.y - ovg.th / 2; size: ovg.tw, ovg.th; show: ovw.$n.snap }
+                    image wthumbs.$n.picture { at: ovm.x - ovg.tw / 2, ovm.y - ovg.th / 2; size: ovg.tw, ovg.th; show: ovw.$n.snap }
                     image ovw.$n.icon { at: floor(ovm.x - 11 * ovu + 0.5), floor(ovm.y - 11 * ovu + 0.5); size: floor(22 * ovu + 0.5), floor(22 * ovu + 0.5); show: not ovw.$n.snap }
                     box { at: ovm.x, ovm.y + ovg.th / 2 - 12 * ovu; size: ovg.tw, 24 * ovu; color: #05070d; opacity: 70% }
                     text ovw.$n.title { at: floor(ovm.x - ovg.tw / 2 + 10 * ovu + 0.5), floor(ovm.y + ovg.th / 2 - 12 * ovu + 0.5); anchor: left center; size: 10.5 * ovu; width: ovg.tw - 20 * ovu; lines: 1; color: #f2f4f2; family: "Space Grotesk" }
