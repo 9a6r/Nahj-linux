@@ -2752,6 +2752,7 @@ do
         pcall(sys.call, "files.write", "iris.json", iris_cfg)     -- so there is a file to edit
     end
 end
+hy_theme_changed = nil            -- set by Settings > Hyprland (below): the window corners follow the theme
 do
     local INTENSITIES = { "subtle", "medium", "bold" }
     -- The desktop clock and system monitor draw themselves as plastic with Retro and UwU: they are told the theme (0 Glass, 1 Retro, 2 UwU).
@@ -2764,11 +2765,13 @@ do
     end
     local function show()
         push_look()
+        after(1200, push_look)         -- the palette file is rewritten with the theme and the desktop widgets reload: tell them again once they are back
         fact.iris_on = iris_cfg.enabled and not iris_cfg.preset
         fact.theme_sel = iris_cfg.look or (iris_cfg.enabled and 0 or 7)       -- 0 Glass, 8 Retro, 9 UwU (7: Iris switched off on the Wallpaper page, greys)
         fact.cas = iris_cfg.look == iris_fx.CASSETTE
         fact.uwu = iris_cfg.look == iris_fx.UWU
         fact.cyber_on = iris_cfg.look == iris_fx.CYBER
+        if hy_theme_changed then hy_theme_changed(iris_cfg.look == iris_fx.CASSETTE and "retro" or iris_cfg.look == iris_fx.UWU and "uwu" or iris_cfg.look == iris_fx.CYBER and "cyber" or "glass") end
         for k, name in ipairs(INTENSITIES) do if name == iris_cfg.intensity then fact.iris_int = k - 1 end end
     end
     local function save()
@@ -4416,6 +4419,20 @@ do
     local hy = { layout = 3, gaps = 5, round = 10, border = 3, blur = 3, blur_on = true, passes = 1, resize = false, tear = false, anim = true, sens = 0, follow = 1, nat = false }
     local hy_dirty, hy_waiting = false, false
 
+    -- The windows' corners follow the theme: each theme has its own rounding (concentric with the shell's frame: Retro and Cyber are squarer, by the 73 % the drawers take),
+    -- and the slider edits the current theme's, which is kept in hy-round.json and comes back when that theme is picked again.
+    -- The frame's inner corner is `rc` in vitreus.plm: (26 - 19 * sq) * 1.35, 35 px on Glass and UwU, 9 on Retro and Cyber. A window sits about 13 px inside it
+    -- (24 gap - 8 * 1.35 frame), so the window's own corner, concentric with the frame's, is that minus 13: 22 and (almost) square.
+    local HY_ROUND_DEFAULT = { glass = 22, uwu = 22, retro = 3, cyber = 3 }
+    local hy_round_by = {}
+    local hy_theme = nil
+    do
+        local ok, saved = pcall(sys.ask, "files.read", "hy-round.json", "json")
+        if ok and type(saved) == "table" then
+            for k, v in pairs(saved) do if type(v) == "number" then hy_round_by[k] = math.floor(math.max(0, math.min(30, v))) end end
+        end
+    end
+
     -- Reading the options answers twelve times, each answer used to write every fact again; they are written once, when the answers have settled.
     local hy_dirty = false
     local function hy_show_now()
@@ -4509,10 +4526,25 @@ do
     hy_show()
     hy_read()
 
+    hy_theme = iris_cfg.look == iris_fx.CASSETTE and "retro" or iris_cfg.look == iris_fx.UWU and "uwu" or iris_cfg.look == iris_fx.CYBER and "cyber" or "glass"   -- at start Hyprland already holds what was kept
+    hy_theme_changed = function(key)
+        if key == hy_theme then return end
+        hy_theme = key
+        hy.round = hy_round_by[key] or HY_ROUND_DEFAULT[key] or hy.round
+        hy_changed()
+    end
+
     on("hy_layout_set", function(i) hy.layout = math.max(1, math.min(3, math.floor(i + 0.5))); hy_changed() end)
     on("hy_gaps_set", function(t) hy.gaps = math.floor(math.max(0, math.min(1, t)) * 30 + 0.5); hy_changed() end)
     on("hy_border_set", function(t) hy.border = math.floor(math.max(0, math.min(1, t)) * 10 + 0.5); hy_changed() end)
-    on("hy_round_set", function(t) hy.round = math.floor(math.max(0, math.min(1, t)) * 30 + 0.5); hy_changed() end)
+    on("hy_round_set", function(t)
+        hy.round = math.floor(math.max(0, math.min(1, t)) * 30 + 0.5)
+        if hy_theme then
+            hy_round_by[hy_theme] = hy.round
+            pcall(sys.call, "files.write", "hy-round.json", hy_round_by)
+        end
+        hy_changed()
+    end)
     on("hy_sens_set", function(t)
         hy.sens = math.floor((math.max(0, math.min(1, t)) * 2 - 1) * 20 + 0.5) / 20
         hy_changed()

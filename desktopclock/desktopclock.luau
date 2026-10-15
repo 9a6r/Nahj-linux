@@ -183,15 +183,21 @@ local function ask_obs()
 end
 ask_obs()
 after(4000, ask_obs)
--- And which theme it has (0 Glass, 1 Retro, 2 UwU): Retro and UwU draw this as plastic, like the bar. Vitreus tells it when the theme changes.
+-- And which theme it has (0 Glass, 1 Retro, 2 UwU, 3 Cyber): Retro, UwU and Cyber draw this as plastic, like the bar. Vitreus tells it when the theme changes.
 local function ask_look()
     run("pleamar", { "--say", "vitreus", "get cas" }, function(cas, code)
         if code ~= 0 or not cas then return end
         run("pleamar", { "--say", "vitreus", "get uwu" }, function(uwu, code2)
             if code2 ~= 0 or not uwu then return end
-            fact.look = cas:match("true") and 1 or (uwu:match("true") and 2 or 0)
+            run("pleamar", { "--say", "vitreus", "get cyber_on" }, function(cy, code3)
+                if code3 ~= 0 or not cy then return end
+                fact.look = cas:match("true") and 1 or (uwu:match("true") and 2 or (cy:match("true") and 3 or 0))
+            end)
         end)
     end)
 end
 ask_look()
+after(250, ask_look)             -- a reload (the palette changed with the theme) starts from Glass: ask again at once, not only on the 4 s timer
+after(900, ask_look)
+after(2000, ask_look)
 after(4000, ask_look)
