@@ -1603,6 +1603,8 @@ scene Vitreus {
     prop dsh_under = 1 ~780ms         // how much water is still over the cards: wavering, murky, soft (1 just under, 0 out)
     prop dsh_rq = 0 ~1000ms            // the ripples round the cards' rims, as they break the surface and as they sink: how far they have run…
     prop dsh_rh = 0 ~1ms               // …and how strong they started
+    prop dsh_hup = 0 ~lively          // the same cat, the pointer over its head: the head lifts (0 to 1)
+    prop dsh_pet = 0 ~lively          // the notification cat being petted: follows the pointer over it (0 to 1)
     prop dsh_poke = 0 ~1700ms          // the sleeping speaker and cat, woken by a press (1), settling back (0)
     prop dsh_c0 = 0 ~420ms             // each tile firming up
     prop dsh_c1 = 0 ~420ms
