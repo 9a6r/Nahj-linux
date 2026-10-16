@@ -198,13 +198,23 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
         local function pleamar_first()
             if A.pl_behind <= 0 then return update_shell() end
             busy(true, "Updating pleamar: building it, this takes a few minutes…", 1800000)
-            run("pleamar-update", {}, function(_, code)
-                if code ~= 0 then
-                    return busy(false, "Couldn't update pleamar. Try `pleamar-update` in a terminal to see why.")
+            -- Every build of pleamar-wm rewrites its Cargo.lock (it records pleamar's version, which upstream commits only now
+            -- and then). `pleamar-update` takes a repo with changes as "yours" and does not pull it, so the same updates
+            -- would be offered for ever. That file is a build artifact: put it back first.
+            local function clean_lock(i)
+                local r = ({ "pleamar", "pleamar-wm" })[i]
+                if not r then
+                    return run("pleamar-update", {}, function(_, code)
+                        if code ~= 0 then
+                            return busy(false, "Couldn't update pleamar. Try `pleamar-update` in a terminal to see why.")
+                        end
+                        A.pl_behind = 0
+                        update_shell()
+                    end)
                 end
-                A.pl_behind = 0
-                update_shell()
-            end)
+                git_in(r, { "checkout", "--", "Cargo.lock" }, function() clean_lock(i + 1) end)
+            end
+            clean_lock(1)
         end
         update_shell = function()
         busy(true, "Updating…")
