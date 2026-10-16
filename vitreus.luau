@@ -6775,8 +6775,13 @@ end)()
 
     -- The network card's lines under the graph: the connection (and its signal), the Bluetooth adapter and what is connected to it, and the
     -- address of the interface the traffic goes over. The first two are told by the services; the address is asked of nmcli when the interface changes.
-    local LK = { kind = "none", name = "", strength = 0, bt = nil, iface = nil }
+    local LK = { kind = "none", name = "", strength = 0, bt = nil, iface = nil, ip = "" }
     local function link_show()
+        -- the dashboard's line between the network's name and its badge: how strong, and the address
+        local parts = {}
+        if LK.kind == "wifi" then parts[#parts + 1] = string.format("%d%%", LK.strength) end
+        if LK.ip ~= "" then parts[#parts + 1] = LK.ip end
+        text.sm_netinfo = table.concat(parts, "  ·  ")
         text.sm_link = LK.kind == "wifi" and ((LK.name ~= "" and LK.name or "Wi-Fi") .. string.format("  ·  %d%%", LK.strength))
             or LK.kind == "wired" and "Wired  ·  connected" or "Not connected"
         local b = LK.bt
@@ -6789,18 +6794,29 @@ end)()
         end
     end
     sys.watch("network", function(n)
-        LK.kind, LK.name, LK.strength = n.kind or "none", n.name or "", math.floor((n.strength or 0) + 0.5)
+        -- the service gives 0 to 1 in practice (its docs say 0 to 100): both are taken, as the dashboard's bars do
+        local s = n.strength or 0
+        if s <= 1 then s = s * 100 end
+        LK.kind, LK.name, LK.strength = n.kind or "none", n.name or "", math.floor(s + 0.5)
         link_show()
     end)
     sys.watch("bluetooth", function(b) LK.bt = b; link_show() end)
     local function ip_read(iface)
         text.sm_ip = ""
+        LK.ip = ""
+        link_show()
         if not iface or iface == "" then return end
         run("nmcli", { "-t", "-f", "IP4.ADDRESS", "device", "show", iface }, function(out, code)
             if code ~= 0 or iface ~= LK.iface then return end
             for line in (out or ""):gmatch("[^\n]+") do
                 local v = line:match("^IP4%.ADDRESS[^:]*:(.*)$")
-                if v then text.sm_ip = (v:gsub("\\", ""):gsub("/%d+$", "")) return end
+                if v then
+                    local ip = (v:gsub("\\", ""):gsub("/%d+$", ""))
+                    text.sm_ip = ip
+                    LK.ip = ip
+                    link_show()
+                    return
+                end
             end
         end)
     end
