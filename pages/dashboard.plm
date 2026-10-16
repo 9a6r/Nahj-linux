@@ -338,8 +338,8 @@ part Dashboard {
                 }
                 box { at: clamp(dCk.x0 + dCk.xf, dCk.x0 + 3, dCk.x0 + dCk.w - 3), dCk.y; size: 6, 22 + 4 * dCk.hot; corner: 3; color: ink; show: mp_len > 0 }
                 zone box dsh_seek { at: dCk.x0 + dCk.w / 2, dCk.y; size: dCk.w + 16, 22; cursor: pointer; active: mp_len > 0 and dash_open }
-                on press dsh_seek { mp_drag = true; mp_df = clamp((pointer.x - dCk.x0) / dCk.w, 0, 1) }
-                on drag dsh_seek { mp_df = clamp((pointer.x - dCk.x0) / dCk.w, 0, 1) }
+                on press dsh_seek { mp_drag = true; mp_df = clamp((pointer.x - (dC.l + 92)) / (dC.w - 184), 0, 1) }
+                on drag dsh_seek { mp_df = clamp((pointer.x - (dC.l + 92)) / (dC.w - 184), 0, 1) }
                 on release dsh_seek { mp_drag = false; mp_pos = mp_df * mp_len; mp_pf: mp_df ~0ms; emit mp_seek(mp_df) }
             }
 
@@ -350,7 +350,7 @@ part Dashboard {
                 let dDv.h = dD.h - 62 - 10
                 let dDv.c = nt_hist.count * 64                                 // all of it
                 zone box dsh_ntw { from: dD.l, dD.t; size: dD.w, dD.h; corner: 26; active: dash_open }
-                on scroll dsh_ntw { nt_to = clamp(nt_to - wheel * 48, 0, max(0, dDv.c - dDv.h + 4)) }
+                on scroll dsh_ntw { nt_to = clamp(nt_to - wheel * 48, 0, max(0, nt_hist.count * 64 - (dD.h - 72) + 4)) }
                 text "Notifications" { at: dD.l + 22, dD.t + 32; anchor: left center; size: 16; weight: 600; family: "Space Grotesk"; color: ink }
                 ellipse { at: dD.l + dD.w - 34, dD.t + 32; radius: 17; color: if(dnd_on, mint, ink); opacity: if(dnd_on, 0.9, 0.07 + 0.1 * dsh_dnd.hover) }
                 text pick(if(dnd_on, 1, 0), "󰂚", "󰂛") { at: dD.l + dD.w - 34, dD.t + 32; anchor: center; size: 17; family: "SpaceMono Nerd Font Propo"; color: if(dnd_on, onmint, ink) }

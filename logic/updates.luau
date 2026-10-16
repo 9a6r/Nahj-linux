@@ -191,21 +191,24 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
     end)
     on("about_update", function()
         if A.busy or (fact.about_behind or 0) <= 0 then return end
-        -- Vitreus first, then pleamar (`pleamar-update` pulls its source and builds it, which takes minutes): the shell
-        -- is only started again once both are in place.
-        local function pleamar_then_restart()
-            if A.pl_behind <= 0 then return restart() end
+        -- pleamar first, then Vitreus (`pleamar-update` pulls its source and builds it, which takes minutes): the newest
+        -- Vitreus files may need the newest pleamar, so they are only pulled once it is in place, and the shell is
+        -- only started again after both. If pleamar fails, Vitreus is left as it was.
+        local update_shell
+        local function pleamar_first()
+            if A.pl_behind <= 0 then return update_shell() end
             busy(true, "Updating pleamar: building it, this takes a few minutes…", 1800000)
             run("pleamar-update", {}, function(_, code)
                 if code ~= 0 then
                     return busy(false, "Couldn't update pleamar. Try `pleamar-update` in a terminal to see why.")
                 end
                 A.pl_behind = 0
-                restart()
+                update_shell()
             end)
         end
+        update_shell = function()
         busy(true, "Updating…")
-        if A.shell_behind <= 0 then return pleamar_then_restart() end
+        if A.shell_behind <= 0 then return restart() end
         -- Which monitors show the bar and the lock screen is kept in the `screens:` line of each scene (the Bar and Lock
         -- screen pages write it, and the choice itself is in bar.json / the lock screen's settings). A line changed that way
         -- is a change of the working tree, and git will not pull over a file it finds changed. So the stock lines are put
@@ -261,7 +264,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                                             local pk = missing:gsub("^%s+", "")
                                             run("setsid", { "-f", "sh", "-c", 'sleep 10; notify-send -a Vitreus "Vitreus updated" "Some features need packages: sudo pacman -S $1"', "sh", pk }, function() end)
                                         end
-                                        pleamar_then_restart()
+                                        restart()
                                     end)
                                 end)
                             end)
@@ -270,6 +273,8 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                 end)
             end)
         end)
+        end
+        pleamar_first()
     end)
 
     with_dirs(function(d)
