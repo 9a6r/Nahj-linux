@@ -1,7 +1,7 @@
 -- Settings > Keybinds: the shell's keybinds as the window manager has them, read from its own file and rewritten there when one is changed.
 --   Hyprland: hypr_vitreus.lua  (`hl.bind("SUPER + SHIFT + D", hl.dsp.exec_cmd("... pleamar --say vitreus \"emit dash_toggle\""))`)
 --   pleamar-wm: keys.conf       (`bind Super+d launch pleamar --say vitreus "emit desk_toggle"`)
--- Only the binds that talk to the shell (`pleamar --say ...`) are listed. A bind is changed in place (its `unbind` line too), and Hyprland is
+-- Only the binds that talk to the shell (`pleamar --say ...`) are listed, and on pleamar-wm the one that opens Files (`launch nautilus`). A bind is changed in place (its `unbind` line too), and Hyprland is
 -- reloaded; pleamar-wm reads its keys when it starts. The scene shows the rows (`kb_rows`), the chips for the modifiers and a box that
 -- records the next key (`kb_press`, the codes of pages/keybinds_keys.plm: modifiers * 100 + the key's place in KEYS).
 return function()
@@ -33,10 +33,13 @@ return function()
         ["vitreus emit shot 0"] = "Screenshot: region",
         ["vitreus emit shot 1"] = "Screenshot: whole screen",
         ["vitreus emit rec_toggle"] = "Record the screen",
+        ["launch nautilus"] = "Files",
+        ["nautilus"] = "Files",
     }
     -- The combos this shell ships with, per window manager, as (modifier bits, key); a second one is for an action that has two.
     local DEFAULTS = {
         hypr = {
+            ["nautilus"] = { { 1, "e" } },
             ["vitreus emit launch_toggle"] = { { 1, "space" } }, ["vitreus emit settings_toggle"] = { { 3, "space" } },
             ["lockscreen fact locked true"] = { { 1, "l" } }, ["vitreus emit wp_picker_toggle"] = { { 1, "b" } },
             ["vitreus emit desk_toggle"] = { { 1, "d" } }, ["vitreus emit dash_toggle"] = { { 3, "d" } }, ["vitreus emit ov_toggle"] = { { 1, "Tab" } },
@@ -47,6 +50,7 @@ return function()
             ["lockscreen fact locked true"] = { { 1, "l" } }, ["vitreus emit wp_picker_toggle"] = { { 1, "b" } },
             ["vitreus emit desk_toggle"] = { { 1, "d" } }, ["vitreus emit dash_toggle"] = { { 3, "d" } }, ["vitreus emit shot 0"] = { { 0, "Print" }, { 1, "c" } },
             ["vitreus emit shot 1"] = { { 2, "Print" } }, ["vitreus emit rec_toggle"] = { { 3, "c" } },
+            ["launch nautilus"] = { { 1, "e" } },
         },
     }
 
@@ -140,11 +144,13 @@ return function()
                     local combo, scene, cmd
                     if wm() == "hypr" then
                         combo, scene, cmd = line:match('^hl%.bind%("([^"]+)",.-pleamar %-%-say (%S+) \\"(.-)\\"')
+                        if not combo then combo, scene, cmd = line:match('^hl%.bind%("([^"]+)", hl%.dsp%.exec_cmd%("(nautilus)"%)') end
                     else
                         combo, scene, cmd = line:match('^bind%s+(%S+)%s+.-pleamar %-%-say (%S+) "(.-)"')
+                        if not combo then combo, scene, cmd = line:match('^bind%s+(%S+)%s+(launch)%s+(nautilus)%s*$') end
                     end
                     if combo then
-                        local act = scene .. " " .. cmd
+                        local act = cmd and (scene .. " " .. cmd) or scene     -- Hyprland's Files bind has no scene
                         local name = ACTS[act]
                         local mask, key = parse_combo(combo)
                         if name and mask then

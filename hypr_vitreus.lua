@@ -47,6 +47,10 @@ hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd([[PATH="$HOME/.local/bin:$PATH"; 
 hl.unbind("XF86MonBrightnessDown")
 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd([[PATH="$HOME/.local/bin:$PATH"; f=$(brightnessctl -e4 -n2 -m set 5%- | awk -F, '{printf "%.4f", $3/$5}'); pleamar --say vitreus "emit bright_key $f"]]), { locked = true, repeating = true })
 
+-- SUPER + E opens Files.
+hl.unbind("SUPER + E")
+hl.bind("SUPER + E", hl.dsp.exec_cmd("nautilus"))
+
 -- What starts with the session: pleamar runs ~/.config/pleamar/autostart (the Vitreus scene, lock screen and desktop widgets), and the
 -- daemons the shell relies on (wallpaper, idle lock, clipboard history). Hyprland's PATH has no ~/.local/bin, hence the export.
 hl.on("hyprland.start", function ()
