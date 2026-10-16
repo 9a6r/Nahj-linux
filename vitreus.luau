@@ -1952,12 +1952,16 @@ function watch_urgent()
                     sc_gen = sc_gen + 1
                     local gen = sc_gen
                     if sc_active > 0 then
-                        after(1500, function()
-                            if gen == sc_gen and sc_active > 0 then
-                                fact.priv_scr = true
-                                text.priv_scr_who = "Your screen is being shared"
-                            end
-                        end)
+                        -- The pictures of windows that this shell asks pleamar for itself (the overview's, THUMB_UNTIL) are captures too, and
+                        -- last longer than that wait: they are not sharing. While one is expected the light waits, and goes on only if the
+                        -- capture is still there after it.
+                        local function light()
+                            if gen ~= sc_gen or sc_active <= 0 then return end
+                            if os.time() <= (THUMB_UNTIL or 0) then return after(1000, light) end
+                            fact.priv_scr = true
+                            text.priv_scr_who = "Your screen is being shared"
+                        end
+                        after(1500, light)
                     else
                         fact.priv_scr = false
                         text.priv_scr_who = ""
@@ -6657,8 +6661,9 @@ end)()
         read_clients(function()
             match()
             if #front_ids == 0 then return end
+            THUMB_UNTIL = os.time() + math.ceil(ms / 1000) + 4           -- these captures are ours: the screen-sharing light ignores them
             sys.call("thumbnails.want", front_ids)
-            after(ms, function() if g == want_gen and not open then sys.call("thumbnails.want") end end)
+            after(ms,function() if g == want_gen and not open then sys.call("thumbnails.want") end end)
         end)
     end
 
@@ -6671,9 +6676,11 @@ end)()
         if v then
             want_gen = want_gen + 1
             last_sig = ""
+            THUMB_UNTIL = os.time() + 86400                              -- live pictures all the while it is open
             sys.call("thumbnails.live", "all")
             refresh()
         else
+            THUMB_UNTIL = os.time() + 4
             sys.call("thumbnails.live")
             want_front(1200)
         end
