@@ -309,17 +309,32 @@ LIST
     elif have pleamar || [ -x "$HOME/.local/bin/pleamar" ]; then
         pv=$( { pleamar --version 2> /dev/null || "$HOME/.local/bin/pleamar" --version 2> /dev/null; } | sed -n 's/^pleamar \([0-9][0-9.]*\).*/\1/p' | head -1)
         say "pleamar is installed${pv:+ ($pv)}"
+        if $do_wm && ! have pleamar-wm && [ ! -x "$HOME/.local/bin/pleamar-wm" ] && have pleamar-update; then
+            say "pleamar-wm, pleamar's window manager, is not installed"
+            if ask "install it now? (built from source; Vitreus then also runs as a session at the login screen)"; then
+                if $dry; then echo "    would run: pleamar-update --all"
+                else pleamar-update --all || warn "pleamar-update --all failed: run it yourself to get pleamar-wm"
+                fi
+            fi
+        fi
         case "$pv" in
             0.0*|0.1*|0.2.[0-8]) warn "Vitreus needs pleamar 0.2.9 or newer (the lock screen's monitor choice, and a crash when a monitor goes away, need it): update it with pleamar-update" ;;
         esac
     else
         say "pleamar, the runtime Vitreus is written for, is not installed"
         if ask "install it now? (it is built from source; the first time takes a few minutes)"; then
+            # pleamar's installer brings the window manager (pleamar-wm) and Marea too unless told --alone: ask first.
+            pleamar_args=""
+            if $do_wm && ! ask "install pleamar-wm, the window manager, as well? (otherwise only pleamar, for Hyprland and other compositors)"; then
+                pleamar_args="-s -- --alone"
+                do_wm=false
+            fi
             if $dry; then
-                echo "    would run: curl -fsSL $pleamar_installer | sh"
+                echo "    would run: curl -fsSL $pleamar_installer | sh $pleamar_args"
             else
                 have curl || fail "curl is needed to fetch pleamar's installer"
-                curl -fsSL "$pleamar_installer" | sh || fail "pleamar's installer failed (see above); Vitreus needs it"
+                # shellcheck disable=SC2086
+                curl -fsSL "$pleamar_installer" | sh $pleamar_args || fail "pleamar's installer failed (see above); Vitreus needs it"
             fi
         else
             warn "without pleamar Vitreus cannot run. Install it from https://github.com/k4ditano/pleamar"
