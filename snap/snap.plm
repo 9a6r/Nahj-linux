@@ -25,6 +25,7 @@ scene Snap {
     let pink_shadow = mix(deep, #ff6ec7, 0.75)
     text shot_path = ""    // the picture: its file, `?` and a number
     image shot = from shot_path, 1920, 1080
+    image shotv = from shot_path, 1080, 1920      // the same picture for a monitor standing on its side: the cell has the shape it is drawn in, or it is squashed
     event do_copy ->
     event do_save ->
     event do_quit ->
@@ -178,10 +179,12 @@ scene Snap {
     }
 
     //  ── The frozen screen ───────────────────────────────────────────────────────────────────────────────────────
-    image shot { at: 0, 0; size: W, H; show: phase > 0 and full == 0 }
+    image shot { at: 0, 0; size: W, H; show: phase > 0 and full == 0 and W >= H }
+    image shotv { at: 0, 0; size: W, H; show: phase > 0 and full == 0 and H > W }
     //  the whole-screen picture: the screen behind it, blurred and dimmed, and the picture smaller in front, with the bar under it
-    group { show: phase > 0 and full == 1; blur: 14; image shot { at: 0, 0; size: W, H } }
-    image shot { at: vx, vy; size: W * vs, H * vs; show: phase > 0 and full == 1 }
+    group { show: phase > 0 and full == 1; blur: 14; image shot { at: 0, 0; size: W, H; show: W >= H }; image shotv { at: 0, 0; size: W, H; show: H > W } }
+    image shot { at: vx, vy; size: W * vs, H * vs; show: phase > 0 and full == 1 and W >= H }
+    image shotv { at: vx, vy; size: W * vs, H * vs; show: phase > 0 and full == 1 and H > W }
 
     //  ── The marks, inside the selection only (what is outside it is not in the picture) ─────────────────────────────────
     //  In the order the picture gets them (snap.luau, `export`): redactions, highlighter, shapes, pen, markers, text. A mark that Select is dragging is drawn moved
@@ -313,7 +316,8 @@ scene Snap {
         group {
             show: phase == 1 and sw <= 8 and wz.$i.hover > 0.5
             clip inset 0 box { from: wa, wb; size: max(1, wc - wa), max(1, wd - wb) }
-            image shot { at: 0, 0; size: W, H }
+            image shot { at: 0, 0; size: W, H; show: W >= H }
+            image shotv { at: 0, 0; size: W, H; show: H > W }
         }
         box { from: wa, wb; size: max(1, wc - wa), max(1, wd - wb); corner: pick(look, 6, 0, 8, 0); stroke: pick(look, 2, 2.2, 3, 1.5); color: mint; show: phase == 1 and sw <= 8 and wz.$i.hover > 0.5 }
         zone box wz.$i { from: wa, wb; size: max(1, wc - wa), max(1, wd - wb); cursor: crosshair; active: phase > 0 and full == 0 and wc - wa > 4 and wd - wb > 4; label: "Window" }

@@ -40,7 +40,7 @@ local LOOKS = { ["8"] = 1, ["9"] = 2, ["10"] = 3 }
 local function capture()
     local script = 'd="${SNAP_DIR:-${XDG_RUNTIME_DIR:-/tmp}/vitreus-snap}"; mkdir -p "$d"; '
         .. 'if [ -n "${SNAP_NOT_BEFORE-}" ]; then w=$((SNAP_NOT_BEFORE - $(date +%s%3N))); [ "$w" -gt 0 ] && [ "$w" -lt 5000 ] && sleep "$(printf "%d.%03d" $((w / 1000)) $((w % 1000)))"; fi; '
-        .. 'o="$SNAP_OUTPUT"; [ -n "$o" ] || o=$(hyprctl -j monitors 2>/dev/null | jq -r \'.[] | select(.focused) | .name\' 2>/dev/null | head -n 1); '
+        .. 'o="$SNAP_OUTPUT"; [ -n "$o" ] || o=$(hyprctl -j monitors 2>/dev/null | jq -r \'.[] | select(.focused) | .name\' 2>/dev/null | head -n 1); if [ -z "$o" ]; then i=$(pleamar --say wm "get mon" 2>/dev/null); o=$(grep "^monitor " "${PLEAMAR_SOCKETS:-/nonexistent}/desktop" 2>/dev/null | sed -n "$((${i:-0} + 1))p" | cut -d" " -f2); fi; '
         .. 'if [ -z "$SNAP_NO_CAPTURE" ]; then grim -l 0 ${o:+-o "$o"} "$d/shot.png" || exit 1; fi; '
         .. 'echo "$d"; od -An -tu1 -j16 -N4 "$d/shot.png" | awk "{ print \\$1 * 16777216 + \\$2 * 65536 + \\$3 * 256 + \\$4 }"; '
         .. [[l="${SNAP_LOOK-}"; [ -n "$l" ] || l=$(sed -n 's/.*"look": *\([0-9]*\).*/\1/p' "${XDG_DATA_HOME:-$HOME/.local/share}/pleamar/vitreus/iris.json" 2> /dev/null | head -n 1); echo "$l"; echo "${SNAP_FULL:-0}"; ]]
@@ -48,6 +48,8 @@ local function capture()
         -- tiled under floating, floating under fullscreen, the special workspace over the rest, and among equals the one used last on top.
         -- SNAP_WINDOWS ("x y w h;x y w h") gives them instead, to try it without Hyprland.
         .. [[if [ -n "${SNAP_WINDOWS-}" ]; then printf '%s\n' "$SNAP_WINDOWS" | tr ';' '\n'; ]]
+        .. [[elif [ -z "$HYPRLAND_INSTANCE_SIGNATURE" ] && [ -n "$o" ]; then awk -v o="$o" '$1=="monitor" && $2==o { mx=$5; my=$6; w=$3; h=$4; f=1 } $1=="window" { n++; X[n]=$2; Y[n]=$3; W[n]=$4; H[n]=$5 } ]]
+        .. [[END { if (f) for (k=1; k<=n; k++) { x=X[k]-mx; y=Y[k]-my; if (x < w && y < h && x+W[k] > 0 && y+H[k] > 0) print x, y, W[k], H[k] } }' "${PLEAMAR_SOCKETS:-/nonexistent}/desktop" 2>/dev/null; ]]
         .. [[elif [ -n "$o" ]; then jq -rn --arg o "$o" --argjson m "$(hyprctl -j monitors)" --argjson c "$(hyprctl -j clients)" ]]
         .. [['($m[] | select(.name == $o)) as $mon | [$c[] | select(.mapped and (.hidden | not) and .monitor == $mon.id ]]
         .. [[and (.workspace.id == $mon.activeWorkspace.id or .workspace.id == $mon.specialWorkspace.id))] ]]

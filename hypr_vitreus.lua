@@ -30,6 +30,16 @@ hl.bind("SUPER + SHIFT + D", hl.dsp.exec_cmd("PATH=\"$HOME/.local/bin:$PATH\" pl
 hl.unbind("SUPER + TAB")
 hl.bind("SUPER + TAB", hl.dsp.exec_cmd("PATH=\"$HOME/.local/bin:$PATH\" pleamar --say vitreus \"emit ov_toggle\""))
 
+-- Screenshots and recording are Vitreus's Capture: a region, or the whole screen (copied, and saved in ~/Pictures/Screenshots).
+hl.unbind("Print")
+hl.bind("Print", hl.dsp.exec_cmd("PATH=\"$HOME/.local/bin:$PATH\" pleamar --say vitreus \"emit shot 0\""))
+hl.unbind("SHIFT + Print")
+hl.bind("SHIFT + Print", hl.dsp.exec_cmd("PATH=\"$HOME/.local/bin:$PATH\" pleamar --say vitreus \"emit shot 1\""))
+hl.unbind("SUPER + C")
+hl.bind("SUPER + C", hl.dsp.exec_cmd("PATH=\"$HOME/.local/bin:$PATH\" pleamar --say vitreus \"emit shot 0\""))
+hl.unbind("SUPER + SHIFT + C")
+hl.bind("SUPER + SHIFT + C", hl.dsp.exec_cmd("PATH=\"$HOME/.local/bin:$PATH\" pleamar --say vitreus \"emit rec_toggle\""))
+
 -- The brightness keys, again: the same brightnessctl step as hyprland.lua's, and then the new level told to the shell at once (as a share of the
 -- backlight's maximum), so its pop-up follows each press; the brightness service only looks every 700 ms.
 hl.unbind("XF86MonBrightnessUp")

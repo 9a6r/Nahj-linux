@@ -18,6 +18,7 @@ return function(set_panel)
     -- Region (0) opens Snap (snap/snap.plm): the screen frozen, a part of it picked and drawn on, then copied or saved; a saved one comes up as the
     -- card (`shot_done`, in vitreus.luau), told by Snap itself. Only one Snap at a time: a press while it is open does nothing. It is put on the
     -- focused monitor (`--screen`) and takes that one (SNAP_OUTPUT): left to choose, pleamar opened it on the other monitor, over a picture of this one.
+    -- Without Hyprland the focused monitor is the one under the mouse: pleamar-wm's `mon`, named from its `desktop` file.
     -- And in the theme's typeface: the font setup bin/vitreus-fonts makes for the shell (nothing for Space Grotesk). Snap reads the look itself.
     -- The whole screen (1) opens Snap too (SNAP_FULL=1): the picture shown smaller with the bar under it, to draw on, copy or save like a region.
     on("shot", function(mode)
@@ -28,7 +29,7 @@ return function(set_panel)
             spawn(sh('p="$HOME/.config/pleamar/shells/vitreus/snap/snap.plm"; pgrep -f "pleamar --scene $p" > /dev/null && exit 0; '
                 .. 'export SNAP_NOT_BEFORE=$(( $(date +%s%3N) + ' .. (mode == 1 and 800 or 450) .. ' )); '
                 .. (mode == 1 and 'export SNAP_FULL=1; ' or '')
-                .. 'o=$(hyprctl -j monitors 2> /dev/null | jq -r ".[] | select(.focused) | .name" 2> /dev/null | head -n 1); '
+                .. 'o=$(hyprctl -j monitors 2> /dev/null | jq -r ".[] | select(.focused) | .name" 2> /dev/null | head -n 1); if [ -z "$o" ]; then i=$(pleamar --say wm "get mon" 2>/dev/null); o=$(grep "^monitor " "${PLEAMAR_SOCKETS:-/nonexistent}/desktop" 2>/dev/null | sed -n "$((${i:-0} + 1))p" | cut -d" " -f2); fi; '
                 .. 'fc=$("$HOME/.config/pleamar/shells/vitreus/bin/vitreus-fonts" "${XDG_DATA_HOME:-$HOME/.local/share}/pleamar/vitreus" 2> /dev/null) && [ -n "$fc" ] && export FONTCONFIG_FILE="$fc"; '
                 .. 'if [ -n "$o" ]; then SNAP_OUTPUT="$o" exec pleamar --scene "$p" --no-hud --screen "$o"; else exec pleamar --scene "$p" --no-hud; fi'))
             return

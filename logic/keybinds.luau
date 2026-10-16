@@ -40,6 +40,7 @@ return function()
             ["vitreus emit launch_toggle"] = { { 1, "space" } }, ["vitreus emit settings_toggle"] = { { 3, "space" } },
             ["lockscreen fact locked true"] = { { 1, "l" } }, ["vitreus emit wp_picker_toggle"] = { { 1, "b" } },
             ["vitreus emit desk_toggle"] = { { 1, "d" } }, ["vitreus emit dash_toggle"] = { { 3, "d" } }, ["vitreus emit ov_toggle"] = { { 1, "Tab" } },
+            ["vitreus emit shot 0"] = { { 0, "Print" }, { 1, "c" } }, ["vitreus emit shot 1"] = { { 2, "Print" } }, ["vitreus emit rec_toggle"] = { { 3, "c" } },
         },
         pwm = {
             ["vitreus emit launch_toggle"] = { { 1, "space" } }, ["vitreus emit settings_toggle"] = { { 3, "space" } },
