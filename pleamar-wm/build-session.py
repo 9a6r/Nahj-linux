@@ -76,10 +76,10 @@ once("    windows win max 16\n", """    windows win max 16
 s, k = re.subn(r"win\.reserved\.(\w+|\$s)\.(top|right|bottom|left)", r"(win.reserved.\1.\2 + fr.\1.\2)", s)
 assert k > 10, "win.reserved was read %d times" % k
 
-# ── a title bar on tiled windows, too ──────────────────────────────────────────────────────────────────────────────────────────────────
-once("        let ours = F > 0.5 and win.$i.framed\n", "        let ours = (F > 0.5 or tbt > 0.5) and win.$i.framed\n")
+# ── the title bars setting (tbt) is for every window: a free one has its bar only while it is on (a program that draws its own frame keeps its own handle) ──────────────────────────────────────────────────────────────────────────────────────────────────
+once("        let ours = F > 0.5 and win.$i.framed\n", "        let ours = tbt > 0.5 and win.$i.framed\n")
 once("zone box title.$i { from: x.$i + if(whole or F > 0.5, 0, 12), y.$i - if(whole or F > 0.5, 0, gap - 1); size: if(whole, w, if(F > 0.5, w - 76, w - 24)), if(whole, h, if(F > 0.5, tb, gap - 2));",
-     "zone box title.$i { from: x.$i + if(whole or F > 0.5 or ours, 0, 12), y.$i - if(whole or F > 0.5 or ours, 0, gap - 1); size: if(whole, w, if(F > 0.5 or ours, w - 76, w - 24)), if(whole, h, if(F > 0.5 or ours, tb, gap - 2));")
+     "zone box title.$i { from: x.$i + if(whole or (F > 0.5 and not win.$i.framed) or ours, 0, 12), y.$i - if(whole or (F > 0.5 and not win.$i.framed) or ours, 0, gap - 1); size: if(whole, w, if((F > 0.5 and not win.$i.framed) or ours, w - 76, w - 24)), if(whole, h, if((F > 0.5 and not win.$i.framed) or ours, tb, gap - 2));")
 
 # ── the corners where a window is not the one drawn in full ────────────────────────────────────────────────────────────────────────────
 once("box { from: hx + 4, hy + 4; size: hw - 8, hh - 8; corner: 12;", "box { from: hx + 4, hy + 4; size: hw - 8, hh - 8; corner: rad;", 2)

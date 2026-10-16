@@ -127,8 +127,8 @@ part PleamarWm {
                 zone box wm_wst_hit.$i { at: lx, ly; size: 122 * pu, 26 * pu; corner: 13 * pu; cursor: pointer; active: (ly) - sby - wm.off > 0 and (ly) - sby - wm.off < set.h * pu; label: pick(i, "Window style: Vitreus glass", "Window style: Water", "Window style: Borderless", "Window style: Glow") }
                 on press wm_wst_hit.$i { emit wm_wst_set(i) }
             }
-            //  Title bars on tiled windows (pleamar-wm gives one only to free windows).
-            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 600 * pu + 0.5); text "Title bars on tiled windows" { at: floor(spx + 14 * pu + 0.5), floor(sby + 600 * pu + 0.5); anchor: left center; size: 15.5; weight: 600; color: ink; family: "Space Grotesk" } }
+            //  Title bars, on every window (tiled or floating).
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 600 * pu + 0.5); text "Title bars" { at: floor(spx + 14 * pu + 0.5), floor(sby + 600 * pu + 0.5); anchor: left center; size: 15.5; weight: 600; color: ink; family: "Space Grotesk" } }
             SettingsSwitch(spx + 424 * pu, sby + 600 * pu, wm_k5, wm_tg_hit.5.pressed, mint)
             zone box wm_tg_hit.5 { at: spx + 219 * pu, sby + 600 * pu; size: 430 * pu, 28 * pu; corner: 10 * pu; cursor: pointer; active: (sby + 600 * pu) - sby - wm.off > 0 and (sby + 600 * pu) - sby - wm.off < set.h * pu }
             on press wm_tg_hit.5 { emit wm_toggle(5) }

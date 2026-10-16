@@ -6,6 +6,7 @@ import "../palette.plm"
 //  the cross in its corner takes it away. New ones come from the desktop's right-click menu ("New sticky note") or the launcher ("Sticky note: new"); up to sixteen. They stay
 //  where they were put, from one session to the next.
 //
+//  (Under pleamar-wm a surface on the bottom layer hears no mouse, so the surface is on top: only the stickers take the pointer, but they then lie over windows.)
 //  The scene is one surface a monitor, each as big as it, and only the stickers take the pointer. Where a sticker is is kept in the desktop's own coordinates (all the monitors'
 //  together, `gx`, `gy`), and each monitor draws the part of that which falls on it: the logic tells the scene where the monitors lie (`m0x` and the rest, from `hyprctl monitors`).
 //
@@ -13,7 +14,7 @@ import "../palette.plm"
 //  Its settings are kept in desktopnotes.json and the stickers in desktopnotes-stickers.json, in ~/.local/share/pleamar/desktopnotes (see desktopnotes.luau).
 
 scene DesktopNotes {
-    surface { size: full, full; anchor: top_left; margin: 0; level: bottom; screens: each; reserve: -1; keyboard: on_demand }
+    surface { size: full, full; anchor: top_left; margin: 0; level: top; screens: each; reserve: -1; keyboard: exclusive while eix >= 0 }
 
     permissions { services: "files", "files.write"; run: "pleamar", "hyprctl" }
 
@@ -62,7 +63,7 @@ scene DesktopNotes {
     let oy = pick(mi, m0y, m1y, m2y, m3y)
 
     on key Escape while eix >= 0 { eix = -1 }
-    //  (Nothing here takes the keyboard by itself: `focus` on a field the scene was not clicked for makes pleamar ask the compositor for the keyboard exclusively, for good. A sticker is
+    //  (The keyboard is asked for only while a sticker is being written on (`eix >= 0`), and let go at Enter or Escape: pleamar-wm does not hand it over on a click, so `on_demand` left typing dead until the next login. A sticker is
     //  written on only after it is clicked, which is what hands the keyboard over.)
     on submit ei { emit note_commit }
 

@@ -4039,6 +4039,100 @@ local function disp_profiles_save()
     pcall(sys.call, "files.write", "display-profiles.json", { auto = disp_auto, profiles = disp_profiles })
 end
 
+-- Under pleamar-wm nothing can be changed on the fly (the compositor has no output management): the page edits drafts as on Hyprland, and Apply writes
+-- the `monitor` lines of session.conf, which pleamar-wm reads at the next login. What `hyprctl monitors` cannot say is read from files: the lines already in
+-- session.conf (a monitor on its side is said there as `transform 90`, while its size is given already turned) and the resolutions the kernel lists for each
+-- connector. It lists no refresh rates, so a few usual ones, at or under the current one, are offered. (A global table: this chunk is at Luau's limit of locals.)
+disp_wm = { conf = {}, modes = {}, loaded = false }
+function disp_wm.path(fn)
+    with_dirs(function(d) fn((d.conf:gsub("/shells/vitreus$", "")) .. "/session.conf") end)
+end
+function disp_wm.load(done)
+    disp_wm.path(function(path)
+        run("cat", { path }, function(out)
+            local conf = {}
+            for line in ((out or "") .. "\n"):gmatch("([^\n]*)\n") do
+                local name, rest = line:match("^monitor%s+(%S+)%s*(.*)$")
+                if name then
+                    local t = tonumber(rest:match("transform%s+(%d+)")) or 0
+                    conf[name] = { transform = ({ [90] = 1, [180] = 2, [270] = 3 })[t] or 0, vrr = (" " .. rest .. " "):find("%svrr%s") ~= nil }
+                end
+            end
+            disp_wm.conf = conf
+            run("find", { "-L", "/sys/class/drm", "-maxdepth", "2", "-name", "modes" }, function(found)
+                local paths = {}
+                for f in (found or ""):gmatch("%S+") do paths[#paths + 1] = f end
+                if #paths == 0 then return done() end
+                for _, f in ipairs(paths) do
+                    -- /sys/class/drm/card1-DP-2/modes -> DP-2
+                    local name = f:match("/card%d+%-([^/]+)/modes$")
+                    run("cat", { f }, function(list)
+                        if name then
+                            local seen, res = {}, {}
+                            for r in (list or ""):gmatch("(%d+x%d+)") do
+                                if not seen[r] then seen[r] = true; res[#res + 1] = r end
+                            end
+                            -- (a connector with nothing plugged in has an empty list, and may not answer at all: each one that does is a reason to look again)
+                            if #res > 0 then disp_wm.modes[name] = res; done() end
+                        end
+                    end)
+                end
+            end)
+        end)
+    end)
+end
+-- The modes a monitor offers, in the page's words ("2560x1440@165Hz"): each resolution the kernel lists, with the current refresh rate and the usual ones under it.
+function disp_wm.modes_of(name, w, h, hz)
+    local rates, seen = {}, {}
+    for _, r in ipairs({ hz, 144, 120, 60 }) do
+        if r <= hz and not seen[r] then seen[r] = true; rates[#rates + 1] = r end
+    end
+    local res = {}
+    for _, r in ipairs(disp_wm.modes[name] or {}) do res[#res + 1] = r end
+    local cur = w .. "x" .. h
+    local have = false
+    for _, r in ipairs(res) do if r == cur then have = true end end
+    if not have then res[#res + 1] = cur end
+    local out = {}
+    for _, r in ipairs(res) do
+        for _, v in ipairs(rates) do out[#out + 1] = string.format("%s@%dHz", r, v) end
+    end
+    return out
+end
+-- Apply: every monitor's line in session.conf, from the drafts (positions measured from the top left of the arrangement).
+function disp_wm.apply()
+    local mx, my = math.huge, math.huge
+    for _, m in ipairs(disp_mons) do
+        local d = disp_draft[m.name]
+        mx, my = math.min(mx, d.x), math.min(my, d.y)
+    end
+    local lines, names = {}, {}
+    for _, m in ipairs(disp_mons) do
+        local d = disp_draft[m.name]
+        local line = string.format("monitor %s %s@%d at %d,%d", m.name, d.res, d.hz, d.x - mx, d.y - my)
+        if d.scale ~= "auto" and math.abs(d.scale - 1) > 0.001 then line = line .. " scale " .. disp_num(d.scale, 6) end
+        local t = ({ [1] = " transform 90", [2] = " transform 180", [3] = " transform 270" })[d.transform or 0]
+        if t then line = line .. t end
+        if (disp_wm.conf[m.name] or {}).vrr then line = line .. " vrr" end
+        lines[#lines + 1] = line
+        names[#names + 1] = m.name
+    end
+    if #lines == 0 then return end
+    disp_wm.path(function(path)
+        -- (two passes: `$a` never fires when the last line is one of those just deleted)
+        run("sed", { "-i", "-E", "-e", "/^monitor (" .. table.concat(names, "|") .. ")( |$)/d", path }, function()
+            local args = { "-i" }
+            for _, l in ipairs(lines) do args[#args + 1] = "-e"; args[#args + 1] = "$a\\" .. l end
+            args[#args + 1] = path
+            run("sed", args, function(_, code)
+                if code ~= 0 then text.disp_msg = "Could not write session.conf."; return end
+                text.disp_msg = "Saved to session.conf. It applies at your next login."
+                disp_wm.load(function() end)
+            end)
+        end)
+    end)
+end
+
 -- Read what Hyprland says, and keep the draft of every monitor that is there.
 local function disp_read(done, max_age)
     hypr_monitors(max_age or 0, function(out, code)
@@ -4051,13 +4145,22 @@ local function disp_read(done, max_age)
             for name, body in (out .. "\n\n"):gmatch("Monitor (%S+) %(ID %d+%):\n(.-)\n\n") do
                 local w, h, hz, x, y = body:match("(%d+)x(%d+)@([%d%.]+) at (%-?%d+)x(%-?%d+)")
                 if w then
-                    list[#list + 1] = { name = name, description = "pleamar-wm: change it in ~/.config/pleamar/session.conf", width = tonumber(w), height = tonumber(h),
-                        refreshRate = tonumber(hz), x = tonumber(x), y = tonumber(y), scale = tonumber(body:match("scale:%s*([%d.]+)")) or 1, transform = 0,
-                        availableModes = { string.format("%sx%s@%sHz", w, h, hz) } }
+                    -- the size is given already turned: back to the monitor's own when session.conf stands it on its side
+                    local t = (disp_wm.conf[name] or {}).transform or 0
+                    local nw, nh = tonumber(w), tonumber(h)
+                    if t == 1 or t == 3 then nw, nh = nh, nw end
+                    list[#list + 1] = { name = name, description = "pleamar-wm: applied at the next login (saved in session.conf)", width = nw, height = nh,
+                        refreshRate = tonumber(hz), x = tonumber(x), y = tonumber(y), scale = tonumber(body:match("scale:%s*([%d.]+)")) or 1, transform = t,
+                        availableModes = disp_wm.modes_of(name, nw, nh, math.floor(tonumber(hz) + 0.5)) }
                 end
             end
             if #list == 0 then return done and done() end
             ok, disp_ro = true, true
+            if not disp_wm.loaded then
+                disp_wm.loaded = true
+                disp_wm.load(function() disp_read(done) end)
+                return
+            end
         else
             disp_ro = false
         end
@@ -4173,7 +4276,7 @@ local function disp_revert()
 end
 
 local function disp_apply()
-    if disp_ro then return end
+    if disp_ro then return disp_wm.apply() end
     if disp_trial > 0 then return end
     local specs = {}
     -- every position is measured from the top left of the whole arrangement
@@ -4227,7 +4330,6 @@ end)
 
 -- ── the page's events ──
 local function disp_edit(fn)
-    if disp_ro then return end
     local m = disp_mons[disp_sel]
     if not m then return end
     fn(m, disp_draft[m.name])
@@ -4255,7 +4357,6 @@ on("disp_pick_hz", function(i)
 end)
 on("disp_pick_scale", function(i) disp_edit(function(_, d) d.scale = DISP_SCALES[i + 1] or d.scale end) end)
 on("disp_rot_mon", function(i)
-    if disp_ro then return end
     local m = disp_mons[i + 1]
     if not m then return end
     disp_sel = i + 1
@@ -4277,7 +4378,6 @@ on("disp_refresh", function() disp_read() end)
 -- Dragging a monitor on the canvas: the page says where the pointer is (canvas units, in `fact.disp_px/py`) when it
 -- grabs a box and as it moves; the box keeps the distance it was grabbed at, and snaps to the edges of the others.
 on("disp_grab", function()
-    if disp_ro then return end
     local i = fact.disp_grab_i + 1
     local m = disp_mons[i]
     if not m or not disp_grab_origin then return end
@@ -4316,7 +4416,6 @@ end)
 on("disp_drop", function() disp_grab = nil end)
 -- Buttons over the canvas: side by side, or the two swapped.
 on("disp_arrange", function()
-    if disp_ro then return end
     local x = 0
     for _, m in ipairs(disp_mons) do
         local d = disp_draft[m.name]
@@ -4327,7 +4426,6 @@ on("disp_arrange", function()
     disp_render()
 end)
 on("disp_swap", function()
-    if disp_ro then return end
     -- the order left to right, turned round, and packed side by side again
     if #disp_mons < 2 then return end
     local order = {}
@@ -4369,7 +4467,6 @@ on("disp_profile_save", function()
     text.disp_msg = "Saved “" .. name .. "”."
 end)
 on("disp_profile_apply", function(i)
-    if disp_ro then return end
     local p = disp_profiles[i + 1]
     if not p then return end
     for name, spec in pairs(p.mons) do
@@ -5434,7 +5531,15 @@ end
         run("pleamar", { "--say", "desktopnotes", "get shown" }, function(_, code)
             if code ~= 0 then
                 exec_on_desktop('vitreus-keep "$HOME/.config/pleamar/shells/vitreus/desktopnotes/desktopnotes.plm"')
-                after(2500, send)
+                -- Not a fixed wait: ask again until the scene answers (it takes about a second to start), for five seconds at most.
+                local tries = 0
+                local function wait()
+                    tries = tries + 1
+                    run("pleamar", { "--say", "desktopnotes", "get shown" }, function(_, c)
+                        if c == 0 or tries >= 25 then send() else after(200, wait) end
+                    end)
+                end
+                after(300, wait)
             else
                 send()
             end
@@ -6746,7 +6851,10 @@ end)()
     end)
     after(4000, function() want_front(2000) end)
     on("ov_toggle", function()
-        if not on_hyprland then return end          -- pleamar-wm has its own overview (Super+Tab)
+        if not on_hyprland then                     -- pleamar-wm has its own overview (Super+Tab): the button and the launcher toggle that one
+            wm_get("overview", function(v) wm_say("fact overview " .. (v == 1 and "false" or "true")) end)
+            return
+        end
         if fact.ov_open then
             fact.ov_open = false
             set_open(false)
@@ -6888,6 +6996,7 @@ end)()
             text.sm_kernel = d.info.kernel or ""
             text.sm_user = d.info.user or ""
             text.sm_name = (d.info.name or "") ~= "" and d.info.name or (d.info.user or "")
+            if demo_on then text.sm_user = "user"; text.sm_name = "user" end
             text.sm_distro = d.info.distro or ""
             text.sm_avatar = d.info.avatar or ""
             text.sm_face = d.info.face or ""
@@ -7457,6 +7566,19 @@ require("logic/ask")()
 require("logic/clipboard")(with_dirs)
 -- the charger, read from the kernel instead of pleamar's 20 s battery poll: see logic/charger.luau
 require("logic/charger")()
+-- Demo mode: ~/.config/vitreus/demo exists -> a made-up battery (69 %, on battery) and the user shown as "user" (globals: this chunk is at Luau's limit of locals)
+demo_on = false
+run("printenv", { "HOME" }, function(out, code)
+    local h = (out or ""):gsub("%s+$", "")
+    if code ~= 0 or h == "" then return end
+    run("stat", { h .. "/.config/vitreus/demo" }, function(_, c)
+        if c ~= 0 then return end
+        demo_on = true
+        fact.demo = true
+        text.sm_user = "user"; text.sm_name = "user"
+        text.bat_state = "On battery · 5 h 12 min left"
+    end)
+end)
 
 -- The panel sound (Settings > Theme): Synoptik's own click, once each time a panel opens. The OSDs (volume, notifications) are not panels.
 do

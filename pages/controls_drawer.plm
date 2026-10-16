@@ -932,7 +932,7 @@ part ControlsDrawer {
             column bat_list {
                 at: floor(pcx - 138 * cu + 0.5), floor(px_top + 154 * cu + 0.5)
                 gap: 6 * cu
-                BatCard("This computer", pwr.percent / 100, bat_state, chg_now) { show: pwr.present }
+                BatCard("This computer", bat_pct / 100, bat_state, chg_now) { show: bat_here }
                 for d in bat_devs { BatCard(d.name, d.level, "Connected", false) }
             }
             text "POWER PROFILE" { at: floor(pcx - 138 * cu + 0.5), floor(px_top + (142 + bat_h) * cu + 0.5); anchor: left center; size: 11; weight: 700; color: faint; family: "Space Grotesk" }

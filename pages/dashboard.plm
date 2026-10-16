@@ -166,9 +166,9 @@ part Dashboard {
                 text dsh_m2 { at: dA.l + 22 + dsh_hw.width + 56, dAt.cy + 3; anchor: left center; size: 70; weight: 300; family: "Space Grotesk"; color: ink }
                 box { at: dA.l + 22 + dsh_hw.width + 6, dAt.cy; size: 3, 70; corner: 1.5; color: mint; opacity: 0.35 }
                 text now.date { at: dA.l + 32, dA.t + dA.h - 40; anchor: left center; size: 18; family: "Space Grotesk"; color: faint; measure: dsh_date }
-                text pick(clamp(floor(pwr.percent / 25), 0, 4), "󰁺", "󰁼", "󰁾", "󰂀", "󰁹") { at: dA.l + 32 + dsh_date.width + 22, dA.t + dA.h - 40; anchor: left center; size: 17; family: "SpaceMono Nerd Font Propo"; color: faint; show: pwr.present and not pwr.charging }
-                text "󰂄" { at: dA.l + 32 + dsh_date.width + 22, dA.t + dA.h - 40; anchor: left center; size: 17; family: "SpaceMono Nerd Font Propo"; color: mint; show: pwr.present and pwr.charging }
-                text number(pwr.percent, 0, "%") { at: dA.l + 32 + dsh_date.width + 44, dA.t + dA.h - 40; anchor: left center; size: 16; family: "Space Grotesk"; color: faint; show: pwr.present }
+                text pick(clamp(floor(bat_pct / 25), 0, 4), "󰁺", "󰁼", "󰁾", "󰂀", "󰁹") { at: dA.l + 32 + dsh_date.width + 22, dA.t + dA.h - 40; anchor: left center; size: 17; family: "SpaceMono Nerd Font Propo"; color: faint; show: bat_here and not bat_chg }
+                text "󰂄" { at: dA.l + 32 + dsh_date.width + 22, dA.t + dA.h - 40; anchor: left center; size: 17; family: "SpaceMono Nerd Font Propo"; color: mint; show: bat_here and bat_chg }
+                text number(bat_pct, 0, "%") { at: dA.l + 32 + dsh_date.width + 44, dA.t + dA.h - 40; anchor: left center; size: 16; family: "Space Grotesk"; color: faint; show: bat_here }
                 //  The seconds: sixty ticks along the foot, lit as far as the minute has got, the latest one taller.
                 repeat s in 0..60 {
                     box { at: dA.l + 28 + s * (dA.w - 56) / 59, dA.t + dA.h - 16; size: 2, if(s == tick.second, 11, 5); corner: 1; color: mint; opacity: if(s <= tick.second, if(s == tick.second, 1, 0.5), 0.12) }
@@ -738,9 +738,9 @@ part Dashboard {
             //  ── Power: the state (the charge and a bar if there is a battery; "Plugged in" if not) and a power button that slides it away to show the
             //  session options, each held for a second. ──
             DshTile(dB.l, dB.t, dB.w, dB.h, dsh_c7) {
-                let dBb.on = pwr.present                              // the real battery
-                let dBb.pct = pwr.percent
-                let dBb.chg = pwr.charging
+                let dBb.on = bat_here                              // the real battery
+                let dBb.pct = bat_pct
+                let dBb.chg = bat_chg
                 let dBp.x = dB.l + dB.w - 38
                 let dBp.y = dB.t + dB.h / 2
                 group {

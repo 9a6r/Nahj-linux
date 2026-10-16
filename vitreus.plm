@@ -79,6 +79,10 @@ scene Vitreus {
     service media { playing: bool; title: text; artist: text; player: text; length: number }
     service brightness { present: bool; level: number }
     service battery as pwr { present: bool; percent: number; charging: bool }     // the bar is its gauge (see `batt_*`)
+    fact demo = false               // Demo mode (touch ~/.config/vitreus/demo): a made-up battery at 69 % and the user named "user", for showing the shell off
+    let bat_here = pwr.present or demo
+    let bat_pct = if(demo, 69, pwr.percent)
+    let bat_chg = if(demo, false, pwr.charging)
     service network as net { online: bool; wifi: bool; name: text; strength: number }     // the list itself is built by the logic
     service bluetooth as bt { present: bool; powered: bool }        // the list itself is built by the logic
 
@@ -1152,14 +1156,14 @@ scene Vitreus {
     //  scene for that second and lets it sleep for the other four. A battery that says "charging" at 98 % or more is
     //  full and only being held there, so it does not glint.
     prop charge_sweep = 1 ~calm
-    every 5s while chg_now and pwr.percent < 98 { charge_sweep: 0 ~0ms; charge_sweep: 1 ~600ms after 40ms }
-    on change chg_now while chg_now and pwr.percent < 98 { charge_sweep: 0 ~0ms; charge_sweep: 1 ~600ms after 40ms }
+    every 5s while chg_now and bat_pct < 98 { charge_sweep: 0 ~0ms; charge_sweep: 1 ~600ms after 40ms }
+    on change chg_now while chg_now and bat_pct < 98 { charge_sweep: 0 ~0ms; charge_sweep: 1 ~600ms after 40ms }
     repeat i in 1..6 { prop wsh.$i = 0 ~quick }         // each workspace dot's hover, brought out of its `repeat`
     prop ovp = 0 ~pop                                   // the overview button's hover, on the same spring: how much it swells
     repeat i in 1..6 { prop wsp.$i = 0 ~pop }           // the same, on a spring that pops a little past: how much a hovered mark swells
-    follow batt_fill = clamp(pwr.percent / 100, 0, 1)
-    follow batt_on = if(pwr.present, 1, 0)
-    follow batt_low = if(pwr.percent < 20 and not chg_now, 1, 0)
+    follow batt_fill = clamp(bat_pct / 100, 0, 1)
+    follow batt_on = if(bat_here, 1, 0)
+    follow batt_low = if(bat_pct < 20 and not chg_now, 1, 0)
     prop rcn = 0 ~calm                // the recording dot's slot on the bar, 1 while a recording runs
     prop trn = 0 ~calm                // how many tray icons the bar holds, smoothly: the bar widens with it
     prop disp_auto_pill = 0 ~pop
@@ -3059,7 +3063,7 @@ scene Vitreus {
     let sub_min = vol_bot - tiles_top - 70
     //  The Capture and the Power windows are only as tall as they are (no minimum); the rest keep `sub_min`.
     //  The Power window lists the battery levels (this computer, then each connected device that says) between the session tiles and the profile.
-    let bat_rows = (if(pwr.present, 1, 0)) + bat_n
+    let bat_rows = (if(bat_here, 1, 0)) + bat_n
     let bat_h = if(bat_rows > 0, 20 + 56 * bat_rows, 0)
     let sub_content = if(showing_sub == capview, if(rec_on, 142, 186), if(showing_sub == powview, 151 + bat_h, max(sub_min, if(showing_sub == cafview, 38, if(showing_sub == notifview, 60, if(showing_sub == btview, 40, 0)) + list_view_h))))
     let sub_bot = tiles_top + 54 + sub_content + 16

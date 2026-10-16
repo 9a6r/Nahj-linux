@@ -11,7 +11,7 @@ import "../palette.plm"
 //  It starts with the desktop (a line in ~/.config/pleamar/autostart, which install.sh adds), or by hand:   pleamar --scene .../desktopmenu/desktopmenu.plm --no-hud
 
 scene DesktopMenu {
-    surface { size: full, full; anchor: top_left; margin: 0; level: top; screens: all; reserve: -1; keyboard: on_demand }
+    surface { size: full, full; anchor: top_left; margin: 0; level: top; screens: each max 4; reserve: -1; keyboard: on_demand }
 
     permissions { run: "pleamar", "pgrep" }
 
@@ -19,6 +19,7 @@ scene DesktopMenu {
     fact mx = 0                // where it was asked for
     fact my = 0
     fact mmon = 0              // which monitor it was asked for on
+    fact hov = -1              // the row under the pointer (a row's `.hover` cannot be read in a scene with a copy per monitor, so its rules say it)
     fact cam_on = false        // the state of what the switches show (the logic asks when the menu opens)
     fact clock_on = false
     fact sys_on = false
@@ -62,10 +63,12 @@ scene DesktopMenu {
         let ry = cy0 + 8 + i * rh + rh / 2
         zone box mrow.$i { at: cx0 + cw / 2, ry; size: cw - 12, rh - 4; corner: 14; cursor: pointer; active: open and mo > 0.6 }
         on press mrow.$i { emit menu_do(i); open = false }
+        on hover mrow.$i for 1ms { hov = i }
+        on leave mrow.$i { hov = -1 }
     }
 
     group {
-        show: mo > 0.01
+        show: mo > 0.01 and screen.index == mmon      // (one copy of this scene per monitor, all sharing `open`: only the monitor it was asked on draws the card)
         pivot: cx0, cy0
         scale: 0.92 + 0.08 * mo
         opacity: clamp(mo * 1.6, 0, 1)
@@ -90,7 +93,9 @@ scene DesktopMenu {
         }
         repeat i in 0..6 {
             let ry = cy0 + 8 + i * rh + rh / 2
-            let hv = mrow.$i.hover
+            prop rh_.$i = 0 ~calm
+            follow rh_.$i = if(hov == i, 1, 0)
+            let hv = rh_.$i
             let on = pick(i, 0, s0, s2, s3, s4, 0)
             box { at: cx0 + cw / 2, ry; size: cw - 12, rh - 4; corner: 14; color: ink; opacity: 9% * hv }
             text pick(i, "Edit", "Webcam", "Desktop clock", "System monitor", "Audio visualiser", "New sticky note") { at: cx0 + 20, ry; anchor: left center; size: 15; weight: 600; color: ink; family: "Space Grotesk" }

@@ -10021,7 +10021,7 @@ scene Session {
         // Free, it has our title bar if the program lets us draw its frame;
         // one that draws its own (a GTK 4 header bar, a browser's tabs) is
         // carried and stretched from its own (`handle:`, on the zones below).
-        let ours = (F > 0.5 or tbt > 0.5) and win.$i.framed
+        let ours = tbt > 0.5 and win.$i.framed
         // Never lost: no bigger than its monitor, and always with a good
         // piece of it —and all of its title bar— inside, to take it by.
         // (Free, the shore at the bottom is kept clear.)
@@ -10312,7 +10312,7 @@ scene Session {
             // above it, which takes nothing from the program.
             // With Super held, all of it.
             let whole = keys.super > 0.5 or dragging == i
-            zone box title.$i { from: x.$i + if(whole or F > 0.5 or ours, 0, 12), y.$i - if(whole or F > 0.5 or ours, 0, gap - 1); size: if(whole, w, if(F > 0.5 or ours, w - 76, w - 24)), if(whole, h, if(F > 0.5 or ours, tb, gap - 2)); cursor: pointer; active: here and not overview and not win.$i.dialog and (ours or F < 0.5 or whole or win.$i.held > 0.5); label: "{win.$i.title}"; role: button; handle: i }
+            zone box title.$i { from: x.$i + if(whole or (F > 0.5 and not win.$i.framed) or ours, 0, 12), y.$i - if(whole or (F > 0.5 and not win.$i.framed) or ours, 0, gap - 1); size: if(whole, w, if((F > 0.5 and not win.$i.framed) or ours, w - 76, w - 24)), if(whole, h, if((F > 0.5 and not win.$i.framed) or ours, tb, gap - 2)); cursor: pointer; active: here and not overview and not win.$i.dialog and (ours or F < 0.5 or whole or win.$i.held > 0.5); label: "{win.$i.title}"; role: button; handle: i }
             zone ellipse lead_zone.$i { at: x + w - 40, y + tb / 2; radius: 10; cursor: pointer; active: here and not overview and not win.$i.dialog and ours; label: "Enlarge {win.$i.title}" }
             zone ellipse mini_zone.$i { at: x + w - 60, y + tb / 2; radius: 10; cursor: pointer; active: here and not overview and not win.$i.dialog and Fm > 0.5 and ours; label: "Minimize {win.$i.title}" }
             zone ellipse close_zone.$i { at: x + w - 20, y + tb / 2; radius: 10; cursor: pointer; active: here and not overview and not win.$i.dialog and ours; label: "Close {win.$i.title}" }
