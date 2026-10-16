@@ -365,6 +365,9 @@ local function fetch_art(player)
 end
 
 local song = ""
+-- A live video's own clock: a browser reports a stream's position inside the segment it has at hand, and that went back to zero every 15 seconds. So for a
+-- stream with no end the time shown is counted here, from when the song came up, a second at a time while it plays. (A global: this chunk is at Luau's limit of locals.)
+mpl = { sec = 0 }
 
 sys.watch("media", function(m)
     -- playerctld stays on the bus as a phantom player even with nothing open:
@@ -382,6 +385,7 @@ sys.watch("media", function(m)
     if now ~= song then
         local first = song == ""
         song = now
+        mpl.sec = 0
         fetch_art(m.player)
         -- players often publish the cover a moment after the title
         after(900, function() fetch_art(m.player) end)
@@ -405,6 +409,7 @@ local function mp_clock(sec)
     return string.format("%d:%02d", m, s2)
 end
 local function mp_show(pos)
+    if (fact.mp_len or 0) <= 0 then pos = mpl.sec end       -- a stream with no end: our own count (see `mpl`)
     fact.mp_pos = pos
     text.mp_el = mp_clock(pos)
 end
@@ -420,7 +425,10 @@ local function mp_read()
     end)
 end
 every(1000, function()
-    if (fact.panel == "player" or fact.mf_out or fact.dash_open == true) and fact.media_on and not fact.mp_drag then mp_read() end
+    if (fact.mp_len or 0) <= 0 and fact.media_on and cava_playing then mpl.sec = mpl.sec + 1 end
+    if (fact.panel == "player" or fact.mf_out or fact.dash_open == true) and fact.media_on and not fact.mp_drag then
+        if (fact.mp_len or 0) <= 0 then mp_show(0) else mp_read() end
+    end
 end)
 on("fact:panel", function(v) if v == "player" then mp_read() end end)
 on("fact:mf_out", function(v)

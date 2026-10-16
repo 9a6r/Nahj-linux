@@ -3140,11 +3140,6 @@ scene Vitreus {
     //  every click in the sidebar. A page taller than this scrolls inside it (they have their scroll thumb and "More" cue); a shorter one has
     //  empty glass at its foot. It never goes below the sidebar's last row.
     let set.h = max(side.ab + 40, 456)
-    //  A held Power button counts its second on this clock, and a recording pulses on it, so they need it too. So does the dashboard's wavy progress bar while a song is playing in it.
-    //  The Cyber's terminal readouts (bar_glass.plm) flicker and blink on this clock, so it runs while one of them can be seen: only while a drawer is out (`cy_on`).
-    let cy_on = clamp(max(max(dk0, dc0), max(max(ds0, dl0), max(dm0, max(dz0, do0)))) * 50, 0, 1) * cy_k
-    let need_clock = (cy_on > 0.01) or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01
-    spin time by if(need_clock, 1, 0)
     let ss.w = (120 + 500 * (min(1, ds0 * 1.6) + max(0, ds0 - 1) * 0.6)) * pu
     let ss.hh = bar.h / 2 + (8 + 36 + 8 + set.h + 16) * pu * ds0 + max(0, sag)
     //  The launcher: a drop that widens to the bar's width as it lands, like the calendar. The search field (40), the
@@ -3727,6 +3722,12 @@ scene Vitreus {
     let mf.fcy = (mf.ft + mf.fb) / 2
     let mf.fh = max(0.1, mf.fb - mf.ft)
     let mf.vis = media_open * mix(if(dm_mode == dmm_player, f3, 0), 1, clamp(mfl, 0, 1))
+    //  A held Power button counts its second on this clock, and a recording pulses on it, so they need it too. So does the dashboard's wavy progress bar while a song is playing in it.
+    //  The Cyber's terminal readouts (bar_glass.plm) flicker and blink on this clock, so it runs while one of them can be seen: only while a drawer is out (`cy_on`).
+    let cy_on = clamp(max(max(dk0, dc0), max(max(ds0, dl0), max(dm0, max(dz0, do0)))) * 50, 0, 1) * cy_k
+    //  The player's card (docked in its panel or floating) has the same wavy progress line, so it runs the clock while a song plays in it.
+    let need_clock = (cy_on > 0.01) or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
+    spin time by if(need_clock, 1, 0)
     include "pages/bar_glass.plm"
     //  Along the top the volume's and the notification's glass is its own, outside the group above: that group is bent by the bar's wave, which the music drives,
     //  and these panels are not part of the bar. (In the left layout the shape stays in the main glass, where it joins the right frame.)
