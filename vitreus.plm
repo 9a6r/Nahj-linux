@@ -1376,6 +1376,13 @@ scene Vitreus {
     event cv_pos_set ->
     event cv_siz_set ->
     event cv_cm_set ->
+    //  Which monitor draws it: `cv_mon` is 0 for all, or 1 and up for a monitor's slot (as the lock screen's).
+    fact cv_mon = 0
+    repeat i in 0..4 {
+        fact cv_m.$i.on = false
+        text cv_m.$i.name = ""
+    }
+    event cv_mon_set ->
     fact ck_scroll_to = 0              // the page scrolls like Lock screen's
     prop ck_scroll = 0 ~quick
     follow ck_scroll = ck_scroll_to
@@ -3130,7 +3137,7 @@ scene Vitreus {
     let vpn.ab = vpn.pb + vpn.pbh + 12
     let vpn.fh = if(vpn_mode == vpm_wg, 180, if(vpn_mode == vpm_ovpn, 144, 276))
     let wm.h = 912                     // the Pleamar-WM page: to the bottom of its last card
-    let ck.h = 922                     // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
+    let ck.h = 956                     // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
     let gl.h = 554                     // the Glass page: to the bottom of its last card
     let lk.h = 806                     // the Lock screen page: its cards, to the bottom of the last
     //  The Notifications page: the apps card has a row for each app (up to 14), and the rules card is there while one is open.

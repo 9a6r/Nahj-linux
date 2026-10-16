@@ -67,7 +67,7 @@ return function(set_panel)
         after_closed(function()
             local a = fact.rec_sys and ' -a"$(pactl get-default-sink).monitor"'   -- the system sound: the monitor of the default output
                 or (fact.rec_mic and " -a" or "")                          -- -a: the default input (the microphone) goes into the file too
-            local pick = (mode == 0) and ('g=$(slurp) || exit 0; wf-recorder' .. a .. ' -g "$g" -f "$f"') or ('wf-recorder' .. a .. ' -o "$(hyprctl monitors -j | jq -r ".[] | select(.focused) | .name")" -f "$f"')
+            local pick = (mode == 0) and ('g=$(slurp) || exit 0; wf-recorder' .. a .. ' -g "$g" -f "$f"') or ('wf-recorder' .. a .. ' -o "$(hyprctl monitors | awk "/^Monitor /{n=\\$2} /focused: yes/{print n; exit}")" -f "$f"')
             spawn(sh('d="$HOME/Videos"; mkdir -p "$d"; f="$d/recording_$(date +%F_%H-%M-%S).mp4"; '
                 .. pick .. '; if [ -s "$f" ]; then notify-send -a Vitreus "Recording saved" "$f"; else notify-send -a Vitreus "Recording failed" "Nothing was saved"; fi'))
             after(1500, rec_poll)

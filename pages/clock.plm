@@ -239,8 +239,8 @@ part Clock {
 
             //  The desktop audio visualiser (desktopcava/): its switch, its look, its style, where it sits and how big. Like the system monitor, its scene keeps the settings (desktopcava.json);
             //  the logic asks it for them when the page opens and tells it each change.
-            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 810 * pu; size: 438 * pu, 196 * pu; corner: 14 * pu } }
-            box { at: spx + 219 * pu, sby + 810 * pu; size: 438 * pu, 196 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
+            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 827 * pu; size: 438 * pu, 230 * pu; corner: 14 * pu } }
+            box { at: spx + 219 * pu, sby + 827 * pu; size: 438 * pu, 230 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 730 * pu + 0.5); text "Desktop audio visualiser" { at: floor(spx + 14 * pu + 0.5), floor(sby + 730 * pu + 0.5); anchor: left center; size: 17; weight: 700; color: ink; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 750 * pu + 0.5); text "What is playing, drawn by cava on your wallpaper" { at: floor(spx + 14 * pu + 0.5), floor(sby + 750 * pu + 0.5); anchor: left center; size: 12.5; color: faint; show: cv_ok; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 750 * pu + 0.5); text "Not running: turn the switch on to start it" { at: floor(spx + 14 * pu + 0.5), floor(sby + 750 * pu + 0.5); anchor: left center; size: 12.5; color: faint; show: not cv_ok; family: "Space Grotesk" } }
@@ -323,6 +323,18 @@ part Clock {
             group { scale: rs; pivot: floor(spx + 315 * pu + 0.5), floor(sby + 886 * pu + 0.5); text "Large" { at: floor(spx + 315 * pu + 0.5), floor(sby + 886 * pu + 0.5); anchor: center; align: center; size: 12.5; weight: 700; width: (58 * pu) / rs; lines: 1; color: mix(ink, mint, if(cv_siz == 2, 1, 0)); family: "Space Grotesk" } }
             zone box cv_z2 { at: spx + 315 * pu, sby + 886 * pu; size: 62 * pu, 24 * pu; corner: 8 * pu; cursor: pointer; active: (sby + 886 * pu) - ck.off > sby and (sby + 886 * pu) - ck.off < sby + set.h * pu; label: "Size: Large" }
             on press cv_z2 { emit cv_siz_set(2) }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 920 * pu + 0.5); text "Show on" { at: floor(spx + 14 * pu + 0.5), floor(sby + 920 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; family: "Space Grotesk" } }
+            box { at: spx + 156 * pu, sby + 920 * pu; size: 50 * pu, 24 * pu; corner: 8 * pu; color: mix(ink, mint, if(cv_mon == 0, 1, 0)); opacity: 8% + 20% * if(cv_mon == 0, 1, 0) + 6% * cv_mn_all.hover }
+            group { scale: rs; pivot: floor(spx + 156 * pu + 0.5), floor(sby + 920 * pu + 0.5); text "All" { at: floor(spx + 156 * pu + 0.5), floor(sby + 920 * pu + 0.5); anchor: center; align: center; size: 12.5; weight: 700; width: (46 * pu) / rs; lines: 1; color: mix(ink, mint, if(cv_mon == 0, 1, 0)); family: "Space Grotesk" } }
+            zone box cv_mn_all { at: spx + 156 * pu, sby + 920 * pu; size: 50 * pu, 24 * pu; corner: 8 * pu; cursor: pointer; active: (sby + 920 * pu) - ck.off > sby and (sby + 920 * pu) - ck.off < sby + set.h * pu; label: "Show on: all monitors" }
+            on press cv_mn_all { emit cv_mon_set(0) }
+            repeat k in 0..4 {
+                let cvx = spx + (210 + k * 54) * pu
+                box { at: cvx, sby + 920 * pu; size: 50 * pu, 24 * pu; corner: 8 * pu; color: mix(ink, mint, if(cv_mon == k + 1, 1, 0)); opacity: if(cv_m.$k.on, 8% + 20% * if(cv_mon == k + 1, 1, 0) + 6% * cv_mn.$k.hover, 0%) }
+                group { scale: rs; pivot: floor(cvx + 0.5), floor(sby + 920 * pu + 0.5); text cv_m.$k.name { at: floor(cvx + 0.5), floor(sby + 920 * pu + 0.5); anchor: center; align: center; size: 12.5; weight: 700; width: (46 * pu) / rs; lines: 1; color: mix(ink, mint, if(cv_mon == k + 1, 1, 0)); show: cv_m.$k.on; family: "Space Grotesk" } }
+                zone box cv_mn.$k { at: cvx, sby + 920 * pu; size: 50 * pu, 24 * pu; corner: 8 * pu; cursor: pointer; active: (cv_m.$k.on) and (sby + 920 * pu) - ck.off > sby and (sby + 920 * pu) - ck.off < sby + set.h * pu }
+                on press cv_mn.$k { emit cv_mon_set(k + 1) }
+            }
 
             }
 

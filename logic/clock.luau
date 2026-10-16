@@ -27,15 +27,47 @@ return function()
     end
     -- And the desktop audio visualiser (desktopcava/).
     local function say_cv(cmd, fn) run("pleamar", { "--say", "desktopcava", cmd }, fn or function() end) end
+    -- Which monitor draws it: the chips are the monitors plugged in now (the order hyprctl lists them in); a name that is not plugged in shows as "All",
+    -- which is what the visualiser does then too.
+    local cv_names, cv_pref = {}, "all"
+    local function show_cv_mons()
+        local at = 0
+        for i = 0, 3 do
+            local n = cv_names[i + 1]
+            fact["cv_m." .. i .. ".on"] = n ~= nil
+            text["cv_m." .. i .. ".name"] = n or ""
+            if n and n == cv_pref then at = i + 1 end
+        end
+        fact.cv_mon = at
+    end
+    local function read_cv_mons()
+        run("hyprctl", { "monitors", "-j" }, function(out, code)
+            if code ~= 0 or not out then return end
+            local names = {}
+            local ok, list = pcall(json.decode, out)
+            if ok and type(list) == "table" then
+                table.sort(list, function(a, b) return (a.id or 0) < (b.id or 0) end)
+                for _, m in ipairs(list) do names[#names + 1] = m.name end
+            else
+                -- pleamar-wm's `hyprctl monitors` is text: "Monitor DP-2 (ID 1):"
+                for name in out:gmatch("Monitor (%S+) %(ID %d+%):") do names[#names + 1] = name end
+            end
+            cv_names = names
+            show_cv_mons()
+        end)
+    end
     local function refresh_cv()
-        say_many("desktopcava", { "get shown", "get sty", "get pos", "get siz", "get cm" }, function(r)
+        read_cv_mons()
+        say_many("desktopcava", { "get shown", "get sty", "get pos", "get siz", "get cm", "get mon_pick" }, function(r)
             if not r then fact.cv_ok = false return end
             fact.cv_ok = true
             fact.cv_on = trim(r[1]):match("true") ~= nil
             local function num(i, key) local n = tonumber(trim(r[i])); if n then fact[key] = n end end
             num(2, "cv_sty"); num(3, "cv_pos"); num(4, "cv_siz"); num(5, "cv_cm")
+            cv_pref = trim(r[6]):match("^[%w%._%-]+$") and trim(r[6]) or "all"; show_cv_mons()
         end)
     end
+    read_cv_mons()
     on("fact:set_page", function(v) if v == "pg_clock" then refresh(); refresh_sy(); refresh_cv() end end)
 
     on("ck_toggle", function()
@@ -182,4 +214,10 @@ return function()
     setter("cv_pos_set", "cv_pos", "pos", 4)
     setter("cv_siz_set", "cv_siz", "siz", 2)
     setter("cv_cm_set", "cv_cm", "cm", 3)
+    on("cv_mon_set", function(i)
+        local k = math.floor(i + 0.5)
+        cv_pref = (k >= 1 and cv_names[k]) or "all"
+        show_cv_mons()
+        say_cv("text mon_pick " .. cv_pref)
+    end)
 end
