@@ -66,13 +66,13 @@ scene Vitreus {
     let wcol.alert = rgb(wcol_alert_r, wcol_alert_g, wcol_alert_b)
     surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 68 while bar_anchor == top; screens: "DP-2"; keyboard: exclusive while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or dash_open }
     permissions { services: "files", "files.write", "auth", "clock", "clock.seconds", "thumbnails", "thumbnails.*", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
-                  run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "claude", "ollama", "codex", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "udevadm" }
+                  run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "claude", "ollama", "codex", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "date", "udevadm" }
 
     model wifi_nets max 16 { ssid: text; strength: number; secure: bool; known: bool; active: bool; band: number; bands: text; bandw: number; chan: number; rate: number; sec: text; busy: number }
     model bat_devs max 6 { name: text; level: number }
     model bt_devices max 28 { name: text; address: text; paired: bool; connected: bool; battery: number; busy: number; hd: number; kind: number }
 
-    service clock as now { time: text = "--:--"; date: text }
+    service clock as now { time: text = "--:--"; date: text; hour: number }
     service clock.seconds as tick { second: number }       // the dashboard clock's ticks: it only runs while the scene reads it
     service audio { volume: number; muted: bool; input_muted: bool }
     service window as win { title: text; class: text }
@@ -94,6 +94,7 @@ scene Vitreus {
     text dsh_hh = ""                  // the dashboard's clock: the hour, and the minute's tens and ones
     text dsh_m1 = ""
     text dsh_m2 = ""
+    text dsh_ap = ""                  // AM / PM beside it, when the system clock is a 12-hour one
     measure dsh_hw
     text clock_hm = "--:--"
     text clock_ap = ""
@@ -1602,6 +1603,7 @@ scene Vitreus {
     prop dsh_under = 1 ~780ms         // how much water is still over the cards: wavering, murky, soft (1 just under, 0 out)
     prop dsh_rq = 0 ~1000ms            // the ripples round the cards' rims, as they break the surface and as they sink: how far they have run…
     prop dsh_rh = 0 ~1ms               // …and how strong they started
+    prop dsh_poke = 0 ~1700ms          // the sleeping speaker and cat, woken by a press (1), settling back (0)
     prop dsh_c0 = 0 ~420ms             // each tile firming up
     prop dsh_c1 = 0 ~420ms
     prop dsh_c2 = 0 ~420ms

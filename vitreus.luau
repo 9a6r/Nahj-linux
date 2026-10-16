@@ -150,7 +150,31 @@ local days = { [0] = "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Fr
 local months = { "January", "February", "March", "April", "May", "June", "July",
                  "August", "September", "October", "November", "December" }
 
+-- The dashboard's clock follows the system's own way of writing the time: 24-hour when the locale has no am/pm (`date +%p` is
+-- empty), 12-hour with an AM/PM mark when it has. Read at the start and now and then (a changed locale or setting).
+local clk24, clk_last = false, nil
+local function dash_time(c)
+    local h12 = c.hour % 12
+    if h12 == 0 then h12 = 12 end
+    text.dsh_hh = clk24 and string.format("%02d", c.hour) or tostring(h12)
+    text.dsh_ap = clk24 and "" or (c.hour < 12 and "AM" or "PM")
+    text.dsh_m1 = string.format("%d", math.floor(c.minute / 10))
+    text.dsh_m2 = string.format("%d", c.minute % 10)
+end
+local function clk_detect()
+    run("date", { "+%p" }, function(out)
+        local v = tostring(out or ""):match("%S") == nil
+        if v ~= clk24 then
+            clk24 = v
+            if clk_last then dash_time(clk_last) end
+        end
+    end)
+end
+clk_detect()
+every(600000, clk_detect)
+
 sys.watch("clock", function(c)
+    clk_last = c
     local h = c.hour % 12
     if h == 0 then h = 12 end
     text.clock12 = string.format("%d:%02d %s", h, c.minute, c.hour < 12 and "am" or "pm")
@@ -162,10 +186,8 @@ sys.watch("clock", function(c)
     text.bar_ap1 = c.hour < 12 and "a" or "p"
     text.bar_date = days[c.weekday]:sub(1, 3):upper()      -- just the day: MON
     text.datelong = string.format("%s, %s %d, %d", days[c.weekday], months[c.month], c.day, c.year)
-    -- The dashboard's clock: the 24-hour hour, and the minute's two digits apart (they are set staggered).
-    text.dsh_hh = string.format("%02d", c.hour)
-    text.dsh_m1 = string.format("%d", math.floor(c.minute / 10))
-    text.dsh_m2 = string.format("%d", c.minute % 10)
+    -- The dashboard's clock: the hour in the system's format, and the minute's two digits apart (they are set staggered).
+    dash_time(c)
     -- The clock card's pieces.
     text.clock_hm = string.format("%d:%02d", h, c.minute)
     text.clock_ap = c.hour < 12 and "AM" or "PM"
