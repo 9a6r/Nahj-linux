@@ -325,6 +325,7 @@ scene Vitreus {
     event hy_toggle ->
     event hy_refresh ->
     event wm_layout_set ->
+    event wm_wst_set ->
     event wm_share_set ->
     event wm_gap_set ->
     event wm_toggle ->
@@ -1246,6 +1247,8 @@ scene Vitreus {
     fact wm_wa = 100
     fact wm_wi = 100
     fact wm_fr = 80
+    fact wm_wst = 0                  // the window style: 0 Vitreus glass, 1 Water, 2 Borderless, 3 Glow
+    fact wm_tbt = true               // title bars on tiled windows
     text wm_fr_text = "80%"
     text wm_wa_text = "100%"
     text wm_wi_text = "100%"
@@ -1273,6 +1276,8 @@ scene Vitreus {
     follow wm_k3 = if(wm_nat, 1, 0)
     prop wm_k4 = 0 ~pop
     follow wm_k4 = if(wm_tap, 1, 0)
+    prop wm_k5 = 0 ~pop
+    follow wm_k5 = if(wm_tbt, 1, 0)
     //  The About page (Settings > System): what this shell is built from, and how to update it.
     text about_commit = "…"
     text about_date = ""
@@ -3120,7 +3125,7 @@ scene Vitreus {
     let vpn.pbh = 34 + max(1, vpn_count) * 32 + 6
     let vpn.ab = vpn.pb + vpn.pbh + 12
     let vpn.fh = if(vpn_mode == vpm_wg, 180, if(vpn_mode == vpm_ovpn, 144, 276))
-    let wm.h = 782                     // the Pleamar-WM page: to the bottom of its last card
+    let wm.h = 912                     // the Pleamar-WM page: to the bottom of its last card
     let ck.h = 922                     // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
     let gl.h = 554                     // the Glass page: to the bottom of its last card
     let lk.h = 806                     // the Lock screen page: its cards, to the bottom of the last

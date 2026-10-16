@@ -7,7 +7,7 @@ is one that can be chosen at a login screen (SDDM, GDM). What is here is what ma
 |---|---|---|
 | `keys.conf` | `~/.config/pleamar/keys.conf` | pleamar-wm's own keys (`defaults`), with the ones that were Marea's pointed at Vitreus: `Super+Space` launcher, `Super+Shift+Space` Settings, `Super+L` lock, `Super+B` wallpaper picker, `Print` and `Super+C` capture, volume, brightness and media keys |
 | `hypridle.conf` | `~/.config/hypr/hypridle.conf` | lock after five minutes and before sleep (screen off after seven on Hyprland; on pleamar-wm that is `idle off-after 420` in `session.conf`) |
-| `wm/` | `~/.config/pleamar/wm` | the window manager's scene: pleamar-wm's own `session.plm` with slim title bars of frosted glass and a small glass pill of line icons (BSD 3-Clause, from pleamar-wm: `wm/LICENSE-pleamar-wm`) |
+| `wm/` | `~/.config/pleamar/wm` | the window manager's scene: pleamar-wm's own `session.plm` plus Vitreus's window styles (frosted glass title bars with a pill of line icons, Water, Borderless, Glow), borders, corners, shadows, the glass frame's room and the desktop menu's right-click. **It is generated, not edited**: `build-session.py` takes the scene of the installed pleamar-wm and applies the changes, and stops at the patch that no longer fits when pleamar-wm changes those lines (BSD 3-Clause, from pleamar-wm: `wm/LICENSE-pleamar-wm`) |
 | `install-session.sh` | run with `sudo` | puts «pleamar-wm» in the login screen (SDDM, GDM); `--remove` takes it away |
 | `hyprctl` | `~/.local/bin/hyprctl` | `hyprctl` for a desktop that is not Hyprland: the real one on Hyprland, and pleamar-wm's `hyprctl monitors` and `activewindow` elsewhere |
 
@@ -24,3 +24,5 @@ there when it is not interactive, so set the PATH in `~/.bash_profile`, before i
 **What is Hyprland's and does not work on pleamar-wm yet:** the Hyprland and Display settings pages, the workspace overview's window list
 (pleamar-wm has its own overview on `Super+Tab`), moving and focusing windows from the bar's title, and Night mode (hyprsunset, which is Hyprland's).
 Programs are started directly there, since `hyprctl dispatch exec_cmd` is Hyprland's.
+
+**Updating pleamar-wm:** run `./build-session.py` in this folder after it (all its layouts, such as scrolling, come with it); `wm/session.plm.pre-rebase` is the scene from before the rebase of 2026-10-16.

@@ -99,6 +99,7 @@ end
 -- Under pleamar-wm there is no `workspaces` service (it comes from Hyprland); the window manager is a scene, so its workspaces are asked of
 -- it over its socket: which one is shown, and which one each window is on.
 function wm_get(name, done) run("pleamar", { "--say", "wm", "get " .. name }, function(out) done(tonumber((out or ""):match("%-?[%d.]+")) or ((out or ""):match("true") and 1) or ((out or ""):match("false") and 0) or nil) end) end
+desk_seen = nil                          -- the last count of right presses on the bare desktop that was looked at
 bar_mon = { name = nil }                 -- the monitor the bar is on ("all" for every one), set by logic/bar_monitors.luau
 function wm_workspaces()
     -- One connection for every question (`say_many`): a `pleamar --say` process for each one, ten times a second, was what made the shell stutter.
@@ -107,6 +108,8 @@ function wm_workspaces()
     local cmds = { "get mon", "get win.shown.0", "get win.shown.1", "get win.shown.2", "get win.shown.3" }
     for i = 0, 5 do cmds[#cmds + 1] = "get win." .. i .. ".open" end
     for i = 0, 5 do cmds[#cmds + 1] = "get win." .. i .. ".workspace" end
+    -- (18 to 21) a right press on the bare desktop, which the window manager's scene counts: the desktop menu opens where it was (see `desk_n` in wm/session.plm)
+    for _, k in ipairs({ "desk_n", "desk_x", "desk_y", "desk_mon" }) do cmds[#cmds + 1] = "get " .. k end
     hypr_monitors(30, function(mons)
         local name = bar_mon.name
         local idx = nil
@@ -129,6 +132,17 @@ function wm_workspaces()
             for k = 1, 5 do
                 local v = busy[k] or false
                 if fact["ws." .. k .. ".busy"] ~= v then fact["ws." .. k .. ".busy"] = v end
+            end
+            local dn = tonumber((r[18] or ""):match("%-?[%d.]+"))
+            if dn then
+                -- (the window manager's facts start from 0 again when its scene is read in again: that is not a press)
+                if desk_seen ~= nil and dn > 0 and dn ~= desk_seen then
+                    local x, y, m = tonumber((r[19] or ""):match("%-?[%d.]+")) or 0, tonumber((r[20] or ""):match("%-?[%d.]+")) or 0, tonumber((r[21] or ""):match("%-?[%d.]+")) or 0
+                    run("pleamar", { "--say", "desktopmenu", "fact mx " .. math.floor(x), "fact my " .. math.floor(y), "fact mmon " .. math.floor(m), "fact open true" }, function(_, code)
+                        if code ~= 0 then exec_on_desktop('vitreus-keep "$HOME/.config/pleamar/shells/vitreus/desktopmenu/desktopmenu.plm"') end
+                    end)
+                end
+                desk_seen = dn
             end
         end)
     end)
@@ -4762,7 +4776,19 @@ end
 -- forgets them when it reloads; they are put back when this shell starts). The input lines (pointer, touchpad, idle) are session.conf's,
 -- which pleamar-wm reads when it starts: they are rewritten here and apply at the next login.
 do
-    local wm = { layout = 0, share = 0.56, gap = 12, free = false, rain = false, snow = false, bw = 1.5, ba = 70, rad = 12, shd = 100, tb = 22, tbo = 72, wa = 100, wi = 100, fr = 80 }
+    local wm = { layout = 0, share = 0.56, gap = 12, free = false, rain = false, snow = false, bw = 1.5, ba = 70, rad = 12, shd = 100, tb = 22, tbo = 72, wa = 100, wi = 100, fr = 80, wst = 0, tbt = true }
+    -- The windows' corners follow the theme here too, as on Hyprland (same per-theme values, kept apart in wm-round.json): the slider edits the current theme's.
+    local WM_ROUND_DEFAULT = { glass = 22, uwu = 22, retro = 3, cyber = 3 }
+    local wm_round_by, wm_theme = {}, "glass"
+    do
+        local ok, saved = pcall(sys.ask, "files.read", "wm-round.json", "json")
+        if ok and type(saved) == "table" then
+            for k, v in pairs(saved) do if type(v) == "number" then wm_round_by[k] = math.floor(math.max(0, math.min(24, v))) end end
+        end
+    end
+    local function wm_theme_key()
+        return iris_cfg.look == iris_fx.CASSETTE and "retro" or iris_cfg.look == iris_fx.UWU and "uwu" or iris_cfg.look == iris_fx.CYBER and "cyber" or "glass"
+    end
     local inp = { ms = 0, ts = 0, nat = false, tap = false, idle = 7, maccel = "adaptive", taccel = "adaptive", dwt = nil }
     local wm_waiting, in_waiting = false, false
 
@@ -4793,6 +4819,8 @@ do
         text.wm_wa_text = string.format("%d%%", wm.wa)
         text.wm_wi_text = string.format("%d%%", wm.wi)
         fact.wm_fr = wm.fr
+        fact.wm_wst = wm.wst
+        fact.wm_tbt = wm.tbt
         text.wm_fr_text = string.format("%d%%", wm.fr)
         text.wm_share_text = string.format("%d%%", math.floor(wm.share * 100 + 0.5))
         text.wm_gap_text = string.format("%d px", wm.gap)
@@ -4854,13 +4882,16 @@ do
         say("fact tbo " .. wm.tbo)
         say("fact wo_a " .. wm.wa)
         say("fact wo_i " .. wm.wi)
-        say("fact fr " .. wm.fr)
+        say("fact wfr " .. wm.fr)
+        say("fact wst " .. wm.wst)
+        say("fact tbt " .. (wm.tbt and 1 or 0))
+        say("fact vit 1")
         say_batch("wm", cmds)
         wm_frame_sync()
     end
 
     local function wm_save()
-        pcall(sys.call, "files.write", "wm.json", { layout = wm.layout, share = wm.share, gap = wm.gap, free = wm.free, rain = wm.rain, snow = wm.snow, bw = wm.bw, ba = wm.ba, rad = wm.rad, shd = wm.shd, tb = wm.tb, tbo = wm.tbo, wa = wm.wa, wi = wm.wi, fr = wm.fr })
+        pcall(sys.call, "files.write", "wm.json", { layout = wm.layout, share = wm.share, gap = wm.gap, free = wm.free, rain = wm.rain, snow = wm.snow, bw = wm.bw, ba = wm.ba, rad = wm.rad, shd = wm.shd, tb = wm.tb, tbo = wm.tbo, wa = wm.wa, wi = wm.wi, fr = wm.fr, wst = wm.wst, tbt = wm.tbt })
     end
 
     local function wm_changed()
@@ -4899,7 +4930,7 @@ do
         -- Pleamar-WM answers only when it is the window manager; on Hyprland each of these would start a command to get nothing back.
         if on_hyprland then return end
         -- One connection for all of them (`say_many`): a `pleamar --say` program for each of these fifteen made the page stall when it opened.
-        local names = { "gap", "ratio", "lay.0", "free.0", "rain", "snow", "bw", "ba", "rad", "shd", "tb", "tbo", "wo_a", "wo_i", "fr" }
+        local names = { "gap", "ratio", "lay.0", "free.0", "rain", "snow", "bw", "ba", "rad", "shd", "tb", "tbo", "wo_a", "wo_i", "wfr", "wst", "tbt" }
         local cmds = {}
         for i, n in ipairs(names) do cmds[i] = "get " .. n end
         say_many("wm", cmds, function(r)
@@ -4925,6 +4956,8 @@ do
             if v[13] then wm.wa = v[13] end
             if v[14] then wm.wi = v[14] end
             if v[15] then wm.fr = v[15] end
+            if v[16] then wm.wst = v[16] end
+            if v[17] then wm.tbt = v[17] == 1 end
             wm_show()
         end)
         conf_path(function(path)
@@ -4959,7 +4992,7 @@ do
         if on_hyprland then return end
         local ok, saved = pcall(sys.ask, "files.read", "wm.json", "json")
         if ok and type(saved) == "table" then
-            wm.layout = math.max(0, math.min(4, tonumber(saved.layout) or 0))
+            wm.layout = math.max(0, math.min(7, tonumber(saved.layout) or 0))
             wm.share = tonumber(saved.share) or wm.share
             wm.gap = tonumber(saved.gap) or wm.gap
             wm.free, wm.rain, wm.snow = saved.free == true, saved.rain == true, saved.snow == true
@@ -4967,6 +5000,10 @@ do
             wm.shd, wm.tb, wm.tbo = tonumber(saved.shd) or wm.shd, tonumber(saved.tb) or wm.tb, tonumber(saved.tbo) or wm.tbo
             wm.wa, wm.wi = tonumber(saved.wa) or wm.wa, tonumber(saved.wi) or wm.wi
             wm.fr = tonumber(saved.fr) or wm.fr
+            wm.wst = math.max(0, math.min(3, math.floor(tonumber(saved.wst) or wm.wst)))
+            if saved.tbt ~= nil then wm.tbt = saved.tbt == true end
+            wm_theme = wm_theme_key()
+            wm.rad = wm_round_by[wm_theme] or WM_ROUND_DEFAULT[wm_theme] or wm.rad
             wm_show()
             wm_send()
         end
@@ -4976,13 +5013,14 @@ do
     -- first value: when the gap is not what was chosen, everything chosen is sent again.
     every(5000, function()
         if on_hyprland then return end
-        wm_get("gap", function(v)
-            if v ~= nil and v ~= wm.gap then wm_send() end
+        wm_get("vit", function(v)
+            if v ~= nil and v ~= 1 then wm_send() end
         end)
         wm_frame_sync()
     end)
 
-    on("wm_layout_set", function(i) wm.layout = math.max(0, math.min(4, math.floor(i + 0.5))); wm_changed() end)
+    on("wm_layout_set", function(i) wm.layout = math.max(0, math.min(7, math.floor(i + 0.5))); wm_changed() end)
+    on("wm_wst_set", function(i) wm.wst = math.max(0, math.min(3, math.floor(i + 0.5))); wm_changed() end)
     on("wm_share_set", function(t) wm.share = math.floor((0.3 + math.max(0, math.min(1, t)) * 0.5) * 100 + 0.5) / 100; wm_changed() end)
     on("wm_gap_set", function(t) wm.gap = math.floor(math.max(0, math.min(1, t)) * 32 + 0.5); wm_changed() end)
     on("wm_toggle", function(k)
@@ -4990,15 +5028,28 @@ do
         if k == 0 then wm.free = not wm.free; wm_changed()
         elseif k == 1 then wm.rain = not wm.rain; wm_changed()
         elseif k == 2 then wm.snow = not wm.snow; wm_changed()
+        elseif k == 5 then wm.tbt = not wm.tbt; wm_changed()
         elseif k == 3 then inp.nat = not inp.nat; in_changed()
         else inp.tap = not inp.tap; in_changed() end
     end)
+    local prev_theme_changed = hy_theme_changed
+    hy_theme_changed = function(key)
+        if prev_theme_changed then prev_theme_changed(key) end
+        if on_hyprland or key == wm_theme then return end
+        wm_theme = key
+        wm.rad = wm_round_by[key] or WM_ROUND_DEFAULT[key] or wm.rad
+        wm_changed()
+    end
+
     on("wm_style_set", function(v)
         local i = math.floor(v / 10)
         local t = math.max(0, math.min(1, v - i * 10))
         if i == 0 then wm.bw = math.floor(t * 12 + 0.5) / 2
         elseif i == 1 then wm.ba = math.floor(20 + t * 80 + 0.5)
-        elseif i == 2 then wm.rad = math.floor(t * 24 + 0.5)
+        elseif i == 2 then
+            wm.rad = math.floor(t * 24 + 0.5)
+            wm_round_by[wm_theme] = wm.rad
+            pcall(sys.call, "files.write", "wm-round.json", wm_round_by)
         elseif i == 3 then wm.shd = math.floor(t * 200 + 0.5)
         elseif i == 4 then wm.tb = math.floor(16 + t * 18 + 0.5)
         elseif i == 5 then wm.tbo = math.floor(40 + t * 60 + 0.5)
