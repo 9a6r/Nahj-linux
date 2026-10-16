@@ -675,7 +675,7 @@ part Dashboard {
                     show: nt_hist.count < 1
                     let dNc.u = 5.5                                   // one pixel of the picture
                     let dNc.gy = dD.t + dD.h / 2 + 34                 // the ground
-                    let dNc.cx = dD.l + dD.w / 2 - dNc.u * 6                 // the cat's head (the face is left of it)
+                    let dNc.cx = dD.l + dD.w / 2 - dNc.u * 8                 // the cat's head: the body, head to tail tip, spans -4 to 20 of its pixels, so -8 puts its middle on the tile's (whiskers left out)
                     let dNc.pet = dsh_pet                                       // 0 to 1: how much it is being petted
                     let dNc.hu = dsh_hup                                        // 0 to 1: the pointer is over its head: it lifts into the hand (the back stays as it is)
                     let dNc.love = max(dNc.pet, dNc.hu)                         // either way it is happy: the eyes and the hearts
