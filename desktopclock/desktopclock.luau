@@ -68,6 +68,17 @@ local function refresh_monitors()
     run("hyprctl", { "monitors", "-j" }, function(out, code)
         if code ~= 0 or not out then return end
         local ok, list = pcall(json.decode, out)
+        if not ok or type(list) ~= "table" then
+            -- pleamar-wm's `hyprctl monitors` is text ("Monitor DP-2 (ID 1):", "2560x1440@164.83 at 1440x730", "scale: 1.00", "focused: yes"), its sizes already turned by the rotation.
+            ok, list = true, {}
+            for name, id, body in (out .. "\n\n"):gmatch("Monitor (%S+) %(ID (%d+)%):\n(.-)\n\n") do
+                local w, h, x, y = body:match("(%d+)x(%d+)@[%d%.]+ at (%-?%d+)x(%-?%d+)")
+                if w then
+                    list[#list + 1] = { id = tonumber(id), name = name, width = tonumber(w), height = tonumber(h), x = tonumber(x), y = tonumber(y),
+                        scale = tonumber(body:match("scale:%s*([%d.]+)")) or 1, transform = 0, focused = body:find("focused: yes", 1, true) ~= nil }
+                end
+            end
+        end
         if not ok or type(list) ~= "table" or #list == 0 then return end
         table.sort(list, function(a, b) return (a.id or 0) < (b.id or 0) end)
         local mons = {}
