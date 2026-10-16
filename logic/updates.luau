@@ -117,7 +117,6 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                     A.shell_behind = n
                     local msg
                     if n == 0 then msg = nil
-                    elseif m > 0 then msg = n .. " new upstream, but you have " .. m .. " commit(s) of your own: update by hand."; A.shell_behind = 0
                     else msg = n == 1 and "1 shell update available." or (n .. " shell updates available.") end
                     -- Then pleamar itself: its source folders, fetched and counted the same way.
                     A.pl_behind = 0
@@ -259,10 +258,14 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                         local bar_changed = bar_mine ~= nil and bar_stock ~= nil and bar_mine ~= bar_stock
                         local lock_changed = lock_mine ~= nil and lock_stock ~= nil and lock_mine ~= lock_stock
                         write_screens(bar_changed and bar_stock or nil, lock_changed and lock_stock or nil, function()
-                            git({ "pull", "--ff-only", "--quiet" }, function(_, code)
+                            -- Update means the folder becomes exactly what main is: whatever was changed or committed here is
+                            -- overwritten, on purpose (only the screens choice is kept, since it is written again after).
+                            git({ "fetch", "--quiet" }, function(_, fcode)
+                            git({ "reset", "--hard", "--quiet", "@{u}" }, function(_, rcode)
+                                local code = fcode ~= 0 and fcode or rcode
                                 write_screens(bar_changed and bar_mine or nil, lock_changed and lock_mine or nil, function()
                                     if code ~= 0 then
-                                        return busy(false, "Couldn't update: something of yours is in the way. Try `git pull` in the shell's folder.")
+                                        return busy(false, "Couldn't update: couldn't reach the remote. Check the network and try again.")
                                     end
                                     -- What this version needs besides the pull (new helpers, autostart lines, binds) is what install.sh
                                     -- does without questions or sudo (--refresh); it also says which packages are missing, and the shell
@@ -277,6 +280,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                                         restart()
                                     end)
                                 end)
+                            end)
                             end)
                         end)
                     end)
