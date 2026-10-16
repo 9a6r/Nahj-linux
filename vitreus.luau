@@ -371,6 +371,13 @@ sys.watch("media", function(m)
         fetch_art(m.player)
         -- players often publish the cover a moment after the title
         after(900, function() fetch_art(m.player) end)
+        -- a browser fetches a video's thumbnail on its own time and can be several seconds: while this song has no cover yet, ask again
+        -- (stopping as soon as one is there, or the song changes)
+        for _, d in ipairs({ 2500, 6000, 12000, 25000 }) do
+            after(d, function()
+                if song == now and not fact.art_on then fetch_art(m.player) end
+            end)
+        end
         if not first then emit("trackchange") end
     end
 end)
@@ -1921,6 +1928,7 @@ function window_urgent(addr)
         end
     end)
 end
+local sc_active, sc_gen = 0, 0                       -- screencasts running now, and a counter that tells a later event from the one a timer was set for
 function watch_urgent()
     run("printenv", { "XDG_RUNTIME_DIR" }, function(rt)
         run("printenv", { "HYPRLAND_INSTANCE_SIGNATURE" }, function(sig)
@@ -1935,10 +1943,25 @@ function watch_urgent()
                 -- the screen being shared or recorded through the portal (logic/privacy.luau has the rest of the privacy lights)
                 -- (Hyprland also says it for a photo of a patch of screen, "region": that is what the glass of this shell and any
                 -- screenshot tool take all the time, so only a whole monitor or window counts as sharing.)
+                -- A capture only counts as sharing once it has lasted 1.5 s: the overview's window thumbnails (and anything else that grabs a window
+                -- for a moment) start and stop within a blink and are not sharing, while a call or a recording goes on far longer. Several clients may
+                -- capture at once, each with its own start (1) and stop (0), so they are counted; the light goes out the moment none is left.
                 local sc, what = line:match("^screencast>>(%d),(%a+)")
                 if sc and what ~= "region" then
-                    fact.priv_scr = sc == "1"
-                    text.priv_scr_who = sc == "1" and "Your screen is being shared" or ""
+                    if sc == "1" then sc_active = sc_active + 1 else sc_active = math.max(0, sc_active - 1) end
+                    sc_gen = sc_gen + 1
+                    local gen = sc_gen
+                    if sc_active > 0 then
+                        after(1500, function()
+                            if gen == sc_gen and sc_active > 0 then
+                                fact.priv_scr = true
+                                text.priv_scr_who = "Your screen is being shared"
+                            end
+                        end)
+                    else
+                        fact.priv_scr = false
+                        text.priv_scr_who = ""
+                    end
                 end
             end, function() after(3000, watch_urgent) end)
         end)
