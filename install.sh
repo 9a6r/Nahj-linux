@@ -26,7 +26,7 @@
 #                                      into ~/.local/share/fonts, no sudo)
 #   4. the shell                      (into ~/.config/pleamar/shells/vitreus: cloned, or updated)
 #   5. your palette, autostart entry  (made once and never written over)
-#   5b. the helpers                  (bin/vitreus-clipimg, vitreus-polkit-agent, vitreus-sysmon, vitreus-term and vitreus-files, linked into ~/.local/bin)
+#   5b. the helpers                  (bin/vitreus-clipimg, vitreus-polkit-agent, vitreus-sysmon, vitreus-term, vitreus-files and vitreus-report, linked into ~/.local/bin)
 #   6. its Hyprland key binds         (hypr_vitreus.lua linked into ~/.config/hypr, and loaded from hyprland.lua)
 #   6b. the daemons                   (awww, hypridle and the clipboard history: lines in ~/.config/pleamar/autostart, run on any compositor)
 #   7. pleamar-wm, as a session       (pleamar-wm/: its keys, window scene, hyprctl shim, and, with sudo,
@@ -88,14 +88,29 @@ for a in "$@"; do
     esac
 done
 
-say()  { printf '\033[1;36mvitreus ·\033[0m %s\n' "$*"; }
-warn() { printf '\033[1;33mvitreus ·\033[0m %s\n' "$*" >&2; }
-fail() { printf '\033[1;31mvitreus ·\033[0m %s\n' "$*" >&2; exit 1; }
+# What this run said and what failed, kept short in ~/.local/state/vitreus/install.log: `vitreus-report` reads it, so a person whose
+# install stopped half way can send it without knowing what to look for. (Nothing is written with --dry-run.)
+installlog="${XDG_STATE_HOME:-$HOME/.local/state}/vitreus/install.log"
+log() { $dry || printf '%s\n' "$*" >> "$installlog" 2> /dev/null || true; }
+if ! $dry; then
+    {
+        mkdir -p "$(dirname "$installlog")"
+        if [ -f "$installlog" ]; then tail -n 300 "$installlog" > "$installlog.tmp" && mv "$installlog.tmp" "$installlog"; fi
+        printf '\n=== %s · install.sh %s ===\n' "$(date)" "$*" >> "$installlog"
+    } 2> /dev/null || true
+fi
+trap 'rc=$?; [ "$rc" -eq 0 ] || log "stopped with status $rc"' EXIT
+
+say()  { log "$*"; printf '\033[1;36mvitreus ·\033[0m %s\n' "$*"; }
+warn() { log "warning: $*"; printf '\033[1;33mvitreus ·\033[0m %s\n' "$*" >&2; }
+fail() { log "FAILED: $*"; printf '\033[1;31mvitreus ·\033[0m %s\n' "$*" >&2; exit 1; }
 have() { command -v "$1" > /dev/null 2>&1; }
 
 # Do a command, or, with --dry-run, only say it.
 run() {
-    if $dry; then printf '    would run: %s\n' "$*"; else "$@"; fi
+    if $dry; then printf '    would run: %s\n' "$*"; else
+        if "$@"; then :; else rc=$?; log "command failed ($rc): $*"; return "$rc"; fi
+    fi
 }
 
 # ask "question": yes/no, default yes. Reads the keyboard even when the script itself was piped in.
@@ -191,6 +206,7 @@ if [ "$action" = uninstall ]; then
     if [ -L "$HOME/.local/bin/vitreus-sysmon" ]; then run rm -f "$HOME/.local/bin/vitreus-sysmon"; fi
     if [ -L "$HOME/.local/bin/vitreus-term" ]; then run rm -f "$HOME/.local/bin/vitreus-term"; fi
     if [ -L "$HOME/.local/bin/vitreus-keep" ]; then run rm -f "$HOME/.local/bin/vitreus-keep"; fi
+    if [ -L "$HOME/.local/bin/vitreus-report" ]; then run rm -f "$HOME/.local/bin/vitreus-report"; fi
     if [ -L "$conf/hypr/hypr_vitreus.lua" ]; then run rm -f "$conf/hypr/hypr_vitreus.lua"; fi
     run rm -f "$conf/hypr/vitreus_monitors.lua" "$conf/hypr/vitreus_hypr.lua" "$conf/hypr/vitreus_colors.lua"
     if [ -d "$dest" ] && ask_no "delete $dest?"; then run rm -rf "$dest"; fi
@@ -511,6 +527,8 @@ if [ -x "$dest/bin/vitreus-clipimg" ] || $dry; then
     # The keeper the autostart lines run each scene under: it starts a scene again when it stops (a crash on a monitor's wake).
     [ -x "$dest/bin/vitreus-files" ] && run ln -sf "$dest/bin/vitreus-files" "$HOME/.local/bin/vitreus-files"
     [ -x "$dest/bin/vitreus-keep" ] && run ln -sf "$dest/bin/vitreus-keep" "$HOME/.local/bin/vitreus-keep"
+    # For a problem report that does not need the shell to be running: `vitreus-report` writes one text file to read and send.
+    [ -x "$dest/bin/vitreus-report" ] && run ln -sf "$dest/bin/vitreus-report" "$HOME/.local/bin/vitreus-report"
     case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) warn "$HOME/.local/bin is not in your PATH: the launcher's clipboard pictures need it" ;; esac
 # Hyprland does not read ~/.bashrc: if ~/.local/bin is only added there, its binds and exec-once lines never find
 # `pleamar`. hypr_vitreus.lua adds it to PATH itself; whatever you start from hyprland.lua has to do the same.

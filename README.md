@@ -62,6 +62,17 @@ curl -fsSL https://raw.githubusercontent.com/natepayn3/Vitreus/main/install.sh |
 `--test` changes nothing at login, stops your Quickshell and starts Vitreus, and `./install.sh --stop` (from `~/.config/pleamar/shells/vitreus`) brings yours back.
 See [Installation](#-installation).
 
+**Something not working?** Run this. It works even when Vitreus would not install or will not start:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/natepayn3/Vitreus/main/bin/vitreus-report | sh
+```
+
+It asks what went wrong and writes one plain-text file you can read first (your user name, computer name, network addresses
+and monitors' names are blanked out; it does not read your notifications, clipboard, calendar or files). Then it tells you how
+to send it: attach it to a [GitHub issue](https://github.com/natepayn3/Vitreus/issues/new/choose), or e-mail it to
+natepayn3@gmail.com if you have no account. With Vitreus installed it is just `vitreus-report`.
+
 ---
 
 ## 📸 Screenshots
