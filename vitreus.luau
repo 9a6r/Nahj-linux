@@ -3622,14 +3622,14 @@ local function wp_load()
     end)
 end
 
--- Enter in the folder field: a folder that exists is kept (and listed at once); an empty field goes back to <Pictures>/Wallpapers.
-on("wp_dir_apply", function()
-    local want = ((text.wp_dir_in or ""):gsub("^%s+", ""):gsub("%s+$", ""))
-    text.wp_dir_in = ""
+-- The folder is chosen in the browser (the dashboard picture's: FACE lists and walks folders): "Use this folder" keeps the one being looked at, "Default" goes back
+-- to <Pictures>/Wallpapers. A folder that is kept is saved in wallpaper-dir.json and listed at once.
+local function wp_dir_use(want)
     with_dirs(function(d)
         if want:sub(1, 1) == "~" then want = d.home .. want:sub(2) end
         if want == "" then
             pcall(sys.call, "files.write", "wallpaper-dir.json", { dir = "" })
+            wp_page = 0
             wp_load()
             return
         end
@@ -3645,7 +3645,14 @@ on("wp_dir_apply", function()
             wp_load()
         end)
     end)
+end
+on("wp_dir_browse", function()
+    local h = FACE.home()
+    local start = wp_dir or (h ~= "" and (h .. "/Pictures") or "")
+    if start ~= "" then FACE.load(start) end
 end)
+on("wp_dir_choose", function() if FACE.dir ~= "" then wp_dir_use(FACE.dir) end end)
+on("wp_dir_default", function() wp_dir_use("") end)
 on("wp_pick", function(i)
     local f = wp_view[wp_page * WP_PER_PAGE + i + 1]
     if f then wp_apply(f) end

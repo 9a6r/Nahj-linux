@@ -260,14 +260,15 @@ scene Vitreus {
     image wp_cur = from wp_curpath, 320, 180
     text wp_name = ""
     text wp_dirtext = ""
-    text wp_dir_in = ""            // the folder being typed on the wallpaper page (Enter applies it; empty goes back to ~/Pictures/Wallpapers)
-    fact wp_dir_edit = false
-    prop wp_dir_edit_k = 0 ~quick
-    follow wp_dir_edit_k = if(wp_dir_edit, 1, 0)
+    fact wpd_open = false           // the folder browser on the wallpaper page (the dashboard picture's, with "Use this folder")
+    prop wpd_k = 0 ~calm
+    follow wpd_k = if(wpd_open, 1, 0)
     text wp_pager = ""
     event wp_pick ->                // a thumbnail, by position on the page
     event wp_prev ->
-    event wp_dir_apply ->           // Enter in the folder field
+    event wp_dir_browse ->          // the folder button: look at the current folder
+    event wp_dir_choose ->          // "Use this folder"
+    event wp_dir_default ->         // "Default": back to ~/Pictures/Wallpapers
     event wp_next ->
     event wp_random ->
     //  The colour filter (twelve swatches; the lit one is `wp_filter`, -1 for none) and the slideshow.
@@ -1936,7 +1937,7 @@ scene Vitreus {
     follow mvis = if(mixer.count > 0 or vm_open, 1, 0)
     on launch_toggle { panel = if(panel == launch, none, launch) }
     on settings_toggle { panel = if(panel == settings, none, settings) }
-    on change panel { wp_dir_edit = false; font_dd_open = false; dd_open = false; vm_open = false; panel_sub = none; disp_res_open = false; disp_scroll_to = 0; sm_scroll_to = 0; nt_scroll_to = 0; lk_scroll_to = 0; gl_scroll_to = 0; ck_scroll_to = 0; wm_scroll_to = 0; vpn_scroll_to = 0 }
+    on change panel { wpd_open = false; font_dd_open = false; dd_open = false; vm_open = false; panel_sub = none; disp_res_open = false; disp_scroll_to = 0; sm_scroll_to = 0; nt_scroll_to = 0; lk_scroll_to = 0; gl_scroll_to = 0; ck_scroll_to = 0; wm_scroll_to = 0; vpn_scroll_to = 0 }
     on change set_page { font_dd_open = false; disp_res_open = false; disp_scroll_to = 0; sm_scroll_to = 0; nt_scroll_to = 0; lk_scroll_to = 0; gl_scroll_to = 0; ck_scroll_to = 0; wm_scroll_to = 0; vpn_scroll_to = 0; vpn_arm = -1 }
     //  The Hyprland and Pleamar-WM pages read their settings from the system when they are shown, and only then: reading them on every page change
     //  (a dozen commands and a couple of hundred fact writes) stalled the scene for half a second on each click anywhere in Settings.
