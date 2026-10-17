@@ -100,12 +100,20 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
         hypr_monitors(4, function(out, code)
             if code ~= 0 or not out then return end
             local ok, list = pcall(json.decode, out)
-            if not ok or type(list) ~= "table" then return end
             local mons = {}
-            for _, j in ipairs(list) do
-                local t = j.transform or 0
-                mons[#mons + 1] = { name = j.name, x = j.x or 0, y = j.y or 0, tall = t == 1 or t == 3 or t == 5 or t == 7 }
+            if ok and type(list) == "table" then
+                for _, j in ipairs(list) do
+                    local t = j.transform or 0
+                    mons[#mons + 1] = { name = j.name, x = j.x or 0, y = j.y or 0, tall = t == 1 or t == 3 or t == 5 or t == 7 }
+                end
+            else
+                -- pleamar-wm's `hyprctl monitors` is text, even with -j: "Monitor DP-2 (ID 1):", "2560x1440@164.83 at 1440x733" (its sizes already turned by the rotation).
+                for name, body in (out .. "\n\n"):gmatch("Monitor (%S+) %(ID %d+%):\n(.-)\n\n") do
+                    local w, h, x, y = body:match("(%d+)x(%d+)@[%d%.]+ at (%-?%d+)x(%-?%d+)")
+                    if w then mons[#mons + 1] = { name = name, x = tonumber(x), y = tonumber(y), tall = tonumber(h) > tonumber(w) } end
+                end
             end
+            if #mons == 0 then return end
             table.sort(mons, function(a, b) if a.x ~= b.x then return a.x < b.x end return a.y < b.y end)
             for i, m in ipairs(mons) do
                 local where = #mons == 1 and "" or (i == 1 and "left" or (i == #mons and "right" or "middle"))
