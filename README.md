@@ -53,7 +53,7 @@ layout all run in the renderer, and the logic only reports facts.
 curl -fsSL https://raw.githubusercontent.com/natepayn3/Vitreus/main/install.sh | sh
 ```
 
-Already running another Quickshell config? Add `-s -- --test` to try Vitreus first: it changes nothing at login, stops your
+Want to try it without breaking your current setup? Add `-s -- --test`: it changes nothing at login, stops your
 Quickshell and starts Vitreus, and `./install.sh --stop` (from `~/.config/pleamar/shells/vitreus`) brings yours back.
 See [Installation](#-installation).
 
