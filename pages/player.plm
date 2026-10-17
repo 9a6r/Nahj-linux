@@ -5,11 +5,11 @@ part Player {
         shader: pixelate, px.dm
         opacity: pown
         move: rt * (screen.width - 2 * pcx), bt * (yo + vb - 2 * (th.t + lp.hd / 2))
-        clip inset 2 box { at: mix(mix(mix(pcx, dm.gx, lm), 2 * pcx - mix(pcx, dm.gx, lm), rt), dm.tex, tm), mix(mix(bar.y + dm.hh / 2, lp.cy, lm), dm.tey, tm) + bt * (2 * (th.t + lp.hd / 2) - 2 * mix(mix(bar.y + dm.hh / 2, lp.cy, lm), dm.tey, tm)); size: mix(mix(dm.w, dm.gw, lm), dm.tew, tm), mix(mix(dm.hh, dm.gh, lm), dm.teh, tm); corner: 26 * cu * (1 - 0.73 * sq) }
+        clip inset 2 box { at: mix(mix(mix(pcx, dm.gx, lm), 2 * pcx - mix(pcx, dm.gx, lm), rt), dm.tex, tu), mix(mix(bar.y + dm.hh / 2, lp.cy, lm), dm.tey, tu) + bt * (2 * (th.t + lp.hd / 2) - 2 * mix(mix(bar.y + dm.hh / 2, lp.cy, lm), dm.tey, tu)); size: mix(mix(dm.w, dm.gw, lm), dm.tew, tu), mix(mix(dm.hh, dm.gh, lm), dm.teh, tu); corner: 26 * cu * (1 - 0.73 * sq) }
         //  Down the left it comes out of the strip: what is inside grows with the drawer's shape (`dm.lf`), from the strip's edge at the panel's middle, as the calendar's and the controls' do.
         group {
-            pivot: mix(mix(lp.xl, 2 * pcx - lp.xl, rt), pcx, tm), mix(lp.cy, th.t + bt * lp.hd, tm)
-            scale: mix(1, max(dm.lf, 0.05), fm * att)
+            pivot: mix(mix(lp.xl, 2 * pcx - lp.xl, rt), pcx, tu), mix(lp.cy, bar.y + bar.h / 2 + bt * lp.hd, tu)
+            scale: mix(1, max(dm.lf, 0.05), att)
         //  ── the running windows ──
         group {
             show: dm_mode == dmm_player

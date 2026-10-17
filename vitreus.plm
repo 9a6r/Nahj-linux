@@ -476,8 +476,8 @@ scene Vitreus {
     fact bo.title = 1
     fact bo.media = 2
     fact bo.tray = 3
-    fact bo.set = 4
-    fact bo.sr = 5
+    fact bo.set = 5
+    fact bo.sr = 4
     fact bo.ctl = 6
     fact bo.clock = 7
     fact bv.ws = true
@@ -2844,6 +2844,7 @@ scene Vitreus {
     let bt = if(bar_frame and bar_anchor == bottom, 1, 0)         // the strip along the bottom is the top one flipped about the middle of the screen; search and settings swap their notches
     let tm = clamp(bar_tm, 0, 1)
     let fm = min(1, lm + tm)
+    let tu = clamp(1 - lm, 0, 1)                                  // the drawers that come out of a horizontal edge: the Island's pill, and the top and bottom frames
     let lf.t = 8 * u
     let lf.w = 46 * u
     let lf.x = lf.w / 2                                    // the strip's middle line, where its pieces sit
@@ -3152,6 +3153,7 @@ scene Vitreus {
     //  lands, with the liquid neck of the other drawers while it is narrower (see `dc.bell`). It starts at the bar's
     //  middle, as they do, so the blend has the bar to melt into; as tall as the bar's lower half plus its content.
     let dc.w = (120 + 330 * (min(1, dc0 * 1.6) + max(0, dc0 - 1) * 0.6)) * cu
+    let dc.neck = 0.5                  // how much of the others' liquid neck the calendar's join to the bar has: 0 is a sharp angle, 1 the same as Settings (it sticks out less, so all of it is too soft)
     let dc.hh = bar.h / 2 + card.h + 6 * cu * tm * dc0 + max(0, sag)
     //  Once it is as wide as the bar (`f` 1) it must be a straight continuation of the bar's sides, so it moves its top up to
     //  the bar's top edge and stops blending: a blend there would puff the join out at the bar's corners.
@@ -3299,7 +3301,7 @@ scene Vitreus {
     //  rise the width has above) around the panel's own vertical middle, and to the right, from the strip's middle to where the panel ends (`*.rt`, 6.5 past the plates' side: with the 6.5 in `pcx` it makes the margin all round (strip side, right, top) the same, 18.5; the calendar's and the launcher's are 450 wide here, not the bar's width, which grows with the tray icons). Its contents stay where
     //  they will end up, and the drawer's shape uncovers them (they are clipped to it).
     let dk.gl = mix(min(dtrav, dk0), dk0, att)
-    let dk.lf = mix(min(1, dk0 * 1.6) + max(0, dk0 - 1) * 0.6, min(1, dk.gl * 1.6) + max(0, dk.gl - 1) * 0.6, fm)
+    let dk.lf = min(1, dk.gl * 1.6) + max(0, dk.gl - 1) * 0.6
     let dk.rt = mix(2 * (156 + 6.5) * cu, (lf.w - lf.x) + 325 * cu, att)
     let dk.gw = max(0.1, dk.rt * dk.lf)
     let dk.gh = (((content_bot + 16) * cu) + lp.dd + max(0, sag)) * dk.lf
@@ -3307,32 +3309,32 @@ scene Vitreus {
     //  Close to the right frame the glass reaches into that too (as at the bottom, `lp.ext`), so the panel's corner is the frame's.
     //  Along the top or the bottom the drawers come out of the strip as they do down the sides, turned a quarter: a small blob at the strip's edge, in the panel's
     //  middle, that grows both ways (`*.lf`). `*.tR` is how far it reaches from the strip's middle line when it is out; its top is that line.
-    let dk.tR = bar.h / 2 + (content_bot + 16) * cu + 13 * cu + max(0, sag)
+    let dk.tR = bar.h / 2 + (content_bot + 16) * cu + 13 * cu * tm + max(0, sag)
     let dk.teh = dk.tR * dk.lf
     let dk.tey = bar.y + dk.teh / 2
-    let dk.tew = (312 * cu + 13 * cu + 14 * u * if(lp_k == 3, 1, 0)) * dk.lf
-    let dk.tex = pcx + 7 * u * if(lp_k == 3, 1, 0) * dk.lf
+    let dk.tew = (312 * cu + (13 * cu + 14 * u * if(lp_k == 3, 1, 0)) * tm) * dk.lf
+    let dk.tex = pcx + 7 * u * if(lp_k == 3, 1, 0) * dk.lf * tm
     let dk.er = if(lp_k == 3, 14 * u * lm * clamp((dk.gx + dk.gw / 2 - (screen.width - th.r - 14 * u)) / (14 * u), 0, 1), 0) * dk.lf
-    let dk.ew = mix(mix(dk.w, dk.gw + dk.er, lm), dk.tew, tm)
-    let dk.eh = mix(mix(dk.hh, dk.gh + if(lp_k == 3, lp.ext * dk.lf, 0), lm), dk.teh, tm)
-    let dk.ex = mix(mix(pcx, dk.gx + dk.er / 2, lm), dk.tex, tm)
-    let dk.ey = mix(mix(bar.y + dk.hh / 2, lp.cy + if(lp_k == 3, lp.ext * dk.lf, 0) / 2, lm), dk.tey, tm)
+    let dk.ew = mix(mix(dk.w, dk.gw + dk.er, lm), dk.tew, tu)
+    let dk.eh = mix(mix(dk.hh, dk.gh + if(lp_k == 3, lp.ext * dk.lf, 0), lm), dk.teh, tu)
+    let dk.ex = mix(mix(pcx, dk.gx + dk.er / 2, lm), dk.tex, tu)
+    let dk.ey = mix(mix(bar.y + dk.hh / 2, lp.cy + if(lp_k == 3, lp.ext * dk.lf, 0) / 2, lm), dk.tey, tu)
     let dc.gl = mix(min(dtrav, dc0), dc0, att)
-    let dc.lf = mix(min(1, dc0 * 1.6) + max(0, dc0 - 1) * 0.6, min(1, dc.gl * 1.6) + max(0, dc.gl - 1) * 0.6, fm)
+    let dc.lf = min(1, dc.gl * 1.6) + max(0, dc.gl - 1) * 0.6
     let dc.rt = mix(2 * (225 + 6.5) * cu, (lf.w - lf.x) + 463 * cu, att)
     let dc.gw = max(0.1, dc.rt * dc.lf)
     let dc.gh = ((373 * cu) + lp.dd + max(0, sag)) * dc.lf
     let dc.gx = mix(lp.xl + dc.gw / 2, ccx, edg)
-    let dc.tR = bar.h / 2 + 373 * cu + 6 * cu + max(0, sag)
+    let dc.tR = bar.h / 2 + 373 * cu + 6 * cu * tm + max(0, sag)
     let dc.teh = dc.tR * dc.lf
     let dc.tey = bar.y + dc.teh / 2
-    let dc.tew = (450 * cu + 13 * cu + 14 * u * if(lp_k == 4, 1, 0)) * dc.lf
-    let dc.tex = pcx + 7 * u * if(lp_k == 4, 1, 0) * dc.lf
+    let dc.tew = (450 * cu + (13 * cu + 14 * u * if(lp_k == 4, 1, 0)) * tm) * dc.lf
+    let dc.tex = pcx + 7 * u * if(lp_k == 4, 1, 0) * dc.lf * tm
     let dc.er = if(lp_k == 4, 14 * u * lm * clamp((dc.gx + dc.gw / 2 - (screen.width - th.r - 14 * u)) / (14 * u), 0, 1), 0) * dc.lf
-    let dc.ew = mix(mix(dc.w, dc.gw + dc.er, lm), dc.tew, tm)
-    let dc.eh = mix(mix((bar.y + dc.hh - dc.top), dc.gh + if(lp_k == 4, lp.ext * dc.lf, 0), lm), dc.teh, tm)
-    let dc.ex = mix(mix(pcx, dc.gx + dc.er / 2, lm), dc.tex, tm)
-    let dc.ey = mix(mix((dc.top + bar.y + dc.hh) / 2, lp.cy + if(lp_k == 4, lp.ext * dc.lf, 0) / 2, lm), dc.tey, tm)
+    let dc.ew = mix(mix(dc.w, dc.gw + dc.er, lm), dc.tew, tu)
+    let dc.eh = mix(mix((bar.y + dc.hh - dc.top), dc.gh + if(lp_k == 4, lp.ext * dc.lf, 0), lm), dc.teh, tu)
+    let dc.ex = mix(mix(pcx, dc.gx + dc.er / 2, lm), dc.tex, tu)
+    let dc.ey = mix(mix((dc.top + bar.y + dc.hh) / 2, lp.cy + if(lp_k == 4, lp.ext * dc.lf, 0) / 2, lm), dc.tey, tu)
     let ds.gl = min(dtrav, ds0)
     let ds.lf = mix(min(1, ds0 * 1.6) + max(0, ds0 - 1) * 0.6, min(1, ds.gl * 1.6) + max(0, ds.gl - 1) * 0.6, fm)
     let ds.rt = 2 * (310 + 6.5) * pu
@@ -3376,20 +3378,20 @@ scene Vitreus {
     let do.bl = (26 + 20 * do.bell) * u * min(1, do0 * 4)         // how much the drawer melts into what it joins
     let do.stretch = clamp(vel(do) * 0.07, 0, 0.5)
     let dm.gl = mix(min(dtrav, dm0), dm0, att)
-    let dm.lf = mix(min(1, dm0 * 1.6) + max(0, dm0 - 1) * 0.6, min(1, dm.gl * 1.6) + max(0, dm.gl - 1) * 0.6, fm)
+    let dm.lf = min(1, dm.gl * 1.6) + max(0, dm.gl - 1) * 0.6
     let dm.rt = mix(2 * (156 + 6.5) * cu, (lf.w - lf.x) + 325 * cu, att)
     let dm.gw = max(0.1, dm.rt * dm.lf)
     let dm.gh = (((if(dm_mode == dmm_tray, tm_bot, panel_bot) + 16) * cu) + lp.dd + max(0, sag)) * dm.lf
     let dm.gx = mix(lp.xl + dm.gw / 2, ccx, edg)
-    let dm.tR = bar.h / 2 + (if(dm_mode == dmm_tray, tm_bot, panel_bot) + 16) * cu + 13 * cu + max(0, sag)
+    let dm.tR = bar.h / 2 + (if(dm_mode == dmm_tray, tm_bot, panel_bot) + 16) * cu + 13 * cu * tm + max(0, sag)
     let dm.teh = dm.tR * dm.lf
     let dm.tey = bar.y + dm.teh / 2
     let dm.tew = 312 * cu * dm.lf
     let dm.tex = pcx
-    let dm.ew = mix(mix(dm.w, dm.gw, lm), dm.tew, tm)
-    let dm.eh = mix(mix(dm.hh, dm.gh, lm), dm.teh, tm)
-    let dm.ex = mix(mix(pcx, dm.gx, lm), dm.tex, tm)
-    let dm.ey = mix(mix(bar.y + dm.hh / 2, lp.cy, lm), dm.tey, tm)
+    let dm.ew = mix(mix(dm.w, dm.gw, lm), dm.tew, tu)
+    let dm.eh = mix(mix(dm.hh, dm.gh, lm), dm.teh, tu)
+    let dm.ex = mix(mix(pcx, dm.gx, lm), dm.tex, tu)
+    let dm.ey = mix(mix(bar.y + dm.hh / 2, lp.cy, lm), dm.tey, tu)
     //  The desk's drawer: the volume's out of the right frame, with its own size (see `do.*`).
     //  The desk: out of the right frame, in the middle of it (the Frame layout); or, in the Island layout, hanging from the top right corner of the
     //  screen, its first row level with the bar's, from the icon that opens it. `dsk_*` is where its contents are laid out, once out.

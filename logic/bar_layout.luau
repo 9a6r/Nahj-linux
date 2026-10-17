@@ -13,7 +13,7 @@ return function()
     local drag = nil                           -- { key, to_tray, slot }
 
     local function defaults()
-        L.order = { "ws", "title", "media", "tray", "set", "sr", "ctl", "clock" }
+        L.order = { "ws", "title", "media", "tray", "sr", "set", "ctl", "clock" }
         L.hidden = {}
     end
 
@@ -158,10 +158,10 @@ return function()
         for _, k in ipairs(saved.order) do
             if INDEX[k] ~= nil and not seen[k] then seen[k] = true; order[#order + 1] = k end
         end
-        -- a layout saved before the tray piece existed: it goes just before the gear, where it is by default
+        -- a layout saved before the tray piece existed: it goes just before the search and the gear, where it is by default
         if not seen.tray then
             local at = #order + 1
-            for n, k in ipairs(order) do if k == "set" then at = n; break end end
+            for n, k in ipairs(order) do if k == "set" or k == "sr" then at = n; break end end
             table.insert(order, at, "tray")
             seen.tray = true
         end

@@ -4,11 +4,11 @@ part ControlsDrawer {
         shader: pixelate, px.dk
         opacity: pown
         move: rt * (screen.width - 2 * pcx), bt * (yo + vb - 2 * (th.t + lp.hd / 2))
-        clip inset 2 box { at: mix(mix(mix(pcx, dk.gx, lm), 2 * pcx - mix(pcx, dk.gx, lm), rt), dk.tex, tm), mix(mix(bar.y + dk.hh / 2, lp.cy, lm), dk.tey, tm) + bt * (2 * (th.t + lp.hd / 2) - 2 * mix(mix(bar.y + dk.hh / 2, lp.cy, lm), dk.tey, tm)); size: mix(mix(dk.w, dk.gw, lm), dk.tew, tm), mix(mix(dk.hh, dk.gh, lm), dk.teh, tm); corner: 26 * cu * (1 - 0.73 * sq) }
+        clip inset 2 box { at: mix(mix(mix(pcx, dk.gx, lm), 2 * pcx - mix(pcx, dk.gx, lm), rt), dk.tex, tu), mix(mix(bar.y + dk.hh / 2, lp.cy, lm), dk.tey, tu) + bt * (2 * (th.t + lp.hd / 2) - 2 * mix(mix(bar.y + dk.hh / 2, lp.cy, lm), dk.tey, tu)); size: mix(mix(dk.w, dk.gw, lm), dk.tew, tu), mix(mix(dk.hh, dk.gh, lm), dk.teh, tu); corner: 26 * cu * (1 - 0.73 * sq) }
         //  Down the left it comes out of the strip: what is inside grows with the drawer's shape (`dk.lf`), from the strip's edge at the panel's middle, instead of waiting still under the clip.
         group {
-            pivot: mix(mix(lp.xl, 2 * pcx - lp.xl, rt), pcx, tm), mix(lp.cy, th.t + bt * lp.hd, tm)
-            scale: mix(1, max(dk.lf, 0.05), fm * att)
+            pivot: mix(mix(lp.xl, 2 * pcx - lp.xl, rt), pcx, tu), mix(lp.cy, bar.y + bar.h / 2 + bt * lp.hd, tu)
+            scale: mix(1, max(dk.lf, 0.05), att)
         //  A plate is a veil, not more glass: glass does not go on glass.
         group {
             opacity: f5 * clamp(1 - expand0, 0, 1)

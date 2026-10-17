@@ -4,12 +4,12 @@ part PanelFrame {
         //  The calendar's content is clipped to the calendar's shape.
         opacity: pown
         move: rt * (screen.width - 2 * pcx), bt * (yo + vb - 2 * (th.t + lp.hd / 2))
-        clip inset 2 box { at: mix(mix(mix(pcx, dc.gx, lm), 2 * pcx - mix(pcx, dc.gx, lm), rt), dc.tex, tm), mix(mix(bar.y + dc.hh / 2, lp.cy, lm), dc.tey, tm) + bt * (2 * (th.t + lp.hd / 2) - 2 * mix(mix(bar.y + dc.hh / 2, lp.cy, lm), dc.tey, tm)); size: mix(mix(dc.w, dc.gw, lm), dc.tew, tm), mix(mix(dc.hh, dc.gh, lm), dc.teh, tm); corner: 26 * cu * (1 - 0.73 * sq) }
+        clip inset 2 box { at: mix(mix(mix(pcx, dc.gx, lm), 2 * pcx - mix(pcx, dc.gx, lm), rt), dc.tex, tu), mix(mix(bar.y + dc.hh / 2, lp.cy, lm), dc.tey, tu) + bt * (2 * (th.t + lp.hd / 2) - 2 * mix(mix(bar.y + dc.hh / 2, lp.cy, lm), dc.tey, tu)); size: mix(mix(dc.w, dc.gw, lm), dc.tew, tu), mix(mix(dc.hh, dc.gh, lm), dc.teh, tu); corner: 26 * cu * (1 - 0.73 * sq) }
         //  Down the left it comes out of the strip: what is inside grows with the drawer's shape (`dc.lf`), from the strip's edge at the panel's middle, instead of waiting still under the clip.
         group {
             shader: pixelate, px.dc
-            pivot: mix(mix(lp.xl, 2 * pcx - lp.xl, rt), pcx, tm), mix(lp.cy, th.t + bt * lp.hd, tm)
-            scale: mix(1, max(dc.lf, 0.05), fm * att)
+            pivot: mix(mix(lp.xl, 2 * pcx - lp.xl, rt), pcx, tu), mix(lp.cy, bar.y + bar.h / 2 + bt * lp.hd, tu)
+            scale: mix(1, max(dc.lf, 0.05), att)
         //  ── the calendar panel ──
         //  Three plates like the volume and media ones, each 8% white and 12 from the panel's
         //  edges: the time and date, the chosen day with its reminders, and the month. The two
