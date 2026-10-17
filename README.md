@@ -164,6 +164,12 @@ Vitreus is a whole desktop shell, not an add-on to another one. If Quickshell is
 in a system folder such as `/etc/xdg/quickshell`), the installer stops before changing anything, because two shells at once fight over the notifications,
 the wallpaper, the lock screen and the key binds. Log out of the other shell first, or run `./install.sh --force` to go on anyway.
 
+**Already have a Quickshell config?** Vitreus is a whole desktop shell, so the installer stops when another one is running. To try
+Vitreus next to yours, without losing it, run `./install.sh --test`: it installs Vitreus but adds nothing to your autostart, your
+Hyprland config or the login screen, stops your Quickshell and starts Vitreus. `./install.sh --stop` ends the test and starts
+your Quickshell again, the same way it was started. Happy with Vitreus? Run `./install.sh` to make it the desktop. Your Quickshell
+config is never touched: it stays in `~/.config/quickshell`.
+
 **By hand.** Vitreus must live in pleamar's shells folder under the name `vitreus`: the palette it writes and the data
 it keeps are found from there.
 

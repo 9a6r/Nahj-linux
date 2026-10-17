@@ -12,6 +12,9 @@
 #   ./install.sh --refresh         what Settings > About runs after it has pulled: no questions, no sudo, nothing downloaded; it
 #                                  links the new helpers, adds the new autostart lines and binds, and lists the packages that are missing
 #   ./install.sh --force           install even when another Quickshell desktop shell is in use
+#   ./install.sh --test            try it next to another shell (Quickshell): no autostart, key binds or pleamar-wm; stops that
+#                                  shell and starts Vitreus now
+#   ./install.sh --stop            end a --test: stop Vitreus and start the other shell again
 #   ./install.sh --uninstall       take the shell away (your data in ~/.local/share stays)
 #
 # What it does, in order:
@@ -65,6 +68,7 @@ do_binds=true
 do_wm=true
 force=false
 refresh=false
+trial=false
 action=install
 for a in "$@"; do
     case "$a" in
@@ -76,8 +80,10 @@ for a in "$@"; do
         --no-wm) do_wm=false ;;
         --refresh) refresh=true ;;
         --force) force=true ;;
+        --test) trial=true; force=true; do_autostart=false; do_binds=false; do_wm=false ;;
+        --stop) action=stop ;;
         --uninstall) action=uninstall ;;
-        --help|-h) sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        --help|-h) sed -n '2,29p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) printf 'vitreus · I do not know "%s" (try --help)\n' "$a" >&2; exit 1 ;;
     esac
 done
@@ -190,6 +196,26 @@ if [ "$action" = uninstall ]; then
     if [ -d "$dest" ] && ask_no "delete $dest?"; then run rm -rf "$dest"; fi
     say "left as they were: your data in $data/pleamar/vitreus, the caches in ${XDG_CACHE_HOME:-$HOME/.cache}/pleamar/vitreus"
     say "and .../pleamar/lockscreen, and pleamar and the packages. To remove the data too: rm -rf $data/pleamar/vitreus"
+    exit 0
+fi
+
+# ── --stop: end a --test and bring the other shell back ───────────────────
+trial_file="$data/pleamar/vitreus/test-restore"
+if [ "$action" = stop ]; then
+    say "stopping Vitreus"
+    run pkill -f "vitreus-keep $dest/"
+    run pkill -f "pleamar --scene $dest/"
+    if [ -f "$trial_file" ] && ! $dry; then
+        sleep 1
+        while IFS= read -r cmd; do
+            [ -n "$cmd" ] || continue
+            say "starting your other shell again: $cmd"
+            setsid sh -c "$cmd" > /dev/null 2>&1 < /dev/null &
+        done < "$trial_file"
+        rm -f "$trial_file"
+    else
+        say "(no other shell was stopped by --test, so none is started again)"
+    fi
     exit 0
 fi
 
@@ -701,6 +727,33 @@ fi
 
 say "done."
 $refresh && exit 0
+# ── --test: run Vitreus now, in place of the other shell, and nothing else changed ──
+if $trial; then
+    if $dry; then
+        say "(--dry-run: --test would stop Quickshell, if it is running, and start Vitreus)"
+    else
+        [ -n "${WAYLAND_DISPLAY:-}" ] || fail "--test starts Vitreus on the screen: run it from inside your Wayland session"
+        mkdir -p "$data/pleamar/vitreus"
+        : > "$trial_file"
+        # Remember how each running Quickshell was started (qs -c name ...), so --stop can start it again.
+        for pid in $(pgrep -x qs; pgrep -x quickshell); do
+            args=$(tr '\0' ' ' < "/proc/$pid/cmdline" 2> /dev/null | sed 's/ $//')
+            case "$args" in *" ipc "*|*" kill"*|*" list"*|"") continue ;; esac
+            grep -qxF "$args" "$trial_file" || echo "$args" >> "$trial_file"
+        done
+        if [ -s "$trial_file" ]; then
+            say "stopping your Quickshell (./install.sh --stop starts it again)"
+            pkill -x qs; pkill -x quickshell
+            sleep 1
+        fi
+        export PATH="$HOME/.local/bin:$PATH"
+        setsid vitreus-keep "$dest/vitreus.plm" "$data/pleamar/vitreus/vitreus.log" > /dev/null 2>&1 < /dev/null &
+        say "Vitreus is starting. Nothing starts at login and no key binds were added."
+        say "To go back to your shell: ./install.sh --stop     To keep Vitreus: ./install.sh"
+    fi
+    exit 0
+fi
+
 echo
 echo "  Start it now:          $line"
 echo "  Lock screen, too:      $lockline"
