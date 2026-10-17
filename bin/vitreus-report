@@ -103,7 +103,7 @@ tailf() { # tailf file lines [filter-out-regex]
 
     sec "Monitors"
     if have hyprctl; then
-        tmo hyprctl monitors 2>&1 | grep -v -E '^\s*(serial|description|make|model):' | head -60
+        tmo hyprctl monitors 2>&1 | grep -E '^Monitor|@.* at |physical size|^\s*(scale|transform|focused|disabled|mirrorOf|vrr|currentFormat|dpmsStatus):' | head -40
     else
         printf '(hyprctl is not installed or not running)\n'
     fi
@@ -126,7 +126,7 @@ tailf() { # tailf file lines [filter-out-regex]
     done
 
     sec "Files in place"
-    for h in vitreus-keep vitreus-sysmon vitreus-polkit-agent vitreus-clipimg vitreus-term vitreus-files vitreus-report; do
+    for h in vitreus-keep vitreus-sysmon vitreus-polkit-agent vitreus-clipimg vitreus-term vitreus-files; do
         if [ -e "$HOME/.local/bin/$h" ]; then printf '  ok       ~/.local/bin/%s\n' "$h"; else printf '  MISSING  ~/.local/bin/%s\n' "$h"; fi
     done
     printf 'autostart lines that mention vitreus:\n'
@@ -155,23 +155,66 @@ tailf() { # tailf file lines [filter-out-regex]
         tmo hyprctl layers 2>&1 | awk '/namespace: pleamar/ { for (i = 1; i <= NF; i++) if ($i == "pid:") n[$(i + 1)]++ } END { for (p in n) printf "  pid %s: %d\n", p, n[p] }'
     fi
 
-    sec "Vitreus log (the end, without the notes)"
-    tailf "$vdata/vitreus.log" 120 '^(note|cycle) *·'
-    sec "Vitreus log: earlier run, only its errors"
-    if [ -r "$vdata/vitreus.log.1" ]; then grep -i -E 'error|panic|failed|cannot|not showing' "$vdata/vitreus.log.1" | tail -25; else printf '(none)\n'; fi
+    log="$vdata/vitreus.log"
+    sec "How long the shell has been running"
+    pid="$(pgrep -f 'pleamar --scene .*/vitreus\.plm' 2> /dev/null | head -1)"
+    if [ -n "$pid" ]; then printf 'running for %s (a short time means it restarted lately)\n' "$(ps -o etime= -p "$pid" 2> /dev/null | tr -d ' ')"; else printf '(the Vitreus scene is not running)\n'; fi
+
+    sec "Problems in Vitreus's log, since it last started (each different line once, with how many times)"
+    if [ -r "$log" ]; then
+        # from the last start: the lines before it belong to an earlier run
+        awk '/^pleamar · decoupled/ { n = NR } { l[NR] = $0 } END { for (i = (n ? n : 1); i <= NR; i++) print l[i] }' "$log" > "$raw.run"
+        grep -i -E 'error|panic|failed|cannot|nothing called|does not keep up|stays as it was|no permission|warning|not plugged in|is gone|went away|not showing|unknown' "$raw.run" |
+            grep -v -E '^(note|cycle) *·' | sed -E 's/ at [0-9.]+ s$//; s/[0-9.]+ ms/N ms/g' |
+            awk '{ if (!($0 in c)) o[++n] = $0; c[$0]++ } END { for (i = 1; i <= n; i++) printf "%4dx %s\n", c[o[i]], o[i] }' | tail -40
+        sl="$(grep -c 'slow frame' "$raw.run")"
+        if [ "$sl" -gt 0 ]; then
+            printf '\n%s slow frames in this run, the worst %s ms\n' "$sl" "$(sed -n 's/.*slow frame: \([0-9]*\) ms.*/\1/p' "$raw.run" | sort -n | tail -1)"
+        else
+            printf '\nno slow frames in this run\n'
+        fi
+        sec "Vitreus log, the last lines (without slow frames, notes, timings and the long permission lists)"
+        grep -v -E '^(note|cycle) *·|slow frame|logic  · permissions|render · scene:|^ *$' "$raw.run" | tail -40 | cut -c1-260
+    else
+        printf '(no %s: the shell has not run, or ran with no log)\n' "$(basename "$log")"
+    fi
+    rm -f "$raw.run"
+    sec "Earlier runs: the kinds of errors, with how many times"
+    if [ -r "$vdata/vitreus.log.1" ]; then
+        grep -i -E 'error|panic|failed|cannot|is gone|went away|not showing' "$vdata/vitreus.log.1" | grep -v -E '^(note|cycle) *·' | sed -E 's/[0-9.]+ ms/N ms/g' |
+            awk '{ if (!($0 in c)) o[++n] = $0; c[$0]++ } END { for (i = 1; i <= n; i++) printf "%4dx %s\n", c[o[i]], o[i] }' | tail -15
+    else
+        printf '(none)\n'
+    fi
+
+    sec "The compositor's own log: its errors"
+    hl="$(ls -t "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/hypr/*/hyprland.log 2> /dev/null | head -1)"
+    if [ -n "$hl" ]; then
+        grep -E 'ERR|CRIT|WARN' "$hl" | sed -E 's/^\[[^]]*\] *//' | awk '{ if (!($0 in c)) o[++n] = $0; c[$0]++ } END { for (i = 1; i <= n; i++) printf "%4dx %s\n", c[o[i]], o[i] }' | tail -20 | cut -c1-240
+    else
+        printf '(no Hyprland log: another compositor, or none running)\n'
+    fi
 
     sec "The installer's log (the end)"
     tailf "$state/vitreus/install.log" 120
 
-    sec "pleamar's build log (the end)"
+    sec "pleamar's last build"
     b="$(ls -t "$cache"/pleamar*/build.log 2> /dev/null | head -1)"
-    if [ -n "$b" ]; then tailf "$b" 40; else printf '(none)\n'; fi
+    if [ -z "$b" ]; then
+        printf '(none: pleamar was not built here)\n'
+    elif [ "$(tail -n 1 "$b")" = "exit 0" ]; then
+        printf 'finished fine on %s\n' "$(date -r "$b" '+%Y-%m-%d' 2> /dev/null)"
+    else
+        printf 'FAILED (%s):\n' "$(date -r "$b" '+%Y-%m-%d' 2> /dev/null)"
+        grep -v '^ *Compiling' "$b" | tail -40
+    fi
 
     sec "The system's warnings about it, this boot"
     if have journalctl; then
         tmo journalctl --user -b -p warning --no-pager 2> /dev/null | grep -i -E 'pleamar|vitreus|hyprland|portal|polkit|notification' | awk '{ k = $0; sub(/^[A-Z][a-z]+ +[0-9]+ [0-9:]+ /, "", k); if (!seen[k]++) print }' | tail -30
-        printf 'crashes:\n'
-        tmo coredumpctl list --no-pager 2> /dev/null | grep -i -E 'pleamar|hyprland' | tail -5
+        printf 'crashes (pleamar or the compositor, last 7 days):\n'
+        cd_out="$(tmo coredumpctl list --no-pager --since '7 days ago' 2> /dev/null | grep -i -E 'pleamar|hyprland' | tail -5)"
+        if [ -n "$cd_out" ]; then printf '%s\n' "$cd_out"; else printf '  (none)\n'; fi
     else
         printf '(journalctl is not available)\n'
     fi
