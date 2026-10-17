@@ -291,6 +291,44 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
         pleamar_first()
     end)
 
+    -- A quiet check in the background (a minute and a half after the shell starts, then every six hours): when the remote has commits this
+    -- checkout does not, ONE critical notification says so and lists what is new (the commits' subjects, newest first). It is sent once
+    -- for each new tip of the remote (kept in update-notified.json), so waiting does not repeat it. Nothing is said when the network is down.
+    local function esc(t) return (t:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")) end
+    local function announce()
+        if A.busy or not A.dir then return end
+        git({ "fetch", "--quiet" }, function(_, code)
+            if code ~= 0 then return end
+            git({ "rev-parse", "@{u}" }, function(head, c0)
+                local tip = lines(head)[1]
+                if c0 ~= 0 or not tip or not tip:match("^%x+$") then return end
+                local ok, saved = pcall(sys.ask, "files.read", "update-notified.json", "json")
+                if ok and type(saved) == "table" and saved.tip == tip then return end
+                local function tell(subs)
+                    if #subs == 0 then return end
+                    local body, shown = {}, math.min(#subs, 6)
+                    for i = 1, shown do body[i] = "• " .. esc(subs[i]) end
+                    if #subs > shown then body[#body + 1] = "…and " .. (#subs - shown) .. " more" end
+                    body[#body + 1] = ""
+                    body[#body + 1] = "Update it in Settings › About."
+                    pcall(sys.call, "files.write", "update-notified.json", { tip = tip })
+                    run("notify-send", { "-u", "critical", "-a", "Vitreus", "Vitreus update available", table.concat(body, "\n") }, function() end)
+                end
+                git({ "log", "--no-merges", "--format=%s", "HEAD..@{u}" }, function(out, c1)
+                    if c1 ~= 0 then return end
+                    local subs = lines(out)
+                    if #subs > 0 then return tell(subs) end
+                    -- only merges: say what they say rather than nothing
+                    git({ "log", "--format=%s", "HEAD..@{u}" }, function(out2, c2)
+                        if c2 == 0 then tell(lines(out2)) end
+                    end)
+                end)
+            end)
+        end)
+    end
+    after(90000, announce)
+    every(6 * 3600 * 1000, announce)
+
     with_dirs(function(d)
         A.dir = d.conf
         A.src = (d.data:gsub("/vitreus$", "/src"))
