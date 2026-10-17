@@ -689,7 +689,11 @@ every(1000, function() if dnd_until > 0 then dnd_refresh() end end)   -- the cou
 -- (A global table: this chunk is at Luau's limit of locals.)
 FACE = { dir = "", ent = {}, token = 0, cache = "" }
 FACE_MAX = 72
-function FACE.home() return (text.sm_face:match("^(.*)/[^/]*$") or "") end
+-- The home folder is asked of the system once: the system monitor (`sm_face`) only runs while the dashboard or the System page is open,
+-- so the Wallpaper page's browser cannot count on it.
+FACE.h = ""
+run("printenv", { "HOME" }, function(out, code) if code == 0 then FACE.h = ((out or ""):gsub("%s+$", "")) end end)
+function FACE.home() return FACE.h ~= "" and FACE.h or (text.sm_face:match("^(.*)/[^/]*$") or "") end
 function FACE.show(ready)
     local rows = {}
     for k, e in ipairs(FACE.ent) do
