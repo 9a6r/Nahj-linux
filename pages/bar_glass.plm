@@ -752,36 +752,36 @@ part BarGlass {
         //  The UwU's star burst, in place of the ripples the liquid sends along the strip's edge (switched off while it is on): when a drawer has closed, five small stars fan
         //  out from where it went back into the frame, shrink and fade. One clock for each drawer (`sb.*`, restarted by its closing; vitreus.plm).
         group {
-            show: uwu_k > 0.01 and sb_dc < 0.995 and lm > 0.5
+            show: uwu_k > 0.01 and sb_dc < 0.995 and fm > 0.5
             opacity: uwu_k * 80%
             repeat st in 0..5 {
                 let bdca = 0 + (st - 2) * 24
                 let bdcd = (10 + 58 * (1 - (1 - sb_dc) * (1 - sb_dc))) * u
                 let bdcr = (2 + 3.5 * (1 - sb_dc) * (1 - sb_dc) + 1.2 * mod(st, 2)) * u * clamp((1 - sb_dc) * 3, 0, 1)
-                path { at: lf.w + cos(bdca) * bdcd, dc.ey + sin(bdca) * bdcd; stroke: 2.4; color: deep; opacity: clamp((1 - sb_dc) * 3, 0, 1); move 0, -bdcr; line 0.3 * bdcr, -0.3 * bdcr; line bdcr, 0; line 0.3 * bdcr, 0.3 * bdcr; line 0, bdcr; line -0.3 * bdcr, 0.3 * bdcr; line -bdcr, 0; line -0.3 * bdcr, -0.3 * bdcr; close }
-                path { at: lf.w + cos(bdca) * bdcd, dc.ey + sin(bdca) * bdcd; color: pick(mod(st, 5), #ffe27a, #ff6eb4, #7fd3ff, #b69cff, #ffffff); opacity: clamp((1 - sb_dc) * 3, 0, 1); move 0, -bdcr; line 0.3 * bdcr, -0.3 * bdcr; line bdcr, 0; line 0.3 * bdcr, 0.3 * bdcr; line 0, bdcr; line -0.3 * bdcr, 0.3 * bdcr; line -bdcr, 0; line -0.3 * bdcr, -0.3 * bdcr; close }
+                path { at: mix(lf.w + cos(bdca) * bdcd, pcx + sin(bdca) * bdcd, tm), mix(dc.ey + sin(bdca) * bdcd, lf.w + cos(bdca) * bdcd, tm); stroke: 2.4; color: deep; opacity: clamp((1 - sb_dc) * 3, 0, 1); move 0, -bdcr; line 0.3 * bdcr, -0.3 * bdcr; line bdcr, 0; line 0.3 * bdcr, 0.3 * bdcr; line 0, bdcr; line -0.3 * bdcr, 0.3 * bdcr; line -bdcr, 0; line -0.3 * bdcr, -0.3 * bdcr; close }
+                path { at: mix(lf.w + cos(bdca) * bdcd, pcx + sin(bdca) * bdcd, tm), mix(dc.ey + sin(bdca) * bdcd, lf.w + cos(bdca) * bdcd, tm); color: pick(mod(st, 5), #ffe27a, #ff6eb4, #7fd3ff, #b69cff, #ffffff); opacity: clamp((1 - sb_dc) * 3, 0, 1); move 0, -bdcr; line 0.3 * bdcr, -0.3 * bdcr; line bdcr, 0; line 0.3 * bdcr, 0.3 * bdcr; line 0, bdcr; line -0.3 * bdcr, 0.3 * bdcr; line -bdcr, 0; line -0.3 * bdcr, -0.3 * bdcr; close }
             }
         }
         group {
-            show: uwu_k > 0.01 and sb_dk < 0.995 and lm > 0.5
+            show: uwu_k > 0.01 and sb_dk < 0.995 and fm > 0.5
             opacity: uwu_k * 80%
             repeat st in 0..5 {
                 let bdka = 0 + (st - 2) * 24
                 let bdkd = (10 + 58 * (1 - (1 - sb_dk) * (1 - sb_dk))) * u
                 let bdkr = (2 + 3.5 * (1 - sb_dk) * (1 - sb_dk) + 1.2 * mod(st, 2)) * u * clamp((1 - sb_dk) * 3, 0, 1)
-                path { at: lf.w + cos(bdka) * bdkd, dk.ey + sin(bdka) * bdkd; stroke: 2.4; color: deep; opacity: clamp((1 - sb_dk) * 3, 0, 1); move 0, -bdkr; line 0.3 * bdkr, -0.3 * bdkr; line bdkr, 0; line 0.3 * bdkr, 0.3 * bdkr; line 0, bdkr; line -0.3 * bdkr, 0.3 * bdkr; line -bdkr, 0; line -0.3 * bdkr, -0.3 * bdkr; close }
-                path { at: lf.w + cos(bdka) * bdkd, dk.ey + sin(bdka) * bdkd; color: pick(mod(st, 5), #ffe27a, #ff6eb4, #7fd3ff, #b69cff, #ffffff); opacity: clamp((1 - sb_dk) * 3, 0, 1); move 0, -bdkr; line 0.3 * bdkr, -0.3 * bdkr; line bdkr, 0; line 0.3 * bdkr, 0.3 * bdkr; line 0, bdkr; line -0.3 * bdkr, 0.3 * bdkr; line -bdkr, 0; line -0.3 * bdkr, -0.3 * bdkr; close }
+                path { at: mix(lf.w + cos(bdka) * bdkd, pcx + sin(bdka) * bdkd, tm), mix(dk.ey + sin(bdka) * bdkd, lf.w + cos(bdka) * bdkd, tm); stroke: 2.4; color: deep; opacity: clamp((1 - sb_dk) * 3, 0, 1); move 0, -bdkr; line 0.3 * bdkr, -0.3 * bdkr; line bdkr, 0; line 0.3 * bdkr, 0.3 * bdkr; line 0, bdkr; line -0.3 * bdkr, 0.3 * bdkr; line -bdkr, 0; line -0.3 * bdkr, -0.3 * bdkr; close }
+                path { at: mix(lf.w + cos(bdka) * bdkd, pcx + sin(bdka) * bdkd, tm), mix(dk.ey + sin(bdka) * bdkd, lf.w + cos(bdka) * bdkd, tm); color: pick(mod(st, 5), #ffe27a, #ff6eb4, #7fd3ff, #b69cff, #ffffff); opacity: clamp((1 - sb_dk) * 3, 0, 1); move 0, -bdkr; line 0.3 * bdkr, -0.3 * bdkr; line bdkr, 0; line 0.3 * bdkr, 0.3 * bdkr; line 0, bdkr; line -0.3 * bdkr, 0.3 * bdkr; line -bdkr, 0; line -0.3 * bdkr, -0.3 * bdkr; close }
             }
         }
         group {
-            show: uwu_k > 0.01 and sb_dm < 0.995 and lm > 0.5
+            show: uwu_k > 0.01 and sb_dm < 0.995 and fm > 0.5
             opacity: uwu_k * 80%
             repeat st in 0..5 {
                 let bdma = 0 + (st - 2) * 24
                 let bdmd = (10 + 58 * (1 - (1 - sb_dm) * (1 - sb_dm))) * u
                 let bdmr = (2 + 3.5 * (1 - sb_dm) * (1 - sb_dm) + 1.2 * mod(st, 2)) * u * clamp((1 - sb_dm) * 3, 0, 1)
-                path { at: lf.w + cos(bdma) * bdmd, dm.ey + sin(bdma) * bdmd; stroke: 2.4; color: deep; opacity: clamp((1 - sb_dm) * 3, 0, 1); move 0, -bdmr; line 0.3 * bdmr, -0.3 * bdmr; line bdmr, 0; line 0.3 * bdmr, 0.3 * bdmr; line 0, bdmr; line -0.3 * bdmr, 0.3 * bdmr; line -bdmr, 0; line -0.3 * bdmr, -0.3 * bdmr; close }
-                path { at: lf.w + cos(bdma) * bdmd, dm.ey + sin(bdma) * bdmd; color: pick(mod(st, 5), #ffe27a, #ff6eb4, #7fd3ff, #b69cff, #ffffff); opacity: clamp((1 - sb_dm) * 3, 0, 1); move 0, -bdmr; line 0.3 * bdmr, -0.3 * bdmr; line bdmr, 0; line 0.3 * bdmr, 0.3 * bdmr; line 0, bdmr; line -0.3 * bdmr, 0.3 * bdmr; line -bdmr, 0; line -0.3 * bdmr, -0.3 * bdmr; close }
+                path { at: mix(lf.w + cos(bdma) * bdmd, pcx + sin(bdma) * bdmd, tm), mix(dm.ey + sin(bdma) * bdmd, lf.w + cos(bdma) * bdmd, tm); stroke: 2.4; color: deep; opacity: clamp((1 - sb_dm) * 3, 0, 1); move 0, -bdmr; line 0.3 * bdmr, -0.3 * bdmr; line bdmr, 0; line 0.3 * bdmr, 0.3 * bdmr; line 0, bdmr; line -0.3 * bdmr, 0.3 * bdmr; line -bdmr, 0; line -0.3 * bdmr, -0.3 * bdmr; close }
+                path { at: mix(lf.w + cos(bdma) * bdmd, pcx + sin(bdma) * bdmd, tm), mix(dm.ey + sin(bdma) * bdmd, lf.w + cos(bdma) * bdmd, tm); color: pick(mod(st, 5), #ffe27a, #ff6eb4, #7fd3ff, #b69cff, #ffffff); opacity: clamp((1 - sb_dm) * 3, 0, 1); move 0, -bdmr; line 0.3 * bdmr, -0.3 * bdmr; line bdmr, 0; line 0.3 * bdmr, 0.3 * bdmr; line 0, bdmr; line -0.3 * bdmr, 0.3 * bdmr; line -bdmr, 0; line -0.3 * bdmr, -0.3 * bdmr; close }
             }
         }
         group {
