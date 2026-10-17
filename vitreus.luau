@@ -172,6 +172,7 @@ local function dash_time(c)
     if h12 == 0 then h12 = 12 end
     text.dsh_hh = clk24 and string.format("%02d", c.hour) or tostring(h12)
     text.dsh_ap = clk24 and "" or (c.hour < 12 and "AM" or "PM")
+    fact.dsh_ap_on = not clk24
     text.dsh_m1 = string.format("%d", math.floor(c.minute / 10))
     text.dsh_m2 = string.format("%d", c.minute % 10)
 end
@@ -3592,6 +3593,9 @@ local function wp_load()
             -- With no user-dirs config xdg-user-dir answers with the home folder itself: then it is ~/Pictures.
             if pics == "" or pics == d.home then pics = d.home .. "/Pictures" end
             wp_dir = pics .. "/Wallpapers"
+            -- Settings > Wallpaper can point it elsewhere (wallpaper-dir.json): "~" is the home folder.
+            local okd, saved = pcall(sys.ask, "files.read", "wallpaper-dir.json", "json")
+            if okd and type(saved) == "table" and type(saved.dir) == "string" and saved.dir ~= "" then wp_dir = saved.dir end
             wpv.dir = wp_dir
             local shown = wp_dir
             if shown:sub(1, #d.home) == d.home then shown = "~" .. shown:sub(#d.home + 1) end
@@ -3617,6 +3621,30 @@ local function wp_load()
     end)
 end
 
+-- Enter in the folder field: a folder that exists is kept (and listed at once); an empty field goes back to <Pictures>/Wallpapers.
+on("wp_dir_apply", function()
+    local want = ((text.wp_dir_in or ""):gsub("^%s+", ""):gsub("%s+$", ""))
+    text.wp_dir_in = ""
+    with_dirs(function(d)
+        if want:sub(1, 1) == "~" then want = d.home .. want:sub(2) end
+        if want == "" then
+            pcall(sys.call, "files.write", "wallpaper-dir.json", { dir = "" })
+            wp_load()
+            return
+        end
+        run("test", { "-d", want }, function(_, code)
+            if code ~= 0 then
+                local shown = text.wp_dirtext
+                text.wp_dirtext = "No such folder"
+                after(2500, function() text.wp_dirtext = shown end)
+                return
+            end
+            pcall(sys.call, "files.write", "wallpaper-dir.json", { dir = want })
+            wp_page = 0
+            wp_load()
+        end)
+    end)
+end)
 on("wp_pick", function(i)
     local f = wp_view[wp_page * WP_PER_PAGE + i + 1]
     if f then wp_apply(f) end
@@ -4881,7 +4909,7 @@ end
 -- forgets them when it reloads; they are put back when this shell starts). The input lines (pointer, touchpad, idle) are session.conf's,
 -- which pleamar-wm reads when it starts: they are rewritten here and apply at the next login.
 do
-    local wm = { layout = 0, share = 0.56, gap = 12, free = false, rain = false, snow = false, bw = 1.5, ba = 70, rad = 12, shd = 100, tb = 22, tbo = 72, wa = 100, wi = 100, fr = 80, wst = 0, tbt = true }
+    local wm = { layout = 0, lays = {}, share = 0.56, gap = 12, free = false, rain = false, snow = false, bw = 1.5, ba = 70, rad = 12, shd = 100, tb = 22, tbo = 72, wa = 100, wi = 100, fr = 80, wst = 0, tbt = true }
     -- The windows' corners follow the theme here too, as on Hyprland (same per-theme values, kept apart in wm-round.json): the slider edits the current theme's.
     local WM_ROUND_DEFAULT = { glass = 22, uwu = 22, retro = 3, cyber = 3 }
     local wm_round_by, wm_theme = {}, "glass"
@@ -4894,6 +4922,10 @@ do
     local function wm_theme_key()
         return iris_cfg.look == iris_fx.CASSETTE and "retro" or iris_cfg.look == iris_fx.UWU and "uwu" or iris_cfg.look == iris_fx.CYBER and "cyber" or "glass"
     end
+    -- The layout is each monitor's own, by its name (wm.lays); wm.layout is the one a monitor gets that has none chosen yet. `wm_names` are the
+    -- monitors in the window manager's own order (its `lay.N`), `wm_sel` the one the Layout chips are for.
+    local wm_names, wm_sel, wm_names_ok = {}, 1, false
+    local function layout_of(name) return (name and wm.lays[name]) or wm.layout end
     local inp = { ms = 0, ts = 0, nat = false, tap = false, idle = 7, maccel = "adaptive", taccel = "adaptive", dwt = nil }
     local wm_waiting, in_waiting = false, false
 
@@ -4901,7 +4933,12 @@ do
     local function b(v) return v and "true" or "false" end
 
     local function wm_show()
-        fact.wm_layout = wm.layout
+        fact.wm_layout = layout_of(wm_names[wm_sel])
+        fact.wm_mon_sel = wm_sel - 1
+        for i = 1, 4 do
+            fact["wm_m." .. (i - 1) .. ".on"] = wm_names[i] ~= nil
+            text["wm_m." .. (i - 1) .. ".name"] = wm_names[i] or ""
+        end
         fact.wm_share = wm.share
         fact.wm_gap = wm.gap
         fact.wm_free = wm.free
@@ -4969,12 +5006,24 @@ do
     end
 
     local function wm_send()
+        if not wm_names_ok then
+            say_many("wm", { "get monname.0", "get monname.1", "get monname.2", "get monname.3" }, function(r)
+                if not r then return end
+                wm_names = {}
+                for i = 1, 4 do wm_names[i] = ((r[i] or ""):match("^%s*([%w%._%-]+)")) end
+                wm_names_ok = true
+                if wm_sel > 4 or not wm_names[wm_sel] then wm_sel = 1 end
+                wm_show()
+                wm_send()
+            end)
+            return
+        end
         local cmds = {}
         local function say(line) cmds[#cmds + 1] = line end
         say("fact gap " .. wm.gap)
         say("fact ratio " .. wm.share)
         for m = 0, 3 do
-            say("fact lay." .. m .. " " .. wm.layout)
+            say("fact lay." .. m .. " " .. layout_of(wm_names[m + 1]))
             say("fact free." .. m .. " " .. (wm.free and 1 or 0))
         end
         say("fact rain " .. b(wm.rain))
@@ -4996,7 +5045,7 @@ do
     end
 
     local function wm_save()
-        pcall(sys.call, "files.write", "wm.json", { layout = wm.layout, share = wm.share, gap = wm.gap, free = wm.free, rain = wm.rain, snow = wm.snow, bw = wm.bw, ba = wm.ba, rad = wm.rad, shd = wm.shd, tb = wm.tb, tbo = wm.tbo, wa = wm.wa, wi = wm.wi, fr = wm.fr, wst = wm.wst, tbt = wm.tbt })
+        pcall(sys.call, "files.write", "wm.json", { layout = wm.layout, lays = wm.lays, share = wm.share, gap = wm.gap, free = wm.free, rain = wm.rain, snow = wm.snow, bw = wm.bw, ba = wm.ba, rad = wm.rad, shd = wm.shd, tb = wm.tb, tbo = wm.tbo, wa = wm.wa, wi = wm.wi, fr = wm.fr, wst = wm.wst, tbt = wm.tbt })
     end
 
     local function wm_changed()
@@ -5035,11 +5084,23 @@ do
         -- Pleamar-WM answers only when it is the window manager; on Hyprland each of these would start a command to get nothing back.
         if on_hyprland then return end
         -- One connection for all of them (`say_many`): a `pleamar --say` program for each of these fifteen made the page stall when it opened.
-        local names = { "gap", "ratio", "lay.0", "free.0", "rain", "snow", "bw", "ba", "rad", "shd", "tb", "tbo", "wo_a", "wo_i", "wfr", "wst", "tbt" }
+        local names = { "gap", "ratio", "monname.0", "free.0", "rain", "snow", "bw", "ba", "rad", "shd", "tb", "tbo", "wo_a", "wo_i", "wfr", "wst", "tbt" }
         local cmds = {}
         for i, n in ipairs(names) do cmds[i] = "get " .. n end
+        -- (after those: each monitor's name and the layout it has now, to show what is really there)
+        for m = 0, 3 do cmds[#cmds + 1] = "get monname." .. m; cmds[#cmds + 1] = "get lay." .. m end
         say_many("wm", cmds, function(r)
             if not r then return end
+            local base = #names
+            wm_names = {}
+            for m = 0, 3 do
+                local n = (r[base + m * 2 + 1] or ""):match("^%s*([%w%._%-]+)")
+                wm_names[m + 1] = n
+                local l = tonumber(((r[base + m * 2 + 2]) or ""):match("%-?%d+"))
+                if n and l then wm.lays[n] = math.max(0, math.min(7, l)) end
+            end
+            wm_names_ok = true
+            if not wm_names[wm_sel] then wm_sel = 1 end
             local function val(i)
                 local out = r[i] or ""
                 return tonumber(out:match("%-?[%d.]+")) or (out:match("true") and 1) or (out:match("false") and 0) or nil
@@ -5048,7 +5109,6 @@ do
             for i = 1, #names do v[i] = val(i) end
             if v[1] then wm.gap = v[1] end
             if v[2] then wm.share = v[2] end
-            if v[3] then wm.layout = v[3] end
             if v[4] then wm.free = v[4] == 1 end
             if v[5] then wm.rain = v[5] == 1 end
             if v[6] then wm.snow = v[6] == 1 end
@@ -5098,6 +5158,12 @@ do
         local ok, saved = pcall(sys.ask, "files.read", "wm.json", "json")
         if ok and type(saved) == "table" then
             wm.layout = math.max(0, math.min(7, tonumber(saved.layout) or 0))
+            wm.lays = {}
+            if type(saved.lays) == "table" then
+                for k, v in pairs(saved.lays) do
+                    if type(k) == "string" and tonumber(v) then wm.lays[k] = math.max(0, math.min(7, math.floor(tonumber(v)))) end
+                end
+            end
             wm.share = tonumber(saved.share) or wm.share
             wm.gap = tonumber(saved.gap) or wm.gap
             wm.free, wm.rain, wm.snow = saved.free == true, saved.rain == true, saved.snow == true
@@ -5124,7 +5190,16 @@ do
         wm_frame_sync()
     end)
 
-    on("wm_layout_set", function(i) wm.layout = math.max(0, math.min(7, math.floor(i + 0.5))); wm_changed() end)
+    on("wm_layout_set", function(i)
+        local l = math.max(0, math.min(7, math.floor(i + 0.5)))
+        local n = wm_names[wm_sel]
+        if n then wm.lays[n] = l else wm.layout = l end
+        wm_changed()
+    end)
+    on("wm_mon_pick", function(i)
+        local k = math.floor(i + 0.5) + 1
+        if wm_names[k] then wm_sel = k; wm_show() end
+    end)
     on("wm_wst_set", function(i) wm.wst = math.max(0, math.min(3, math.floor(i + 0.5))); wm_changed() end)
     on("wm_share_set", function(t) wm.share = math.floor((0.3 + math.max(0, math.min(1, t)) * 0.5) * 100 + 0.5) / 100; wm_changed() end)
     on("wm_gap_set", function(t) wm.gap = math.floor(math.max(0, math.min(1, t)) * 32 + 0.5); wm_changed() end)

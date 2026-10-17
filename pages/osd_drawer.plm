@@ -64,8 +64,8 @@ part OsdDrawer {
             }
             line { from: tr0 + span, vy; to: tr0 + trw, vy; width: 5 * u; color: ink; opacity: 12% }
             box { at: clamp(tr0 + span, tr0 + 4 * u, tr0 + trw - 4 * u), vy; size: 6 * u, 26 * u; corner: 3 * u; color: ink }
-            text number(audio.volume * 100, 0, "%") { at: floor(os.px + 116 * u + 0.5), floor(vy + 0.5); anchor: center; align: center; size: 21 * u; weight: 700; color: ink; family: "Space Grotesk"; show: not audio.muted }
-            text "Muted" { at: floor(os.px + 116 * u + 0.5), floor(vy + 0.5); anchor: center; align: center; size: 21 * u; weight: 700; color: faint; family: "Space Grotesk"; show: audio.muted }
+            text number(audio.volume * 100, 0, "%") { at: floor(os.px + 116 * u + 0.5), floor(vy + 0.5); anchor: center; align: center; size: 21; weight: 700; color: ink; family: "Space Grotesk"; show: not audio.muted }
+            text "Muted" { at: floor(os.px + 116 * u + 0.5), floor(vy + 0.5); anchor: center; align: center; size: 21; weight: 700; color: faint; family: "Space Grotesk"; show: audio.muted }
         }
 
         // ── the brightness: under the volume when both are out, alone in its place otherwise ──
@@ -99,7 +99,7 @@ part OsdDrawer {
             }
             ellipse { at: btr0 + bspan, by; radius: (9 + 2.5 * sin(time * 220)) * u; color: minthi; opacity: 22% * clamp(bright_osd * 8, 0, 1) }
             box { at: clamp(btr0 + bspan, btr0 + 4 * u, btr0 + btrw - 4 * u), by; size: 6 * u, 26 * u; corner: 3 * u; color: ink }
-            text number(bright_now * 100, 0, "%") { at: floor(os.px + 116 * u + 0.5), floor(by + 0.5); anchor: center; align: center; size: 21 * u; weight: 700; color: ink; family: "Space Grotesk" }
+            text number(bright_now * 100, 0, "%") { at: floor(os.px + 116 * u + 0.5), floor(by + 0.5); anchor: center; align: center; size: 21; weight: 700; color: ink; family: "Space Grotesk" }
         }
 
         // ── the microphone: muted or on, under whichever of the other two are out ──
@@ -114,8 +114,8 @@ part OsdDrawer {
             path { at: mtx, mcy - 4 * u; stroke: 1.8 * u; color: if(audio.input_muted, faint, mint); move -7.5 * u, 1 * u; curve 0, 9.5 * u via -7.5 * u, 9.5 * u; curve 7.5 * u, 1 * u via 7.5 * u, 9.5 * u }
             box { at: mtx, mcy + 9 * u; size: 1.8 * u, 4 * u; corner: 0.9 * u; color: if(audio.input_muted, faint, mint) }
             path { at: mtx, mcy; stroke: 2.2 * u; color: alert; opacity: if(audio.input_muted, 100%, 0); move -9 * u, -10 * u; line 9 * u, 10 * u }
-            text "Microphone muted" { at: floor(os.px - 90 * u + 0.5), floor(mcy + 0.5); anchor: left center; size: 19 * u; weight: 700; color: ink; family: "Space Grotesk"; show: audio.input_muted }
-            text "Microphone on" { at: floor(os.px - 90 * u + 0.5), floor(mcy + 0.5); anchor: left center; size: 19 * u; weight: 700; color: mint; family: "Space Grotesk"; show: not audio.input_muted }
+            text "Microphone muted" { at: floor(os.px - 90 * u + 0.5), floor(mcy + 0.5); anchor: left center; size: 19; weight: 700; color: ink; family: "Space Grotesk"; show: audio.input_muted }
+            text "Microphone on" { at: floor(os.px - 90 * u + 0.5), floor(mcy + 0.5); anchor: left center; size: 19; weight: 700; color: mint; family: "Space Grotesk"; show: not audio.input_muted }
         }
 
         // ── a notification ──
@@ -141,9 +141,9 @@ part OsdDrawer {
             ellipse { at: ntx, nty; radius: (24 + 22 * nt_ring) * u; stroke: 2 * u; color: if(nt_urgent, alert, mint); opacity: 90% * (1 - nt_ring) }
             ellipse { at: ntx + 20 * u, nty - 20 * u; radius: 5 * u; color: alert; opacity: if(nt_urgent, 60% + 40% * sin(time * 300), 0) }
 
-            text nt_app { at: floor(ntl + 0.5), floor(ot + 12 * u + 9 * u + 0.5); anchor: left center; size: 13 * u; weight: 700; width: 190 * u; lines: 1; color: faint; family: "Space Grotesk" }
-            text nt_title { at: floor(ntl + 0.5), floor(ot + 35 * u + 0.5); anchor: left top; size: 19 * u; weight: 700; width: 236 * u; lines: 3; measure: ntt; color: ink; family: "Space Grotesk" }
-            text nt_body { at: floor(ntl + 0.5), floor(ot + (39 + nt_th) * u + 0.5); anchor: left top; size: 15.5 * u; width: 236 * u; lines: 6; measure: ntb; color: faint; family: "Space Grotesk"; show: nt_body_on }
+            text nt_app { at: floor(ntl + 0.5), floor(ot + 12 * u + 9 * u + 0.5); anchor: left center; size: 13; weight: 700; width: 190 * u; lines: 1; color: faint; family: "Space Grotesk" }
+            text nt_title { at: floor(ntl + 0.5), floor(ot + 35 * u + 0.5); anchor: left top; size: 19; weight: 700; width: 236 * u; lines: 3; measure: ntt; color: ink; family: "Space Grotesk" }
+            text nt_body { at: floor(ntl + 0.5), floor(ot + (39 + nt_th) * u + 0.5); anchor: left top; size: 15.5; width: 236 * u; lines: 6; measure: ntb; color: faint; family: "Space Grotesk"; show: nt_body_on }
             //  Its buttons, under the words.
             row nt_row {
                 at: floor(ntl + 0.5), floor(ot + (nt_content + 8) * u + 0.5)
@@ -177,7 +177,7 @@ part OsdDrawer {
             line { from: os.px + stw / 2 - 12.5 * u, sty + 12.5 * u; to: os.px + stw / 2 - 19.5 * u, sty + 19.5 * u; width: 1.5 * u; color: #ffffff; opacity: 90% }
             zone box shot_x { at: os.px + stw / 2 - 16 * u, sty + 16 * u; size: 26 * u, 26 * u; corner: 13 * u; cursor: pointer }
             on press shot_x { emit shot_close }
-            text shot_name { at: floor(os.px - stw / 2 + 2 * u + 0.5), floor(sty + sth + 14 * u + 0.5); anchor: left center; size: 12 * u; weight: 600; width: stw - 4 * u; lines: 1; color: faint; family: "Space Grotesk" }
+            text shot_name { at: floor(os.px - stw / 2 + 2 * u + 0.5), floor(sty + sth + 14 * u + 0.5); anchor: left center; size: 12; weight: 600; width: stw - 4 * u; lines: 1; color: faint; family: "Space Grotesk" }
             //  What can be done with it: Open and Delete always; the text ones when tesseract can read it.
             repeat k in 0..4 {
                 let sn = if(shot_ocr, 4, 2)
@@ -189,7 +189,7 @@ part OsdDrawer {
                 group {
                     show: k < sn
                     box { at: sx, sy; size: sw, 26 * u; corner: 13 * u; color: if(sl == 3, alert, mint); opacity: 14% + 12% * shot_b.$k.hover }
-                    text pick(sl, "Open", "Copy text", "Ask", "Delete") { at: floor(sx + 0.5), floor(sy + 0.5); anchor: center; align: center; size: 12 * u; weight: 700; color: if(sl == 3, alert, mint); family: "Space Grotesk" }
+                    text pick(sl, "Open", "Copy text", "Ask", "Delete") { at: floor(sx + 0.5), floor(sy + 0.5); anchor: center; align: center; size: 12; weight: 700; color: if(sl == 3, alert, mint); family: "Space Grotesk" }
                     zone box shot_b.$k { at: sx, sy; size: sw, 28 * u; corner: 14 * u; cursor: pointer; active: k < sn and oks > 0.5 }
                     on press shot_b.$k { emit shot_act(sl) }
                 }

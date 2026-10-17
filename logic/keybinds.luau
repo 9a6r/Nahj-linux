@@ -54,6 +54,9 @@ return function()
         },
     }
 
+    -- What a bind taken out here starts with: the line stays in the file, commented, so it can be put back.
+    local REMOVED = { hypr = "-- removed in Settings: ", pwm = "#removed# " }
+
     local K = { rows = {}, sel = 0, mask = 0, key = "" }     -- sel: 1-based, 0 = none
 
     local function wm() return fact.wm_hypr == true and "hypr" or "pwm" end
@@ -139,8 +142,10 @@ return function()
         run("cat", { path() }, function(out, code)
             local rows = {}
             local seen = {}
+            local removed = 0
             if code == 0 then
                 for line in (out or ""):gmatch("[^\n]+") do
+                    if line:sub(1, #REMOVED[wm()]) == REMOVED[wm()] then removed = removed + 1 end
                     local combo, scene, cmd
                     if wm() == "hypr" then
                         combo, scene, cmd = line:match('^hl%.bind%("([^"]+)",.-pleamar %-%-say (%S+) \\"(.-)\\"')
@@ -167,6 +172,7 @@ return function()
                 return a.order < b.order
             end)
             K.rows = rows
+            fact.kb_removed = removed
             show()
             if fn then fn() end
         end)
@@ -266,6 +272,53 @@ return function()
         local r = K.rows[K.sel]
         if not r or K.key == "" then return end
         apply(r, K.mask, K.key)
+    end)
+
+    -- Takes the selected bind out of the file: its line is kept as a comment (`kb_restore` puts it back). Under pleamar-wm an `unbind` follows,
+    -- so the key does nothing at all and not what `defaults` gives it.
+    on("kb_delete", function()
+        local r = K.rows[K.sel]
+        if not r then return end
+        local old = r.text
+        if not old:match("^[%w_ %+]+$") then text.kb_msg = "That key cannot be written to the file" return end
+        local script
+        if wm() == "hypr" then
+            script = 's|^\\(hl\\.bind("' .. old .. '",\\)|' .. REMOVED.hypr .. '\\1|'
+        else
+            script = 's|^\\(bind[[:space:]]\\{1,\\}' .. old .. '[[:space:]].*\\)$|' .. REMOVED.pwm .. '\\1\\nunbind ' .. old .. '|'
+        end
+        run("sed", { "-i", "--follow-symlinks", script, path() }, function(_, code)
+            if code ~= 0 then text.kb_msg = "Could not write " .. path() return end
+            local function done()
+                read(function()
+                    K.sel = 0
+                    fact.kb_sel = -1
+                    fact.kb_dirty = false
+                    text.kb_msg = "Removed “" .. r.name .. "”. Restore puts it back."
+                end)
+            end
+            if wm() == "hypr" then run("hyprctl", { "reload" }, function() done() end) else done() end
+        end)
+    end)
+
+    on("kb_restore", function()
+        local script
+        if wm() == "hypr" then
+            script = 's|^' .. REMOVED.hypr .. '||'
+        else
+            script = '/^' .. REMOVED.pwm .. '/{s/^' .. REMOVED.pwm .. '//;n;/^unbind /d}'
+        end
+        run("sed", { "-i", "--follow-symlinks", script, path() }, function(_, code)
+            if code ~= 0 then text.kb_msg = "Could not write " .. path() return end
+            local function done()
+                read(function()
+                    K.sel = 0
+                    fact.kb_sel = -1
+                    text.kb_msg = "Put back."
+                end)
+            end
+            if wm() == "hypr" then run("hyprctl", { "reload" }, function() done() end) else done() end
+        end)
     end)
 
     on("kb_reset", function()

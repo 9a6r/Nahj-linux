@@ -84,6 +84,19 @@ part Keybinds {
                 group { scale: rs; pivot: floor(spx + 221 * pu + 0.5), floor(kb.t2 + 89 * pu + 0.5); text "Cancel" { at: floor(spx + 221 * pu + 0.5), floor(kb.t2 + 89 * pu + 0.5); anchor: center; align: center; size: 14; weight: 600; color: ink; opacity: 85%; family: "Space Grotesk" } }
                 zone box kb_cancel_hit { from: spx + 182 * pu, kb.t2 + 76 * pu; size: 78 * pu, 26 * pu; corner: 13 * pu; cursor: pointer; active: kb_sel >= 0 and set_pgy > 0.5 }
                 on press kb_cancel_hit { emit kb_cancel }
+                //  Delete takes the bind out of the file (it stays there as a comment; Restore, in the list, puts it back).
+                box { from: spx + 266 * pu, kb.t2 + 76 * pu; size: 78 * pu, 26 * pu; corner: 13 * pu; color: #ff6b6b; opacity: 10% + 16% * kb_delete_hit.hover }
+                group { scale: rs; pivot: floor(spx + 305 * pu + 0.5), floor(kb.t2 + 89 * pu + 0.5); text "Delete" { at: floor(spx + 305 * pu + 0.5), floor(kb.t2 + 89 * pu + 0.5); anchor: center; align: center; size: 14; weight: 600; color: #ff6b6b; family: "Space Grotesk" } }
+                zone box kb_delete_hit { from: spx + 266 * pu, kb.t2 + 76 * pu; size: 78 * pu, 26 * pu; corner: 13 * pu; cursor: pointer; label: "Delete this keybind"; active: kb_sel >= 0 and set_pgy > 0.5 }
+                on press kb_delete_hit { emit kb_delete }
+            }
+            //  Binds taken out with Delete: one press puts them all back.
+            group {
+                show: kb_removed > 0 and kb_sel < 0
+                box { from: kb.xr - 122 * pu, kb.t2 + 9 * pu; size: 122 * pu, 26 * pu; corner: 13 * pu; color: mint; opacity: 12% + 14% * kb_restore_hit.hover }
+                group { scale: rs; pivot: floor(kb.xr - 61 * pu + 0.5), floor(kb.t2 + 22 * pu + 0.5); text "Restore removed" { at: floor(kb.xr - 61 * pu + 0.5), floor(kb.t2 + 22 * pu + 0.5); anchor: center; align: center; size: 13.5; weight: 600; color: mint; family: "Space Grotesk" } }
+                zone box kb_restore_hit { from: kb.xr - 122 * pu, kb.t2 + 9 * pu; size: 122 * pu, 26 * pu; corner: 13 * pu; cursor: pointer; label: "Restore the keybinds taken out here"; active: kb_removed > 0 and kb_sel < 0 and set_pgy > 0.5 }
+                on press kb_restore_hit { emit kb_restore }
             }
             //  How the last save went (or why it did not).
             group { scale: rs; pivot: floor(kb.xr + 0.5), floor(kb.t2 + kb.h2 + 14 * pu + 0.5); text kb_msg { at: floor(kb.xr + 0.5), floor(kb.t2 + kb.h2 + 14 * pu + 0.5); anchor: right center; align: right; size: 13; width: (420 * pu) / rs; lines: 1; color: mint; family: "Space Grotesk" } }

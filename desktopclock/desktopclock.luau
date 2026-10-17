@@ -117,6 +117,7 @@ local function refresh_monitors()
             end
             -- the monitor it was on, or (when that one is gone, or none was chosen yet) the main one
             fact.mon = mine or primary
+            text.mon_name = names[(mine or primary) + 1] or ""
             if cfg.monitor == "" then cfg.monitor = names[primary + 1] or ""; save() end
         end)
     end)
@@ -161,7 +162,13 @@ on("fact:where", function(v) if POSITIONS[v] then cfg.position = v; save() end e
 on("fact:gx", function(v) if type(v) == "number" then cfg.gx = v; save() end end)
 on("fact:gy", function(v) if type(v) == "number" then cfg.gy = v; save() end end)
 on("fact:wti", function(v) if type(v) == "number" then cfg.weight = clampi(v, 0, 2); save() end end)
-on("fact:mon", function(v) local n = type(v) == "number" and names[clampi(v, 0, 3) + 1]; if n and n ~= cfg.monitor then cfg.monitor = n; save() end end)
+on("fact:mon", function(v) local n = type(v) == "number" and names[clampi(v, 0, 3) + 1]; if n and n ~= cfg.monitor then cfg.monitor = n; text.mon_name = n; save() end end)
+-- Settings > Widgets: "show it on this monitor", by name.
+on("text:mon_name", function(t)
+    for k = 1, 4 do
+        if names[k] and names[k] == t then fact.mon = k - 1; cfg.monitor = t; save() return end
+    end
+end)
 on("fact:cli", function(v) if type(v) == "number" then cfg.clarity = clampi(v, 0, 2); save() end end)
 for _, g in ipairs(GL) do
     on("fact:g" .. g .. "w", function(v) if type(v) == "number" then glyphs[g].w = math.max(0.4, math.min(2, v)); pack(); save() end end)

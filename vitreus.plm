@@ -99,6 +99,7 @@ scene Vitreus {
     text dsh_m1 = ""
     text dsh_m2 = ""
     text dsh_ap = ""                  // AM / PM beside it, when the system clock is a 12-hour one
+    fact dsh_ap_on = false            // that label is showing: the reminders start after it
     measure dsh_hw
     text clock_hm = "--:--"
     text clock_ap = ""
@@ -259,9 +260,14 @@ scene Vitreus {
     image wp_cur = from wp_curpath, 320, 180
     text wp_name = ""
     text wp_dirtext = ""
+    text wp_dir_in = ""            // the folder being typed on the wallpaper page (Enter applies it; empty goes back to ~/Pictures/Wallpapers)
+    fact wp_dir_edit = false
+    prop wp_dir_edit_k = 0 ~quick
+    follow wp_dir_edit_k = if(wp_dir_edit, 1, 0)
     text wp_pager = ""
     event wp_pick ->                // a thumbnail, by position on the page
     event wp_prev ->
+    event wp_dir_apply ->           // Enter in the folder field
     event wp_next ->
     event wp_random ->
     //  The colour filter (twelve swatches; the lit one is `wp_filter`, -1 for none) and the slideshow.
@@ -369,6 +375,7 @@ scene Vitreus {
     fact kb_mod = 0
     fact kb_has = false                // a key is chosen
     fact kb_dirty = false              // what is chosen differs from what is in the file
+    fact kb_removed = 0                // how many binds were taken out here and can be put back
     text kb_name = ""
     text kb_key = ""
     text kb_msg = ""
@@ -380,6 +387,8 @@ scene Vitreus {
     event kb_save ->
     event kb_reset ->
     event kb_cancel ->
+    event kb_delete ->
+    event kb_restore ->
     fact nt_to = 0                     // how far the notification list is scrolled (px)
     prop nt_s = 0 ~quick
     follow nt_s = nt_to
@@ -1231,7 +1240,13 @@ scene Vitreus {
     //  input lines go to session.conf and apply at the next login.
     fact wm_hypr = false             // the session is Hyprland: the Hyprland page is in the Settings (set by the logic)
     fact wm_pwm = false              // the session is pleamar-wm: the Pleamar-WM page is in the Settings
-    fact wm_layout = 0
+    fact wm_layout = 0                // the layout of the monitor picked below it
+    fact wm_mon_sel = 0               // which monitor's layout the chips set: its slot, 0 and up
+    repeat i in 0..4 {
+        fact wm_m.$i.on = false
+        text wm_m.$i.name = ""
+    }
+    event wm_mon_pick ->
     fact wm_share = 0.56
     fact wm_gap = 12
     fact wm_free = false
@@ -1383,6 +1398,11 @@ scene Vitreus {
         text cv_m.$i.name = ""
     }
     event cv_mon_set ->
+    //  And the clock's and the system monitor's: 1 and up is a monitor's slot (the same chips' names as the visualiser's).
+    fact ck_mon = 0
+    fact sy_mon = 0
+    event ck_mon_set ->
+    event sy_mon_set ->
     fact ck_scroll_to = 0              // the page scrolls like Lock screen's
     prop ck_scroll = 0 ~quick
     follow ck_scroll = ck_scroll_to
@@ -1913,7 +1933,7 @@ scene Vitreus {
     follow mvis = if(mixer.count > 0 or vm_open, 1, 0)
     on launch_toggle { panel = if(panel == launch, none, launch) }
     on settings_toggle { panel = if(panel == settings, none, settings) }
-    on change panel { font_dd_open = false; dd_open = false; vm_open = false; panel_sub = none; disp_res_open = false; disp_scroll_to = 0; sm_scroll_to = 0; nt_scroll_to = 0; lk_scroll_to = 0; gl_scroll_to = 0; ck_scroll_to = 0; wm_scroll_to = 0; vpn_scroll_to = 0 }
+    on change panel { wp_dir_edit = false; font_dd_open = false; dd_open = false; vm_open = false; panel_sub = none; disp_res_open = false; disp_scroll_to = 0; sm_scroll_to = 0; nt_scroll_to = 0; lk_scroll_to = 0; gl_scroll_to = 0; ck_scroll_to = 0; wm_scroll_to = 0; vpn_scroll_to = 0 }
     on change set_page { font_dd_open = false; disp_res_open = false; disp_scroll_to = 0; sm_scroll_to = 0; nt_scroll_to = 0; lk_scroll_to = 0; gl_scroll_to = 0; ck_scroll_to = 0; wm_scroll_to = 0; vpn_scroll_to = 0; vpn_arm = -1 }
     //  The Hyprland and Pleamar-WM pages read their settings from the system when they are shown, and only then: reading them on every page change
     //  (a dozen commands and a couple of hundred fact writes) stalled the scene for half a second on each click anywhere in Settings.
@@ -2657,12 +2677,12 @@ scene Vitreus {
             box { at: 9 * u, 13.6 * u; size: 6 * u, 1.4 * u; corner: 0.7 * u; color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa)) }
         }
         zone box touch { at: 9 * u, 9 * u; size: 22 * u, 26 * u }
-        text priv_mic_who { at: floor(9 * u + 0.5), floor(30 * u + 0.5); anchor: center; align: center; size: 12 * u; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm < 0.5 and kind == 0 }
-        text priv_mic_who { at: floor(26 * u + 0.5), floor(9 * u + 0.5); anchor: left center; size: 12 * u; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm >= 0.5 and kind == 0 }
-        text priv_cam_who { at: floor(9 * u + 0.5), floor(30 * u + 0.5); anchor: center; align: center; size: 12 * u; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm < 0.5 and kind == 1 }
-        text priv_cam_who { at: floor(26 * u + 0.5), floor(9 * u + 0.5); anchor: left center; size: 12 * u; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm >= 0.5 and kind == 1 }
-        text priv_scr_who { at: floor(9 * u + 0.5), floor(30 * u + 0.5); anchor: center; align: center; size: 12 * u; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm < 0.5 and kind == 2 }
-        text priv_scr_who { at: floor(26 * u + 0.5), floor(9 * u + 0.5); anchor: left center; size: 12 * u; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm >= 0.5 and kind == 2 }
+        text priv_mic_who { at: floor(9 * u + 0.5), floor(30 * u + 0.5); anchor: center; align: center; size: 12; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm < 0.5 and kind == 0 }
+        text priv_mic_who { at: floor(26 * u + 0.5), floor(9 * u + 0.5); anchor: left center; size: 12; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm >= 0.5 and kind == 0 }
+        text priv_cam_who { at: floor(9 * u + 0.5), floor(30 * u + 0.5); anchor: center; align: center; size: 12; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm < 0.5 and kind == 1 }
+        text priv_cam_who { at: floor(26 * u + 0.5), floor(9 * u + 0.5); anchor: left center; size: 12; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm >= 0.5 and kind == 1 }
+        text priv_scr_who { at: floor(9 * u + 0.5), floor(30 * u + 0.5); anchor: center; align: center; size: 12; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm < 0.5 and kind == 2 }
+        text priv_scr_who { at: floor(26 * u + 0.5), floor(9 * u + 0.5); anchor: left center; size: 12; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm >= 0.5 and kind == 2 }
     }
 
     component BarRec(stop: event) {
@@ -2686,7 +2706,7 @@ scene Vitreus {
         size: floor(82 * u + 0.5), floor(26 * u + 0.5)
         zone box touch { from: 0, 0; size: 82 * u, 26 * u; corner: 8 * u; cursor: pointer }
         box { from: 0, 0; size: 82 * u, 26 * u; corner: 8 * u; color: if(touch.hover, mint, ink); opacity: if(touch.hover, 100%, 8%) }
-        text a.label { at: floor(41 * u + 0.5), floor(13 * u + 0.5); anchor: center; align: center; size: 12.5 * u; weight: 700; width: 74 * u; lines: 1; color: if(touch.hover, onmint, ink); family: "Space Grotesk" }
+        text a.label { at: floor(41 * u + 0.5), floor(13 * u + 0.5); anchor: center; align: center; size: 12.5; weight: 700; width: 74 * u; lines: 1; color: if(touch.hover, onmint, ink); family: "Space Grotesk" }
         on press touch { emit click(a.index) }
     }
 
@@ -3137,8 +3157,8 @@ scene Vitreus {
     let vpn.pbh = 34 + max(1, vpn_count) * 32 + 6
     let vpn.ab = vpn.pb + vpn.pbh + 12
     let vpn.fh = if(vpn_mode == vpm_wg, 180, if(vpn_mode == vpm_ovpn, 144, 276))
-    let wm.h = 912                     // the Pleamar-WM page: to the bottom of its last card
-    let ck.h = 956                     // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
+    let wm.h = 946                     // the Pleamar-WM page: to the bottom of its last card
+    let ck.h = 1024                    // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
     let gl.h = 554                     // the Glass page: to the bottom of its last card
     let lk.h = 806                     // the Lock screen page: its cards, to the bottom of the last
     //  The Notifications page: the apps card has a row for each app (up to 14), and the rules card is there while one is open.
@@ -3866,9 +3886,9 @@ scene Vitreus {
             line { from: cydol + 22 * u + cydok * 6 * u, cydob + 7 * u + 1; to: cydol + 22 * u + cydok * 6 * u, cydob + 7 * u + 1 + if(mod(cydok, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
         }
     
-        text "SYS 2B6D·F418" { at: cydor - 9 * u, cydob + 7 * u + 11 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 0, 85%, 0) }
-        text "SYS E90C·57A3" { at: cydor - 9 * u, cydob + 7 * u + 11 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 1, 85%, 0) }
-        text "SYS 30D8·B166" { at: cydor - 9 * u, cydob + 7 * u + 11 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 2, 85%, 0) }
+        text "SYS 2B6D·F418" { at: cydor - 9 * u, cydob + 7 * u + 11 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 0, 85%, 0) }
+        text "SYS E90C·57A3" { at: cydor - 9 * u, cydob + 7 * u + 11 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 1, 85%, 0) }
+        text "SYS 30D8·B166" { at: cydor - 9 * u, cydob + 7 * u + 11 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 2, 85%, 0) }
         box { at: cydor - 3 * u, cydob + 7 * u + 11 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
     }
     group {
@@ -4007,8 +4027,8 @@ scene Vitreus {
         opacity: lm * bs.title0
         text win.title { at: floor(lf.x + 9 * cu + 0.5), floor(lv.tm + 0.5); anchor: center; align: center; size: 14; weight: 500; width: max(1, lv.span); lines: 1; color: ink; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
     }
-    text win.class { at: floor(win.x + 0.5), floor(bar.y - 6.5 * u + 0.5); anchor: left center; size: 17 * u; weight: 600; width: max(0, win.hw - 12 * u - mctl); lines: 1; color: faint; opacity: 55% * bs.title; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
-    text win.title { at: floor(win.x + 0.5), floor(bar.y + 8.75 * u + 0.5); anchor: left center; size: 13.5 * u; weight: 500; width: max(0, win.hw - 12 * u); lines: 1; color: ink; opacity: bs.title; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
+    text win.class { at: floor(win.x + 0.5), floor(bar.y - 6.5 * u + 0.5); anchor: left center; size: 17; weight: 600; width: max(0, win.hw - 12 * u - mctl); lines: 1; color: faint; opacity: 55% * bs.title; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
+    text win.title { at: floor(win.x + 0.5), floor(bar.y + 8.75 * u + 0.5); anchor: left center; size: 13.5; weight: 500; width: max(0, win.hw - 12 * u); lines: 1; color: ink; opacity: bs.title; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
 
     //  Along the top with nothing focused (an empty workspace) and no player: three dots take the title's place, as down the left, so there is something to click.
     group {
@@ -4542,26 +4562,26 @@ scene Vitreus {
         //  A padlock, then the title.
         path { at: pk.l + 12 * u, pk.top + 38 * u; stroke: 1.7 * u; color: mint; move -4 * u, -1 * u; line -4 * u, -5 * u; curve 4 * u, -5 * u via 0, -12 * u; line 4 * u, -1 * u }
         box { at: pk.l + 12 * u, pk.top + 41 * u; size: 15 * u, 11 * u; corner: 3 * u; stroke: 1.7 * u; color: mint }
-        text "Authentication required" { at: floor(pk.l + 32 * u + 0.5), floor(pk.top + 38 * u + 0.5); anchor: left center; size: 15 * u; weight: 700; color: ink; family: "Space Grotesk" }
-        text pk_message { at: floor(pk.l + 0.5), floor(pk.top + 62 * u + 0.5); anchor: left top; size: 11.5 * u; width: 352 * u; lines: 3; color: ink; opacity: 78%; family: "Space Grotesk" }
+        text "Authentication required" { at: floor(pk.l + 32 * u + 0.5), floor(pk.top + 38 * u + 0.5); anchor: left center; size: 15; weight: 700; color: ink; family: "Space Grotesk" }
+        text pk_message { at: floor(pk.l + 0.5), floor(pk.top + 62 * u + 0.5); anchor: left top; size: 11.5; width: 352 * u; lines: 3; color: ink; opacity: 78%; family: "Space Grotesk" }
         //  Whose password it is.
         ellipse { at: pk.l + 10 * u, pk.top + 132 * u; radius: 9 * u; color: mint; opacity: 24% }
         ellipse { at: pk.l + 10 * u, pk.top + 129 * u; radius: 2.6 * u; color: mint }
         path { at: pk.l + 10 * u, pk.top + 138 * u; stroke: 1.5 * u; color: mint; move -4.5 * u, 0; curve 4.5 * u, 0 via 0, -7 * u }
-        text pk_user { at: floor(pk.l + 28 * u + 0.5), floor(pk.top + 132 * u + 0.5); anchor: left center; size: 12 * u; weight: 600; color: ink; family: "Space Grotesk" }
+        text pk_user { at: floor(pk.l + 28 * u + 0.5), floor(pk.top + 132 * u + 0.5); anchor: left center; size: 12; weight: 600; color: ink; family: "Space Grotesk" }
         //  The password field.
         box { at: pk.x, pk.top + 166 * u; size: 352 * u, 38 * u; corner: 13 * u; color: ink; opacity: 8% }
         box { at: pk.x, pk.top + 166 * u; size: 352 * u, 38 * u; corner: 13 * u; stroke: 1.4 * u; color: mint; opacity: 40% + 50% * pk_sk * pk_sk }
         input pk_pw { at: floor(pk.l + 14 * u + 0.5), floor(pk.top + 166 * u - 8 * u + 0.5); width: 324 * u; size: 14 * u; color: ink; family: "Space Grotesk"; placeholder: "Password"; secret: true }
-        text pk_error { at: floor(pk.l + 2 * u + 0.5), floor(pk.top + 194 * u + 0.5); anchor: left center; size: 10.5 * u; width: 350 * u; lines: 1; color: mint; family: "Space Grotesk"; show: pk_shake and not pk_busy }
-        text "Checking…" { at: floor(pk.l + 2 * u + 0.5), floor(pk.top + 194 * u + 0.5); anchor: left center; size: 10.5 * u; color: faint; family: "Space Grotesk"; show: pk_busy }
+        text pk_error { at: floor(pk.l + 2 * u + 0.5), floor(pk.top + 194 * u + 0.5); anchor: left center; size: 10.5; width: 350 * u; lines: 1; color: mint; family: "Space Grotesk"; show: pk_shake and not pk_busy }
+        text "Checking…" { at: floor(pk.l + 2 * u + 0.5), floor(pk.top + 194 * u + 0.5); anchor: left center; size: 10.5; color: faint; family: "Space Grotesk"; show: pk_busy }
         //  Cancel and Authenticate.
         box { at: pk.x - 88 * u, pk.top + 226 * u; size: 172 * u, 32 * u; corner: 14 * u; color: ink; opacity: 8% + 9% * pk_cancel_hit.hover }
-        text "Cancel" { at: floor(pk.x - 88 * u + 0.5), floor(pk.top + 226 * u + 0.5); anchor: center; align: center; size: 12 * u; weight: 600; color: ink; family: "Space Grotesk" }
+        text "Cancel" { at: floor(pk.x - 88 * u + 0.5), floor(pk.top + 226 * u + 0.5); anchor: center; align: center; size: 12; weight: 600; color: ink; family: "Space Grotesk" }
         zone box pk_cancel_hit { at: pk.x - 88 * u, pk.top + 226 * u; size: 174 * u, 34 * u; corner: 15 * u; cursor: pointer }
         on press pk_cancel_hit { pk_open = false }
         box { at: pk.x + 88 * u, pk.top + 226 * u; size: 172 * u, 32 * u; corner: 14 * u; color: mint; opacity: if(pk_busy, 28%, 80% + 20% * pk_ok_hit.hover) }
-        text "Authenticate" { at: floor(pk.x + 88 * u + 0.5), floor(pk.top + 226 * u + 0.5); anchor: center; align: center; size: 12 * u; weight: 700; color: onmint; family: "Space Grotesk" }
+        text "Authenticate" { at: floor(pk.x + 88 * u + 0.5), floor(pk.top + 226 * u + 0.5); anchor: center; align: center; size: 12; weight: 700; color: onmint; family: "Space Grotesk" }
         zone box pk_ok_hit { at: pk.x + 88 * u, pk.top + 226 * u; size: 174 * u, 34 * u; corner: 15 * u; cursor: pointer; active: not pk_busy }
         on press pk_ok_hit { pk_go = true }
     }

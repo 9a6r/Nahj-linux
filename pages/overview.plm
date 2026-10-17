@@ -111,10 +111,10 @@ part Overview {
             box { at: ovc.x, ovc.top + 104 * ovu; size: 290 * ovu, 208 * ovu; corner: 18 * ovu * (1 - 0.73 * cy_k); stroke: 1.4 * ovu; color: mint; opacity: max(50% * ovc.act, 90% * ovc.drop) }
             //  The 16:9 screen the windows lie on.
             box { at: ovc.x, ovc.top + 120 * ovu; size: 270 * ovu, 152 * ovu; corner: 10 * ovu * (1 - 0.73 * cy_k); color: #05070d; opacity: 38% }
-            text number(c + 1, 0, "") { at: floor(ovc.x - 128 * ovu + 0.5), floor(ovc.top + 22 * ovu + 0.5); anchor: left center; size: 22 * ovu; weight: 700; color: mix(ink, mint, ovc.act); family: "Space Grotesk" }
-            text number(ov_cnt.$c, 0, " windows") { at: floor(ovc.x + 130 * ovu + 0.5), floor(ovc.top + 22 * ovu + 0.5); anchor: right center; align: right; size: 10.5 * ovu; width: 110 * ovu; lines: 1; color: faint; family: "Space Grotesk"; show: ov_cnt.$c != 1 }
-            text "1 window" { at: floor(ovc.x + 130 * ovu + 0.5), floor(ovc.top + 22 * ovu + 0.5); anchor: right center; align: right; size: 10.5 * ovu; width: 110 * ovu; lines: 1; color: faint; family: "Space Grotesk"; show: ov_cnt.$c == 1 }
-            text "Nothing here" { at: floor(ovc.x + 0.5), floor(ovc.top + 120 * ovu + 0.5); anchor: center; align: center; size: 11.5 * ovu; color: faint; opacity: 70%; family: "Space Grotesk"; show: ov_cnt.$c < 1 }
+            text number(c + 1, 0, "") { at: floor(ovc.x - 128 * ovu + 0.5), floor(ovc.top + 22 * ovu + 0.5); anchor: left center; size: 22; weight: 700; color: mix(ink, mint, ovc.act); family: "Space Grotesk" }
+            text number(ov_cnt.$c, 0, " windows") { at: floor(ovc.x + 130 * ovu + 0.5), floor(ovc.top + 22 * ovu + 0.5); anchor: right center; align: right; size: 10.5; width: 110 * ovu; lines: 1; color: faint; family: "Space Grotesk"; show: ov_cnt.$c != 1 }
+            text "1 window" { at: floor(ovc.x + 130 * ovu + 0.5), floor(ovc.top + 22 * ovu + 0.5); anchor: right center; align: right; size: 10.5; width: 110 * ovu; lines: 1; color: faint; family: "Space Grotesk"; show: ov_cnt.$c == 1 }
+            text "Nothing here" { at: floor(ovc.x + 0.5), floor(ovc.top + 120 * ovu + 0.5); anchor: center; align: center; size: 11.5; color: faint; opacity: 70%; family: "Space Grotesk"; show: ov_cnt.$c < 1 }
         }
         repeat n in 0..45 {
             let ovr.c = ovw.$n.ws
@@ -169,7 +169,7 @@ part Overview {
             let ovt.x = floor(ovl.l + (145 + (ovt.c - ovt.row * ovl.nc) * 304 - 96) * ovu + 0.5)
             let ovt.y = floor(ovl.t + (22 + ovt.row * 224) * ovu + 0.5)
             let ovt.on = n < ovw.count and ovw.$n.used and ovl.moving < 1
-            text ovw.$n.title { at: ovt.x, ovt.y; anchor: left center; size: 11.5 * ovu; width: 156 * ovu; lines: 1; color: ink; family: "Space Grotesk"; show: ovt.on and (ov_hot == n or (ov_hotc != ovt.c and ovw.$n.active)) }
+            text ovw.$n.title { at: ovt.x, ovt.y; anchor: left center; size: 11.5; width: 156 * ovu; lines: 1; color: ink; family: "Space Grotesk"; show: ovt.on and (ov_hot == n or (ov_hotc != ovt.c and ovw.$n.active)) }
         }
         //  The window being carried: a card following the pointer, over everything.
         repeat n in 0..45 {
@@ -189,7 +189,7 @@ part Overview {
                     image wthumbs.$n.picture { at: ovm.x - ovg.tw / 2, ovm.y - ovg.th / 2; size: ovg.tw, ovg.th; show: ovw.$n.snap }
                     image ovw.$n.icon { at: floor(ovm.x - 11 * ovu + 0.5), floor(ovm.y - 11 * ovu + 0.5); size: floor(22 * ovu + 0.5), floor(22 * ovu + 0.5); show: not ovw.$n.snap }
                     box { at: ovm.x, ovm.y + ovg.th / 2 - 12 * ovu; size: ovg.tw, 24 * ovu; color: #05070d; opacity: 70% }
-                    text ovw.$n.title { at: floor(ovm.x - ovg.tw / 2 + 10 * ovu + 0.5), floor(ovm.y + ovg.th / 2 - 12 * ovu + 0.5); anchor: left center; size: 10.5 * ovu; width: ovg.tw - 20 * ovu; lines: 1; color: #f2f4f2; family: "Space Grotesk" }
+                    text ovw.$n.title { at: floor(ovm.x - ovg.tw / 2 + 10 * ovu + 0.5), floor(ovm.y + ovg.th / 2 - 12 * ovu + 0.5); anchor: left center; size: 10.5; width: ovg.tw - 20 * ovu; lines: 1; color: #f2f4f2; family: "Space Grotesk" }
                 }
                 box { at: ovm.x, ovm.y; size: ovg.tw, ovg.th; corner: 9 * ovu * (1 - 0.73 * cy_k); stroke: 2 * ovu; color: mint }
             }

@@ -61,6 +61,7 @@ scene DesktopClock {
     fact g0y = 0
     fact dragging = false
     fact mon = 0           // which monitor shows the card (the scene has a copy on each, only this one draws it and takes the pointer); the logic keeps it
+    text mon_name = ""     // the name of the monitor that shows the card (Settings > Widgets sets it; the logic keeps it)
     //  Where the monitors lie in the desktop (logical pixels) and how big they are, up to four (the logic asks `hyprctl`; a monitor that is not there is 0 x 0).
     fact m0x = 0
     fact m0y = 0

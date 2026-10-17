@@ -91,7 +91,15 @@ part Wallpaper {
             body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 330 * pu; size: 438 * pu, 252 * pu; corner: 14 * pu } }
             box { at: spx + 219 * pu, sby + 330 * pu; size: 438 * pu, 252 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 220 * pu + 0.5); text "WALLPAPER GALLERY" { at: floor(spx + 14 * pu + 0.5), floor(sby + 220 * pu + 0.5); anchor: left center; size: 12; weight: 700; color: faint; family: "Space Grotesk" } }
-            group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 220 * pu + 0.5); text wp_dirtext { at: floor(spx + 424 * pu + 0.5), floor(sby + 220 * pu + 0.5); anchor: right center; size: 13; width: (260 * pu) / rs; lines: 1; align: right; color: faint; opacity: 70%; family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 220 * pu + 0.5); text wp_dirtext { at: floor(spx + 424 * pu + 0.5), floor(sby + 220 * pu + 0.5); anchor: right center; size: 13; width: (260 * pu) / rs; lines: 1; align: right; color: faint; opacity: 70% * (1 - wp_dir_edit_k); family: "Space Grotesk" } }
+            //  Pressing the folder's name lets you type another one (Enter keeps it, empty goes back to the default, Esc leaves it).
+
+            input wp_dir_in { at: floor(spx + 424 * pu - 260 * pu + 0.5), floor(sby + 220 * pu - 8 + 0.5); width: 260 * pu; size: 13; color: ink; family: "Space Grotesk"; placeholder: "~/Pictures/Wallpapers"; show: wp_dir_edit }
+            zone box wp_dir_hit { at: spx + 424 * pu - 130 * pu, sby + 220 * pu; size: 260 * pu, 22 * pu; cursor: pointer; label: "Wallpaper folder"; active: set_page == pg_wall and not wp_dir_edit }
+            on press wp_dir_hit { wp_dir_edit = true; focus wp_dir_in }
+            on submit wp_dir_in { emit wp_dir_apply; wp_dir_edit = false }
+            on key Escape while wp_dir_edit { wp_dir_edit = false }
+            on change set_page { wp_dir_edit = false }
             group { scale: rs; pivot: floor(spx + 219 * pu + 0.5), floor(sby + 330 * pu + 0.5); text "No wallpaper of this color" { at: floor(spx + 219 * pu + 0.5), floor(sby + 330 * pu + 0.5); anchor: center; size: 16; color: faint; family: "Space Grotesk"; show: wps.count < 1 } }
             row wp_grid {
                 at: floor(spx + 15 * pu + 0.5), floor(sby + 238 * pu + 0.5)

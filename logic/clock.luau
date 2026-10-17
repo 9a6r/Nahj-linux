@@ -5,9 +5,21 @@ return function()
     local SIZES = { 140, 220, 280, 340 }
     local function say(cmd, fn) run("pleamar", { "--say", "desktopclock", cmd }, fn or function() end) end
     local function trim(s) return ((s or ""):gsub("%s+$", "")) end
+    -- Which monitor shows the clock and the system monitor: their chips (the same names as the visualiser's, `cv_m.N.name`) light the one they are on.
+    local cv_names = {}
+    local ck_pref, sy_pref = "", ""
+    local function show_wd_mons()
+        local ck_at, sy_at = 0, 0
+        for i, n in ipairs(cv_names) do
+            if n == ck_pref then ck_at = i end
+            if n == sy_pref then sy_at = i end
+        end
+        fact.ck_mon, fact.sy_mon = ck_at, sy_at
+    end
     local function refresh()
-        say_many("desktopclock", { "get shown", "get lay", "get px", "get wti", "get cli", "get where", "get h12" }, function(r)
+        say_many("desktopclock", { "get shown", "get lay", "get px", "get wti", "get cli", "get where", "get h12", "get mon_name" }, function(r)
             if not r then fact.ck_ok = false return end
+            ck_pref = trim(r[8]):match("^[%w%._%-]+$") and trim(r[8]) or ""; show_wd_mons()
             fact.ck_ok = true
             fact.ck_on = trim(r[1]):match("true") ~= nil
             local function num(i, key) local n = tonumber(trim(r[i])); if n then fact[key] = n end end
@@ -18,8 +30,9 @@ return function()
     -- The desktop system monitor (desktopsysmon/) is the same: its own scene, asked when the page opens, told each change.
     local function say_sy(cmd, fn) run("pleamar", { "--say", "desktopsysmon", cmd }, fn or function() end) end
     local function refresh_sy()
-        say_many("desktopsysmon", { "get shown", "get cli", "get where" }, function(r)
+        say_many("desktopsysmon", { "get shown", "get cli", "get where", "get mon_name" }, function(r)
             if not r then fact.sy_ok = false return end
+            sy_pref = trim(r[4]):match("^[%w%._%-]+$") and trim(r[4]) or ""; show_wd_mons()
             fact.sy_ok = true
             fact.sy_on = trim(r[1]):match("true") ~= nil
             local n = tonumber(trim(r[2])); if n then fact.sy_cl = n end
@@ -29,7 +42,7 @@ return function()
     local function say_cv(cmd, fn) run("pleamar", { "--say", "desktopcava", cmd }, fn or function() end) end
     -- Which monitor draws it: the chips are the monitors plugged in now (the order hyprctl lists them in); a name that is not plugged in shows as "All",
     -- which is what the visualiser does then too.
-    local cv_names, cv_pref = {}, "all"
+    local cv_pref = "all"
     local function show_cv_mons()
         local at = 0
         for i = 0, 3 do
@@ -54,6 +67,7 @@ return function()
             end
             cv_names = names
             show_cv_mons()
+            show_wd_mons()
         end)
     end
     local function refresh_cv()
@@ -214,6 +228,18 @@ return function()
     setter("cv_pos_set", "cv_pos", "pos", 4)
     setter("cv_siz_set", "cv_siz", "siz", 2)
     setter("cv_cm_set", "cv_cm", "cm", 3)
+    on("ck_mon_set", function(i)
+        local n = cv_names[math.floor(i + 0.5)]
+        if not n then return end
+        ck_pref = n; show_wd_mons()
+        say("text mon_name " .. n)
+    end)
+    on("sy_mon_set", function(i)
+        local n = cv_names[math.floor(i + 0.5)]
+        if not n then return end
+        sy_pref = n; show_wd_mons()
+        say_sy("text mon_name " .. n)
+    end)
     on("cv_mon_set", function(i)
         local k = math.floor(i + 0.5)
         cv_pref = (k >= 1 and cv_names[k]) or "all"

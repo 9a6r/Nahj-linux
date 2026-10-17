@@ -223,9 +223,9 @@ part BarGlass {
                 line { from: cybarl + 22 * u + cybark * 6 * u, cybarb + 6 * u + 1; to: cybarl + 22 * u + cybark * 6 * u, cybarb + 6 * u + 1 + if(mod(cybark, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
             }
         
-            text "SYS 7F3A·9C21" { at: cybarr - 9 * u, cybarb + 6 * u + 11 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 0), 3) == 0, 85%, 0) }
-            text "SYS A1E4·03BD" { at: cybarr - 9 * u, cybarb + 6 * u + 11 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 0), 3) == 1, 85%, 0) }
-            text "SYS 5C90·E7F2" { at: cybarr - 9 * u, cybarb + 6 * u + 11 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 0), 3) == 2, 85%, 0) }
+            text "SYS 7F3A·9C21" { at: cybarr - 9 * u, cybarb + 6 * u + 11 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 0), 3) == 0, 85%, 0) }
+            text "SYS A1E4·03BD" { at: cybarr - 9 * u, cybarb + 6 * u + 11 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 0), 3) == 1, 85%, 0) }
+            text "SYS 5C90·E7F2" { at: cybarr - 9 * u, cybarb + 6 * u + 11 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 0), 3) == 2, 85%, 0) }
             box { at: cybarr - 3 * u, cybarb + 6 * u + 11 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
         }
         group {
@@ -248,9 +248,9 @@ part BarGlass {
                 line { from: cydkl + 22 * u + cydkk * 6 * u, cydkb + 7 * u + 1; to: cydkl + 22 * u + cydkk * 6 * u, cydkb + 7 * u + 1 + if(mod(cydkk, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
             }
         
-            text "SYS 2B6D·F418" { at: cydkr - 16 * u, cydkb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 0, 85%, 0) }
-            text "SYS E90C·57A3" { at: cydkr - 16 * u, cydkb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 1, 85%, 0) }
-            text "SYS 30D8·B166" { at: cydkr - 16 * u, cydkb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 2, 85%, 0) }
+            text "SYS 2B6D·F418" { at: cydkr - 16 * u, cydkb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 0, 85%, 0) }
+            text "SYS E90C·57A3" { at: cydkr - 16 * u, cydkb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 1, 85%, 0) }
+            text "SYS 30D8·B166" { at: cydkr - 16 * u, cydkb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 1), 3) == 2, 85%, 0) }
             box { at: cydkr - 10 * u, cydkb - 9 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
         }
         group {
@@ -273,9 +273,9 @@ part BarGlass {
                 line { from: cydcl + 22 * u + cydck * 6 * u, cydcb + 7 * u + 1; to: cydcl + 22 * u + cydck * 6 * u, cydcb + 7 * u + 1 + if(mod(cydck, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
             }
         
-            text "SYS C4F1·0A9E" { at: cydcr - 16 * u, cydcb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 2), 3) == 0, 85%, 0) }
-            text "SYS 18B7·D620" { at: cydcr - 16 * u, cydcb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 2), 3) == 1, 85%, 0) }
-            text "SYS 9E05·4CF3" { at: cydcr - 16 * u, cydcb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 2), 3) == 2, 85%, 0) }
+            text "SYS C4F1·0A9E" { at: cydcr - 16 * u, cydcb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 2), 3) == 0, 85%, 0) }
+            text "SYS 18B7·D620" { at: cydcr - 16 * u, cydcb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 2), 3) == 1, 85%, 0) }
+            text "SYS 9E05·4CF3" { at: cydcr - 16 * u, cydcb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 2), 3) == 2, 85%, 0) }
             box { at: cydcr - 10 * u, cydcb - 9 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
         }
         group {
@@ -298,9 +298,9 @@ part BarGlass {
                 line { from: cydsl + 22 * u + cydsk * 6 * u, cydsb + 7 * u + 1; to: cydsl + 22 * u + cydsk * 6 * u, cydsb + 7 * u + 1 + if(mod(cydsk, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
             }
         
-            text "SYS 7F3A·9C21" { at: cydsr - 16 * u, cydsb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 3), 3) == 0, 85%, 0) }
-            text "SYS A1E4·03BD" { at: cydsr - 16 * u, cydsb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 3), 3) == 1, 85%, 0) }
-            text "SYS 5C90·E7F2" { at: cydsr - 16 * u, cydsb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 3), 3) == 2, 85%, 0) }
+            text "SYS 7F3A·9C21" { at: cydsr - 16 * u, cydsb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 3), 3) == 0, 85%, 0) }
+            text "SYS A1E4·03BD" { at: cydsr - 16 * u, cydsb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 3), 3) == 1, 85%, 0) }
+            text "SYS 5C90·E7F2" { at: cydsr - 16 * u, cydsb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 3), 3) == 2, 85%, 0) }
             box { at: cydsr - 10 * u, cydsb - 9 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
         }
         group {
@@ -323,9 +323,9 @@ part BarGlass {
                 line { from: cydll + 22 * u + cydlk * 6 * u, cydlb + 7 * u + 1; to: cydll + 22 * u + cydlk * 6 * u, cydlb + 7 * u + 1 + if(mod(cydlk, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
             }
         
-            text "SYS 2B6D·F418" { at: cydlr - 16 * u, cydlb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 4), 3) == 0, 85%, 0) }
-            text "SYS E90C·57A3" { at: cydlr - 16 * u, cydlb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 4), 3) == 1, 85%, 0) }
-            text "SYS 30D8·B166" { at: cydlr - 16 * u, cydlb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 4), 3) == 2, 85%, 0) }
+            text "SYS 2B6D·F418" { at: cydlr - 16 * u, cydlb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 4), 3) == 0, 85%, 0) }
+            text "SYS E90C·57A3" { at: cydlr - 16 * u, cydlb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 4), 3) == 1, 85%, 0) }
+            text "SYS 30D8·B166" { at: cydlr - 16 * u, cydlb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 4), 3) == 2, 85%, 0) }
             box { at: cydlr - 10 * u, cydlb - 9 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
         }
         group {
@@ -348,9 +348,9 @@ part BarGlass {
                 line { from: cydml + 22 * u + cydmk * 6 * u, cydmb + 7 * u + 1; to: cydml + 22 * u + cydmk * 6 * u, cydmb + 7 * u + 1 + if(mod(cydmk, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
             }
         
-            text "SYS C4F1·0A9E" { at: cydmr - 16 * u, cydmb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 5), 3) == 0, 85%, 0) }
-            text "SYS 18B7·D620" { at: cydmr - 16 * u, cydmb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 5), 3) == 1, 85%, 0) }
-            text "SYS 9E05·4CF3" { at: cydmr - 16 * u, cydmb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 5), 3) == 2, 85%, 0) }
+            text "SYS C4F1·0A9E" { at: cydmr - 16 * u, cydmb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 5), 3) == 0, 85%, 0) }
+            text "SYS 18B7·D620" { at: cydmr - 16 * u, cydmb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 5), 3) == 1, 85%, 0) }
+            text "SYS 9E05·4CF3" { at: cydmr - 16 * u, cydmb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 5), 3) == 2, 85%, 0) }
             box { at: cydmr - 10 * u, cydmb - 9 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
         }
         group {
@@ -375,9 +375,9 @@ part BarGlass {
                 line { from: cydzl + 22 * u + cydzk * 6 * u, cydzb + 7 * u + 1; to: cydzl + 22 * u + cydzk * 6 * u, cydzb + 7 * u + 1 + if(mod(cydzk, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
             }
         
-            text "SYS 7F3A·9C21" { at: cydzr - 16 * u, cydzb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 6), 3) == 0, 85%, 0) }
-            text "SYS A1E4·03BD" { at: cydzr - 16 * u, cydzb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 6), 3) == 1, 85%, 0) }
-            text "SYS 5C90·E7F2" { at: cydzr - 16 * u, cydzb - 9 * u; anchor: right center; size: 10 * u; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 6), 3) == 2, 85%, 0) }
+            text "SYS 7F3A·9C21" { at: cydzr - 16 * u, cydzb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 6), 3) == 0, 85%, 0) }
+            text "SYS A1E4·03BD" { at: cydzr - 16 * u, cydzb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 6), 3) == 1, 85%, 0) }
+            text "SYS 5C90·E7F2" { at: cydzr - 16 * u, cydzb - 9 * u; anchor: right center; size: 10; weight: 500; color: minthi; family: "SpaceMono Nerd Font"; opacity: cy_on * if(mod(floor(time * 7 + 6), 3) == 2, 85%, 0) }
             box { at: cydzr - 10 * u, cydzb - 9 * u; size: 5 * u, 10 * u; color: minthi; opacity: cy_on * if(mod(time * 1.7, 1) < 0.5, 90%, 0) }
         }
         //  The UwU theme's graphics, on every drawer that is out (and round the screen, below): cat ears on its top corners, three twinkling stars along its
@@ -974,8 +974,8 @@ part BarGlass {
         //  only to know how wide the app name and the title really are.
         text win.class { at: 0, 0; anchor: left center; size: 15; weight: 600; lines: 1; measure: vclw; opacity: 0; family: "Space Grotesk" }
     text win.title { at: 0, 0; anchor: left center; size: 14; weight: 500; lines: 1; measure: vtiw; opacity: 0; family: "Space Grotesk" }
-    text win.class { at: floor(win.x + 0.5), floor(bar.y - 6.5 * u + 0.5); anchor: left center; size: 17 * u; weight: 600; lines: 1; measure: clsw; opacity: 0; family: "Space Grotesk" }
-        text win.title { at: floor(win.x + 0.5), floor(bar.y + 8.75 * u + 0.5); anchor: left center; size: 13.5 * u; weight: 500; lines: 1; measure: titw; opacity: 0; family: "Space Grotesk" }
+    text win.class { at: floor(win.x + 0.5), floor(bar.y - 6.5 * u + 0.5); anchor: left center; size: 17; weight: 600; lines: 1; measure: clsw; opacity: 0; family: "Space Grotesk" }
+        text win.title { at: floor(win.x + 0.5), floor(bar.y + 8.75 * u + 0.5); anchor: left center; size: 13.5; weight: 500; lines: 1; measure: titw; opacity: 0; family: "Space Grotesk" }
         //  While a player exists its buttons (previous, play, next: 48 wide) sit in this button's top right, beside the app name.
         let mctl = 54 * u * mshow * bs.media * bs.title
         let win.hw = clamp(max(clsw.width + mctl, titw.width) + 12 * u, 48 * u, win.w)
