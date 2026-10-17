@@ -372,8 +372,8 @@ part Clock {
             zone box ck_cue_hit { at: spx + 224 * pu, sby + (set.h - 26) * pu; size: 76 * pu, 26 * pu; corner: 13 * pu; cursor: pointer; active: ck.cue > 0.5 }
             on press ck_cue_hit { ck_scroll_to = clamp(ck_scroll_to + 342, 0, max(0, ck.h - set.h)) }
             zone box ck_bar_hit { at: spx + 442 * pu, sby + set.h / 2 * pu; size: 14 * pu, set.h * pu; cursor: pointer; active: ck.h > set.h }
-            on press ck_bar_hit { ck_scroll_to = clamp(((pointer.y - sby) / pu - ck.thh / 2) / max(1, set.h - ck.thh) * (ck.h - set.h), 0, max(0, ck.h - set.h)) }
-            on drag ck_bar_hit { ck_scroll_to = clamp(((pointer.y - sby) / pu - ck.thh / 2) / max(1, set.h - ck.thh) * (ck.h - set.h), 0, max(0, ck.h - set.h)) }
+            on press ck_bar_hit { ck_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - ck.thh / 2) / max(1, set.h - ck.thh) * (ck.h - set.h), 0, max(0, ck.h - set.h)) }
+            on drag ck_bar_hit { ck_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - ck.thh / 2) / max(1, set.h - ck.thh) * (ck.h - set.h), 0, max(0, ck.h - set.h)) }
         }
         //  ── Widgets page: END ──
 }

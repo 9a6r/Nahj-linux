@@ -48,19 +48,25 @@ part Bar {
             body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 360 * pu; size: 438 * pu, 96 * pu; corner: 14 * pu } }
             box { at: spx + 219 * pu, sby + 360 * pu; size: 438 * pu, 96 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 322 * pu + 0.5); text "BAR POSITION" { at: floor(spx + 14 * pu + 0.5), floor(sby + 322 * pu + 0.5); anchor: left center; size: 12; weight: 700; color: faint; family: "Space Grotesk" } }
-            repeat k in 0..2 {
+            repeat k in 0..5 {
                 let bpx = spx + (52 + k * 83) * pu
                 let bpy = sby + 369 * pu
-                let bplit = if((k == 0 and bar_anchor == top) or (k == 1 and bar_anchor == left), 1, 0)
+                let bplit = if((k == 0 and bar_anchor == top and not bar_frame) or (k == 1 and bar_anchor == left) or (k == 2 and bar_anchor == right) or (k == 3 and bar_anchor == top and bar_frame) or (k == 4 and bar_anchor == bottom), 1, 0)
                 box { at: bpx, bpy; size: 76 * pu, 64 * pu; corner: 12 * pu; color: if(bplit > 0, mint, ink); opacity: if(bplit > 0, 24%, 6% + 10% * bar_pos_hit.$k.hover) }
                 box { at: bpx, bpy; size: 76 * pu, 64 * pu; corner: 12 * pu; stroke: 1.5 * pu; color: mint; opacity: bplit * 100% }
                 //  A small screen. With the bar along the top: a bar across its top. Down the left: a strip, and the frame round the rest.
                 box { at: bpx, bpy - 12 * pu; size: 36 * pu, 24 * pu; corner: 3 * pu; stroke: 1.2 * pu; color: mix(ink, mint, bplit) }
                 box { at: bpx, bpy - 21 * pu; size: 28 * pu, 3.2 * pu; corner: 1.6 * pu; color: mix(ink, mint, bplit); show: k == 0 }
-                box { at: bpx - 14 * pu, bpy - 12 * pu; size: 3.6 * pu, 20 * pu; corner: 1.8 * pu; color: mix(ink, mint, bplit); show: k == 1 }
-                box { at: bpx + 2 * pu, bpy - 12 * pu; size: 28 * pu, 17 * pu; corner: 3 * pu; stroke: 0.9 * pu; color: mix(ink, mint, bplit); opacity: 60%; show: k == 1 }
-                group { scale: rs; pivot: floor(bpx + 0.5), floor(bpy + 13 * pu + 0.5); text pick(k, "Island", "Frame") { at: floor(bpx + 0.5), floor(bpy + 13 * pu + 0.5); anchor: center; align: center; size: 15; weight: 700; width: (70 * pu) / rs; lines: 1; color: mix(ink, mint, bplit); family: "Space Grotesk" } }
-                group { scale: rs; pivot: floor(bpx + 0.5), floor(bpy + 26 * pu + 0.5); text pick(k, "along the top", "with a frame") { at: floor(bpx + 0.5), floor(bpy + 26 * pu + 0.5); anchor: center; align: center; size: 12; width: (70 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
+                box { at: bpx - 15.6 * pu, bpy - 12 * pu; size: 3.6 * pu, 24 * pu; corner: 1.8 * pu; color: mix(ink, mint, bplit); show: k == 1 }
+                box { at: bpx + 1.8 * pu, bpy - 12 * pu; size: 28 * pu, 19.6 * pu; corner: 3 * pu; stroke: 0.9 * pu; color: mix(ink, mint, bplit); opacity: 60%; show: k == 1 }
+                box { at: bpx + 15.6 * pu, bpy - 12 * pu; size: 3.6 * pu, 24 * pu; corner: 1.8 * pu; color: mix(ink, mint, bplit); show: k == 2 }
+                box { at: bpx - 1.8 * pu, bpy - 12 * pu; size: 28 * pu, 19.6 * pu; corner: 3 * pu; stroke: 0.9 * pu; color: mix(ink, mint, bplit); opacity: 60%; show: k == 2 }
+                box { at: bpx, bpy - 21.6 * pu; size: 36 * pu, 3.6 * pu; corner: 1.8 * pu; color: mix(ink, mint, bplit); show: k == 3 }
+                box { at: bpx, bpy - 10.2 * pu; size: 28 * pu, 16 * pu; corner: 3 * pu; stroke: 0.9 * pu; color: mix(ink, mint, bplit); opacity: 60%; show: k == 3 }
+                box { at: bpx, bpy - 2.4 * pu; size: 36 * pu, 3.6 * pu; corner: 1.8 * pu; color: mix(ink, mint, bplit); show: k == 4 }
+                box { at: bpx, bpy - 13.8 * pu; size: 28 * pu, 16 * pu; corner: 3 * pu; stroke: 0.9 * pu; color: mix(ink, mint, bplit); opacity: 60%; show: k == 4 }
+                group { scale: rs; pivot: floor(bpx + 0.5), floor(bpy + 13 * pu + 0.5); text pick(k, "Island", "Frame", "Frame", "Frame", "Frame") { at: floor(bpx + 0.5), floor(bpy + 13 * pu + 0.5); anchor: center; align: center; size: 15; weight: 700; width: (70 * pu) / rs; lines: 1; color: mix(ink, mint, bplit); family: "Space Grotesk" } }
+                group { scale: rs; pivot: floor(bpx + 0.5), floor(bpy + 26 * pu + 0.5); text pick(k, "along the top", "left edge", "right edge", "top edge", "bottom edge") { at: floor(bpx + 0.5), floor(bpy + 26 * pu + 0.5); anchor: center; align: center; size: 12; width: (70 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
                 zone box bar_pos_hit.$k { at: bpx, bpy; size: 76 * pu, 64 * pu; corner: 12 * pu; cursor: pointer }
                 on press bar_pos_hit.$k { emit bar_pick_pos(k) }
             }
@@ -80,7 +86,7 @@ part Bar {
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 166 * pu + 0.5); text "ISLAND LAYOUT" { at: floor(spx + 14 * pu + 0.5), floor(sby + 166 * pu + 0.5); anchor: left center; size: 12; weight: 700; color: faint; family: "Space Grotesk" } }
             box { at: spx + 400 * pu, sby + 166 * pu; size: 48 * pu, 20 * pu; corner: 10 * pu; color: ink; opacity: 8% + 10% * blay_reset_hit.hover }
             group { scale: rs; pivot: floor(spx + 400 * pu + 0.5), floor(sby + 166 * pu + 0.5); text "Reset" { at: floor(spx + 400 * pu + 0.5), floor(sby + 166 * pu + 0.5); anchor: center; align: center; size: 13.5; weight: 600; width: (44 * pu) / rs; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk" } }
-            zone box blay_reset_hit { at: spx + 400 * pu, sby + 166 * pu; size: 50 * pu, 22 * pu; corner: 11 * pu; cursor: pointer; active: bar_anchor == top }
+            zone box blay_reset_hit { at: spx + 400 * pu, sby + 166 * pu; size: 50 * pu, 22 * pu; corner: 11 * pu; cursor: pointer; active: bar_lm < 0.5 }
             on press blay_reset_hit { emit bar_lay_reset }
             //  The small bar, and the tray: lit while the dragged piece would land in it.
             box { from: mbx, mby; size: 410 * pu, 36 * pu; corner: 12 * pu; color: ink; opacity: 5% }
@@ -92,14 +98,14 @@ part Bar {
 
             //  The drag is followed by a zone that stays still, under the chips: a drag reaches every zone that was
             //  under the press, and one that moves itself (a chip following the pointer) loses it at the first jump.
-            zone box blay_area { from: mbx - 8 * pu, mby - 8 * pu; size: 426 * pu, 104 * pu; active: bar_anchor == top }     // the small bar and the tray, not Reset
-            on drag blay_area { bdx = (pointer.x - mbx) / pu; bdy = (pointer.y - mby) / pu; emit bar_lay_drag }
+            zone box blay_area { from: mbx - 8 * pu, mby - 8 * pu; size: 426 * pu, 104 * pu; active: bar_lm < 0.5 }     // the small bar and the tray, not Reset
+            on drag blay_area { bdx = ((pointer.x - tx.pnl) - mbx) / pu; bdy = ((pointer.y - ty.set) - mby) / pu; emit bar_lay_drag }
             //  The chips' zones, apart from their drawing: pressing one takes it.
             repeat i in 0..8 {
                 let zx = mbx + if(bdrag == i, bdx - bgx, bcx.$i) * pu
                 let zy = mby + if(bdrag == i, bdy - bgy, bcy.$i) * pu
-                zone box bchip.$i { from: zx, zy; size: bcw.$i * pu, 28 * pu; corner: 9 * pu; cursor: grab; active: bar_anchor == top }
-                on press bchip.$i { bgx = (pointer.x - zx) / pu; bgy = (pointer.y - zy) / pu; bdx = (pointer.x - mbx) / pu; bdy = (pointer.y - mby) / pu; bdrag = i; emit bar_lay_grab }
+                zone box bchip.$i { from: zx, zy; size: bcw.$i * pu, 28 * pu; corner: 9 * pu; cursor: grab; active: bar_lm < 0.5 }
+                on press bchip.$i { bgx = ((pointer.x - tx.pnl) - zx) / pu; bgy = ((pointer.y - ty.set) - zy) / pu; bdx = ((pointer.x - tx.pnl) - mbx) / pu; bdy = ((pointer.y - ty.set) - mby) / pu; bdrag = i; emit bar_lay_grab }
                 on release bchip.$i { emit bar_lay_drop }
             }
             repeat pass in 0..2 {

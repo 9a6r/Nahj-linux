@@ -4,10 +4,11 @@ part Player {
     group {
         shader: pixelate, px.dm
         opacity: pown
-        clip inset 2 box { at: mix(pcx, dm.gx, lm), mix(bar.y + dm.hh / 2, lp.cy, lm); size: mix(dm.w, dm.gw, lm), mix(dm.hh, dm.gh, lm); corner: 26 * cu * (1 - 0.73 * sq) }
+        move: rt * (screen.width - 2 * pcx), bt * (yo + vb - 2 * (th.t + lp.hd / 2))
+        clip inset 2 box { at: mix(mix(pcx, dm.gx, lm), 2 * pcx - mix(pcx, dm.gx, lm), rt), mix(mix(bar.y + dm.hh / 2, lp.cy, lm), 2 * (th.t + lp.hd / 2) - mix(bar.y + dm.hh / 2, lp.cy, lm), bt); size: mix(dm.w, dm.gw, lm), mix(dm.hh, dm.gh, lm); corner: 26 * cu * (1 - 0.73 * sq) }
         //  Down the left it comes out of the strip: what is inside grows with the drawer's shape (`dm.lf`), from the strip's edge at the panel's middle, as the calendar's and the controls' do.
         group {
-            pivot: lp.xl, lp.cy
+            pivot: mix(lp.xl, 2 * pcx - lp.xl, rt), lp.cy
             scale: mix(1, max(dm.lf, 0.05), lm * att)
         //  ── the running windows ──
         group {

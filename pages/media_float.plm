@@ -6,9 +6,9 @@ part MediaFloat {
     //  Held, the clip is the whole screen: the panel's would take the grab zone away the moment the pointer left it, upwards first.
     let mfc = max(clamp(mfl, 0, 1), if(mf_hold, 1, 0))
     group {
-        clip inset 2 box { at: mix(mix(pcx, dm.gx, lm), screen.width / 2, mfc), mix(mix(bar.y + dm.hh / 2, lp.cy, lm), vc, mfc); size: mix(mix(dm.w, dm.gw, lm), screen.width + 200, mfc), mix(mix(dm.hh, dm.gh, lm), screen.height + 200, mfc); corner: mix(26 * cu, 0, mfc) }
+        clip inset 2 box { at: mix(mix(mix(pcx, dm.gx, lm), screen.width - mix(pcx, dm.gx, lm), rt), screen.width / 2, mfc), mix(mix(mix(bar.y + dm.hh / 2, lp.cy, lm), yo + vb - mix(bar.y + dm.hh / 2, lp.cy, lm), bt), vc, mfc); size: mix(mix(dm.w, dm.gw, lm), screen.width + 200, mfc), mix(mix(dm.hh, dm.gh, lm), screen.height + 200, mfc); corner: mix(26 * cu, 0, mfc) }
         group {
-            pivot: lp.xl, lp.cy
+            pivot: mix(lp.xl, screen.width - lp.xl, rt), mix(lp.cy, yo + vb - lp.cy, bt)
             scale: mix(mix(1, max(dm.lf, 0.05), lm * att), 1, mfl)
         group {
             show: mf.vis > 0.01
@@ -34,9 +34,9 @@ part MediaFloat {
             zone box mf_grab { at: if(mf_hold, mf.zx, mf.cx), if(mf_hold, mf.zy, mf.cy); size: if(mf_hold, mf.zw, 288 * cu), if(mf_hold, mf.zh, 148 * cu); cursor: grab; active: mf.vis > 0.5; label: "Move the player" }
             on press mf_grab { mf_bx = mf.cx; mf_by = mf.cy; mf_hx = mf.cx; mf_hy = mf.cy; mf_gx = mf.cx; mf_gy = mf.cy; mf_hold = true }
             on press mf_grab while not mf_out { mf_px: mf.cx ~0ms; mf_py: mf.cy ~0ms }
-            on drag mf_grab while mf_hold { mf_gx = clamp(mf_bx + drag.dx, desk_xlo + 154 * cu * mf_gs, desk_xhi - 154 * cu * mf_gs); mf_gy = clamp(mf_by + drag.dy, desk_ylo + 84 * cu * mf_gs, desk_yhi - 84 * cu * mf_gs) }
+            on drag mf_grab while mf_hold { mf_gx = clamp(mf_bx + drag.dx, mfb.l + 154 * cu * mf_gs, mfb.r - 154 * cu * mf_gs); mf_gy = clamp(mf_by + drag.dy, mfb.t + 84 * cu * mf_gs, mfb.b - 84 * cu * mf_gs) }
             on drag mf_grab while mf_hold and not mf_out and length(drag.dx, drag.dy) > 16 * cu { mf_out = true }
-            on release mf_grab while mf_out and panel == player and abs(pointer.x - dm.ex) < dm.ew / 2 and abs(pointer.y - dm.ey) < dm.eh / 2 { mf_out = false }
+            on release mf_grab while mf_out and panel == player and abs(pointer.x - mix(dm.ex, screen.width - dm.ex, rt)) < dm.ew / 2 and abs(pointer.y - mix(dm.ey, yo + vb - dm.ey, bt)) < dm.eh / 2 { mf_out = false }
             on release mf_grab { mf_hold = false }
             //  The handles in the four corners (invisible; the cursor shows them), only while it floats: pull one in to make the card smaller, out to make it bigger. The corner
             //  across from it stays where it is. They are declared before the pin and the buttons, so those win where they overlap.
@@ -46,7 +46,7 @@ part MediaFloat {
                 zone box mf_resize.$i { at: if(mf_rk == i, mf.zx, mf.cx + rz_sx * 140 * cu), if(mf_rk == i, mf.zy, mf.cy + rz_sy * 70 * cu); size: if(mf_rk == i, mf.zw, 28 * cu), if(mf_rk == i, mf.zh, 28 * cu); cursor: grab; active: (mfl > 0.5 and mf_rk < 0 and mf.vis > 0.5) or mf_rk == i; label: "Resize the player" }
                 on press mf_resize.$i { mf_hold = false; mf_rk = i; mf_bs = mf_gs; mf_fcx = mf_gx - rz_sx * 154 * cu * mf_gs; mf_fcy = mf_gy - rz_sy * 84 * cu * mf_gs }
                 on drag mf_resize.$i while mf_rk == i {
-                    mf_gs = clamp(mf_bs + (rz_sx * drag.dx + rz_sy * drag.dy) / (476 * cu), 0.5, max(0.5, min(1.6, min(if(rz_sx > 0, desk_xhi - mf_fcx, mf_fcx - desk_xlo) / (308 * cu), if(rz_sy > 0, desk_yhi - mf_fcy, mf_fcy - desk_ylo) / (168 * cu)))))
+                    mf_gs = clamp(mf_bs + (rz_sx * drag.dx + rz_sy * drag.dy) / (476 * cu), 0.5, max(0.5, min(1.6, min(if(rz_sx > 0, mfb.r - mf_fcx, mf_fcx - mfb.l) / (308 * cu), if(rz_sy > 0, mfb.b - mf_fcy, mf_fcy - mfb.t) / (168 * cu)))))
                     mf_gx = mf_fcx + rz_sx * 154 * cu * mf_gs
                     mf_gy = mf_fcy + rz_sy * 84 * cu * mf_gs
                 }

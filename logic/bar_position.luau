@@ -1,11 +1,24 @@
--- The bar's position (Settings > Bar): along the top (the default), or down the left edge with a frame round the screen. The surface's
--- anchor follows `bar_anchor`, so it moves without being recreated. The panels hang from the top edge in both, their left edge by the
--- strip in the second; `lp_w` is how wide the one last opened is, so that they line up. Kept in bar-position.json.
+-- The bar's position (Settings > Bar): along the top (the default, the Island), or a strip on any of the four edges with a frame round
+-- the rest of the screen. The surface's anchor follows `bar_anchor`, so it moves without being recreated. The panels hang from the top edge
+-- in the first, their edge by the strip in the others; `lp_w` is how wide the one last opened is, so that they line up. Kept in bar-position.json
+-- (`pos`: "top", "left", "right", "ftop" or "fbottom"; an older file only has `left`).
 return function()
-    local left = false
-    local function show() fact.bar_anchor = left and "left" or "top"; bar_fx.left = left end
+    -- pos: "top" is the Island; "left", "right", "ftop" and "fbottom" are the strip on that edge with a frame round the rest.
+    local POS = { [0] = "top", "left", "right", "ftop", "fbottom" }
+    local EDGE = { top = { "top", false }, left = { "left", true }, right = { "right", true }, ftop = { "top", true }, fbottom = { "bottom", true } }
+    local pos = "top"
+    local function show()
+        local e = EDGE[pos] or EDGE.top
+        fact.bar_anchor = e[1]
+        fact.bar_frame = e[2]
+        bar_fx.left = e[2]
+        bar_fx.edge = e[1]
+    end
     local ok, saved = pcall(sys.ask, "files.read", "bar-position.json", "json")
-    if ok and type(saved) == "table" and saved.left == true then left = true end
+    if ok and type(saved) == "table" then
+        if type(saved.pos) == "string" and EDGE[saved.pos] then pos = saved.pos
+        elseif saved.left == true then pos = "left" end
+    end
     show()
     -- What the gaps round the windows were, to give back up on the top: read once, before anything of ours changes them (if it already
     -- says what the left needs, it was us, and the usual 20 does).
@@ -21,8 +34,8 @@ return function()
         iris_fx.apply_hypr()
     end)
     on("bar_pick_pos", function(i)
-        left = math.floor(i + 0.5) == 1
-        pcall(sys.call, "files.write", "bar-position.json", { left = left })
+        pos = POS[math.floor(i + 0.5)] or "top"
+        pcall(sys.call, "files.write", "bar-position.json", { pos = pos, left = pos == "left" })
         show()
         iris_fx.apply_hypr()
     end)

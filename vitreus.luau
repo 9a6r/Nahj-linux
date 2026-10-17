@@ -297,7 +297,7 @@ end
 -- monitor's rate for as long as music played. (Globals: this chunk is at Luau's limit of locals.)
 cava_playing = false
 function cava_want()
-    if cava_playing and (fact.bar_anchor == "top" or watching or eq_float()) then listen() else hush() end
+    if cava_playing and (fact.bar_anchor == "top" or fact.bar_anchor == "bottom" or watching or eq_float()) then listen() else hush() end
 end
 
 -- The cover. Every player publishes it the same way (MPRIS `mpris:artUrl`), and
@@ -2670,7 +2670,7 @@ end
 -- What Hyprland is told: the window borders from the palette, and, with the bar down the left (bar_fx.left), the room the strip and the frame
 -- take round the windows (gaps_out: the layer's own reserved zone is not moved when the surface changes edge). It is sent at once and kept in
 -- vitreus_colors.lua, which hyprland.lua loads last (the installer adds the line). Up on the top, the gaps go back to what they were (bar_fx.orig, read once).
-bar_fx = { left = false, orig = nil, on = "all", mons = {} }
+bar_fx = { left = false, edge = "top", orig = nil, on = "all", mons = {} }   -- `left`: a strip and a frame are in use, on `edge` (left, right, top or bottom)
 bar_fx.restart = [[
 P="$1"; L="$2"
 export PATH="$HOME/.local/bin:$PATH"
@@ -2702,7 +2702,8 @@ function iris_fx.gaps_code(left)
     local function rule(name, g)
         return string.format('hl.workspace_rule({ workspace = "m[%s]", gaps_out = { top = %d, right = %d, bottom = %d, left = %d } })', name, g[1], g[2], g[3], g[4])
     end
-    local bar_gaps = { px, px, px, lp }
+    local WIDE = { top = { lp, px, px, px }, right = { px, lp, px, px }, bottom = { px, px, lp, px }, left = { px, px, px, lp } }   -- top, right, bottom, left: the wide one is the strip's
+    local bar_gaps = WIDE[bar_fx.edge] or WIDE.left
     local everywhere = (bar_fx.on or "all") == "all"
     local parts = { cfg((left and everywhere) and bar_gaps or o) }
     for _, name in ipairs(bar_fx.mons or {}) do
@@ -4975,6 +4976,12 @@ do
     -- same in `gaps_out`, see `iris_fx.gaps_code`): with the bar on the left, 24 px on the top, right and bottom and 76 on the left, from the edge of
     -- the screen; none on a monitor without the bar, or with the bar on top. The window manager puts its gap on top of whatever is set, so that gap is taken off.
     local FRAME_ROOM = { top = 24, right = 24, bottom = 24, left = 76 }
+    local FRAME_ROOMS = {
+        left = FRAME_ROOM,
+        right = { top = 24, right = 76, bottom = 24, left = 24 },
+        top = { top = 76, right = 24, bottom = 24, left = 24 },
+        bottom = { top = 24, right = 24, bottom = 76, left = 24 },
+    }
     local EDGES = { "top", "right", "bottom", "left" }
     function wm_frame_sync()
         if on_hyprland then return end
@@ -4982,12 +4989,13 @@ do
             if not mons then return end
             local names = {}
             for name, id in mons:gmatch("Monitor (%S+) %(ID (%d+)%)") do names[tonumber(id)] = name end
-            local framed = fact.bar_anchor == "left" and bar_mon.name ~= nil
+            local framed = fact.bar_frame == true and bar_mon.name ~= nil
+            local room = FRAME_ROOMS[fact.bar_anchor] or FRAME_ROOM
             local want, cmds = {}, {}
             for id = 0, 3 do
                 local has = framed and names[id] ~= nil and (bar_mon.name == "all" or bar_mon.name == names[id])
                 for _, e in ipairs(EDGES) do
-                    want[#want + 1] = has and math.max(0, FRAME_ROOM[e] - wm.gap) or 0
+                    want[#want + 1] = has and math.max(0, room[e] - wm.gap) or 0
                     cmds[#cmds + 1] = "get fr." .. id .. "." .. e
                 end
             end

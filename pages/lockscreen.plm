@@ -304,7 +304,7 @@ part LockScreen {
             zone box lk_cue_hit { at: spx + 224 * pu, sby + (set.h - 26) * pu; size: 76 * pu, 26 * pu; corner: 13 * pu; cursor: pointer; active: lk.cue > 0.5 }
             on press lk_cue_hit { lk_scroll_to = clamp(lk_scroll_to + 342, 0, max(0, lk.h - set.h)) }
             zone box lk_bar_hit { at: spx + 442 * pu, sby + set.h / 2 * pu; size: 14 * pu, set.h * pu; cursor: pointer; active: lk.h > set.h }
-            on press lk_bar_hit { lk_scroll_to = clamp(((pointer.y - sby) / pu - lk.thh / 2) / max(1, set.h - lk.thh) * (lk.h - set.h), 0, max(0, lk.h - set.h)) }
-            on drag lk_bar_hit { lk_scroll_to = clamp(((pointer.y - sby) / pu - lk.thh / 2) / max(1, set.h - lk.thh) * (lk.h - set.h), 0, max(0, lk.h - set.h)) }
+            on press lk_bar_hit { lk_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - lk.thh / 2) / max(1, set.h - lk.thh) * (lk.h - set.h), 0, max(0, lk.h - set.h)) }
+            on drag lk_bar_hit { lk_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - lk.thh / 2) / max(1, set.h - lk.thh) * (lk.h - set.h), 0, max(0, lk.h - set.h)) }
         }
 }

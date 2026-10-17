@@ -64,8 +64,8 @@ part Display {
                 ellipse { at: bx + bw - 14 * pu, by + 14 * pu; radius: 9 * pu; color: ink; opacity: if(disp_b.$i.on, 14% + 22% * disp_rm.$i.hover, 0%) }
                 arc { at: bx + bw - 14 * pu, by + 14 * pu - 1 * pu; radius: 4.5 * pu; span: 270deg; width: 1.5 * pu; rotate: 45deg; color: ink; opacity: if(disp_b.$i.on, 90%, 0%) }
                 zone box disp_mz.$i { from: bx, by; size: bw, bh; cursor: grab; active: (disp_b.$i.on) and (by + (bh) / 2) - disp.off > sby and (by + (bh) / 2) - disp.off < sby + set.h * pu }
-                on press disp_mz.$i { disp_grab_i = i; disp_px = (pointer.x - cvx) / pu; disp_py = (pointer.y - (cvy - disp.off)) / pu; emit disp_grab }
-                on drag disp_mz.$i { disp_px = (pointer.x - cvx) / pu; disp_py = (pointer.y - (cvy - disp.off)) / pu; emit disp_drag }
+                on press disp_mz.$i { disp_grab_i = i; disp_px = ((pointer.x - tx.pnl) - cvx) / pu; disp_py = ((pointer.y - ty.set) - (cvy - disp.off)) / pu; emit disp_grab }
+                on drag disp_mz.$i { disp_px = ((pointer.x - tx.pnl) - cvx) / pu; disp_py = ((pointer.y - ty.set) - (cvy - disp.off)) / pu; emit disp_drag }
                 on release disp_mz.$i { emit disp_drop }
                 zone box disp_rm.$i { at: bx + bw - 14 * pu, by + 14 * pu; size: 22 * pu, 22 * pu; corner: 11 * pu; cursor: pointer; active: (disp_b.$i.on) and (by + 14 * pu) - disp.off > sby and (by + 14 * pu) - disp.off < sby + set.h * pu }
                 on press disp_rm.$i { emit disp_rot_mon(i) }
@@ -137,15 +137,15 @@ part Display {
             body { shadow: 0, 0, 6 * pu, 50%, mint; gradient: dsl.x0, 0 to dsl.x0 + dsl.w, 0, mintlo, mint 55%, minthi; rim: 22%; box { from: dsl.x0, dtop + 226 * pu - dh / 2; size: max(0.1, dsl.w * clamp(disp_sdrb - 1, 0, 1)), dh; corner: dh / 2 } }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(dtop + 226 * pu + 0.5); text disp_sdrb_text { at: floor(spx + 424 * pu + 0.5), floor(dtop + 226 * pu + 0.5); anchor: right center; size: 17.5; weight: 600; color: ink; family: "Space Grotesk" } }
             zone box disp_sdrb_hit { at: dsl.x0 + dsl.w / 2, dtop + 226 * pu; size: dsl.w + 24 * pu, 30 * pu; cursor: pointer; active: (dtop + 226 * pu) - disp.off > sby and (dtop + 226 * pu) - disp.off < sby + set.h * pu }
-            on press disp_sdrb_hit { emit disp_sdrb_set(clamp((pointer.x - dsl.x0) / dsl.w, 0, 1)) }
-            on drag disp_sdrb_hit { emit disp_sdrb_set(clamp((pointer.x - dsl.x0) / dsl.w, 0, 1)) }
+            on press disp_sdrb_hit { emit disp_sdrb_set(clamp(((pointer.x - tx.pnl) - dsl.x0) / dsl.w, 0, 1)) }
+            on drag disp_sdrb_hit { emit disp_sdrb_set(clamp(((pointer.x - tx.pnl) - dsl.x0) / dsl.w, 0, 1)) }
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(dtop + 256 * pu + 0.5); text "SDR saturation" { at: floor(spx + 14 * pu + 0.5), floor(dtop + 256 * pu + 0.5); anchor: left center; size: 15; color: faint; family: "Space Grotesk" } }
             body { color: deep; rim: 9%; box { at: dsl.x0 + dsl.w / 2, dtop + 256 * pu; size: dsl.w, dh; corner: dh / 2 } }
             body { shadow: 0, 0, 6 * pu, 50%, mint; gradient: dsl.x0, 0 to dsl.x0 + dsl.w, 0, mintlo, mint 55%, minthi; rim: 22%; box { from: dsl.x0, dtop + 256 * pu - dh / 2; size: max(0.1, dsl.w * clamp((disp_sdrs - 0.9) / 0.2, 0, 1)), dh; corner: dh / 2 } }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(dtop + 256 * pu + 0.5); text disp_sdrs_text { at: floor(spx + 424 * pu + 0.5), floor(dtop + 256 * pu + 0.5); anchor: right center; size: 17.5; weight: 600; color: ink; family: "Space Grotesk" } }
             zone box disp_sdrs_hit { at: dsl.x0 + dsl.w / 2, dtop + 256 * pu; size: dsl.w + 24 * pu, 30 * pu; cursor: pointer; active: (dtop + 256 * pu) - disp.off > sby and (dtop + 256 * pu) - disp.off < sby + set.h * pu }
-            on press disp_sdrs_hit { emit disp_sdrs_set(clamp((pointer.x - dsl.x0) / dsl.w, 0, 1)) }
-            on drag disp_sdrs_hit { emit disp_sdrs_set(clamp((pointer.x - dsl.x0) / dsl.w, 0, 1)) }
+            on press disp_sdrs_hit { emit disp_sdrs_set(clamp(((pointer.x - tx.pnl) - dsl.x0) / dsl.w, 0, 1)) }
+            on drag disp_sdrs_hit { emit disp_sdrs_set(clamp(((pointer.x - tx.pnl) - dsl.x0) / dsl.w, 0, 1)) }
 
             //  The bottom row: what it says while nothing is on trial (and Reset, Apply), and while something is
             //  (and Keep, Revert): the question is here, where the eyes are after pressing Apply.
@@ -249,7 +249,7 @@ part Display {
             zone box disp_cue_hit { at: spx + 224 * pu, sby + (set.h - 26) * pu; size: 76 * pu, 26 * pu; corner: 13 * pu; cursor: pointer; active: cue > 0.5 }
             on press disp_cue_hit { disp_scroll_to = clamp(disp_scroll_to + 342, 0, max(0, disp.h - set.h)) }
             zone box disp_bar_hit { at: spx + 442 * pu, sby + set.h / 2 * pu; size: 14 * pu, set.h * pu; cursor: pointer; active: disp.h > set.h }
-            on press disp_bar_hit { disp_scroll_to = clamp(((pointer.y - sby) / pu - thh / 2) / max(1, set.h - thh) * (disp.h - set.h), 0, max(0, disp.h - set.h)) }
-            on drag disp_bar_hit { disp_scroll_to = clamp(((pointer.y - sby) / pu - thh / 2) / max(1, set.h - thh) * (disp.h - set.h), 0, max(0, disp.h - set.h)) }
+            on press disp_bar_hit { disp_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - thh / 2) / max(1, set.h - thh) * (disp.h - set.h), 0, max(0, disp.h - set.h)) }
+            on drag disp_bar_hit { disp_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - thh / 2) / max(1, set.h - thh) * (disp.h - set.h), 0, max(0, disp.h - set.h)) }
         }
 }

@@ -34,8 +34,8 @@ part Nightmode {
             group { scale: rs; pivot: floor(ntx0 + 0.5), floor(sby + 137 * pu + 0.5); text "6500 K" { at: floor(ntx0 + 0.5), floor(sby + 137 * pu + 0.5); anchor: left center; size: 12; color: faint; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(ntx0 + ntw + 0.5), floor(sby + 137 * pu + 0.5); text "2500 K" { at: floor(ntx0 + ntw + 0.5), floor(sby + 137 * pu + 0.5); anchor: right center; size: 12; color: faint; family: "Space Grotesk" } }
             zone box night_t_hit { at: ntx0 + ntw / 2, sby + 116 * pu; size: ntw + 24 * pu, 30 * pu; cursor: pointer }
-            on press night_t_hit { emit night_temp_set(clamp((pointer.x - ntx0) / ntw, 0, 1)) }
-            on drag night_t_hit { emit night_temp_set(clamp((pointer.x - ntx0) / ntw, 0, 1)) }
+            on press night_t_hit { emit night_temp_set(clamp(((pointer.x - tx.pnl) - ntx0) / ntw, 0, 1)) }
+            on drag night_t_hit { emit night_temp_set(clamp(((pointer.x - tx.pnl) - ntx0) / ntw, 0, 1)) }
 
             //  Card three: the schedule. Automatic, and the two times, in half hours.
             //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.

@@ -215,8 +215,8 @@ part Sysmon {
             zone box sm_cue_hit { at: spx + 224 * pu, sby + (set.h - 26) * pu; size: 76 * pu, 26 * pu; corner: 13 * pu; cursor: pointer; active: sm.cue > 0.5 }
             on press sm_cue_hit { sm_scroll_to = clamp(sm_scroll_to + 342, 0, max(0, sm.h - set.h)) }
             zone box sm_bar_hit { at: spx + 442 * pu, sby + set.h / 2 * pu; size: 14 * pu, set.h * pu; cursor: pointer; active: sm.h > set.h }
-            on press sm_bar_hit { sm_scroll_to = clamp(((pointer.y - sby) / pu - sm.thh / 2) / max(1, set.h - sm.thh) * (sm.h - set.h), 0, max(0, sm.h - set.h)) }
-            on drag sm_bar_hit { sm_scroll_to = clamp(((pointer.y - sby) / pu - sm.thh / 2) / max(1, set.h - sm.thh) * (sm.h - set.h), 0, max(0, sm.h - set.h)) }
+            on press sm_bar_hit { sm_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - sm.thh / 2) / max(1, set.h - sm.thh) * (sm.h - set.h), 0, max(0, sm.h - set.h)) }
+            on drag sm_bar_hit { sm_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - sm.thh / 2) / max(1, set.h - sm.thh) * (sm.h - set.h), 0, max(0, sm.h - set.h)) }
         }
         //  ── System monitor page: END ──
 }

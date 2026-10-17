@@ -244,8 +244,8 @@ part Notifications {
             zone box nt_cue_hit { at: spx + 224 * pu, sby + (set.h - 26) * pu; size: 76 * pu, 26 * pu; corner: 13 * pu; cursor: pointer; active: nt.cue > 0.5 }
             on press nt_cue_hit { nt_scroll_to = clamp(nt_scroll_to + 342, 0, max(0, nt.h - set.h)) }
             zone box nt_bar_hit { at: spx + 442 * pu, sby + set.h / 2 * pu; size: 14 * pu, set.h * pu; cursor: pointer; active: nt.h > set.h }
-            on press nt_bar_hit { nt_scroll_to = clamp(((pointer.y - sby) / pu - nt.thh / 2) / max(1, set.h - nt.thh) * (nt.h - set.h), 0, max(0, nt.h - set.h)) }
-            on drag nt_bar_hit { nt_scroll_to = clamp(((pointer.y - sby) / pu - nt.thh / 2) / max(1, set.h - nt.thh) * (nt.h - set.h), 0, max(0, nt.h - set.h)) }
+            on press nt_bar_hit { nt_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - nt.thh / 2) / max(1, set.h - nt.thh) * (nt.h - set.h), 0, max(0, nt.h - set.h)) }
+            on drag nt_bar_hit { nt_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - nt.thh / 2) / max(1, set.h - nt.thh) * (nt.h - set.h), 0, max(0, nt.h - set.h)) }
         }
         //  ── Notifications page: END ──
 }

@@ -76,8 +76,8 @@ part PleamarWm {
             }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 166 * pu + 0.5); text wm_share_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 166 * pu + 0.5); anchor: right center; size: 17.5; weight: 600; color: ink; family: "Space Grotesk" } }
             zone box wm_share_hit { at: wsl.x0 + wsl.w / 2, sby + 166 * pu; size: wsl.w + 24 * pu, 30 * pu; cursor: pointer; active: (sby + 166 * pu) - sby - wm.off > 0 and (sby + 166 * pu) - sby - wm.off < set.h * pu }
-            on press wm_share_hit { emit wm_share_set(clamp((pointer.x - wsl.x0) / wsl.w, 0, 1)) }
-            on drag wm_share_hit { emit wm_share_set(clamp((pointer.x - wsl.x0) / wsl.w, 0, 1)) }
+            on press wm_share_hit { emit wm_share_set(clamp(((pointer.x - tx.pnl) - wsl.x0) / wsl.w, 0, 1)) }
+            on drag wm_share_hit { emit wm_share_set(clamp(((pointer.x - tx.pnl) - wsl.x0) / wsl.w, 0, 1)) }
 
             //  Gaps between windows, 0 to 32 px.
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 198 * pu + 0.5); text "Gaps" { at: floor(spx + 14 * pu + 0.5), floor(sby + 198 * pu + 0.5); anchor: left center; size: 15; color: faint; family: "Space Grotesk" } }
@@ -90,8 +90,8 @@ part PleamarWm {
             }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 198 * pu + 0.5); text wm_gap_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 198 * pu + 0.5); anchor: right center; size: 17.5; weight: 600; color: ink; family: "Space Grotesk" } }
             zone box wm_gap_hit { at: wsl.x0 + wsl.w / 2, sby + 198 * pu; size: wsl.w + 24 * pu, 30 * pu; cursor: pointer; active: (sby + 198 * pu) - sby - wm.off > 0 and (sby + 198 * pu) - sby - wm.off < set.h * pu }
-            on press wm_gap_hit { emit wm_gap_set(clamp((pointer.x - wsl.x0) / wsl.w, 0, 1)) }
-            on drag wm_gap_hit { emit wm_gap_set(clamp((pointer.x - wsl.x0) / wsl.w, 0, 1)) }
+            on press wm_gap_hit { emit wm_gap_set(clamp(((pointer.x - tx.pnl) - wsl.x0) / wsl.w, 0, 1)) }
+            on drag wm_gap_hit { emit wm_gap_set(clamp(((pointer.x - tx.pnl) - wsl.x0) / wsl.w, 0, 1)) }
 
             //  Free-floating windows, as on Windows or KDE.
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 232 * pu + 0.5); text "Free-floating windows" { at: floor(spx + 14 * pu + 0.5), floor(sby + 232 * pu + 0.5); anchor: left center; size: 15.5; weight: 600; color: ink; family: "Space Grotesk" } }
@@ -123,8 +123,8 @@ part PleamarWm {
                 }
                 group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sy + 0.5); text pick(i, wm_ms_text, wm_ts_text, wm_idle_text) { at: floor(spx + 424 * pu + 0.5), floor(sy + 0.5); anchor: right center; size: 17.5; weight: 600; color: ink; family: "Space Grotesk" } }
                 zone box wm_in_hit.$i { at: wsl.x0 + wsl.w / 2, sy; size: wsl.w + 24 * pu, 30 * pu; cursor: pointer; active: (sy) - sby - wm.off > 0 and (sy) - sby - wm.off < set.h * pu }
-                on press wm_in_hit.$i { emit wm_input_set(i * 10 + clamp((pointer.x - wsl.x0) / wsl.w, 0, 1)) }
-                on drag wm_in_hit.$i { emit wm_input_set(i * 10 + clamp((pointer.x - wsl.x0) / wsl.w, 0, 1)) }
+                on press wm_in_hit.$i { emit wm_input_set(i * 10 + clamp(((pointer.x - tx.pnl) - wsl.x0) / wsl.w, 0, 1)) }
+                on drag wm_in_hit.$i { emit wm_input_set(i * 10 + clamp(((pointer.x - tx.pnl) - wsl.x0) / wsl.w, 0, 1)) }
             }
             box { at: wsl.x0 + wsl.w / 2, sby + 382 * pu; size: 1.5 * pu, wh + 6 * pu; corner: 0.75 * pu; color: ink; opacity: 40% }
             box { at: wsl.x0 + wsl.w / 2, sby + 412 * pu; size: 1.5 * pu, wh + 6 * pu; corner: 0.75 * pu; color: ink; opacity: 40% }
@@ -172,8 +172,8 @@ part PleamarWm {
                 }
                 group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sy + 0.5); text pick(i, wm_bw_text, wm_ba_text, wm_rad_text, wm_shd_text, wm_tb_text, wm_tbo_text, wm_wa_text, wm_wi_text, wm_fr_text) { at: floor(spx + 424 * pu + 0.5), floor(sy + 0.5); anchor: right center; size: 17.5; weight: 600; color: ink; family: "Space Grotesk" } }
                 zone box wm_st_hit.$i { at: wsl.x0 + wsl.w / 2, sy; size: wsl.w + 24 * pu, 30 * pu; cursor: pointer; active: sy - sby - wm.off > 0 and sy - sby - wm.off < set.h * pu }
-                on press wm_st_hit.$i { emit wm_style_set(i * 10 + clamp((pointer.x - wsl.x0) / wsl.w, 0, 1)) }
-                on drag wm_st_hit.$i { emit wm_style_set(i * 10 + clamp((pointer.x - wsl.x0) / wsl.w, 0, 1)) }
+                on press wm_st_hit.$i { emit wm_style_set(i * 10 + clamp(((pointer.x - tx.pnl) - wsl.x0) / wsl.w, 0, 1)) }
+                on drag wm_st_hit.$i { emit wm_style_set(i * 10 + clamp(((pointer.x - tx.pnl) - wsl.x0) / wsl.w, 0, 1)) }
             }
             }
 
@@ -197,7 +197,7 @@ part PleamarWm {
             zone box wm_cue_hit { at: spx + 224 * pu, sby + (set.h - 26) * pu; size: 76 * pu, 26 * pu; corner: 13 * pu; cursor: pointer; active: wm.cue > 0.5 }
             on press wm_cue_hit { wm_scroll_to = clamp(wm_scroll_to + 342, 0, max(0, wm.h - set.h)) }
             zone box wm_bar_hit { at: spx + 442 * pu, sby + set.h / 2 * pu; size: 14 * pu, set.h * pu; cursor: pointer; active: wm.h > set.h }
-            on press wm_bar_hit { wm_scroll_to = clamp(((pointer.y - sby) / pu - wm.thh / 2) / max(1, set.h - wm.thh) * (wm.h - set.h), 0, max(0, wm.h - set.h)) }
-            on drag wm_bar_hit { wm_scroll_to = clamp(((pointer.y - sby) / pu - wm.thh / 2) / max(1, set.h - wm.thh) * (wm.h - set.h), 0, max(0, wm.h - set.h)) }
+            on press wm_bar_hit { wm_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - wm.thh / 2) / max(1, set.h - wm.thh) * (wm.h - set.h), 0, max(0, wm.h - set.h)) }
+            on drag wm_bar_hit { wm_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - wm.thh / 2) / max(1, set.h - wm.thh) * (wm.h - set.h), 0, max(0, wm.h - set.h)) }
         }
 }

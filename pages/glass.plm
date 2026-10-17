@@ -53,9 +53,9 @@ part Glass {
             }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 112 * pu + 0.5); text hy_blur_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 112 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100%; family: "Space Grotesk" } }
             zone box glass_hit2 { at: gsl.x0 + gsl.w / 2, sby + 141 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (sby + 141 * pu) - gl.off > sby and (sby + 141 * pu) - gl.off < sby + set.h * pu }
-            on press glass_hit2 { emit glass_blur_set(clamp((pointer.x - gsl.x0) / gsl.w, 0, 1)) }
+            on press glass_hit2 { emit glass_blur_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
             on scroll glass_hit2 { gl_scroll_to = clamp(gl_scroll_to - wheel * 44, 0, max(0, gl.h - set.h)) }
-            on drag glass_hit2 { emit glass_blur_set(clamp((pointer.x - gsl.x0) / gsl.w, 0, 1)) }
+            on drag glass_hit2 { emit glass_blur_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
 
             //  Everything the glass is made of: greyed out while the glass is off.
             group {
@@ -87,9 +87,9 @@ part Glass {
             box { at: gsl.x0 + gsl.w * 0.3, sby + 199 * pu; size: 1.5 * pu, gh + 6 * pu; corner: 0.75 * pu; color: ink; opacity: 45% }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 170 * pu + 0.5); text glass_op_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 170 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100%; family: "Space Grotesk" } }
             zone box glass_hit1 { at: gsl.x0 + gsl.w / 2, sby + 199 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (obs < 0.5) and (sby + 199 * pu) - gl.off > sby and (sby + 199 * pu) - gl.off < sby + set.h * pu }
-            on press glass_hit1 { emit glass_op_set(clamp((pointer.x - gsl.x0) / gsl.w, 0, 1)) }
+            on press glass_hit1 { emit glass_op_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
             on scroll glass_hit1 { gl_scroll_to = clamp(gl_scroll_to - wheel * 44, 0, max(0, gl.h - set.h)) }
-            on drag glass_hit1 { emit glass_op_set(clamp((pointer.x - gsl.x0) / gsl.w, 0, 1)) }
+            on drag glass_hit1 { emit glass_op_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
 
             //  Edge light.
             //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
@@ -113,9 +113,9 @@ part Glass {
             }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 228 * pu + 0.5); text glass_rim_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 228 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100%; family: "Space Grotesk" } }
             zone box glass_hit3 { at: gsl.x0 + gsl.w / 2, sby + 257 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (obs < 0.5) and (sby + 257 * pu) - gl.off > sby and (sby + 257 * pu) - gl.off < sby + set.h * pu }
-            on press glass_hit3 { emit glass_rim_set(clamp((pointer.x - gsl.x0) / gsl.w, 0, 1)) }
+            on press glass_hit3 { emit glass_rim_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
             on scroll glass_hit3 { gl_scroll_to = clamp(gl_scroll_to - wheel * 44, 0, max(0, gl.h - set.h)) }
-            on drag glass_hit3 { emit glass_rim_set(clamp((pointer.x - gsl.x0) / gsl.w, 0, 1)) }
+            on drag glass_hit3 { emit glass_rim_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
 
             //  Edge thickness.
             //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
@@ -139,9 +139,9 @@ part Glass {
             }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 286 * pu + 0.5); text glass_refr_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 286 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
             zone box glass_hit4 { at: gsl.x0 + gsl.w / 2, sby + 315 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (obs < 0.5) and (sby + 315 * pu) - gl.off > sby and (sby + 315 * pu) - gl.off < sby + set.h * pu }
-            on press glass_hit4 { emit glass_refr_set(clamp((pointer.x - gsl.x0) / gsl.w, 0, 1)) }
+            on press glass_hit4 { emit glass_refr_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
             on scroll glass_hit4 { gl_scroll_to = clamp(gl_scroll_to - wheel * 44, 0, max(0, gl.h - set.h)) }
-            on drag glass_hit4 { emit glass_refr_set(clamp((pointer.x - gsl.x0) / gsl.w, 0, 1)) }
+            on drag glass_hit4 { emit glass_refr_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
 
             //  Rainbow fringe.
             //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
@@ -165,9 +165,9 @@ part Glass {
             }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 344 * pu + 0.5); text glass_disp_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 344 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
             zone box glass_hit5 { at: gsl.x0 + gsl.w / 2, sby + 373 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (obs < 0.5) and (sby + 373 * pu) - gl.off > sby and (sby + 373 * pu) - gl.off < sby + set.h * pu }
-            on press glass_hit5 { emit glass_disp_set(clamp((pointer.x - gsl.x0) / gsl.w, 0, 1)) }
+            on press glass_hit5 { emit glass_disp_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
             on scroll glass_hit5 { gl_scroll_to = clamp(gl_scroll_to - wheel * 44, 0, max(0, gl.h - set.h)) }
-            on drag glass_hit5 { emit glass_disp_set(clamp((pointer.x - gsl.x0) / gsl.w, 0, 1)) }
+            on drag glass_hit5 { emit glass_disp_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
 
             //  Bend what is behind the glass: swaps the compositor's blur for real bending (it takes a screenshot of what is
             //  behind the bar while anything moves, so it costs more power).
@@ -206,9 +206,9 @@ part Glass {
             }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 450 * pu + 0.5); text glass_clear_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 450 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k) * (1 - 0.55 * glass_auto_pill); family: "Space Grotesk" } }
             zone box glass_hit6 { at: gsl.x0 + gsl.w / 2, sby + 479 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (obs < 0.5 and glass_bend and not glass_auto) and (sby + 479 * pu) - gl.off > sby and (sby + 479 * pu) - gl.off < sby + set.h * pu }
-            on press glass_hit6 { emit glass_clear_set(clamp((pointer.x - gsl.x0) / gsl.w, 0, 1)) }
+            on press glass_hit6 { emit glass_clear_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
             on scroll glass_hit6 { gl_scroll_to = clamp(gl_scroll_to - wheel * 44, 0, max(0, gl.h - set.h)) }
-            on drag glass_hit6 { emit glass_clear_set(clamp((pointer.x - gsl.x0) / gsl.w, 0, 1)) }
+            on drag glass_hit6 { emit glass_clear_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
 
 
             //  Auto frost: frosted only where what is behind is busy (words, a window), clear over a wallpaper. `frost: auto` cannot come from an expression, so
@@ -246,8 +246,8 @@ part Glass {
             zone box gl_cue_hit { at: spx + 224 * pu, sby + (set.h - 26) * pu; size: 76 * pu, 26 * pu; corner: 13 * pu; cursor: pointer; active: gl.cue > 0.5 }
             on press gl_cue_hit { gl_scroll_to = clamp(gl_scroll_to + 342, 0, max(0, gl.h - set.h)) }
             zone box gl_bar_hit { at: spx + 442 * pu, sby + set.h / 2 * pu; size: 14 * pu, set.h * pu; cursor: pointer; active: gl.h > set.h }
-            on press gl_bar_hit { gl_scroll_to = clamp(((pointer.y - sby) / pu - gl.thh / 2) / max(1, set.h - gl.thh) * (gl.h - set.h), 0, max(0, gl.h - set.h)) }
-            on drag gl_bar_hit { gl_scroll_to = clamp(((pointer.y - sby) / pu - gl.thh / 2) / max(1, set.h - gl.thh) * (gl.h - set.h), 0, max(0, gl.h - set.h)) }
+            on press gl_bar_hit { gl_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - gl.thh / 2) / max(1, set.h - gl.thh) * (gl.h - set.h), 0, max(0, gl.h - set.h)) }
+            on drag gl_bar_hit { gl_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - gl.thh / 2) / max(1, set.h - gl.thh) * (gl.h - set.h), 0, max(0, gl.h - set.h)) }
 
         }
 }

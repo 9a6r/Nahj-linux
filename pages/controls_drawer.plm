@@ -3,10 +3,11 @@ part ControlsDrawer {
     group {
         shader: pixelate, px.dk
         opacity: pown
-        clip inset 2 box { at: mix(pcx, dk.gx, lm), mix(bar.y + dk.hh / 2, lp.cy, lm); size: mix(dk.w, dk.gw, lm), mix(dk.hh, dk.gh, lm); corner: 26 * cu * (1 - 0.73 * sq) }
+        move: rt * (screen.width - 2 * pcx), bt * (yo + vb - 2 * (th.t + lp.hd / 2))
+        clip inset 2 box { at: mix(mix(pcx, dk.gx, lm), 2 * pcx - mix(pcx, dk.gx, lm), rt), mix(mix(bar.y + dk.hh / 2, lp.cy, lm), 2 * (th.t + lp.hd / 2) - mix(bar.y + dk.hh / 2, lp.cy, lm), bt); size: mix(dk.w, dk.gw, lm), mix(dk.hh, dk.gh, lm); corner: 26 * cu * (1 - 0.73 * sq) }
         //  Down the left it comes out of the strip: what is inside grows with the drawer's shape (`dk.lf`), from the strip's edge at the panel's middle, instead of waiting still under the clip.
         group {
-            pivot: lp.xl, lp.cy
+            pivot: mix(lp.xl, 2 * pcx - lp.xl, rt), lp.cy
             scale: mix(1, max(dk.lf, 0.05), lm * att)
         //  A plate is a veil, not more glass: glass does not go on glass.
         group {
@@ -58,9 +59,9 @@ part ControlsDrawer {
             zone box vol_plate { at: pcx, vol_cy + (vp.h - 64) / 2 * cu; size: 288 * cu, vp.h * cu; corner: 14 * cu }
             on press right vol_plate { vm_open = not vm_open; dd_open = false }
             zone box vol_hit { at: sl.x0 + sl.w / 2, sy; size: sl.w + 16 * cu, 24 * cu; cursor: pointer }
-            on press vol_hit { emit setvol(clamp((pointer.x - sl.x0) / sl.w, 0, 1)) }
+            on press vol_hit { emit setvol(clamp(((pointer.x - tx.pnl) - sl.x0) / sl.w, 0, 1)) }
             on press right vol_hit { vm_open = not vm_open; dd_open = false }
-            on drag vol_hit { emit setvol(clamp((pointer.x - sl.x0) / sl.w, 0, 1)) }
+            on drag vol_hit { emit setvol(clamp(((pointer.x - tx.pnl) - sl.x0) / sl.w, 0, 1)) }
             //  Three small dots at the foot of the plate say there is more under it: the mixer. They are a button too
             //  (right-clicking the plate does the same).
             repeat i in 0..3 {
@@ -153,8 +154,8 @@ part ControlsDrawer {
                 }
             }
             zone box bright_hit { at: bsl.x0 + bsl.w / 2, bsy; size: bsl.w + 28 * cu, 34 * cu; cursor: pointer; active: brightness.present and bright_avail }
-            on press bright_hit { emit setbright(clamp((pointer.x - bsl.x0) / bsl.w, 0, 1)) }
-            on drag bright_hit { emit setbright(clamp((pointer.x - bsl.x0) / bsl.w, 0, 1)) }
+            on press bright_hit { emit setbright(clamp(((pointer.x - tx.pnl) - bsl.x0) / bsl.w, 0, 1)) }
+            on drag bright_hit { emit setbright(clamp(((pointer.x - tx.pnl) - bsl.x0) / bsl.w, 0, 1)) }
             text number(bright_level * 100, 0, "%") { at: floor(pcx + 128 * cu + 0.5), floor(bcy - 14 * cu + 0.5); anchor: right center; size: 18.5; weight: 600; color: ink; family: "Space Grotesk"; show: brightness.present and bright_avail }
             text "No backlight" { at: floor(pcx + 128 * cu + 0.5), floor(bcy - 14 * cu + 0.5); anchor: right center; size: 15; color: faint; family: "Space Grotesk"; show: not brightness.present }
             text "brightnessctl missing" { at: floor(pcx + 128 * cu + 0.5), floor(bcy - 14 * cu + 0.5); anchor: right center; size: 14; color: faint; family: "Space Grotesk"; show: brightness.present and not bright_avail }
@@ -254,7 +255,7 @@ part ControlsDrawer {
             on press wifi_tile_hit { panel_sub = if(panel_sub == netview, none, netview) }
             zone box wifi_toggle_hit { at: wf_cx, wf_cy; size: wf_w + 8 * cu, 30 * cu; cursor: pointer }
             //  Press: squish, ring from the finger. Hold: the pill becomes a signal meter. Release flips the radio unless it was a hold.
-            on press wifi_toggle_hit { wf_press: 1; wf_rx = pointer.x; wf_ry = pointer.y; wf_rip: 0 ~0ms; wf_rip: 1 ~700ms after 40ms }
+            on press wifi_toggle_hit { wf_press: 1; wf_rx = (pointer.x - tx.pnl); wf_ry = (pointer.y - ty.att); wf_rip: 0 ~0ms; wf_rip: 1 ~700ms after 40ms }
             on hold wifi_toggle_hit for 450ms { wf_held = true; wf_hold: 1 }
             on release wifi_toggle_hit while not wf_held { emit togglewifi(not net.wifi) }
             on release wifi_toggle_hit { wf_press: 0; wf_hold: 0; wf_held = false }
@@ -322,7 +323,7 @@ part ControlsDrawer {
             on press bt_tile_hit { panel_sub = if(panel_sub == btview, none, btview) }
             zone box bt_toggle_hit { at: tb1 - 1 * cu, tile2_cy - 18 * cu; size: 46 * cu, 30 * cu; cursor: pointer }
             on press bt_toggle_hit { emit togglebt(not bt.powered) }
-            on press bt_toggle_hit { bt_press: 1; bt_rx = pointer.x; bt_ry = pointer.y; bt_rip: 0 ~0ms; bt_rip: 1 ~700ms after 40ms }
+            on press bt_toggle_hit { bt_press: 1; bt_rx = (pointer.x - tx.pnl); bt_ry = (pointer.y - ty.att); bt_rip: 0 ~0ms; bt_rip: 1 ~700ms after 40ms }
             on release bt_toggle_hit { bt_press: 0 }
 
             //  Notifications (Do Not Disturb, with its own window) and Caffeine (the whole tile is its toggle), underneath.
@@ -400,7 +401,7 @@ part ControlsDrawer {
             on press dnd_hit { panel_sub = if(panel_sub == notifview, none, notifview) }
             zone box dnd_toggle_hit { at: tb3 - 1 * cu, tile_cy - 18 * cu; size: 46 * cu, 30 * cu; cursor: pointer }
             on press dnd_toggle_hit { emit togglednd }
-            on press dnd_toggle_hit { dnd_press: 1; dnd_rx = pointer.x; dnd_ry = pointer.y; dnd_rip: 0 ~0ms; dnd_rip: 1 ~700ms after 40ms }
+            on press dnd_toggle_hit { dnd_press: 1; dnd_rx = (pointer.x - tx.pnl); dnd_ry = (pointer.y - ty.att); dnd_rip: 0 ~0ms; dnd_rip: 1 ~700ms after 40ms }
             on release dnd_toggle_hit { dnd_press: 0 }
 
             //  Caffeine: a cup that steams while the machine is being kept awake. Dimmed on a
@@ -484,7 +485,7 @@ part ControlsDrawer {
                 on press caf_hit { panel_sub = if(panel_sub == cafview, none, cafview) }
                 zone box caf_toggle_hit { at: tb2 - 1 * cu, tile_cy - 18 * cu; size: 46 * cu, 30 * cu; cursor: pointer; active: caf_avail }
                 on press caf_toggle_hit { emit togglecaf }
-                on press caf_toggle_hit { caf_press: 1; caf_rx = pointer.x; caf_ry = pointer.y; caf_rip: 0 ~0ms; caf_rip: 1 ~700ms after 40ms }
+                on press caf_toggle_hit { caf_press: 1; caf_rx = (pointer.x - tx.pnl); caf_ry = (pointer.y - ty.att); caf_rip: 0 ~0ms; caf_rip: 1 ~700ms after 40ms }
                 on release caf_toggle_hit { caf_press: 0 }
             }
 
@@ -651,7 +652,7 @@ part ControlsDrawer {
                 on press dnd_chip.$i while i == 5 and not dnd_on { emit togglednd }
                 on press dnd_chip.$i while i == 5 and dnd_on and dnd_len == 0 { emit togglednd }
                 on press dnd_chip.$i while i == 5 and dnd_on and dnd_len > 0 { emit togglednd; emit togglednd }
-                on press dnd_chip.$i { dnd_press: 1; nt_rx = pointer.x; nt_ry = pointer.y; nt_rip: 0 ~0ms; nt_rip: 1 ~700ms after 40ms }
+                on press dnd_chip.$i { dnd_press: 1; nt_rx = (pointer.x - tx.pnl); nt_ry = (pointer.y - ty.att); nt_rip: 0 ~0ms; nt_rip: 1 ~700ms after 40ms }
                 on release dnd_chip.$i { dnd_press: 0 }
             }
 
@@ -774,7 +775,7 @@ part ControlsDrawer {
                     zone box caf_chip.$i { at: lx, cs_y; size: 38 * cu, 36 * cu; cursor: pointer; active: caf_avail }
                     on press caf_chip.$i while i > 0 { emit caf_for(pick(i, 0, 15, 30, 60, 120, 240, 0)) }
                     on press caf_chip.$i while i == 0 and caf_on { emit togglecaf }
-                    on press caf_chip.$i { caf_press: 1; cs_rx = pointer.x; cs_ry = pointer.y; cs_rip: 0 ~0ms; cs_rip: 1 ~700ms after 40ms }
+                    on press caf_chip.$i { caf_press: 1; cs_rx = (pointer.x - tx.pnl); cs_ry = (pointer.y - ty.att); cs_rip: 0 ~0ms; cs_rip: 1 ~700ms after 40ms }
                     on release caf_chip.$i { caf_press: 0 }
                 }
             }

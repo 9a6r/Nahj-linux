@@ -3,7 +3,7 @@ part BarGlass {
     group {
         //  Only while it does something: the Retro's pixelation, or a wave that can bend (not on the left, not with the panel half down, and while a beat or a ring is moving).
         //  The rest of the time the group goes without its shader and its full-surface pass (pleamar 0.3.12 and later).
-        shader: wave, pv, mix(clamp(ring, 0, 1), 1, lm), mix((mc - (pcx - bar.w / 2)) / bar.w, 0.5, clamp(ring_mid, 0, 1)), lf.w, 2.6 * u * (1 - min(1, drop * 2)) * (1 - lm), bar.w, pxa, lf.t while pxa > 1.5 or (lm < 0.999 and drop < 0.5 and (pv > 0.001 or ring < 0.999))
+        shader: wave, pv, mix(clamp(ring, 0, 1), 1, lm), mix((mc - (cx - bar.w / 2)) / bar.w, 0.5, clamp(ring_mid, 0, 1)), lf.w, 2.6 * u * (1 - min(1, drop * 2)) * (1 - lm), bar.w, pxa, lf.t while pxa > 1.5 or (lm < 0.999 and drop < 0.5 and (pv > 0.001 or ring < 0.999))
         //  With the Retro on, a barely visible box over the whole surface makes the group's box the surface, so the pixelation (wave.wgsl) knows where the opening is.
         box { from: 0, 0; size: screen.width, screen.height; color: deep; opacity: 1.2% * cas_k }
         // ── the liquid ───────────────────────────────────────────────
@@ -207,8 +207,8 @@ part BarGlass {
         group {
             show: cy_k > 0.01 and lm < 0.5
             opacity: cy_k * (1 - lm)
-            let cybarl = pcx - (bar.w + pv * 10 * u) / 2
-            let cybarr = pcx + (bar.w + pv * 10 * u) / 2
+            let cybarl = cx - (bar.w + pv * 10 * u) / 2
+            let cybarr = cx + (bar.w + pv * 10 * u) / 2
             let cybart = bar.y - bar.h / 2
             let cybarb = bar.y - bar.h / 2 + bar.h + pop
             repeat cybarc in 0..4 {
@@ -862,7 +862,7 @@ part BarGlass {
         //  the battery is low.
         group {
             let bf.m = 7 * u                                        // the margin between the gauge and the bar's edge
-            let bf.x = pcx - (bar.w + pv * 10 * u) / 2 + bf.m
+            let bf.x = cx - (bar.w + pv * 10 * u) / 2 + bf.m
             let bf.mid = bar.y - bar.h / 2 + (bar.h + pop) / 2      // the pill's middle line
             let bf.nub = 6.6 * u                                    // how far the nub on its far end sticks out
             let bf.full = bar.w + pv * 10 * u - 2 * bf.m - bf.nub   // the gauge's length at 100 %: the nub has the same margin at its end as the gauge has at the other
@@ -933,9 +933,9 @@ part BarGlass {
         //  of thin slices whose strength follows a bell, so it has no hard edge; it is strongest in the middle of the
         //  crossing and gone (opacity 0) whenever `charge_sweep` rests at 1.
         group {
-            clip inset 0 box { at: pcx, bar.y - bar.h / 2 + (bar.h + pop) / 2; size: bar.w + pv * 10 * u, bar.h + pop; corner: bar.rad }
+            clip inset 0 box { at: cx, bar.y - bar.h / 2 + (bar.h + pop) / 2; size: bar.w + pv * 10 * u, bar.h + pop; corner: bar.rad }
             let cg.w = 130 * u                                                   // the band's width
-            let cg.x = mix(pcx - bar.w / 2 - cg.w / 2, pcx + bar.w / 2 + cg.w / 2, clamp(charge_sweep, 0, 1))
+            let cg.x = mix(cx - bar.w / 2 - cg.w / 2, cx + bar.w / 2 + cg.w / 2, clamp(charge_sweep, 0, 1))
             let cg.a = sin(clamp(charge_sweep, 0, 1) * 180) * batt_on * (1 - lm)           // fades in and out over the crossing
             repeat k in 0..14 {
                 box { at: cg.x + (k - 6.5) * cg.w / 14, bar.y; size: cg.w / 14 + 1, bar.h + pop; color: mint; opacity: 15% * cg.a * sin((k + 0.5) / 14 * 180) }
@@ -945,7 +945,7 @@ part BarGlass {
         // ── the bar ──────────────────────────────────────────────────
         //  Under everything else on the bar (declared first, so the pieces win their presses): it only says that the
         //  pointer is over the bar, in the gaps between them.
-        zone box bar_hover { at: pcx, bar.y; size: bar.w, bar.h; active: lm < 0.5 }
+        zone box bar_hover { at: cx, bar.y; size: bar.w, bar.h; active: lm < 0.5 }
         zone box lf_hover { at: lf.x, vc; size: lf.w, vh; active: lm > 0.5 }
         repeat i in 1..6 {
             //  A zone as long as the slot and its share of the gap, so the zones touch.
@@ -977,15 +977,13 @@ part BarGlass {
     text win.class { at: floor(win.x + 0.5), floor(bar.y - 6.5 * u + 0.5); anchor: left center; size: 17; weight: 600; lines: 1; measure: clsw; opacity: 0; family: "Space Grotesk" }
         text win.title { at: floor(win.x + 0.5), floor(bar.y + 8.75 * u + 0.5); anchor: left center; size: 13.5; weight: 500; lines: 1; measure: titw; opacity: 0; family: "Space Grotesk" }
         //  While a player exists its buttons (previous, play, next: 48 wide) sit in this button's top right, beside the app name.
-        let mctl = 54 * u * mshow * bs.media * bs.title
-        let win.hw = clamp(max(clsw.width + mctl, titw.width) + 12 * u, 48 * u, win.w)
         //  With a name in front (`win.have` 1) the button is as wide as the name, with the player's buttons in its top right. With no window
         //  the texts are empty, and the button would be a narrow strip at the left: it then takes most of the gap and is centred in it, with the
         //  player's buttons in the middle.
         let win.have = clamp(max(clsw.width, titw.width) / (6 * u), 0, 1)
-        let win.zc = mix(win.x + win.w / 2, win.x - 6 * u + win.hw / 2, win.have)
+        let win.zc = mix(win.cm, win.xs - 6 * u + win.hw / 2, win.have)
         let win.zw = mix(max(48 * u, win.w - 12 * u), win.hw, win.have)
-        let mcx = mix(win.x + win.w / 2, win.x - 6 * u + win.hw - 27.5 * u, win.have)
+        let mcx = mix(win.cm, win.xs - 6 * u + win.hw - 27.5 * u, win.have)
         let mcy = mix(bar.y, bar.y - 6.5 * u, win.have)
         zone box win_hit { at: win.zc, bar.y; size: win.zw, bar.h; cursor: pointer; active: bs.title > 0.5 }
         on press win_hit { pending = none; panel_scr = screen.index; panel = if(panel == player, none, player) }

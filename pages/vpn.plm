@@ -294,8 +294,8 @@ part Vpn {
             zone box vpn_cue_hit { at: spx + 224 * pu, sby + (set.h - 26) * pu; size: 76 * pu, 26 * pu; corner: 13 * pu; cursor: pointer; active: vpn.cue > 0.5 }
             on press vpn_cue_hit { vpn_scroll_to = clamp(vpn_scroll_to + 342, 0, max(0, vpn.h - set.h)) }
             zone box vpn_bar_hit { at: spx + 442 * pu, sby + set.h / 2 * pu; size: 14 * pu, set.h * pu; cursor: pointer; active: vpn.h > set.h }
-            on press vpn_bar_hit { vpn_scroll_to = clamp(((pointer.y - sby) / pu - vpn.thh / 2) / max(1, set.h - vpn.thh) * (vpn.h - set.h), 0, max(0, vpn.h - set.h)) }
-            on drag vpn_bar_hit { vpn_scroll_to = clamp(((pointer.y - sby) / pu - vpn.thh / 2) / max(1, set.h - vpn.thh) * (vpn.h - set.h), 0, max(0, vpn.h - set.h)) }
+            on press vpn_bar_hit { vpn_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - vpn.thh / 2) / max(1, set.h - vpn.thh) * (vpn.h - set.h), 0, max(0, vpn.h - set.h)) }
+            on drag vpn_bar_hit { vpn_scroll_to = clamp((((pointer.y - ty.set) - sby) / pu - vpn.thh / 2) / max(1, set.h - vpn.thh) * (vpn.h - set.h), 0, max(0, vpn.h - set.h)) }
         }
         //  ── VPN page: END ──
 }

@@ -175,8 +175,8 @@ part Theme {
                 box { at: fnt_x + fnt_w - 6 * pu, fnt_y + 38 * pu + 40 * pu + (font_sb_y + font_sb_h / 2) * 190 * pu; size: 3 * pu + 2 * pu * font_bar_hit.hover, max(8 * pu, font_sb_h * 190 * pu); corner: 1.5 * pu; color: mint; opacity: if(font_sb_h < 0.999, 55% + 35% * font_bar_hit.hover, 0%) }
                 //  The scrollbar is a handle: pressed or dragged, the list goes to where the pointer is along the track.
                 zone box font_bar_hit { at: fnt_x + fnt_w - 7 * pu, fnt_y + 38 * pu + 135 * pu; size: 14 * pu, 196 * pu; cursor: pointer; active: font_dd_open and font_sb_h < 0.999; label: "Font list scrollbar" }
-                on press font_bar_hit { emit font_bar((pointer.y - (fnt_y + 38 * pu + 40 * pu)) / (190 * pu)) }
-                on drag font_bar_hit { emit font_bar((pointer.y - (fnt_y + 38 * pu + 40 * pu)) / (190 * pu)) }
+                on press font_bar_hit { emit font_bar(((pointer.y - ty.set) - (fnt_y + 38 * pu + 40 * pu)) / (190 * pu)) }
+                on drag font_bar_hit { emit font_bar(((pointer.y - ty.set) - (fnt_y + 38 * pu + 40 * pu)) / (190 * pu)) }
             }
             //  Sound: the one switch, a short click when a panel opens.
             body { color: mix(obsidian, ink, (6%) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 422 * pu; size: 438 * pu, 40 * pu; corner: 14 * pu } }
