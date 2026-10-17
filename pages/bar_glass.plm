@@ -442,7 +442,7 @@ part BarGlass {
                 ellipse { at: px + 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
                 ellipse { at: px + 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
             }
-            particles { at: wdk.l + 36 * u, wdk.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff, #7fd3ff, #5fe3d6, #ffe27a; shape: spark }
+            particles { at: wdk.l + 36 * u, wdk.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff; shape: spark }
         }
         group {
             show: uwu_k > 0.01 and dc0 > 0.9
@@ -503,7 +503,7 @@ part BarGlass {
                 ellipse { at: px + 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
                 ellipse { at: px + 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
             }
-            particles { at: wdc.l + 36 * u, wdc.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff, #7fd3ff, #5fe3d6, #ffe27a; shape: spark }
+            particles { at: wdc.l + 36 * u, wdc.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff; shape: spark }
         }
         group {
             show: uwu_k > 0.01 and ds0 > 0.9
@@ -564,7 +564,7 @@ part BarGlass {
                 ellipse { at: px + 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
                 ellipse { at: px + 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
             }
-            particles { at: wds.l + 36 * u, wds.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff, #7fd3ff, #5fe3d6, #ffe27a; shape: spark }
+            particles { at: wds.l + 36 * u, wds.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff; shape: spark }
         }
         group {
             show: uwu_k > 0.01 and dl0 > 0.9
@@ -625,7 +625,7 @@ part BarGlass {
                 ellipse { at: px + 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
                 ellipse { at: px + 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
             }
-            particles { at: wdl.l + 36 * u, wdl.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff, #7fd3ff, #5fe3d6, #ffe27a; shape: spark }
+            particles { at: wdl.l + 36 * u, wdl.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff; shape: spark }
         }
         group {
             show: uwu_k > 0.01 and dm0 > 0.9
@@ -686,7 +686,7 @@ part BarGlass {
                 ellipse { at: px + 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
                 ellipse { at: px + 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
             }
-            particles { at: wdm.l + 36 * u, wdm.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff, #7fd3ff, #5fe3d6, #ffe27a; shape: spark }
+            particles { at: wdm.l + 36 * u, wdm.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff; shape: spark }
         }
         group {
             show: uwu_k > 0.01 and dz0 > 0.9
@@ -747,7 +747,7 @@ part BarGlass {
                 ellipse { at: px + 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
                 ellipse { at: px + 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
             }
-            particles { at: wdz.l + 36 * u, wdz.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff, #7fd3ff, #5fe3d6, #ffe27a; shape: spark }
+            particles { at: wdz.l + 36 * u, wdz.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff; shape: spark }
         }
         //  The UwU's star burst, in place of the ripples the liquid sends along the strip's edge (switched off while it is on): when a drawer has closed, five small stars fan
         //  out from where it went back into the frame, shrink and fade. One clock for each drawer (`sb.*`, restarted by its closing; vitreus.plm).

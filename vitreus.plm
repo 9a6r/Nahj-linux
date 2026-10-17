@@ -3929,7 +3929,7 @@ scene Vitreus {
             ellipse { at: px + 2.4, py - 7.6; radius: 2.2; color: #ff8fc8 }
             ellipse { at: px + 6.4, py - 3.2; radius: 2.2; color: #ff8fc8 }
         }
-        particles { at: wdo.l + 36 * u, wdo.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff, #7fd3ff, #5fe3d6, #ffe27a; shape: spark }
+        particles { at: wdo.l + 36 * u, wdo.b - 16; area: 36 * u, 6; count: 16; life: 1.4s .. 2.6s; speed: 18 .. 42; direction: -90deg; spread: 40deg; size: 3.6, 1; colors: #ff6eb4, #b69cff; shape: spark }
     }
     //  The desk's contents (and its tab and opener): drawn after the island's glass above, so the glass is under them and not over them.
         //  The right tab's three dots (stacked, since the tab is on the side).
