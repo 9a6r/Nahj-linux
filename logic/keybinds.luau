@@ -142,10 +142,8 @@ return function()
         run("cat", { path() }, function(out, code)
             local rows = {}
             local seen = {}
-            local removed = 0
             if code == 0 then
                 for line in (out or ""):gmatch("[^\n]+") do
-                    if line:sub(1, #REMOVED[wm()]) == REMOVED[wm()] then removed = removed + 1 end
                     local combo, scene, cmd
                     if wm() == "hypr" then
                         combo, scene, cmd = line:match('^hl%.bind%("([^"]+)",.-pleamar %-%-say (%S+) \\"(.-)\\"')
@@ -172,7 +170,6 @@ return function()
                 return a.order < b.order
             end)
             K.rows = rows
-            fact.kb_removed = removed
             show()
             if fn then fn() end
         end)
@@ -274,7 +271,7 @@ return function()
         apply(r, K.mask, K.key)
     end)
 
-    -- Takes the selected bind out of the file: its line is kept as a comment (`kb_restore` puts it back). Under pleamar-wm an `unbind` follows,
+    -- Takes the selected bind out of the file: its line is kept as a comment (Reset to defaults puts it back). Under pleamar-wm an `unbind` follows,
     -- so the key does nothing at all and not what `defaults` gives it.
     on("kb_delete", function()
         local r = K.rows[K.sel]
@@ -294,30 +291,92 @@ return function()
                     K.sel = 0
                     fact.kb_sel = -1
                     fact.kb_dirty = false
-                    text.kb_msg = "Removed “" .. r.name .. "”. Restore puts it back."
+                    text.kb_msg = "Removed “" .. r.name .. "”. Reset to defaults puts it back."
                 end)
             end
             if wm() == "hypr" then run("hyprctl", { "reload" }, function() done() end) else done() end
         end)
     end)
 
-    on("kb_restore", function()
-        local script
-        if wm() == "hypr" then
-            script = 's|^' .. REMOVED.hypr .. '||'
-        else
-            script = '/^' .. REMOVED.pwm .. '/{s/^' .. REMOVED.pwm .. '//;n;/^unbind /d}'
-        end
-        run("sed", { "-i", "--follow-symlinks", script, path() }, function(_, code)
-            if code ~= 0 then text.kb_msg = "Could not write " .. path() return end
-            local function done()
-                read(function()
-                    K.sel = 0
-                    fact.kb_sel = -1
-                    text.kb_msg = "Put back."
-                end)
+    -- Reset to defaults: every bind of this shell's goes back to the key it ships with, whether it was changed, taken out here or edited by hand.
+    -- Its lines are dropped (and the ones Delete left as comments) and one block of the stock ones is written at the end of the file. Pressed
+    -- twice (the first press only arms it): it overwrites the keys that were changed.
+    local BLOCK = { hypr = { "-- >>> vitreus defaults (Settings > Keybinds)", "-- <<< vitreus defaults" },
+                    pwm = { "# >>> vitreus defaults (Settings > Keybinds)", "# <<< vitreus defaults" } }
+    local function default_lines(w)
+        local out = { BLOCK[w][1] }
+        local acts = {}
+        for act in pairs(DEFAULTS[w]) do acts[#acts + 1] = act end
+        table.sort(acts)
+        for _, act in ipairs(acts) do
+            local scene, cmd = act:match("^(%S+) (.+)$")
+            for _, d in ipairs(DEFAULTS[w][act]) do
+                local combo = write_combo(d[1], d[2])
+                if w == "hypr" then
+                    local run_it = (act == "vitreus-files") and 'PATH=\\"$HOME/.local/bin:$PATH\\" vitreus-files'
+                        or ('PATH=\\"$HOME/.local/bin:$PATH\\" pleamar --say ' .. scene .. ' \\"' .. cmd .. '\\"')
+                    out[#out + 1] = 'hl.unbind("' .. combo .. '")'
+                    out[#out + 1] = 'hl.bind("' .. combo .. '", hl.dsp.exec_cmd("' .. run_it .. '"))'
+                else
+                    local run_it = (act == "launch vitreus-files") and "launch vitreus-files"
+                        or ('launch pleamar --say ' .. scene .. ' "' .. cmd .. '"')
+                    out[#out + 1] = "unbind " .. combo
+                    out[#out + 1] = "bind " .. combo .. " " .. run_it
+                end
             end
-            if wm() == "hypr" then run("hyprctl", { "reload" }, function() done() end) else done() end
+        end
+        out[#out + 1] = BLOCK[w][2]
+        return out
+    end
+    on("kb_defaults", function()
+        if not fact.kb_arm then
+            fact.kb_arm = true
+            after(4000, function() fact.kb_arm = false end)
+            return
+        end
+        fact.kb_arm = false
+        local w = wm()
+        local cmds = {}
+        for act in pairs(ACTS) do
+            local cmd = act:match("^%S+ (emit .+)$") or act:match("^%S+ (fact .+)$")
+            if cmd then cmds[#cmds + 1] = cmd end
+        end
+        table.sort(cmds)
+        local alt = table.concat(cmds, "|")
+        local drop, script2 = {}, {}
+        if w == "hypr" then
+            drop = { "-e", '/^hl\\.bind\\(.*(--say (vitreus|lockscreen) \\\\"(' .. alt .. ')\\\\"|vitreus-files)/d',
+                     "-e", "/^-- removed in Settings: /d",
+                     "-e", "/^-- >>> vitreus defaults/,/^-- <<< vitreus defaults/d" }
+        else
+            drop = { "-e", '/^bind[[:space:]].*(pleamar --say (vitreus|lockscreen) "(' .. alt .. ')"|launch vitreus-files)[[:space:]]*$/d',
+                     "-e", "/^#removed# /{N;d}",
+                     "-e", "/^# >>> vitreus defaults/,/^# <<< vitreus defaults/d" }
+        end
+        local args = { "-i", "-E", "--follow-symlinks" }
+        for _, a in ipairs(drop) do args[#args + 1] = a end
+        args[#args + 1] = path()
+        run("sed", args, function(_, code)
+            if code ~= 0 then text.kb_msg = "Could not write " .. path() return end
+            -- (a second pass: `$a` never fires when the last line is one of those just deleted)
+            local add = { "-i", "--follow-symlinks" }
+            for _, line in ipairs(default_lines(w)) do
+                add[#add + 1] = "-e"
+                add[#add + 1] = "$a\\" .. line:gsub("\\", "\\\\")
+            end
+            add[#add + 1] = path()
+            run("sed", add, function(_, code2)
+                if code2 ~= 0 then text.kb_msg = "Could not write " .. path() return end
+                local function done()
+                    read(function()
+                        K.sel = 0
+                        fact.kb_sel = -1
+                        fact.kb_dirty = false
+                        text.kb_msg = w == "hypr" and "Back to the default keys." or "Back to the default keys. Pleamar-WM uses them from its next start."
+                    end)
+                end
+                if w == "hypr" then run("hyprctl", { "reload" }, function() done() end) else done() end
+            end)
         end)
     end)
 

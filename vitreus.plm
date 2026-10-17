@@ -375,7 +375,7 @@ scene Vitreus {
     fact kb_mod = 0
     fact kb_has = false                // a key is chosen
     fact kb_dirty = false              // what is chosen differs from what is in the file
-    fact kb_removed = 0                // how many binds were taken out here and can be put back
+    fact kb_arm = false                // Reset to defaults was pressed once: the next press does it
     text kb_name = ""
     text kb_key = ""
     text kb_msg = ""
@@ -388,7 +388,7 @@ scene Vitreus {
     event kb_reset ->
     event kb_cancel ->
     event kb_delete ->
-    event kb_restore ->
+    event kb_defaults ->
     fact nt_to = 0                     // how far the notification list is scrolled (px)
     prop nt_s = 0 ~quick
     follow nt_s = nt_to

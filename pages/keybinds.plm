@@ -46,7 +46,7 @@ part Keybinds {
             //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
             body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, kb.t2 + kb.h2 / 2; size: 438 * pu, kb.h2; corner: 14 * pu } }
             box { at: spx + 219 * pu, kb.t2 + kb.h2 / 2; size: 438 * pu, kb.h2; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
-            group { scale: rs; pivot: floor(spx + 219 * pu + 0.5), floor(kb.t2 + 22 * pu + 0.5); text "Press a row to change its keys" { at: floor(spx + 219 * pu + 0.5), floor(kb.t2 + 22 * pu + 0.5); anchor: center; align: center; size: 14; color: faint; family: "Space Grotesk"; show: kb_sel < 0 } }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(kb.t2 + 22 * pu + 0.5); text "Press a row to change its keys" { at: floor(spx + 14 * pu + 0.5), floor(kb.t2 + 22 * pu + 0.5); anchor: left center; size: 14; color: faint; family: "Space Grotesk"; show: kb_sel < 0 } }
             group {
                 show: kb_sel >= 0
                 //  Which one, and what the chips and the box now say.
@@ -90,13 +90,13 @@ part Keybinds {
                 zone box kb_delete_hit { from: spx + 266 * pu, kb.t2 + 76 * pu; size: 78 * pu, 26 * pu; corner: 13 * pu; cursor: pointer; label: "Delete this keybind"; active: kb_sel >= 0 and set_pgy > 0.5 }
                 on press kb_delete_hit { emit kb_delete }
             }
-            //  Binds taken out with Delete: one press puts them all back.
+            //  Every bind of the shell's back to the key it ships with (a second press confirms: it overwrites the keys that were changed).
             group {
-                show: kb_removed > 0 and kb_sel < 0
-                box { from: kb.xr - 122 * pu, kb.t2 + 9 * pu; size: 122 * pu, 26 * pu; corner: 13 * pu; color: mint; opacity: 12% + 14% * kb_restore_hit.hover }
-                group { scale: rs; pivot: floor(kb.xr - 61 * pu + 0.5), floor(kb.t2 + 22 * pu + 0.5); text "Restore removed" { at: floor(kb.xr - 61 * pu + 0.5), floor(kb.t2 + 22 * pu + 0.5); anchor: center; align: center; size: 13.5; weight: 600; color: mint; family: "Space Grotesk" } }
-                zone box kb_restore_hit { from: kb.xr - 122 * pu, kb.t2 + 9 * pu; size: 122 * pu, 26 * pu; corner: 13 * pu; cursor: pointer; label: "Restore the keybinds taken out here"; active: kb_removed > 0 and kb_sel < 0 and set_pgy > 0.5 }
-                on press kb_restore_hit { emit kb_restore }
+                show: kb_sel < 0
+                box { from: kb.xr - 140 * pu, kb.t2 + 9 * pu; size: 140 * pu, 26 * pu; corner: 13 * pu; color: if(kb_arm, #ff6b6b, mint); opacity: 12% + 14% * kb_defaults_hit.hover + 14% * if(kb_arm, 1, 0) }
+                group { scale: rs; pivot: floor(kb.xr - 70 * pu + 0.5), floor(kb.t2 + 22 * pu + 0.5); text pick(if(kb_arm, 1, 0), "Reset to defaults", "Press again to reset") { at: floor(kb.xr - 70 * pu + 0.5), floor(kb.t2 + 22 * pu + 0.5); anchor: center; align: center; size: 13.5; weight: 600; color: if(kb_arm, #ff6b6b, mint); family: "Space Grotesk" } }
+                zone box kb_defaults_hit { from: kb.xr - 140 * pu, kb.t2 + 9 * pu; size: 140 * pu, 26 * pu; corner: 13 * pu; cursor: pointer; label: "Reset every keybind to the default"; active: kb_sel < 0 and set_pgy > 0.5 }
+                on press kb_defaults_hit { emit kb_defaults }
             }
             //  How the last save went (or why it did not).
             group { scale: rs; pivot: floor(kb.xr + 0.5), floor(kb.t2 + kb.h2 + 14 * pu + 0.5); text kb_msg { at: floor(kb.xr + 0.5), floor(kb.t2 + kb.h2 + 14 * pu + 0.5); anchor: right center; align: right; size: 13; width: (420 * pu) / rs; lines: 1; color: mint; family: "Space Grotesk" } }
