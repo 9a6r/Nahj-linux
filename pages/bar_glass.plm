@@ -36,8 +36,8 @@ part BarGlass {
             show: obs < 0.996 and glass_auto
             include "bar_shapes.plm"
         }
-        //  The same shapes again, as flat obsidian: a body with a literal `rim: 0%`, because a `rim` that is an expression keeps a hairline of
-        //  light on the edge even when it is worth zero.
+        //  The same shapes again, as flat obsidian: a body with no rim (`rim: 0%`). (Before pleamar 0.4.14 a `rim` that was an expression
+        //  was read as its first number, so `rim: 40% * cas_k` kept 40% of light on the edge with the Cassette off; now it is worked out.)
         //  Blur behind the obsidian: a glass body asks the compositor for it (100 % glass at 34 %: the request needs glass x opacity of 30 % or more, and a more opaque layer would hide the blur), and the obsidian over it (60 % opaque while blur is on, solid when it is off) hides the glass's look.
         body {
             color: obsidian

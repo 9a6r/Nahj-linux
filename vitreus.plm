@@ -1940,8 +1940,9 @@ scene Vitreus {
     //  (vitreus_colors.lua), and a reserve there as well would leave an empty strip beside the bar.
     let u = 1.35                    // (the icon models are declared at their size times this: 20 → 27, 22 → 30, 26 → 35)
     //  The Settings, the launcher and the Desk follow the monitor's height: they are drawn to fit a 1350 px high screen, and a lower one shrinks them (a 1080 p one to 80 %),
-    //  down to 55 %. The geometry follows `pu` and `du`; a text's size is a literal number, so every text of those three panels is wrapped in a group that scales it by `rs`
-    //  about its own anchor point (and its `width:` is divided by `rs` to make up for it).
+    //  down to 55 %. The geometry follows `pu` and `du`; every text of those three panels is wrapped in a group that scales it by `rs`
+    //  about its own anchor point (and its `width:` is divided by `rs` to make up for it). That was written when a text's size had to be a literal
+    //  number; since pleamar 0.4.14 `size:` is an expression, and `size: 14 * rs` could take the place of the group.
     let rs = clamp(screen.height / 1350, 0.55, 1)
     let cu = 1.5525                  // u * 1.15: the control center, the calendar and the player and tray are laid out 15% larger than the rest
     let rc = (26 - 19 * sq) * u              // a drawer's corner
