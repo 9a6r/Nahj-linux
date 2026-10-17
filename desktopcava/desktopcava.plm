@@ -25,7 +25,7 @@ scene DesktopCava {
     fact demo = false      // for finding faults: made-up bars instead of cava's (`pleamar --say desktopcava "fact demo true"`)
     fact obs = false       // Vitreus has its glass off: flat obsidian (Vitreus says so with `fact obs true`)
 
-    text mon_pick = "all"  // which monitor shows it: "all", or a monitor's name ("DP-2"); Settings sets it, and the logic keeps it in desktopcava.json
+    text mon_pick = "all"  // which monitor shows it: "all", or a monitor's name; Settings sets it, and the logic keeps it in desktopcava.json
     fact mon = 0           // the copy of the scene that is on the chosen monitor (the scene has a copy on each monitor; only that one draws)
     fact allm = true       // every monitor draws it (mon_pick is "all", or names a monitor that is not plugged in)
     //  What each copy's monitor measures, up to four, in the order of the copies (`screen.index`); the logic asks `hyprctl` and `describe` (`screen.width` is 0 in a copy made for each monitor).

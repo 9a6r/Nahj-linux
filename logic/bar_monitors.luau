@@ -107,7 +107,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                     mons[#mons + 1] = { name = j.name, x = j.x or 0, y = j.y or 0, tall = t == 1 or t == 3 or t == 5 or t == 7 }
                 end
             else
-                -- pleamar-wm's `hyprctl monitors` is text, even with -j: "Monitor DP-2 (ID 1):", "2560x1440@164.83 at 1440x733" (its sizes already turned by the rotation).
+                -- pleamar-wm's `hyprctl monitors` is text, even with -j: "Monitor <name> (ID 1):", "2560x1440@164.83 at 1440x733" (its sizes already turned by the rotation).
                 for name, body in (out .. "\n\n"):gmatch("Monitor (%S+) %(ID %d+%):\n(.-)\n\n") do
                     local w, h, x, y = body:match("(%d+)x(%d+)@[%d%.]+ at (%-?%d+)x(%-?%d+)")
                     if w then mons[#mons + 1] = { name = name, x = tonumber(x), y = tonumber(y), tall = tonumber(h) > tonumber(w) } end

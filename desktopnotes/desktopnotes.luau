@@ -34,7 +34,7 @@ local function refresh_monitors(done)
         if code == 0 and out then
             local ok, list = pcall(json.decode, out)
             if not ok or type(list) ~= "table" then
-                -- pleamar-wm's `hyprctl monitors` is text ("Monitor DP-2 (ID 1):", "2560x1440@164.83 at 1440x730", "scale: 1.00", "focused: yes"), its sizes already turned by the rotation.
+                -- pleamar-wm's `hyprctl monitors` is text ("Monitor <name> (ID 1):", "2560x1440@164.83 at 1440x730", "scale: 1.00", "focused: yes"), its sizes already turned by the rotation.
                 ok, list = true, {}
                 for name, id, body in (out .. "\n\n"):gmatch("Monitor (%S+) %(ID (%d+)%):\n(.-)\n\n") do
                     local w, h, x, y = body:match("(%d+)x(%d+)@[%d%.]+ at (%-?%d+)x(%-?%d+)")

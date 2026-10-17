@@ -62,7 +62,7 @@ return function()
                 table.sort(list, function(a, b) return (a.id or 0) < (b.id or 0) end)
                 for _, m in ipairs(list) do names[#names + 1] = m.name end
             else
-                -- pleamar-wm's `hyprctl monitors` is text: "Monitor DP-2 (ID 1):"
+                -- pleamar-wm's `hyprctl monitors` is text: "Monitor <name> (ID 1):"
                 for name in out:gmatch("Monitor (%S+) %(ID %d+%):") do names[#names + 1] = name end
             end
             cv_names = names

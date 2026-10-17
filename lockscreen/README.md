@@ -45,7 +45,7 @@ the scene starts, and read each time it starts, so restart the lock screen after
 | `show_power` | `true` | Sleep, restart and power off, on a pill at the bottom of the screen. Each is **held for a second**, since none of them can be undone |
 | `mask_style` | `"shapes"` | What a typed character becomes: `"shapes"`, `"dots"`, `"asterisks"` or `"special"` (a random symbol) |
 | `shape_palette` | `"accent"` | The colours of those: `"vibrant"`, `"accent"` (the theme's), `"neon"`, `"pastel"` or `"monochrome"` |
-| `monitor` | `"all"` | Which monitor shows the lock: `"all"`, or a monitor's name (`"DP-2"`). The others are covered in black. A monitor that is not plugged in puts it on all of them, so there is always somewhere to type the password |
+| `monitor` | `"all"` | Which monitor shows the lock: `"all"`, or a monitor's name. The others are covered in black. A monitor that is not plugged in puts it on all of them, so there is always somewhere to type the password |
 
 The monitor is also written into the scene's own `screens:` line, since that is the only place pleamar reads it from:
 the Settings page does that when you pick one, and puts it back after an update that reset the file to `all`.

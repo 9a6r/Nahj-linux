@@ -104,7 +104,7 @@ bar_mon = { name = nil }                 -- the monitor the bar is on ("all" for
 function wm_workspaces()
     -- One connection for every question (`say_many`): a `pleamar --say` process for each one, ten times a second, was what made the shell stutter.
     -- The workspace shown is per monitor: the bar's own, which is the one named in its `screens:` (the order of pleamar-wm's monitors is
-    -- the order `hyprctl monitors` gives them: "Monitor DP-2 (ID 1)"), or the one the pointer is on when the bar is on all of them.
+    -- the order `hyprctl monitors` gives them: "Monitor <name> (ID 1)"), or the one the pointer is on when the bar is on all of them.
     local cmds = { "get mon", "get win.shown.0", "get win.shown.1", "get win.shown.2", "get win.shown.3" }
     for i = 0, 5 do cmds[#cmds + 1] = "get win." .. i .. ".open" end
     for i = 0, 5 do cmds[#cmds + 1] = "get win." .. i .. ".workspace" end
@@ -1962,7 +1962,7 @@ function watch_urgent()
             rt, sig = (rt or ""):gsub("%s+$", ""), (sig or ""):gsub("%s+$", "")
             if rt == "" or sig == "" then return end
             spawn("socat", { "-u", "UNIX-CONNECT:" .. rt .. "/hypr/" .. sig .. "/.socket2.sock", "-" }, function(line)
-                -- A special workspace (the scratchpads) shown or put away: `activespecial>>special:magic,eDP-1`, with no name when it is put away.
+                -- A special workspace (the scratchpads) shown or put away: `activespecial>>special:magic,<name>`, with no name when it is put away.
                 local spn = line:match("^activespecial>>([^,]*),")
                 if spn then fact["ws.special"] = spn ~= "" end
                 local addr = line:match("^urgent>>(%x+)")
@@ -4112,7 +4112,7 @@ function disp_wm.load(done)
                 for f in (found or ""):gmatch("%S+") do paths[#paths + 1] = f end
                 if #paths == 0 then return done() end
                 for _, f in ipairs(paths) do
-                    -- /sys/class/drm/card1-DP-2/modes -> DP-2
+                    -- /sys/class/drm/card<N>-<name>/modes -> <name>
                     local name = f:match("/card%d+%-([^/]+)/modes$")
                     run("cat", { f }, function(list)
                         if name then
@@ -4187,7 +4187,7 @@ local function disp_read(done, max_age)
         if code ~= 0 or not out then return done and done() end
         local ok, list = pcall(json.decode, out)
         if (not ok or type(list) ~= "table") and out:find("^Monitor ") then
-            -- pleamar-wm's `hyprctl monitors` is text: "Monitor DP-2 (ID 1):", "2560x1440@164.83 at 1440x747", "scale: 1.00" (sizes already turned by the
+            -- pleamar-wm's `hyprctl monitors` is text: "Monitor <name> (ID 1):", "2560x1440@164.83 at 1440x747", "scale: 1.00" (sizes already turned by the
             -- rotation, no list of modes). Shown as it is, and read-only (disp_ro): that desktop's monitors are said in ~/.config/pleamar/session.conf.
             list = {}
             for name, body in (out .. "\n\n"):gmatch("Monitor (%S+) %(ID %d+%):\n(.-)\n\n") do

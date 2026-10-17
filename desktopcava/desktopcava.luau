@@ -9,7 +9,7 @@
 --   place   0 bottom, 1 top, 2 left, 3 right, 4 middle
 --   size    0 small, 1 medium, 2 large
 --   look    0 the shell's glass, 1 accent, 2 light, 3 warm
---   monitor "all" (every monitor draws it), or the name of the one monitor that does ("DP-2"); one that is not plugged in shows as "all"
+--   monitor "all" (every monitor draws it), or the name of the one monitor that does (its connector name); one that is not plugged in shows as "all"
 local cfg = { shown = false, style = 0, place = 0, size = 1, look = 0, monitor = "all" }
 local function clampi(v, lo, hi) return math.max(lo, math.min(hi, math.floor(v + 0.5))) end
 do
@@ -143,7 +143,7 @@ local function refresh_monitors()
         if code ~= 0 or not out then return end
         local ok, list = pcall(json.decode, out)
         if not ok or type(list) ~= "table" then
-            -- pleamar-wm's `hyprctl monitors` is text ("Monitor DP-2 (ID 1):", "2560x1440@164.83 at 1440x730", "scale: 1.00"), its sizes already turned by the rotation.
+            -- pleamar-wm's `hyprctl monitors` is text ("Monitor <name> (ID 1):", "2560x1440@164.83 at 1440x730", "scale: 1.00"), its sizes already turned by the rotation.
             ok, list = true, {}
             for name, id, body in (out .. "\n\n"):gmatch("Monitor (%S+) %(ID (%d+)%):\n(.-)\n\n") do
                 local w, h = body:match("(%d+)x(%d+)@")

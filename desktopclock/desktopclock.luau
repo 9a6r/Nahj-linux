@@ -9,7 +9,7 @@
 --   layout       0 pipe (12 | 34), 1 rule (a line between the hour and the minutes), 2 tower (a column), 3 digital (12:34), 4 slash, 5 hero
 --   gx, gy       the cell of its top left corner on the 16 x 9 grid of the desktop (-1: not chosen yet, `position` says)
 --   position     "top_left", "top", "top_right", "left", "center", "right", "bottom_left", "bottom" or "bottom_right"
---   monitor      the name of the monitor that shows the clock ("": not chosen yet, DP-2)
+--   monitor      the name of the monitor that shows the clock ("": not chosen yet)
 --   weight       the strokes: 0 thin, 1 regular, 2 bold
 --   clarity      the glass: 0 clear, 1 soft, 2 full
 --   glyphs       a style for the hours ("h"), the minutes ("m") and the divider ("s"): { w = weight multiplier, z = size multiplier, c = tint }, tint 0 the shell's glass,
@@ -62,14 +62,14 @@ fact.shown = cfg.shown
 
 -- Where the monitors lie, in the order of the scene's copies (`screen.index`), which is not the order `hyprctl monitors` lists them in: the copies' sizes
 -- are read from `pleamar --say desktopclock describe` and matched to hyprctl's monitors by size. The card is kept by the monitor's name; when none was
--- chosen yet it goes to DP-2, where the shell lives.
+-- chosen yet it goes to the first monitor `hyprctl` lists.
 local names = {}
 local function refresh_monitors()
     run("hyprctl", { "monitors", "-j" }, function(out, code)
         if code ~= 0 or not out then return end
         local ok, list = pcall(json.decode, out)
         if not ok or type(list) ~= "table" then
-            -- pleamar-wm's `hyprctl monitors` is text ("Monitor DP-2 (ID 1):", "2560x1440@164.83 at 1440x730", "scale: 1.00", "focused: yes"), its sizes already turned by the rotation.
+            -- pleamar-wm's `hyprctl monitors` is text ("Monitor <name> (ID 1):", "2560x1440@164.83 at 1440x730", "scale: 1.00", "focused: yes"), its sizes already turned by the rotation.
             ok, list = true, {}
             for name, id, body in (out .. "\n\n"):gmatch("Monitor (%S+) %(ID (%d+)%):\n(.-)\n\n") do
                 local w, h, x, y = body:match("(%d+)x(%d+)@[%d%.]+ at (%-?%d+)x(%-?%d+)")
