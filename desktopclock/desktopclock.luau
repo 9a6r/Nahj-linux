@@ -112,7 +112,6 @@ local function refresh_monitors()
                 fact["m" .. (k - 1) .. "w"] = d and d.w or 0
                 fact["m" .. (k - 1) .. "h"] = d and d.h or 0
                 names[k] = d and d.name or nil
-                if d and d.name == "DP-2" then primary = k - 1 end
                 if d and d.name == cfg.monitor then mine = k - 1 end
             end
             -- the monitor it was on, or (when that one is gone, or none was chosen yet) the main one
