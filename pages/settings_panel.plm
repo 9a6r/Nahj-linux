@@ -20,7 +20,7 @@ part SettingsPanel {
             //  the clock for a couple of seconds after the panel opens or the page changes, and the lines rest after). It turns half a turn as the panel opens (on `ds`, which
             //  overshoots) and clicks one tooth round for each page you go to (`gr_t`, a spring that overshoots, like a ratchet).
             pivot: sl + 16 * pu, hy
-            rotate: -200 * (1 - ds) + gr_t * 45
+            rotate: -200deg * (1 - ds) + gr_t * 45deg
             let gfr = floor(time * 8)
             let gcx = sl + 16 * pu
             repeat k in 0..14 {
@@ -41,7 +41,7 @@ part SettingsPanel {
             repeat i in 0..8 {
                 group {
                     pivot: gcx, hy
-                    rotate: i * 45
+                    rotate: i * 45deg
                     line { from: gcx + 0.5 * pu * sin(gfr * 61 + i * 50), hy - 6.8 * pu; to: gcx + 0.5 * pu * sin(gfr * 67 + i * 30), hy - 10.8 * pu; width: 3 * pu; color: mint }
                     line { from: gcx + 1.1 * pu + 0.4 * pu * sin(gfr * 47 + i * 70), hy - 7.2 * pu; to: gcx + 1.1 * pu + 0.4 * pu * sin(gfr * 53 + i * 90), hy - 10.4 * pu; width: 1.1 * pu; color: mint; opacity: 34% }
                 }

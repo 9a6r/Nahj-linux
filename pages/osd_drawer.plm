@@ -121,8 +121,13 @@ part OsdDrawer {
                     ellipse { at: ntx - 3.5 * u * bsw + 0.4 * u * sin(bfr * 59), nty + 10 * u; radius: 2.2 * u; color: if(nt_urgent, alert, mint); opacity: bdr }
                 }
             }
+            //  The app's own icon wobbles when the notification arrives, as the bell swings (the same `nt_sw`, so it waits for the banner to land): a few shrinking turns about its middle and a little squash,
+            //  then still. It is a function of that spring alone, so it cannot go on turning.
             group {
                 show: nt_icon_on
+                pivot: ntx, nty
+                rotate: 16deg * (1 - clamp(nt_sw, 0, 1)) * sin(clamp(nt_sw, 0, 1) * 2000)
+                scale: 1 + 0.07 * (1 - clamp(nt_sw, 0, 1)) * sin(clamp(nt_sw, 0, 1) * 2600 + 40)
                 image nt_img { at: floor(ntx - 22 * u + 0.5), floor(nty - 22 * u + 0.5); size: floor(44 * u + 0.5), floor(44 * u + 0.5) }
             }
             //  A ring off the tile when it arrives.

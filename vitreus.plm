@@ -2800,6 +2800,18 @@ scene Vitreus {
         path { at: 0 + 0.35 * u, 0 + 0.3 * u; stroke: 0.9 * u; color: mix(mix(ink, warm, wg), mint, act); opacity: (0.4) * o; move cx + -w / 2 + c + je * sin(fr * 61 + 37577), cy + -h / 2 + je * sin(fr * 66 + 37637); curve cx + w / 2 - c + je * sin(fr * 68 + 37674), cy + -h / 2 + je * sin(fr * 73 + 37734) via cx + 0 + jm * sin(fr * 61 + 40584), cy + -h / 2 + jm * sin(fr * 66 + 40644); curve cx + w / 2 + je * sin(fr * 44 + 37771), cy + -h / 2 + c + je * sin(fr * 49 + 37831) via cx + w / 2 + jm * sin(fr * 68 + 40681), cy + -h / 2 + jm * sin(fr * 73 + 40741); curve cx + w / 2 + je * sin(fr * 51 + 37868), cy + h / 2 - c + je * sin(fr * 56 + 37928) via cx + w / 2 + jm * sin(fr * 44 + 40778), cy + 0 + jm * sin(fr * 49 + 40838); curve cx + w / 2 - c + je * sin(fr * 58 + 37965), cy + h / 2 + je * sin(fr * 63 + 38025) via cx + w / 2 + jm * sin(fr * 51 + 40875), cy + h / 2 + jm * sin(fr * 56 + 40935); curve cx + -w / 2 + c + je * sin(fr * 65 + 38062), cy + h / 2 + je * sin(fr * 70 + 38122) via cx + 0 + jm * sin(fr * 58 + 40972), cy + h / 2 + jm * sin(fr * 63 + 41032); curve cx + -w / 2 + je * sin(fr * 72 + 38159), cy + h / 2 - c + je * sin(fr * 77 + 38219) via cx + -w / 2 + jm * sin(fr * 65 + 41069), cy + h / 2 + jm * sin(fr * 70 + 41129); curve cx + -w / 2 + je * sin(fr * 48 + 38256), cy + -h / 2 + c + je * sin(fr * 53 + 38316) via cx + -w / 2 + jm * sin(fr * 72 + 41166), cy + 0 + jm * sin(fr * 77 + 41226); curve cx + -w / 2 + c + je * sin(fr * 55 + 38353), cy + -h / 2 + je * sin(fr * 60 + 38413) via cx + -w / 2 + jm * sin(fr * 48 + 41263), cy + -h / 2 + jm * sin(fr * 53 + 41323); close }
     }
 
+    //  A hand-drawn pencil line (the bar clock's underline, and the rule under the hour down the strip): one long wavy stroke, and a thinner fainter pass a hair off. `len` its length, `o` its
+    //  opacity; calm at rest and redrawn about five times a second while `hot` (the pointer is on the clock).
+    component PBLine(cx: number, cy: number, hot: number, len: number, o: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let je = (0.15 + 0.25 * a) * u
+        let jm = (0.5 + 0.5 * a) * u
+        path { at: 0, 0; stroke: 1.5 * u; color: mint; opacity: (1) * o; move cx + -len / 2 + je * sin(fr * 70 + 42400), cy + 0 + je * sin(fr * 75 + 42460); curve cx + 0 + je * sin(fr * 46 + 42497), cy + 0 + je * sin(fr * 51 + 42557) via cx + -len / 4 + jm * sin(fr * 70 + 45407), cy + -0.8 * u + jm * sin(fr * 75 + 45467); curve cx + len / 2 + je * sin(fr * 53 + 42594), cy + 0 + je * sin(fr * 58 + 42654) via cx + len / 4 + jm * sin(fr * 46 + 45504), cy + 0.8 * u + jm * sin(fr * 51 + 45564); }
+        path { at: 0 + 0.4 * u, 0 + 0.5 * u; stroke: 1 * u; color: mint; opacity: (0.4) * o; move cx + -len / 2 + je * sin(fr * 45 + 42877), cy + 0 + je * sin(fr * 50 + 42937); curve cx + 0 + je * sin(fr * 52 + 42974), cy + 0 + je * sin(fr * 57 + 43034) via cx + -len / 4 + jm * sin(fr * 45 + 45884), cy + -0.8 * u + jm * sin(fr * 50 + 45944); curve cx + len / 2 + je * sin(fr * 59 + 43071), cy + 0 + je * sin(fr * 64 + 43131) via cx + len / 4 + jm * sin(fr * 52 + 45981), cy + 0.8 * u + jm * sin(fr * 57 + 46041); }
+    }
+
     //  The bar's icons in pencil, like the control center's (see PWifi and the rest): crooked doubled lines at rest, and still (`fr` is 0: no clock); they only redraw about five times a
     //  second while the pointer is on them (`hot`). `k` is the unit (`u` on the bar, `cu` down the strip); `sel` colours the icon towards the accent while its panel is open.
     component PBGear(cx: number, cy: number, hot: number, k: number, sel: number) {
@@ -2946,7 +2958,7 @@ scene Vitreus {
             scale: 1 + 0.10 * a
             group {
                 pivot: cx, cy - 6 * cu
-                rotate: wob * 14
+                rotate: wob * 14deg
                 path { at: cx, cy; stroke: 1.5 * cu; color: ink; opacity: (o); move -6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 63 + 1590), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 1650); curve -3.74 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 70 + 1687), -4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 44 + 1747) via -4.42 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 48 + 6537), 1.36 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 53 + 6597); curve 3.74 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 46 + 1784), -4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 51 + 1844) via 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 55 + 6634), -10.2 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 60 + 6694); curve 6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 53 + 1881), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 58 + 1941) via 4.42 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 6731), 1.36 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 6791); line -6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 60 + 1978), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 65 + 2038); }
                 path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: ink; opacity: (o) * 0.28; move -6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 47 + 1961), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 52 + 2021); curve -3.74 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 54 + 2058), -4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 59 + 2118) via -4.42 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 63 + 6908), 1.36 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 6968); curve 3.74 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 61 + 2155), -4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 66 + 2215) via 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 70 + 7005), -10.2 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 44 + 7065); curve 6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 2252), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 73 + 2312) via 4.42 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 46 + 7102), 1.36 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 51 + 7162); line -6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 44 + 2349), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 49 + 2409); }
                 path { at: cx, cy; color: ink; opacity: (0.30 * o); move -6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 65 + 1749), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 70 + 1809); curve -3.74 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 72 + 1846), -4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 46 + 1906) via -4.42 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 50 + 6696), 1.36 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 55 + 6756); curve 3.74 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 48 + 1943), -4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 53 + 2003) via 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 6793), -10.2 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 6853); curve 6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 55 + 2040), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 60 + 2100) via 4.42 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 64 + 6890), 1.36 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 69 + 6950); line -6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 2137), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 2197); close }
@@ -4605,7 +4617,7 @@ scene Vitreus {
         move: rt * (screen.width - 2 * lf.x), bt * (yo + vb - 2 * bar.y)
     include "pages/bar_icons.plm"
     //  The clock runs while something needs it. It is here, after the bar's zones, because it reads their hover: the bar's icons only boil under the pointer.
-    let need_clock = (cy_on > 0.01) or wsh.1 > 0.01 or wsh.2 > 0.01 or wsh.3 > 0.01 or wsh.4 > 0.01 or wsh.5 > 0.01 or set_hit.hover > 0.01 or sr_hit.hover > 0.01 or ctl_hit.hover > 0.01 or ov_btn.hover > 0.01 or bp.prev.hover > 0.01 or bp.play.hover > 0.01 or bp.next.hover > 0.01 or vm_prev.hover > 0.01 or vm_play.hover > 0.01 or vm_next.hover > 0.01 or ds > 0.01 or dl > 0.01 or dk > 0.01 or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or osd_kind == note or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
+    let need_clock = (cy_on > 0.01) or bar_hit.hover > 0.01 or wsh.1 > 0.01 or wsh.2 > 0.01 or wsh.3 > 0.01 or wsh.4 > 0.01 or wsh.5 > 0.01 or set_hit.hover > 0.01 or sr_hit.hover > 0.01 or ctl_hit.hover > 0.01 or ov_btn.hover > 0.01 or bp.prev.hover > 0.01 or bp.play.hover > 0.01 or bp.next.hover > 0.01 or vm_prev.hover > 0.01 or vm_play.hover > 0.01 or vm_next.hover > 0.01 or ds > 0.01 or dl > 0.01 or dk > 0.01 or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or osd_kind == note or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
     spin time by if(need_clock, 1, 0)
 
 
@@ -4623,6 +4635,7 @@ scene Vitreus {
         text bar_ap { at: floor(clock.r - clock.col / 2 + 0.5), floor(bar.y + 7 + 0.5); anchor: center; size: 14; weight: 600; measure: caw; color: faint; opacity: bs.clock * (1 - lm); shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
         text clock_mm { at: floor(clock.r - clock.col - 3 + 0.5), floor(bar.y + 3 + 0.5); anchor: right center; size: 26; weight: 700; measure: cmw; letter_move: 3 * ((letters - 1 - letter) - if(letter == 0, 1, 0)), 0; color: mint; opacity: bs.clock * (1 - lm); shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
         text clock_h { at: floor(clock.r - clock.col - cmw.width + 0.5), floor(bar.y + 0.5); anchor: right center; size: 40; weight: 700; measure: chw; color: ink; opacity: bs.clock * (1 - lm); shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
+        PBLine(clock.left + (chw.width + cmw.width) / 2, bar.y + 0.43 * bar.h, bar_hit.hover, chw.width + cmw.width, 0.5 * bs.clock * (1 - lm))
     }
     //  Down the left the clock is stacked in the strip: the hour, the minutes under it in the accent, and the am/pm.
     group {
@@ -4630,7 +4643,7 @@ scene Vitreus {
         scale: 1 + 0.08 * bar_hit.hover
         text clock_h { at: floor(lf.x - 5 * u + 0.5), floor(lv.clk + 0.5); anchor: center; align: center; size: 30; weight: 700; gradient: 0, lv.clk - 18 * u to 0, lv.clk + 33 * u, minthi, mint 55%, mintlo; opacity: bs.clock * lm; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
         text clock_mn { at: floor(lf.x - 5 * u + 0.5), floor(lv.clk + 28 * u + 0.5); anchor: center; align: center; size: 17; weight: 700; gradient: 0, lv.clk - 18 * u to 0, lv.clk + 33 * u, minthi, mint 55%, mintlo; opacity: bs.clock * lm; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
-        box { at: lf.x - 5 * u, lv.clk + 16.5 * u; size: 18 * u, 1.8 * u; corner: 0.9 * u; color: mint; opacity: 65% * bs.clock * lm }   // the rule under the hour
+        PBLine(lf.x - 5 * u, lv.clk + 16.5 * u, bar_hit.hover, 18 * u, 0.85 * bs.clock * lm)   // the rule under the hour, in pencil
         //  am/pm: two letters one over the other, on the right, level with the rule (the hour and the minutes are moved left to make room).
         text bar_ap1 { at: floor(lf.x + 12.5 * u + 0.5), floor(lv.clk + 11.9 * u + 0.5); anchor: center; align: center; size: 11; weight: 700; color: mint; opacity: bs.clock * lm; family: "Space Grotesk" }
         text "m" { at: floor(lf.x + 12.5 * u + 0.5), floor(lv.clk + 21.1 * u + 0.5); anchor: center; align: center; size: 11; weight: 700; color: mint; opacity: bs.clock * lm; family: "Space Grotesk" }
@@ -4697,7 +4710,7 @@ scene Vitreus {
         //  (`sr_t`, which overshoots).
         group {
             pivot: lx + 16 * pu, lhy
-            rotate: -90 * (1 - dl) + sr_t * 90
+            rotate: -90deg * (1 - dl) + sr_t * 90deg
             let sfr = floor(time * 8)
             repeat i in 0..4 {
                 let qx = lx + 16 * pu + (mod(i, 2) - 0.5) * 8.5 * pu
