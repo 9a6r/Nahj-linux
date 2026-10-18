@@ -480,6 +480,7 @@ local function coalesced(service)
 end
 on("setvol", coalesced("audio.volume"))
 on("setbright", coalesced("brightness.level"))
+on("setmic", coalesced("audio.input"))
 
 -- An event's payload crosses over as a plain number (1/0), not a Luau
 -- boolean, even for something written `not net.wifi` in the scene - and

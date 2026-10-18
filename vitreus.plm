@@ -74,7 +74,7 @@ scene Vitreus {
 
     service clock as now { time: text = "--:--"; date: text; hour: number }
     service clock.seconds as tick { second: number }       // the dashboard clock's ticks: it only runs while the scene reads it
-    service audio { volume: number; muted: bool; input_muted: bool }
+    service audio { volume: number; muted: bool; input: number; input_muted: bool }
     service window as win { title: text; class: text }
     service media { playing: bool; title: text; artist: text; player: text; length: number }
     service brightness { present: bool; level: number }
@@ -662,6 +662,7 @@ scene Vitreus {
     event setvol ->                // the volume slider: 0..1
     event mcmd ->                  // 0 previous · 1 play/pause · 2 next
     event setbright ->             // the brightness slider: 0..1
+    event setmic ->                // the microphone slider: 0..1
     event togglewifi ->            // the wifi row: flips the radio
     event togglebt ->              // the bluetooth row: flips the radio
     fact bt_connected = false      // a device is paired and connected
@@ -2625,14 +2626,18 @@ scene Vitreus {
         opacity: if(m.corked, 55%, 100%)
         image m.icon { at: floor(10 * cu + 0.5), floor(5 * cu + 0.5); size: floor(20 * cu + 0.5), floor(20 * cu + 0.5) }
         text m.name { at: floor(38 * cu + 0.5), floor(13 * cu + 0.5); anchor: left center; size: 12.5; width: 78 * cu; lines: 1; color: ink; family: "Space Grotesk" }
-        box { from: 116 * cu, 11 * cu; size: 100 * cu, 6 * cu; corner: 3 * cu; color: deep; opacity: 60% }
-        box { from: 116 * cu, 11 * cu; size: max(0.1, 100 * cu * clamp(m.pct / 100, 0, 1)), 6 * cu; corner: 3 * cu; color: if(m.muted, faint, mint); opacity: if(m.muted, 60%, 100%) }
+        //  The level is the same pencil slider as the volume's (PSlider), smaller: a crooked outline, the level shaded in, a pencil circle at the end; it redraws while the pointer is on it.
+        PSlider(116 * cu, 14 * cu, 100 * cu, clamp(m.pct / 100, 0, 1), track.hover, cu, 9 * cu, if(m.muted, 1, 0))
         zone box track { at: 166 * cu, 14 * cu; size: 112 * cu, 24 * cu; cursor: pointer }
         on press track { emit set(m.index * 4 + clamp((local.x - 116 * cu) / (100 * cu), 0, 1)) }
         on drag track { emit set(m.index * 4 + clamp((local.x - 116 * cu) / (100 * cu), 0, 1)) }
         text number(m.pct, 0, "%") { at: floor(252 * cu + 0.5), floor(14 * cu + 0.5); anchor: right center; align: right; size: 12; width: 30 * cu; lines: 1; color: faint; family: "Space Grotesk" }
-        path { at: 264 * cu, 14 * cu; color: if(m.muted, faint, mint); opacity: 85% + 15% * mzone.hover; move 0, -2 * cu; line 2.5 * cu, -2 * cu; line 5.5 * cu, -5 * cu; line 5.5 * cu, 5 * cu; line 2.5 * cu, 2 * cu; line 0, 2 * cu; close }
-        line { from: 255 * cu, 8 * cu; to: 271 * cu, 20 * cu; width: 1.5 * cu; color: alert; opacity: if(m.muted, 100%, 0) }
+        //  The speaker that silences it: the pencil one of the volume row (PSpk), smaller, its waves following this app's level and a red slash while it is silenced.
+        group {
+            pivot: 258 * cu, 14 * cu
+            scale: 0.62
+            PSpk(258 * cu, 14 * cu, mzone.hover, 0.85, if(m.muted, 0, 25% + 75% * clamp(m.pct / 100 * 12, 0, 1)), if(m.muted, 0, 20% + 80% * clamp((m.pct / 100 - 0.35) * 4, 0, 1)), if(m.muted, 1, 0))
+        }
         zone box mzone { at: 263 * cu, 14 * cu; size: 20 * cu, 24 * cu; cursor: pointer }
         on press mzone { emit mute(m.index) }
     }
@@ -3638,9 +3643,11 @@ scene Vitreus {
     let tiles2_top = tiles_bot + 4
     let tiles2_bot = tiles2_top + tiles_h
     let bright_top = tiles2_bot + 4
-    let bright_bot = bright_top + 64
-    let vol_top    = bright_bot + 4
-    let vol_bot    = vol_top + 64
+    //  The three sliders (brightness, the microphone, the volume) are rows of ONE card, 132 tall: the rows' middles are 26, 66 and 106 from its top (`vol_top` is the volume row's top, 24
+    //  above its middle), and the mixer grows the card at its foot.
+    let bright_bot = bright_top + 132
+    let vol_top    = bright_top + 82
+    let vol_bot    = bright_bot
     //  The player's plate is alone in its own panel now, at the top of it.
     let media_top  = 8
     let mdk        = media_open * (1 - clamp(mfl, 0, 1))   // how much of the card is in the panel: none with nothing playing, none while it is floating
@@ -3677,7 +3684,7 @@ scene Vitreus {
     //  The mixer is part of the volume card: the card grows by `mix.m` while it is open (a row of 32 per app, or a line of
     //  words with none, and room for the dots at the foot).
     let mix.m = if(mixer.count > 0, mixer.count * 32 + 8, 40)
-    let vp.h = 64 + mix.m * clamp(vm, 0, 1)                // the volume card's height, unscaled
+    let vp.h = 132 + mix.m * clamp(vm, 0, 1)                // the volume card's height, unscaled
     let mix.extra = mix.m * max(0, vm)
     let content_bot = mix(vol_bot + max(dd.extra, mix.extra), sub_bot, expand0)
     let dk.hh = bar.h / 2 + (content_bot + 16) * cu * dk0 + 13 * cu * tm * dk0 + max(0, sag)      // (the 13 is `lp.dd`: along the top or bottom the margins are made 18.5 all round here too)
@@ -4827,6 +4834,11 @@ scene Vitreus {
     prop vol_lock = 0 ~1ms
     prop bri_lock = 0 ~1ms
     let vol_shown = if(vol_lock > 0.5, vol_ui, volume_level)
+    fact mic_ui = 0
+    prop mic_lock = 0 ~1ms
+    prop mic_level = 0 ~140ms
+    follow mic_level = clamp(audio.input, 0, 1)
+    let mic_shown = if(mic_lock > 0.5, mic_ui, mic_level)
     let bri_shown = if(bri_lock > 0.5, bri_ui, bright_level)
     // ── dismissing the panel ─────────────────────────────────────
     //  Escape closes it. The scene only asks for the keyboard while the panel is
