@@ -899,6 +899,15 @@ scene Vitreus {
     prop ds    = 0 ~drip          // the settings panel
     prop fs    = 0 ~300ms         // what is in it, fading in
     prop dl    = 0 ~drip          // the launcher
+    //  The Settings gear and the Search squares (settings_panel.plm, the launcher below): a click round for each page / kind of search. Their pencil lines are redrawn
+    //  about eight times a second for as long as the panel is out, which keeps the scene's clock running (`need_clock`).
+    fact gr_n = 0
+    fact sr_n = 0
+    prop gr_t = 0 ~pop
+    prop sr_t = 0 ~pop
+    follow gr_t = gr_n
+    follow sr_t = sr_n
+    on change set_page { gr_n = gr_n + 1 }
     //  The Retro's pixelation outlasts the drawer's own movement: each drawer has a slower twin (`pq.*`, 0.6 s) that follows the same target, and the squares are as
     //  big as the two are apart, so they appear as the drawer starts to move and are still there after it has arrived, thinning out as the twin catches up.
     prop pq.dc = 0 ~600ms
@@ -3860,7 +3869,7 @@ scene Vitreus {
     //  The Cyber's terminal readouts (bar_glass.plm) flicker and blink on this clock, so it runs while one of them can be seen: only while a drawer is out (`cy_on`).
     let cy_on = clamp(max(max(dk0, dc0), max(max(ds0, dl0), max(dm0, max(dz0, do0)))) * 50, 0, 1) * cy_k
     //  The player's card (docked in its panel or floating) has the same wavy progress line, so it runs the clock while a song plays in it.
-    let need_clock = (cy_on > 0.01) or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or osd_kind == note or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
+    let need_clock = (cy_on > 0.01) or ds > 0.01 or dl > 0.01 or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or osd_kind == note or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
     spin time by if(need_clock, 1, 0)
     group {
         pivot: screen.width / 2, screen.height / 2
@@ -4183,8 +4192,28 @@ scene Vitreus {
         let lpw = 430 * pu - lw - 8 * pu
         //  Header, like Settings': a badge with an icon, the title, a chip with what kind of search it is (apps, files...), and a cross.
         box { at: lx + 16 * pu, lhy; size: 32 * pu, 32 * pu; corner: 9 * pu; color: mint; opacity: 20% }
-        repeat i in 0..4 {
-            box { at: lx + 16 * pu + (mod(i, 2) - 0.5) * 8.5 * pu, lhy + (floor(i / 2) - 0.5) * 8.5 * pu; size: 6.5 * pu, 6.5 * pu; corner: 2 * pu; color: mint }
+        //  The four squares, in pencil like the Settings gear: they turn a quarter as the panel opens (on `dl`), and a quarter more each time the kind of search changes
+        //  (`sr_t`, which overshoots).
+        group {
+            pivot: lx + 16 * pu, lhy
+            rotate: -90 * (1 - dl) + sr_t * 90
+            let sfr = floor(time * 8)
+            repeat i in 0..4 {
+                let qx = lx + 16 * pu + (mod(i, 2) - 0.5) * 8.5 * pu
+                let qy = lhy + (floor(i / 2) - 0.5) * 8.5 * pu
+                let qh = 3.25 * pu
+                box { at: qx, qy; size: 6.5 * pu, 6.5 * pu; corner: 2 * pu; color: mint; opacity: 32% }
+                repeat p in 0..2 {
+                    let qs = i * 97 + p * 131
+                    let qj = 0.45 * pu
+                    path { at: qx + p * 0.5 * pu, qy + p * 0.4 * pu; stroke: if(p == 0, 1.5, 1) * pu; color: mint; opacity: if(p == 0, 100%, 40%)
+                           move -qh + qj * sin(sfr * 53 + qs), -qh + qj * sin(sfr * 59 + qs + 10)
+                           line qh + qj * sin(sfr * 61 + qs + 20), -qh + qj * sin(sfr * 67 + qs + 30)
+                           line qh + qj * sin(sfr * 71 + qs + 40), qh + qj * sin(sfr * 73 + qs + 50)
+                           line -qh + qj * sin(sfr * 79 + qs + 60), qh + qj * sin(sfr * 83 + qs + 70)
+                           line -qh + qj * sin(sfr * 53 + qs), -qh + qj * sin(sfr * 59 + qs + 10) }
+                }
+            }
         }
         group { scale: rs; pivot: floor(lx + 40 * pu + 0.5), floor(lhy + 0.5); text "SEARCH" { at: floor(lx + 40 * pu + 0.5), floor(lhy + 0.5); anchor: left center; size: 19; weight: 700; color: ink; family: "Space Grotesk" } }
         box { at: lx + 168 * pu, lhy; size: 100 * pu, 22 * pu; corner: 11 * pu; color: ink; opacity: 6% }

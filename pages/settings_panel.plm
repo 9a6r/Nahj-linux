@@ -16,13 +16,34 @@ part SettingsPanel {
         //  Header: a badge with a gear, SETTINGS, the breadcrumb, and a cross.
         box { at: sl + 16 * pu, hy; size: 32 * pu, 32 * pu; corner: 9 * pu; color: mint; opacity: 20% }
         group {
-            ellipse { at: sl + 16 * pu, hy; radius: 6 * pu; stroke: 2.2 * pu; color: mint }
-            ellipse { at: sl + 16 * pu, hy; radius: 2 * pu; color: mint }
+            //  The gear is drawn in pencil, as the notification's bell and the volume's smiley are (lines drawn again, a hair off, about eight times a second: `ic_hot` runs
+            //  the clock for a couple of seconds after the panel opens or the page changes, and the lines rest after). It turns half a turn as the panel opens (on `ds`, which
+            //  overshoots) and clicks one tooth round for each page you go to (`gr_t`, a spring that overshoots, like a ratchet).
+            pivot: sl + 16 * pu, hy
+            rotate: -200 * (1 - ds) + gr_t * 45
+            let gfr = floor(time * 8)
+            let gcx = sl + 16 * pu
+            repeat k in 0..14 {
+                let ga0 = k * 25.7 + 6
+                let ga1 = ga0 + 28
+                let gr0 = 6 * pu * (1 + 0.07 * sin(gfr * 53 + k * 97))
+                let gr1 = 6 * pu * (1 + 0.07 * sin(gfr * 53 + (k + 1) * 97))
+                line { from: gcx + gr0 * cos(ga0), hy + gr0 * sin(ga0); to: gcx + gr1 * cos(ga1), hy + gr1 * sin(ga1); width: 2 * pu; color: mint; opacity: 92% }
+            }
+            repeat k in 0..9 {
+                let gb0 = k * 40 + 70
+                let gb1 = gb0 + 44
+                let gs0 = 5.3 * pu * (1 + 0.08 * sin(gfr * 41 + k * 131 + 40))
+                let gs1 = 5.3 * pu * (1 + 0.08 * sin(gfr * 41 + (k + 1) * 131 + 40))
+                line { from: gcx + 0.8 * pu + gs0 * cos(gb0), hy - 0.5 * pu + gs0 * sin(gb0); to: gcx + 0.8 * pu + gs1 * cos(gb1), hy - 0.5 * pu + gs1 * sin(gb1); width: 1.2 * pu; color: mint; opacity: 34% }
+            }
+            ellipse { at: gcx + 0.4 * pu * sin(gfr * 71), hy + 0.4 * pu * sin(gfr * 83 + 20); radius: 2 * pu; color: mint }
             repeat i in 0..8 {
                 group {
-                    pivot: sl + 16 * pu, hy
-                    rotate: i * 45deg
-                    box { at: sl + 16 * pu, hy - 8.5 * pu; size: 3 * pu, 4 * pu; corner: 1 * pu; color: mint }
+                    pivot: gcx, hy
+                    rotate: i * 45
+                    line { from: gcx + 0.5 * pu * sin(gfr * 61 + i * 50), hy - 6.8 * pu; to: gcx + 0.5 * pu * sin(gfr * 67 + i * 30), hy - 10.8 * pu; width: 3 * pu; color: mint }
+                    line { from: gcx + 1.1 * pu + 0.4 * pu * sin(gfr * 47 + i * 70), hy - 7.2 * pu; to: gcx + 1.1 * pu + 0.4 * pu * sin(gfr * 53 + i * 90), hy - 10.4 * pu; width: 1.1 * pu; color: mint; opacity: 34% }
                 }
             }
         }

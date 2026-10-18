@@ -6102,6 +6102,15 @@ end
     end
 
     -- ── what is typed → what is shown ──
+    -- The kind of search shown in the header chip; a change of kind also tells the scene (`sr_n`: the Search icon turns a quarter).
+    local shown_mode, mode_turns = nil, 0
+    local function set_mode(label)
+        if label ~= shown_mode then
+            if shown_mode ~= nil then mode_turns = mode_turns + 1; fact.sr_n = mode_turns end
+            shown_mode = label
+        end
+        text.lmode = label
+    end
     local function search()
         local raw = lq()
         S.last = raw
@@ -6117,7 +6126,7 @@ end
             local c = try_units(q) or try_calc(q)
             local list = search_apps(q)
             if c then table.insert(list, 1, c); mode = "calc" end
-            text.lmode = LABEL[mode]
+            set_mode(LABEL[mode])
             fact.lp_on = false
             done(list)
             -- open windows that match, a few, after the apps (they come from Hyprland a moment later)
@@ -6132,7 +6141,7 @@ end
             end
             return
         end
-        text.lmode = LABEL[mode]
+        set_mode(LABEL[mode])
         fact.lp_on = (mode == "files" or mode == "clipboard" or mode == "wallpapers")
         if mode == "calc" then
             local c = try_units(q) or try_calc(q)
