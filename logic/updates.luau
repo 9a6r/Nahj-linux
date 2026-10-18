@@ -259,11 +259,23 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                         local lock_changed = lock_mine ~= nil and lock_stock ~= nil and lock_mine ~= lock_stock
                         write_screens(bar_changed and bar_stock or nil, lock_changed and lock_stock or nil, function()
                             -- Update means the folder becomes exactly what main is: whatever was changed or committed here is
-                            -- overwritten, on purpose (only the screens choice is kept, since it is written again after).
+                            -- overwritten, on purpose (only the screens choice is kept, put into the new files before they replace the old ones).
                             git({ "fetch", "--quiet" }, function(_, fcode)
-                            git({ "reset", "--hard", "--quiet", "@{u}" }, function(_, rcode)
+                            -- The scene reloads itself the moment its file is saved, so the stock `screens:` line must never be on disk,
+                            -- not even for the moment between the reset and writing the chosen one: the new files with the chosen lines are
+                            -- made first (in .git) and moved over the reset ones in the same command.
+                            local keep = [[
+cd "$1" || exit 1
+g=$(git rev-parse --git-dir) || exit 1
+if [ -n "$2" ]; then git show @{u}:vitreus.plm | sed -E "/^    surface \{/s/screens: [^;]*;/screens: $2;/" > "$g/keep-bar" || exit 1; fi
+if [ -n "$3" ]; then git show @{u}:lockscreen/lockscreen.plm | sed -E "/^        screens: /s/screens: .*/screens: $3/" > "$g/keep-lock" || exit 1; fi
+git reset --hard --quiet @{u} || exit 1
+[ -n "$2" ] && mv "$g/keep-bar" vitreus.plm
+[ -n "$3" ] && mv "$g/keep-lock" lockscreen/lockscreen.plm
+exit 0]]
+                            run("setsid", { "-w", "sh", "-c", keep, "sh", A.dir, (bar_changed and plausible(bar_mine)) and bar_mine or "", (lock_changed and plausible(lock_mine)) and lock_mine or "" }, function(_, rcode)
                                 local code = fcode ~= 0 and fcode or rcode
-                                write_screens(bar_changed and bar_mine or nil, lock_changed and lock_mine or nil, function()
+                                do
                                     if code ~= 0 then
                                         return busy(false, "Couldn't update: couldn't reach the remote. Check the network and try again.")
                                     end
@@ -279,7 +291,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                                         end
                                         restart()
                                     end)
-                                end)
+                                end
                             end)
                             end)
                         end)
