@@ -1546,6 +1546,8 @@ scene Vitreus {
     text wp_card_name = ""
     prop wp_cpos = 0 ~lively                  // where the row has got to, in cards: it glides to the one in focus
     follow wp_cpos = wp_card_sel
+    prop wp_clag = 0 ~160ms                   // the same position, a little behind: `wp_cpos - wp_clag` is how fast the row is moving (the cards bend by it)
+    follow wp_clag = wp_cpos
     fact wp_card_rip = 0                      // counts the cards kept: each one sets off the ripple
     prop wp_crip = 1 ~600ms                   // the card's ripple, as the island bar's when a panel closes: 0 just born, 1 gone
     on change wp_card_rip while wp_card_rip > 0 { wp_crip: 0 ~16ms; wp_crip: 1 ~600ms after 30ms }
@@ -4452,6 +4454,8 @@ scene Vitreus {
         let wc.ag = wp_ag
         let wc.ab = wp_ab
         let wc.acc = rgb(wc.ar, wc.ag, wc.ab)
+        //  The wobble: a card bows against the way the row is going (the middle of its sides leads, top and foot trail), and as the spring overshoots and the speed turns, it bows back and settles. `wc.bnd` px.
+        let wc.bnd = clamp((wp_cpos - wp_clag) * wc.sw * 0.9, -wc.sw * 0.4, wc.sw * 0.4)
         //  The colour filter, under the cards, the same twelve swatches as the Settings' wallpaper page (and the same filter): the cards narrow to the wallpapers of the lit colour; it is
         //  pressed again to clear it.
         repeat i in 0..12 {
@@ -4488,18 +4492,19 @@ scene Vitreus {
             let wc.nx = -wc.k / wc.ln
             let wc.ny = wc.h / wc.ln
             let wc.brx = wc.w - wc.k
+            let wc.m = -wc.bnd
             let wc.t = wc.yc + wc.ext / 2 * (1 - wc.e) - wc.h / 2 + (1 - wc.ep) * 170
             let wc.a = clamp(8 - abs(wc.d), 0, 1) * clamp(wp_pgp * 3, 0, 1) * wc.en
             group {
                 show: wp_cards.$s.ok and wc.a > 0.01 and wp_pgp > 0.01
                 //  The fade goes on each shape (see the hexagons): a group with an opacity is a layer of its own, and there are only sixty-four a frame.
                 group {
-                    clip path { at: wc.l, wc.t; move wc.k + wc.r, 0; line wc.w - wc.r, 0; curve wc.w + wc.r * wc.nx, wc.r * wc.ny via wc.w, 0; line wc.brx - wc.r * wc.nx, wc.h - wc.r * wc.ny; curve wc.brx - wc.r, wc.h via wc.brx, wc.h; line wc.r, wc.h; curve -wc.r * wc.nx, wc.h - wc.r * wc.ny via 0, wc.h; line wc.k + wc.r * wc.nx, wc.r * wc.ny; curve wc.k + wc.r, 0 via wc.k, 0; close }
+                    clip path { at: wc.l, wc.t; move wc.k + wc.r, 0; line wc.w - wc.r, 0; curve wc.w + wc.r * wc.nx, wc.r * wc.ny via wc.w, 0; curve wc.brx - wc.r * wc.nx, wc.h - wc.r * wc.ny via (wc.w + wc.brx) / 2 + 2 * wc.m, wc.h / 2; curve wc.brx - wc.r, wc.h via wc.brx, wc.h; line wc.r, wc.h; curve -wc.r * wc.nx, wc.h - wc.r * wc.ny via 0, wc.h; curve wc.k + wc.r * wc.nx, wc.r * wc.ny via wc.k / 2 + 2 * wc.m, wc.h / 2; curve wc.k + wc.r, 0 via wc.k, 0; close }
                     box { at: wc.l + wc.w / 2, wc.t + wc.h / 2; size: wc.w, wc.h; color: #10131c; opacity: wc.a }
                     image wp_cards.$s.img { at: wc.l + wc.w / 2 - max(wc.w, wc.h * 0.444) / 2, wc.t + wc.h / 2 - max(wc.h, wc.w * 2.25) / 2; size: max(wc.w, wc.h * 0.444), max(wc.h, wc.w * 2.25); opacity: wc.a * (1 - wc.e) }       // gone as it opens out: the big picture takes over, and until it is there a dark card is better than the strip blown up
                     box { at: wc.l + wc.w / 2, wc.t + wc.h / 2; size: wc.w, wc.h; color: #05070d; opacity: 42% * wc.a }
                 }
-                path { at: wc.l, wc.t; stroke: 1; color: #ffffff; opacity: 22% * wc.a; move wc.k + wc.r, 0; line wc.w - wc.r, 0; curve wc.w + wc.r * wc.nx, wc.r * wc.ny via wc.w, 0; line wc.brx - wc.r * wc.nx, wc.h - wc.r * wc.ny; curve wc.brx - wc.r, wc.h via wc.brx, wc.h; line wc.r, wc.h; curve -wc.r * wc.nx, wc.h - wc.r * wc.ny via 0, wc.h; line wc.k + wc.r * wc.nx, wc.r * wc.ny; curve wc.k + wc.r, 0 via wc.k, 0; close }
+                path { at: wc.l, wc.t; stroke: 1; color: #ffffff; opacity: 22% * wc.a; move wc.k + wc.r, 0; line wc.w - wc.r, 0; curve wc.w + wc.r * wc.nx, wc.r * wc.ny via wc.w, 0; curve wc.brx - wc.r * wc.nx, wc.h - wc.r * wc.ny via (wc.w + wc.brx) / 2 + 2 * wc.m, wc.h / 2; curve wc.brx - wc.r, wc.h via wc.brx, wc.h; line wc.r, wc.h; curve -wc.r * wc.nx, wc.h - wc.r * wc.ny via 0, wc.h; curve wc.k + wc.r * wc.nx, wc.r * wc.ny via wc.k / 2 + 2 * wc.m, wc.h / 2; curve wc.k + wc.r, 0 via wc.k, 0; close }
             }
             zone box wp_card_z.$s { at: wc.l + wc.w / 2, wc.t + wc.h / 2; size: wc.w - wc.k, wc.h; cursor: pointer; active: wp_cards.$s.ok and wp_pg == 1 and wp_pgp > 0.6 and wp_picker_show > 0.5 and abs(wc.d) < 7 }
             on press wp_card_z.$s { emit wp_card_go(wp_cards.$s.ix) }
@@ -4532,6 +4537,7 @@ scene Vitreus {
             let wb.ny = wb.H / wb.ln
             let wb.r = 18
             let wb.brx = wb.w - wb.k - wb.ske
+            let wb.m = -wc.bnd * (1 - 0.6 * wb.e)
             //  The card's own ripple when it is kept, as the island bar's when a panel closes (`cardrip.wgsl`): two crests run out along its top and foot edges from the middle,
             //  and the picture and panel bulge where they pass. All in pixels from the middle of the group's box (`wb.bx`, `wb.by`); the box is larger than the card, to give the
             //  bulge room.
@@ -4544,7 +4550,7 @@ scene Vitreus {
                 shader: cardrip, wb.rq, wb.rh, wb.l + (wb.k + wb.w) / 2 - wb.bx, wb.l + (wb.brx - wb.ske) / 2 - wb.bx, wb.t - wb.by, wb.t + wb.H - wb.by, 46, 60
                 box { at: wb.bx, wb.by; size: wb.w + wb.ske + 240, wb.H + 160; color: #ffffff; opacity: 0.4% }
                 group {
-                    clip path { at: wb.l, wb.t; move wb.k + wb.r, 0; line wb.w - wb.r, 0; curve wb.w + wb.r * wb.nx, wb.r * wb.ny via wb.w, 0; line wb.brx - wb.r * wb.nx, wb.H - wb.r * wb.ny; curve wb.brx - wb.r, wb.H via wb.brx, wb.H; line -wb.ske + wb.r, wb.H; curve -wb.ske - wb.r * wb.nx, wb.H - wb.r * wb.ny via -wb.ske, wb.H; line wb.k + wb.r * wb.nx, wb.r * wb.ny; curve wb.k + wb.r, 0 via wb.k, 0; close }
+                    clip path { at: wb.l, wb.t; move wb.k + wb.r, 0; line wb.w - wb.r, 0; curve wb.w + wb.r * wb.nx, wb.r * wb.ny via wb.w, 0; curve wb.brx - wb.r * wb.nx, wb.H - wb.r * wb.ny via (wb.w + wb.brx) / 2 + 2 * wb.m, wb.H / 2; curve wb.brx - wb.r, wb.H via wb.brx, wb.H; line -wb.ske + wb.r, wb.H; curve -wb.ske - wb.r * wb.nx, wb.H - wb.r * wb.ny via -wb.ske, wb.H; curve wb.k + wb.r * wb.nx, wb.r * wb.ny via (wb.k - wb.ske) / 2 + 2 * wb.m, wb.H / 2; curve wb.k + wb.r, 0 via wb.k, 0; close }
                     image wp_big.$b.img { at: wb.l + wb.w / 2 - max(wb.w, wb.h * 1.7778) / 2, wb.t + wb.h / 2 - max(wb.h, wb.w * 0.5625) / 2; size: max(wb.w, wb.h * 1.7778), max(wb.h, wb.w * 0.5625); opacity: wb.a * clamp(wb.e * 4, 0, 1) }
                     box { at: wb.l + wb.w / 2, wb.t + wb.h / 2; size: wb.w, wb.h; color: #05070d; opacity: 42% * (1 - wb.e) * wb.a }
                 }
@@ -4554,10 +4560,10 @@ scene Vitreus {
                     color: #05070d
                     opacity: 58% * clamp(wb.e * 2 - 0.6, 0, 1) * wb.a
                     rim: 14%
-                    path { at: wb.l, wb.t; move wb.k - (wb.k + wb.ske) * wb.h / wb.H, wb.h; line wb.w - (wb.k + wb.ske) * wb.h / wb.H, wb.h; line wb.brx - wb.r * wb.nx, wb.H - wb.r * wb.ny; curve wb.brx - wb.r, wb.H via wb.brx, wb.H; line -wb.ske + wb.r, wb.H; curve -wb.ske - wb.r * wb.nx, wb.H - wb.r * wb.ny via -wb.ske, wb.H; close }
+                    path { at: wb.l, wb.t; move wb.k - (wb.k + wb.ske) * wb.h / wb.H, wb.h; line wb.w - (wb.k + wb.ske) * wb.h / wb.H, wb.h; curve wb.brx - wb.r * wb.nx, wb.H - wb.r * wb.ny via (wb.w + wb.brx) / 2 + 2 * wb.m, wb.H / 2; curve wb.brx - wb.r, wb.H via wb.brx, wb.H; line -wb.ske + wb.r, wb.H; curve -wb.ske - wb.r * wb.nx, wb.H - wb.r * wb.ny via -wb.ske, wb.H; curve wb.k - (wb.k + wb.ske) * wb.h / wb.H, wb.h via (wb.k - wb.ske) / 2 + 2 * wb.m, (wb.h + wb.H) / 2; close }
                 }
                 //  The ring: faint on the slices, the wallpaper's own accent on the one in focus.
-                path { at: wb.l, wb.t; stroke: 1 + 2.5 * wb.e; color: mix(#ffffff, wc.acc, wb.e); opacity: (22% + 78% * wb.e) * wb.a; move wb.k + wb.r, 0; line wb.w - wb.r, 0; curve wb.w + wb.r * wb.nx, wb.r * wb.ny via wb.w, 0; line wb.brx - wb.r * wb.nx, wb.H - wb.r * wb.ny; curve wb.brx - wb.r, wb.H via wb.brx, wb.H; line -wb.ske + wb.r, wb.H; curve -wb.ske - wb.r * wb.nx, wb.H - wb.r * wb.ny via -wb.ske, wb.H; line wb.k + wb.r * wb.nx, wb.r * wb.ny; curve wb.k + wb.r, 0 via wb.k, 0; close }
+                path { at: wb.l, wb.t; stroke: 1; color: #ffffff; opacity: 22% * (1 - wb.e) * wb.a; move wb.k + wb.r, 0; line wb.w - wb.r, 0; curve wb.w + wb.r * wb.nx, wb.r * wb.ny via wb.w, 0; curve wb.brx - wb.r * wb.nx, wb.H - wb.r * wb.ny via (wb.w + wb.brx) / 2 + 2 * wb.m, wb.H / 2; curve wb.brx - wb.r, wb.H via wb.brx, wb.H; line -wb.ske + wb.r, wb.H; curve -wb.ske - wb.r * wb.nx, wb.H - wb.r * wb.ny via -wb.ske, wb.H; curve wb.k + wb.r * wb.nx, wb.r * wb.ny via (wb.k - wb.ske) / 2 + 2 * wb.m, wb.H / 2; curve wb.k + wb.r, 0 via wb.k, 0; close }
                 //  A tag on the one in use.
                 group {
                     show: wp_big.$b.cur and wb.e > 0.6
