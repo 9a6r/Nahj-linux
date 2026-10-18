@@ -931,6 +931,7 @@ scene Vitreus {
     prop oks   = 0 ~calm          // 1 while it is a screenshot
     prop osd_h = 64 ~calm         // the height of its plate: a notification is taller with text and buttons
     prop nt_ring = 1 ~600ms       // a ripple off the notification's tile: 0 born, 1 gone
+    prop nt_sw = 1 ~2400ms        // the bell's swing when it arrives: 0 struck, 1 still (much slower than the ripple)
     prop expand = 0 ~drip          // a tile growing into its own window, 0 tile .. 1 full window
     //  The music: fast, and a little loose, so the bar bounces on the beat.
     spring beat = 480, 15
@@ -964,9 +965,19 @@ scene Vitreus {
     follow okv  = if(osd_kind == vol, 1, 0)
     follow okn  = if(osd_kind == note, 1, 0)
     follow oks  = if(osd_kind == shot, 1, 0)
-    on ntnew {
+    //  The bell swings once the banner is there: with the drawer already out (another notification replacing the last) it swings at once, and with it still
+    //  coming out it waits for it to land, so the swing does not play while the banner is sliding in and the bell is being drawn.
+    on ntnew while do >= 0.9 {
         nt_ring: 0 ~16ms
         nt_ring: 1 ~800ms after 30ms
+        nt_sw: 0 ~16ms
+        nt_sw: 1 ~2400ms after 30ms
+    }
+    on ntnew while do < 0.9 {
+        nt_ring: 0 ~16ms
+        nt_ring: 1 ~800ms after 30ms
+        nt_sw: 0 ~16ms
+        nt_sw: 1 ~2400ms after 450ms
     }
     follow expand = if(panel_sub != none, 1, 0)
     //  Which window to actually draw. It jumps to match `panel_sub` the moment
@@ -3849,7 +3860,7 @@ scene Vitreus {
     //  The Cyber's terminal readouts (bar_glass.plm) flicker and blink on this clock, so it runs while one of them can be seen: only while a drawer is out (`cy_on`).
     let cy_on = clamp(max(max(dk0, dc0), max(max(ds0, dl0), max(dm0, max(dz0, do0)))) * 50, 0, 1) * cy_k
     //  The player's card (docked in its panel or floating) has the same wavy progress line, so it runs the clock while a song plays in it.
-    let need_clock = (cy_on > 0.01) or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
+    let need_clock = (cy_on > 0.01) or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or osd_kind == note or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
     spin time by if(need_clock, 1, 0)
     group {
         pivot: screen.width / 2, screen.height / 2
