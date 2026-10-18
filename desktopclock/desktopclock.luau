@@ -15,7 +15,7 @@
 --   glyphs       a style for the hours ("h"), the minutes ("m") and the divider ("s"): { w = weight multiplier, z = size multiplier, c = tint }, tint 0 the shell's glass,
 --                1 mint, 2 light, 3 rose, 4 grey. What is not there is the normal style (1, 1, 0)
 local POSITIONS = { top_left = true, top = true, top_right = true, left = true, center = true, right = true, bottom_left = true, bottom = true, bottom_right = true }
-local cfg = { shown = true, use_12_hour = true, size = 220, layout = 0, position = "center", gx = -1, gy = -1, monitor = "", weight = 1, clarity = 1 }
+local cfg = { shown = true, use_12_hour = true, size = 220, layout = 0, position = "center", gx = -1, gy = -1, monitor = "", weight = 1, clarity = 1, grid = 2 }
 local GL = { "h", "m", "s" }
 local glyphs = {}
 for _, g in ipairs(GL) do glyphs[g] = { w = 1, z = 1, c = 0 } end
@@ -25,6 +25,12 @@ do
     if ok and type(saved) == "table" then
         for k, v in pairs(cfg) do
             if type(saved[k]) == type(v) then cfg[k] = saved[k] end
+        end
+        -- The grid used to be 16 x 9 and is 28 x 16: a position saved on the old one is carried over to the same place on the new one (once, `grid` says which it was saved on).
+        if saved.grid ~= 2 then
+            if cfg.gx >= 0 then cfg.gx = math.floor(cfg.gx * 28 / 16 + 0.5) end
+            if cfg.gy >= 0 then cfg.gy = math.floor(cfg.gy * 16 / 9 + 0.5) end
+            cfg.migrated = true
         end
         cfg.size = math.max(100, math.min(340, cfg.size))
         cfg.layout = clampi(cfg.layout, 0, 5)
@@ -49,6 +55,7 @@ local function save()
     cfg.glyphs = glyphs
     pcall(sys.call, "files.write", "desktopclock.json", cfg)
 end
+if cfg.migrated then cfg.migrated = nil; cfg.grid = 2; save() end
 
 fact.px = cfg.size
 fact.h12 = cfg.use_12_hour

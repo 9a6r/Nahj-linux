@@ -2003,10 +2003,12 @@ end
 -- autostart file, as before.)
 after(4000, function()
     if not on_hyprland then return end
-    for _, dir in ipairs({ "desktopmenu", "desktopnotes", "webcam" }) do
-        run("pgrep", { "-f", dir .. "/" .. dir .. ".plm" }, function(_, code)
+    for _, dir in ipairs({ "desktopmenu", "desktopnotes", "webcam", "desktopedit", "desktopcards" }) do
+        -- (Hyprland runs the menu's own copy, desktopmenu_hypr.plm: background layer, wallpaper zone always live)
+        local file = dir == "desktopmenu" and "desktopmenu_hypr" or dir
+        run("pgrep", { "-f", dir .. "/" .. file .. ".plm" }, function(_, code)
             if code ~= 0 then
-                exec_on_desktop('vitreus-keep "$HOME/.config/pleamar/shells/vitreus/' .. dir .. '/' .. dir .. '.plm"')
+                exec_on_desktop('vitreus-keep "$HOME/.config/pleamar/shells/vitreus/' .. dir .. '/' .. file .. '.plm"')
             end
         end)
     end
@@ -2610,17 +2612,38 @@ end
 function iris_fx.push_pal(pal)
     pal = pal or iris_fx.last_pal or iris_fx.saved
     if not pal then return end
-    local args = { "--say", "desktopclock" }
+    local facts = {}
     for _, k in ipairs(iris_fx.order) do
         local r, g, b = hex_to_rgb(pal[k])
-        args[#args + 1] = string.format("fact pal_%s_r %.4f", k, r)
-        args[#args + 1] = string.format("fact pal_%s_g %.4f", k, g)
-        args[#args + 1] = string.format("fact pal_%s_b %.4f", k, b)
+        facts[#facts + 1] = string.format("fact pal_%s_r %.4f", k, r)
+        facts[#facts + 1] = string.format("fact pal_%s_g %.4f", k, g)
+        facts[#facts + 1] = string.format("fact pal_%s_b %.4f", k, b)
     end
-    run("pleamar", args, function() end)
+    -- (the desktop editor, desktopedit/, reads them the same way)
+    for _, scene in ipairs({ "desktopclock", "desktopedit", "desktopcards" }) do
+        local args = { "--say", scene }
+        for _, f in ipairs(facts) do args[#args + 1] = f end
+        run("pleamar", args, function() end)
+    end
 end
 
-on("pal_push", function() iris_fx.push_pal() end)
+-- The room the bar's frame takes round the screen (a framed bar: 76 px on its side, 24 on the others, which is what the windows keep out of; the Island on top: 56 px
+-- along the top), told to the desktop scenes so that the grid their widgets sit on starts inside it and nothing can be put under the bar.
+iris_fx.rooms = {
+    left = { 24, 24, 24, 76 }, right = { 24, 76, 24, 24 }, top = { 76, 24, 24, 24 }, bottom = { 24, 24, 76, 24 },   -- top, right, bottom, left
+}
+function iris_fx.push_room()
+    local r = { 0, 0, 0, 0 }
+    if fact.bar_frame == true then r = iris_fx.rooms[fact.bar_anchor] or r
+    elseif fact.bar_anchor == "top" then r = { 56, 0, 0, 0 } end
+    for _, scene in ipairs({ "desktopclock", "desktopsysmon", "desktopcards", "desktopedit" }) do
+        run("pleamar", { "--say", scene, "fact room_t " .. r[1], "fact room_r " .. r[2], "fact room_b " .. r[3], "fact room_l " .. r[4] }, function() end)
+    end
+end
+on("fact:bar_anchor", function() iris_fx.push_room() end)
+on("fact:bar_frame", function() iris_fx.push_room() end)
+
+on("pal_push", function() iris_fx.push_pal(); iris_fx.push_room() end)
 
 function iris_fx.apply_palette(pal)
     iris_fx.last_pal = pal
@@ -2961,6 +2984,7 @@ do
         local v = iris_cfg.look == iris_fx.CASSETTE and 1 or iris_cfg.look == iris_fx.UWU and 2 or iris_cfg.look == iris_fx.CYBER and 3 or 0
         run("pleamar", { "--say", "desktopclock", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopsysmon", "fact look " .. v }, function() end)
+        run("pleamar", { "--say", "desktopcards", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopnotes", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopcava", "fact look " .. v }, function() end)
     end
@@ -3794,6 +3818,7 @@ function glass.push_obs()
     local v = glass.obsidian and "true" or "false"
     run("pleamar", { "--say", "desktopclock", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopsysmon", "fact obs " .. v }, function() end)
+    run("pleamar", { "--say", "desktopcards", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopcava", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopnotes", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopmenu", "fact obs " .. v }, function() end)
@@ -5708,7 +5733,7 @@ end
         { "Desktop menu: start", "action", function()
             -- The right-click menu on the wallpaper (desktopmenu/) is a scene of its own; this starts it for this session if it is not running (it is in the autostart file after an install).
             run("pleamar", { "--say", "desktopmenu", "get open" }, function(_, code)
-                if code ~= 0 then exec_on_desktop('vitreus-keep "$HOME/.config/pleamar/shells/vitreus/desktopmenu/desktopmenu.plm"') end
+                if code ~= 0 then exec_on_desktop('vitreus-keep "$HOME/.config/pleamar/shells/vitreus/desktopmenu/' .. (on_hyprland and "desktopmenu_hypr" or "desktopmenu") .. '.plm"') end
             end)
         end, "desktop menu right click context wallpaper start" },
         { "Sticky note: new", "action", function() spawn('pleamar --say vitreus "emit sticky_new"') end, "sticky note sticker new add notes desktop paper write" },

@@ -113,10 +113,10 @@ scene DesktopClock {
     follow sh = if(shown, 1, 0)
     fact obs = false        // Vitreus has its glass off: the digits are flat obsidian (Vitreus says so with `fact obs true`)
     prop ob = 0 ~calm
-    follow ob = if(obs or look > 0, 1, 0)
+    follow ob = if(obs or look == 1 or look == 2, 1, 0)
     fact look = 0           // the shell's theme (Vitreus says so): 0 Glass, 1 Retro, 2 UwU, 3 Cyber; the last three draw the digits as plastic, like the bar (outline, hard shadow)
     prop pl = 0 ~calm
-    follow pl = if(look > 0, 1, 0)
+    follow pl = if(look == 1 or look == 2, 1, 0)
     prop cy = 0 ~calm
     follow cy = if(look == 3, 1, 0)         // Cyber: the digits are filled with the neon (the glass's own tint is near-black there)
     prop uk = 0 ~calm
@@ -145,7 +145,18 @@ scene DesktopClock {
     //  The desktop is a grid of 16 columns and 9 rows, inside a 40 px margin; the settings put a widget on it by the cell of its top left corner (`gx`, `gy`) and it
     //  takes as many cells as it needs (`cfw`, `cfh`, which Settings > Widgets asks for). Against an edge of the grid it sits against that edge, between them it is centred in its cells.
     //  `gx` and `gy` below 0 are an older settings file: it is put where `where` says (one of the nine places, which is what the cells are made of).
-    let gm = 40
+    //  The room the bar's frame takes round the screen (Vitreus tells it: `room_*`, in pixels, 0 when the bar is not a frame), which the grid stays out of, so a widget cannot be put under the bar.
+    fact room_t = 0
+    fact room_r = 0
+    fact room_b = 0
+    fact room_l = 0
+    let gnx = 28           // the grid: 28 columns and 16 rows (it used to be 16 x 9), from the bar's frame (the `room_*`) plus a 16 px margin
+    let gny = 16
+    let gm = 16
+    let gl = gm + room_l
+    let gt = gm + room_t
+    let gr = gm + room_r
+    let gb = gm + room_b
     let mi = clamp(screen.index, 0, 3)
     //  The scene's copies are not in the order `hyprctl` lists the monitors: the logic learns it and numbers the `m0x`.. facts and `mon` by the copies.
     let here = if(mi == mon, 1, 0)
@@ -153,24 +164,24 @@ scene DesktopClock {
     let sch = pick(mi, m0h, m1h, m2h, m3h)
     let mox = pick(mon, m0x, m1x, m2x, m3x)       // where the monitor that shows it has its top left in the desktop
     let moy = pick(mon, m0y, m1y, m2y, m3y)
-    let gw = (scw - 2 * gm) / 16
-    let gh = (sch - 2 * gm) / 9
-    let fw = clamp(ceil(2 * hw / gw), 1, 16)
-    let fh = clamp(ceil(2 * hh / gh), 1, 9)
-    let ex0 = clamp(if(gx < 0, if(isl > 0.5, 0, if(isr > 0.5, 16 - fw, (16 - fw) / 2)), gx), 0, 16 - fw)
-    let ey0 = clamp(if(gy < 0, if(ist > 0.5, 0, if(isb > 0.5, 9 - fh, (9 - fh) / 2)), gy), 0, 9 - fh)
+    let gw = (scw - gl - gr) / gnx
+    let gh = (sch - gt - gb) / gny
+    let fw = clamp(ceil(2 * hw / gw), 1, gnx)
+    let fh = clamp(ceil(2 * hh / gh), 1, gny)
+    let ex0 = clamp(if(gx < 0, if(isl > 0.5, 0, if(isr > 0.5, gnx - fw, (gnx - fw) / 2)), gx), 0, gnx - fw)
+    let ey0 = clamp(if(gy < 0, if(ist > 0.5, 0, if(isb > 0.5, gny - fh, (gny - fh) / 2)), gy), 0, gny - fh)
     //  In Edit mode what is drawn follows the cell with a spring (`erx`, `ery`); otherwise it is the cell.
     prop erx = 0 ~quick
     prop ery = 0 ~quick
     follow erx = if(gx < 0, ex0, gx)      // (one for all the copies, so it must not depend on this monitor's size: `ex` clamps it)
     follow ery = if(gy < 0, ey0, gy)
-    let ex = clamp(mix(ex0, erx, edp), 0, 16 - fw)
-    let ey = clamp(mix(ey0, ery, edp), 0, 9 - fh)
+    let ex = clamp(mix(ex0, erx, edp), 0, gnx - fw)
+    let ey = clamp(mix(ey0, ery, edp), 0, gny - fh)
     //  Against the grid's edge the face is against the edge, between them it is in the middle of its cells, and in between it moves from one to the other (so that it never jumps).
-    let cxm = gm + (ex + fw / 2) * gw
-    let cym = gm + (ey + fh / 2) * gh
-    let fx = cxm + (gm + hw - cxm) * clamp(1 - ex, 0, 1) + (scw - gm - hw - cxm) * clamp(ex + fw - 15, 0, 1)
-    let fy = cym + (gm + hh - cym) * clamp(1 - ey, 0, 1) + (sch - gm - hh - cym) * clamp(ey + fh - 8, 0, 1)
+    let cxm = gl + (ex + fw / 2) * gw
+    let cym = gt + (ey + fh / 2) * gh
+    let fx = cxm + (gl + hw + 13 - cxm) * clamp(1 - ex, 0, 1) + (scw - gr - hw - 13 - cxm) * clamp(ex + fw - (gnx - 1), 0, 1)
+    let fy = cym + (gt + hh + 13 - cym) * clamp(1 - ey, 0, 1) + (sch - gb - hh - 13 - cym) * clamp(ey + fh - (gny - 1), 0, 1)
     //  Edit mode: the cells it takes are outlined, and a press on them takes the widget; it moves a whole cell at a time under the pointer, and keeps its place (the settings
     //  file is written for each cell it lands on). The zone stays where the press was while it is dragged, as a zone that moves itself would lose the drag.
     prop edp = 0 ~calm
@@ -189,16 +200,16 @@ scene DesktopClock {
     let tmon = if(in0 > 0.5, 0, if(in1 > 0.5, 1, if(in2 > 0.5, 2, if(in3 > 0.5, 3, mon))))
     let tox = pick(tmon, m0x, m1x, m2x, m3x)
     let toy = pick(tmon, m0y, m1y, m2y, m3y)
-    let tgw = (max(pick(tmon, m0w, m1w, m2w, m3w), 800) - 2 * gm) / 16
-    let tgh = (max(pick(tmon, m0h, m1h, m2h, m3h), 600) - 2 * gm) / 9
-    let tfw = clamp(ceil(2 * hw / tgw), 1, 16)
-    let tfh = clamp(ceil(2 * hh / tgh), 1, 9)
+    let tgw = (max(pick(tmon, m0w, m1w, m2w, m3w), 800) - gl - gr) / gnx
+    let tgh = (max(pick(tmon, m0h, m1h, m2h, m3h), 600) - gt - gb) / gny
+    let tfw = clamp(ceil(2 * hw / tgw), 1, gnx)
+    let tfh = clamp(ceil(2 * hh / tgh), 1, gny)
     zone box edz { from: zx, zy; size: 2 * (hw + pad), 2 * (hh + pad); corner: 16; cursor: pointer; active: edit and (here > 0.5 or dragging); label: "Move clock" }
-    on press edz { pcx = mox + gm + (ex0 + fw / 2) * gw; pcy = moy + gm + (ey0 + fh / 2) * gh; dcx = pcx; dcy = pcy; zpx = fx; zpy = fy; dragging = true }
+    on press edz { pcx = mox + gl + (ex0 + fw / 2) * gw; pcy = moy + gt + (ey0 + fh / 2) * gh; dcx = pcx; dcy = pcy; zpx = fx; zpy = fy; dragging = true }
     on drag edz { dcx = pcx + drag.dx; dcy = pcy + drag.dy }
-    on change dcx { mon = tmon; gx = clamp(floor((dcx - tox - gm) / tgw - tfw / 2 + 0.5), 0, 16 - tfw); gy = clamp(floor((dcy - toy - gm) / tgh - tfh / 2 + 0.5), 0, 9 - tfh) }
-    on change dcy { mon = tmon; gx = clamp(floor((dcx - tox - gm) / tgw - tfw / 2 + 0.5), 0, 16 - tfw); gy = clamp(floor((dcy - toy - gm) / tgh - tfh / 2 + 0.5), 0, 9 - tfh) }
-    on release edz { dragging = false; mon = tmon; gx = clamp(floor((dcx - tox - gm) / tgw - tfw / 2 + 0.5), 0, 16 - tfw); gy = clamp(floor((dcy - toy - gm) / tgh - tfh / 2 + 0.5), 0, 9 - tfh) }   // (the rules above read the frame before: once more, now that it is still)
+    on change dcx { mon = tmon; gx = clamp(floor((dcx - tox - gl) / tgw - tfw / 2 + 0.5), 0, gnx - tfw); gy = clamp(floor((dcy - toy - gt) / tgh - tfh / 2 + 0.5), 0, gny - tfh) }
+    on change dcy { mon = tmon; gx = clamp(floor((dcx - tox - gl) / tgw - tfw / 2 + 0.5), 0, gnx - tfw); gy = clamp(floor((dcy - toy - gt) / tgh - tfh / 2 + 0.5), 0, gny - tfh) }
+    on release edz { dragging = false; mon = tmon; gx = clamp(floor((dcx - tox - gl) / tgw - tfw / 2 + 0.5), 0, gnx - tfw); gy = clamp(floor((dcy - toy - gt) / tgh - tfh / 2 + 0.5), 0, gny - tfh) }   // (the rules above read the frame before: once more, now that it is still)
     group {
         show: edp > 0.01 and here > 0.5
         opacity: edp

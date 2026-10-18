@@ -10,13 +10,19 @@
 --   monitor    the name of the monitor that shows the card ("": not chosen yet)
 --   clarity    the glass: 0 clear, 1 soft, 2 full
 local POSITIONS = { top_left = true, top = true, top_right = true, left = true, center = true, right = true, bottom_left = true, bottom = true, bottom_right = true }
-local cfg = { shown = false, position = "bottom_right", gx = -1, gy = -1, monitor = "", clarity = 1 }
+local cfg = { shown = false, position = "bottom_right", gx = -1, gy = -1, monitor = "", clarity = 1, grid = 2 }
 local function clampi(v, lo, hi) return math.max(lo, math.min(hi, math.floor(v + 0.5))) end
 do
     local ok, saved = pcall(sys.ask, "files.read", "desktopsysmon.json", "json")
     if ok and type(saved) == "table" then
         for k, v in pairs(cfg) do
             if type(saved[k]) == type(v) then cfg[k] = saved[k] end
+        end
+        -- The grid used to be 16 x 9 and is 28 x 16: a position saved on the old one is carried over to the same place on the new one (once, `grid` says which it was saved on).
+        if saved.grid ~= 2 then
+            if cfg.gx >= 0 then cfg.gx = math.floor(cfg.gx * 28 / 16 + 0.5) end
+            if cfg.gy >= 0 then cfg.gy = math.floor(cfg.gy * 16 / 9 + 0.5) end
+            cfg.migrated = true
         end
         cfg.clarity = clampi(cfg.clarity, 0, 2)
         if not POSITIONS[cfg.position] then cfg.position = "bottom_right" end
@@ -25,6 +31,7 @@ do
     end
 end
 local function save() pcall(sys.call, "files.write", "desktopsysmon.json", cfg) end
+if cfg.migrated then cfg.migrated = nil; cfg.grid = 2; save() end
 
 fact.where = cfg.position
 fact.gx = cfg.gx
@@ -252,3 +259,7 @@ local function ask_look()
 end
 ask_look()
 after(4000, ask_look)
+
+-- The room the bar's frame takes (`room_*`) is told by Vitreus when it changes; asked for at start (this scene starts after the shell may have said it).
+run("pleamar", { "--say", "vitreus", "emit pal_push" }, function() end)
+after(1500, function() run("pleamar", { "--say", "vitreus", "emit pal_push" }, function() end) end)

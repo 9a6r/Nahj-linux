@@ -51,12 +51,14 @@ scene DesktopNotes {
     prop sh = 0 ~calm
     follow sh = if(shown, 1, 0)
     prop ob = 0 ~calm
-    follow ob = if(obs or look > 0, 1, 0)
+    follow ob = if(obs or look == 1 or look == 2, 1, 0)
     fact look = 0           // the shell's theme (Vitreus says so): 0 Glass, 1 Retro, 2 UwU; the last two draw the stickers as plastic, like the bar (outline, hard shadow)
     prop pl = 0 ~calm
-    follow pl = if(look > 0, 1, 0)
+    follow pl = if(look == 1 or look == 2, 1, 0)
     prop uk = 0 ~calm
     follow uk = if(look == 2, 1, 0)
+    prop cyk = 0 ~calm
+    follow cyk = if(look == 3, 1, 0)       // Cyber is glass with its HUD marks on top (corner brackets, a hairline) and squarer corners, as on the bar's drawers
     let clr = if(cli == 0, 55%, if(cli == 1, 80%, 100%))
     let mi = clamp(screen.index, 0, 3)
     let ox = pick(mi, m0x, m1x, m2x, m3x)     // where this monitor's top left is in the desktop
@@ -321,7 +323,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -331,10 +333,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c0, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c0, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc0 in 0..4 {
+                let nx0 = if(mod(nc0, 2) == 0, -6, 206)
+                let ny0 = if(nc0 < 2, -6, 174)
+                let nsx0 = if(mod(nc0, 2) == 0, -1, 1)
+                let nsy0 = if(nc0 < 2, -1, 1)
+                path { at: nx0, ny0; stroke: 5; color: mint; opacity: 16%; move 0, -nsy0 * 13; line 0, 0; line -nsx0 * 13, 0 }
+                path { at: nx0, ny0; stroke: 1.7; color: minthi; move 0, -nsy0 * 13; line 0, 0; line -nsx0 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }
@@ -359,7 +375,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -369,10 +385,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c1, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c1, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc1 in 0..4 {
+                let nx1 = if(mod(nc1, 2) == 0, -6, 206)
+                let ny1 = if(nc1 < 2, -6, 174)
+                let nsx1 = if(mod(nc1, 2) == 0, -1, 1)
+                let nsy1 = if(nc1 < 2, -1, 1)
+                path { at: nx1, ny1; stroke: 5; color: mint; opacity: 16%; move 0, -nsy1 * 13; line 0, 0; line -nsx1 * 13, 0 }
+                path { at: nx1, ny1; stroke: 1.7; color: minthi; move 0, -nsy1 * 13; line 0, 0; line -nsx1 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }
@@ -397,7 +427,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -407,10 +437,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c2, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c2, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc2 in 0..4 {
+                let nx2 = if(mod(nc2, 2) == 0, -6, 206)
+                let ny2 = if(nc2 < 2, -6, 174)
+                let nsx2 = if(mod(nc2, 2) == 0, -1, 1)
+                let nsy2 = if(nc2 < 2, -1, 1)
+                path { at: nx2, ny2; stroke: 5; color: mint; opacity: 16%; move 0, -nsy2 * 13; line 0, 0; line -nsx2 * 13, 0 }
+                path { at: nx2, ny2; stroke: 1.7; color: minthi; move 0, -nsy2 * 13; line 0, 0; line -nsx2 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }
@@ -435,7 +479,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -445,10 +489,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c3, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c3, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc3 in 0..4 {
+                let nx3 = if(mod(nc3, 2) == 0, -6, 206)
+                let ny3 = if(nc3 < 2, -6, 174)
+                let nsx3 = if(mod(nc3, 2) == 0, -1, 1)
+                let nsy3 = if(nc3 < 2, -1, 1)
+                path { at: nx3, ny3; stroke: 5; color: mint; opacity: 16%; move 0, -nsy3 * 13; line 0, 0; line -nsx3 * 13, 0 }
+                path { at: nx3, ny3; stroke: 1.7; color: minthi; move 0, -nsy3 * 13; line 0, 0; line -nsx3 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }
@@ -473,7 +531,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -483,10 +541,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c4, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c4, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc4 in 0..4 {
+                let nx4 = if(mod(nc4, 2) == 0, -6, 206)
+                let ny4 = if(nc4 < 2, -6, 174)
+                let nsx4 = if(mod(nc4, 2) == 0, -1, 1)
+                let nsy4 = if(nc4 < 2, -1, 1)
+                path { at: nx4, ny4; stroke: 5; color: mint; opacity: 16%; move 0, -nsy4 * 13; line 0, 0; line -nsx4 * 13, 0 }
+                path { at: nx4, ny4; stroke: 1.7; color: minthi; move 0, -nsy4 * 13; line 0, 0; line -nsx4 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }
@@ -511,7 +583,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -521,10 +593,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c5, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c5, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc5 in 0..4 {
+                let nx5 = if(mod(nc5, 2) == 0, -6, 206)
+                let ny5 = if(nc5 < 2, -6, 174)
+                let nsx5 = if(mod(nc5, 2) == 0, -1, 1)
+                let nsy5 = if(nc5 < 2, -1, 1)
+                path { at: nx5, ny5; stroke: 5; color: mint; opacity: 16%; move 0, -nsy5 * 13; line 0, 0; line -nsx5 * 13, 0 }
+                path { at: nx5, ny5; stroke: 1.7; color: minthi; move 0, -nsy5 * 13; line 0, 0; line -nsx5 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }
@@ -549,7 +635,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -559,10 +645,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c6, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c6, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc6 in 0..4 {
+                let nx6 = if(mod(nc6, 2) == 0, -6, 206)
+                let ny6 = if(nc6 < 2, -6, 174)
+                let nsx6 = if(mod(nc6, 2) == 0, -1, 1)
+                let nsy6 = if(nc6 < 2, -1, 1)
+                path { at: nx6, ny6; stroke: 5; color: mint; opacity: 16%; move 0, -nsy6 * 13; line 0, 0; line -nsx6 * 13, 0 }
+                path { at: nx6, ny6; stroke: 1.7; color: minthi; move 0, -nsy6 * 13; line 0, 0; line -nsx6 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }
@@ -587,7 +687,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -597,10 +697,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c7, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c7, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc7 in 0..4 {
+                let nx7 = if(mod(nc7, 2) == 0, -6, 206)
+                let ny7 = if(nc7 < 2, -6, 174)
+                let nsx7 = if(mod(nc7, 2) == 0, -1, 1)
+                let nsy7 = if(nc7 < 2, -1, 1)
+                path { at: nx7, ny7; stroke: 5; color: mint; opacity: 16%; move 0, -nsy7 * 13; line 0, 0; line -nsx7 * 13, 0 }
+                path { at: nx7, ny7; stroke: 1.7; color: minthi; move 0, -nsy7 * 13; line 0, 0; line -nsx7 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }
@@ -625,7 +739,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -635,10 +749,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c8, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c8, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc8 in 0..4 {
+                let nx8 = if(mod(nc8, 2) == 0, -6, 206)
+                let ny8 = if(nc8 < 2, -6, 174)
+                let nsx8 = if(mod(nc8, 2) == 0, -1, 1)
+                let nsy8 = if(nc8 < 2, -1, 1)
+                path { at: nx8, ny8; stroke: 5; color: mint; opacity: 16%; move 0, -nsy8 * 13; line 0, 0; line -nsx8 * 13, 0 }
+                path { at: nx8, ny8; stroke: 1.7; color: minthi; move 0, -nsy8 * 13; line 0, 0; line -nsx8 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }
@@ -663,7 +791,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -673,10 +801,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c9, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c9, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc9 in 0..4 {
+                let nx9 = if(mod(nc9, 2) == 0, -6, 206)
+                let ny9 = if(nc9 < 2, -6, 174)
+                let nsx9 = if(mod(nc9, 2) == 0, -1, 1)
+                let nsy9 = if(nc9 < 2, -1, 1)
+                path { at: nx9, ny9; stroke: 5; color: mint; opacity: 16%; move 0, -nsy9 * 13; line 0, 0; line -nsx9 * 13, 0 }
+                path { at: nx9, ny9; stroke: 1.7; color: minthi; move 0, -nsy9 * 13; line 0, 0; line -nsx9 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }
@@ -701,7 +843,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -711,10 +853,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c10, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c10, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc10 in 0..4 {
+                let nx10 = if(mod(nc10, 2) == 0, -6, 206)
+                let ny10 = if(nc10 < 2, -6, 174)
+                let nsx10 = if(mod(nc10, 2) == 0, -1, 1)
+                let nsy10 = if(nc10 < 2, -1, 1)
+                path { at: nx10, ny10; stroke: 5; color: mint; opacity: 16%; move 0, -nsy10 * 13; line 0, 0; line -nsx10 * 13, 0 }
+                path { at: nx10, ny10; stroke: 1.7; color: minthi; move 0, -nsy10 * 13; line 0, 0; line -nsx10 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }
@@ -739,7 +895,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -749,10 +905,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c11, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c11, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc11 in 0..4 {
+                let nx11 = if(mod(nc11, 2) == 0, -6, 206)
+                let ny11 = if(nc11 < 2, -6, 174)
+                let nsx11 = if(mod(nc11, 2) == 0, -1, 1)
+                let nsy11 = if(nc11 < 2, -1, 1)
+                path { at: nx11, ny11; stroke: 5; color: mint; opacity: 16%; move 0, -nsy11 * 13; line 0, 0; line -nsx11 * 13, 0 }
+                path { at: nx11, ny11; stroke: 1.7; color: minthi; move 0, -nsy11 * 13; line 0, 0; line -nsx11 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }
@@ -777,7 +947,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -787,10 +957,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c12, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c12, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc12 in 0..4 {
+                let nx12 = if(mod(nc12, 2) == 0, -6, 206)
+                let ny12 = if(nc12 < 2, -6, 174)
+                let nsx12 = if(mod(nc12, 2) == 0, -1, 1)
+                let nsy12 = if(nc12 < 2, -1, 1)
+                path { at: nx12, ny12; stroke: 5; color: mint; opacity: 16%; move 0, -nsy12 * 13; line 0, 0; line -nsx12 * 13, 0 }
+                path { at: nx12, ny12; stroke: 1.7; color: minthi; move 0, -nsy12 * 13; line 0, 0; line -nsx12 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }
@@ -815,7 +999,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -825,10 +1009,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c13, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c13, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc13 in 0..4 {
+                let nx13 = if(mod(nc13, 2) == 0, -6, 206)
+                let ny13 = if(nc13 < 2, -6, 174)
+                let nsx13 = if(mod(nc13, 2) == 0, -1, 1)
+                let nsy13 = if(nc13 < 2, -1, 1)
+                path { at: nx13, ny13; stroke: 5; color: mint; opacity: 16%; move 0, -nsy13 * 13; line 0, 0; line -nsx13 * 13, 0 }
+                path { at: nx13, ny13; stroke: 1.7; color: minthi; move 0, -nsy13 * 13; line 0, 0; line -nsx13 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }
@@ -853,7 +1051,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -863,10 +1061,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c14, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c14, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc14 in 0..4 {
+                let nx14 = if(mod(nc14, 2) == 0, -6, 206)
+                let ny14 = if(nc14 < 2, -6, 174)
+                let nsx14 = if(mod(nc14, 2) == 0, -1, 1)
+                let nsy14 = if(nc14 < 2, -1, 1)
+                path { at: nx14, ny14; stroke: 5; color: mint; opacity: 16%; move 0, -nsy14 * 13; line 0, 0; line -nsx14 * 13, 0 }
+                path { at: nx14, ny14; stroke: 1.7; color: minthi; move 0, -nsy14 * 13; line 0, 0; line -nsx14 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }
@@ -891,7 +1103,7 @@ scene DesktopNotes {
             shadow: 0, 6, 18, 30%
             opacity: sh * clr * (1 - ob)
             show: ob < 0.996
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Obsidian (Vitreus has its glass off): the same shape as a flat, dark piece.
         body {
@@ -901,10 +1113,24 @@ scene DesktopNotes {
             opacity: sh * ob
             shadow: 4 * pl, 6 - pl, 18 * (1 - pl), 45% + 45% * pl, mix(mix(#000000, deep, pl), #ff6ec7, 0.75 * uk)
             show: ob > 0.004
-            box { from: 0, 0; size: 200, 168; corner: 22 }
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk) }
         }
         //  Its tint: a wash of one of the shell's own colours over the glass (they follow the wallpaper).
-        box { from: 0, 0; size: 200, 168; corner: 22; color: pick(c15, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); color: pick(c15, mint, alert, mintlo, ink, minthi, panel); opacity: 17% * sh }
+        //  The Cyber's HUD marks (as on its drawers, bar_glass.plm): a neon hairline and bright corner brackets 6 px outside the sticker.
+        group {
+            show: cyk > 0.01
+            opacity: cyk * sh
+            box { from: 0, 0; size: 200, 168; corner: 22 * (1 - 0.73 * cyk); stroke: 1.1; color: mint; opacity: 38% }
+            repeat nc15 in 0..4 {
+                let nx15 = if(mod(nc15, 2) == 0, -6, 206)
+                let ny15 = if(nc15 < 2, -6, 174)
+                let nsx15 = if(mod(nc15, 2) == 0, -1, 1)
+                let nsy15 = if(nc15 < 2, -1, 1)
+                path { at: nx15, ny15; stroke: 5; color: mint; opacity: 16%; move 0, -nsy15 * 13; line 0, 0; line -nsx15 * 13, 0 }
+                path { at: nx15, ny15; stroke: 1.7; color: minthi; move 0, -nsy15 * 13; line 0, 0; line -nsx15 * 13, 0 }
+            }
+        }
         group {
             opacity: sh
             box { at: 100, 31; size: 160, 1.2; corner: 0.6; color: ink; opacity: 22% }

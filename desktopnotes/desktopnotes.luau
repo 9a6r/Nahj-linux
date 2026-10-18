@@ -203,7 +203,10 @@ local function ask_look()
         if code ~= 0 or not cas then return end
         run("pleamar", { "--say", "vitreus", "get uwu" }, function(uwu, code2)
             if code2 ~= 0 or not uwu then return end
-            fact.look = cas:match("true") and 1 or (uwu:match("true") and 2 or 0)
+            run("pleamar", { "--say", "vitreus", "get cyber_on" }, function(cy, code3)
+                if code3 ~= 0 or not cy then return end
+                fact.look = cas:match("true") and 1 or (uwu:match("true") and 2 or (cy:match("true") and 3 or 0))
+            end)
         end)
     end)
 end

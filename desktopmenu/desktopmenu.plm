@@ -13,7 +13,7 @@ import "../palette.plm"
 scene DesktopMenu {
     surface { size: full, full; anchor: top_left; margin: 0; level: top; screens: each max 4; reserve: -1; keyboard: on_demand }
 
-    permissions { run: "pleamar", "pgrep" }
+    permissions { run: "pleamar", "pgrep", "sh" }
 
     fact open = false          // the menu is out
     fact mx = 0                // where it was asked for

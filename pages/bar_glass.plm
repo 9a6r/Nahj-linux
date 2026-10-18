@@ -211,14 +211,7 @@ part BarGlass {
             let cybarr = cx + (bar.w + pv * 10 * u) / 2
             let cybart = bar.y - bar.h / 2
             let cybarb = bar.y - bar.h / 2 + bar.h + pop
-            repeat cybarc in 0..4 {
-                let cybarx = if(mod(cybarc, 2) == 0, cybarl - 6 * u, cybarr + 6 * u)
-                let cybary = if(cybarc < 2, cybart - 6 * u, cybarb + 6 * u)
-                let cybarsx = if(mod(cybarc, 2) == 0, -1, 1)
-                let cybarsy = if(cybarc < 2, -1, 1)
-                path { at: cybarx, cybary; stroke: 5 * u; color: mint; opacity: 16%; move 0, -cybarsy * 13 * u; line 0, 0; line -cybarsx * 13 * u, 0 }
-                path { at: cybarx, cybary; stroke: 1.7; color: minthi; move 0, -cybarsy * 13 * u; line 0, 0; line -cybarsx * 13 * u, 0 }
-            }
+            //  (the bar itself has no corner brackets: only the drawers and the cards under it do; its ruler of ticks and its readout stay)
             repeat cybark in 0..13 {
                 line { from: cybarl + 22 * u + cybark * 6 * u, cybarb + 6 * u + 1; to: cybarl + 22 * u + cybark * 6 * u, cybarb + 6 * u + 1 + if(mod(cybark, 4) == 0, 6 * u, 3 * u); width: 1.1; color: mint; opacity: 70% }
             }
