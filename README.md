@@ -140,6 +140,7 @@ natepayn3@gmail.com if you have no account. With Vitreus installed it is just `v
 
 * [**pleamar**](https://github.com/k4ditano/pleamar) — the runtime Vitreus is written for
 * **Hyprland** or **pleamar-wm**
+* **A Vulkan driver for your graphics card** — pleamar draws with Vulkan. On Arch that is `vulkan-radeon` (AMD), `vulkan-intel` (Intel) or NVIDIA's driver with `nvidia-utils`; on Debian, Ubuntu and Fedora, `mesa-vulkan-drivers`. A minimal install often has none, and then nothing starts and nothing says why. `install.sh` checks for it and offers to install the AMD and Intel ones; `vulkaninfo --summary` shows what Vulkan can see.
 
 The packages `install.sh` installs (pacman, and the AUR for the last two):
 

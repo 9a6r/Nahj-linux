@@ -346,6 +346,61 @@ LIST
     fi
     have hyprctl || warn "Hyprland was not found. Vitreus needs a Wayland compositor with layer-shell; the list of running windows needs Hyprland."
 
+    # ── 1b. a Vulkan driver for the graphics card ──
+    # pleamar draws with Vulkan. Its own installer brings the loader (vulkan-icd-loader), but the driver is the card's own package, which a minimal install does not have: with none,
+    # pleamar finds no graphics adapter and the shell does not start, with nothing on screen to say why. So each card found is looked up here, and only a missing driver is said or offered.
+    if ! $refresh; then
+        gpu_vendors=""
+        for v in /sys/class/drm/card[0-9]*/device/vendor; do
+            [ -r "$v" ] || continue
+            case "$(cat "$v" 2> /dev/null)" in
+                0x1002) g=amd ;;
+                0x8086) g=intel ;;
+                0x10de) g=nvidia ;;
+                *) continue ;;
+            esac
+            case " $gpu_vendors " in *" $g "*) ;; *) gpu_vendors="$gpu_vendors $g" ;; esac
+        done
+        gpu_any_icd=false
+        gpu_missing=""
+        for g in $gpu_vendors; do
+            case "$g" in
+                amd) icd='radeon_icd*.json' ;;
+                intel) icd='intel_icd*.json' ;;
+                nvidia) icd='nvidia_icd*.json' ;;
+            esac
+            icd_found=false
+            for f in /usr/share/vulkan/icd.d/$icd /etc/vulkan/icd.d/$icd; do
+                if [ -e "$f" ]; then icd_found=true; break; fi
+            done
+            if $icd_found; then gpu_any_icd=true; else gpu_missing="$gpu_missing $g"; fi
+        done
+        for g in $gpu_missing; do
+            case "$g" in
+                amd|intel)
+                    if [ "$g" = amd ]; then gpkg=vulkan-radeon; gname=AMD; else gpkg=vulkan-intel; gname=Intel; fi
+                    if have pacman; then
+                        warn "an $gname graphics card was found with no Vulkan driver ($gpkg): the shell cannot draw without one"
+                        if ask "install $gpkg with sudo pacman?"; then
+                            run sudo pacman -S --needed --noconfirm "$gpkg" || warn "could not install $gpkg: run  sudo pacman -S $gpkg  yourself, then start Vitreus again"
+                        else
+                            warn "skipped: without $gpkg the shell will not start. Install it with: sudo pacman -S $gpkg"
+                        fi
+                    else
+                        warn "an $gname graphics card was found with no Vulkan driver: install your distribution's Mesa Vulkan driver (Debian, Ubuntu and Fedora: mesa-vulkan-drivers; openSUSE: libvulkan_radeon or libvulkan_intel). Without it the shell will not start."
+                    fi
+                    ;;
+                nvidia)
+                    if $gpu_any_icd; then
+                        say "an NVIDIA card was found with no Vulkan driver; another card has one, so the shell will draw with that"
+                    else
+                        warn "an NVIDIA card was found with no Vulkan driver: install NVIDIA's driver for your kernel (Arch: nvidia or nvidia-open, with nvidia-utils). Without it the shell will not start."
+                    fi
+                    ;;
+            esac
+        done
+    fi
+
     # ── 2. pleamar ──
     if $refresh; then :  # pleamar and the fonts are not touched here
     elif have pleamar || [ -x "$HOME/.local/bin/pleamar" ]; then
