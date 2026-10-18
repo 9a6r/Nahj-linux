@@ -193,7 +193,6 @@ part OsdDrawer {
         }
         //  The volume's face (see the pencil smiley): over the volume's row, with that row's own fade and the same place.
         group {
-            shader: pixelate, 2 * u
             opacity: okv * max(osd_vp, 1 - max(osd_bp, osd_mp))
             show: okv > 0.01 and (osd_v or not (osd_b or osd_m))
             let fvy = ot + 32 * u
