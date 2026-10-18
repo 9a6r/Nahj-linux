@@ -2787,6 +2787,125 @@ scene Vitreus {
         ellipse { at: kx, y; radius: h * 0.85; color: ink; opacity: 0.14 }
     }
 
+    //  A workspace mark's outline in pencil (the glass pill is as it is, inside it): a rounded square drawn by hand, with smooth curves for the corners and sides that bow a little, so the wobble
+    //  is wavy, not jagged. `o` the mark's own opacity, `wg` how urgent (coral), `act` 1 for the one in view (the accent), `hot` its hover: calm at rest, redrawn about five times a second under the pointer.
+    component PWsOutline(cx: number, cy: number, w: number, h: number, o: number, wg: number, act: number, hot: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let c = 0.3 * min(w, h)
+        let je = (0.25 + 0.3 * a) * u
+        let jm = (0.75 + 0.6 * a) * u
+        path { at: 0, 0; stroke: 1.3 * u; color: mix(mix(ink, warm, wg), mint, act); opacity: (1) * o; move cx + -w / 2 + c + je * sin(fr * 55 + 37100), cy + -h / 2 + je * sin(fr * 60 + 37160); curve cx + w / 2 - c + je * sin(fr * 62 + 37197), cy + -h / 2 + je * sin(fr * 67 + 37257) via cx + 0 + jm * sin(fr * 55 + 40107), cy + -h / 2 + jm * sin(fr * 60 + 40167); curve cx + w / 2 + je * sin(fr * 69 + 37294), cy + -h / 2 + c + je * sin(fr * 74 + 37354) via cx + w / 2 + jm * sin(fr * 62 + 40204), cy + -h / 2 + jm * sin(fr * 67 + 40264); curve cx + w / 2 + je * sin(fr * 45 + 37391), cy + h / 2 - c + je * sin(fr * 50 + 37451) via cx + w / 2 + jm * sin(fr * 69 + 40301), cy + 0 + jm * sin(fr * 74 + 40361); curve cx + w / 2 - c + je * sin(fr * 52 + 37488), cy + h / 2 + je * sin(fr * 57 + 37548) via cx + w / 2 + jm * sin(fr * 45 + 40398), cy + h / 2 + jm * sin(fr * 50 + 40458); curve cx + -w / 2 + c + je * sin(fr * 59 + 37585), cy + h / 2 + je * sin(fr * 64 + 37645) via cx + 0 + jm * sin(fr * 52 + 40495), cy + h / 2 + jm * sin(fr * 57 + 40555); curve cx + -w / 2 + je * sin(fr * 66 + 37682), cy + h / 2 - c + je * sin(fr * 71 + 37742) via cx + -w / 2 + jm * sin(fr * 59 + 40592), cy + h / 2 + jm * sin(fr * 64 + 40652); curve cx + -w / 2 + je * sin(fr * 73 + 37779), cy + -h / 2 + c + je * sin(fr * 78 + 37839) via cx + -w / 2 + jm * sin(fr * 66 + 40689), cy + 0 + jm * sin(fr * 71 + 40749); curve cx + -w / 2 + c + je * sin(fr * 49 + 37876), cy + -h / 2 + je * sin(fr * 54 + 37936) via cx + -w / 2 + jm * sin(fr * 73 + 40786), cy + -h / 2 + jm * sin(fr * 78 + 40846); close }
+        path { at: 0 + 0.35 * u, 0 + 0.3 * u; stroke: 0.9 * u; color: mix(mix(ink, warm, wg), mint, act); opacity: (0.4) * o; move cx + -w / 2 + c + je * sin(fr * 61 + 37577), cy + -h / 2 + je * sin(fr * 66 + 37637); curve cx + w / 2 - c + je * sin(fr * 68 + 37674), cy + -h / 2 + je * sin(fr * 73 + 37734) via cx + 0 + jm * sin(fr * 61 + 40584), cy + -h / 2 + jm * sin(fr * 66 + 40644); curve cx + w / 2 + je * sin(fr * 44 + 37771), cy + -h / 2 + c + je * sin(fr * 49 + 37831) via cx + w / 2 + jm * sin(fr * 68 + 40681), cy + -h / 2 + jm * sin(fr * 73 + 40741); curve cx + w / 2 + je * sin(fr * 51 + 37868), cy + h / 2 - c + je * sin(fr * 56 + 37928) via cx + w / 2 + jm * sin(fr * 44 + 40778), cy + 0 + jm * sin(fr * 49 + 40838); curve cx + w / 2 - c + je * sin(fr * 58 + 37965), cy + h / 2 + je * sin(fr * 63 + 38025) via cx + w / 2 + jm * sin(fr * 51 + 40875), cy + h / 2 + jm * sin(fr * 56 + 40935); curve cx + -w / 2 + c + je * sin(fr * 65 + 38062), cy + h / 2 + je * sin(fr * 70 + 38122) via cx + 0 + jm * sin(fr * 58 + 40972), cy + h / 2 + jm * sin(fr * 63 + 41032); curve cx + -w / 2 + je * sin(fr * 72 + 38159), cy + h / 2 - c + je * sin(fr * 77 + 38219) via cx + -w / 2 + jm * sin(fr * 65 + 41069), cy + h / 2 + jm * sin(fr * 70 + 41129); curve cx + -w / 2 + je * sin(fr * 48 + 38256), cy + -h / 2 + c + je * sin(fr * 53 + 38316) via cx + -w / 2 + jm * sin(fr * 72 + 41166), cy + 0 + jm * sin(fr * 77 + 41226); curve cx + -w / 2 + c + je * sin(fr * 55 + 38353), cy + -h / 2 + je * sin(fr * 60 + 38413) via cx + -w / 2 + jm * sin(fr * 48 + 41263), cy + -h / 2 + jm * sin(fr * 53 + 41323); close }
+    }
+
+    //  The bar's icons in pencil, like the control center's (see PWifi and the rest): crooked doubled lines at rest, and still (`fr` is 0: no clock); they only redraw about five times a
+    //  second while the pointer is on them (`hot`). `k` is the unit (`u` on the bar, `cu` down the strip); `sel` colours the icon towards the accent while its panel is open.
+    component PBGear(cx: number, cy: number, hot: number, k: number, sel: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let jt = (0.1 + 0.3 * a) * k
+        ellipse { at: cx + 0 * k + jt * sin(fr * 48 + 21297), cy + 0 * k + jt * sin(fr * 60 + 21454); radius: 3.6 * k * (1 + 0.04 * sin(fr * 47 + 12400)); stroke: 1.7 * k; color: mix(ink, mint, sel); opacity: (1) }
+        ellipse { at: cx + 0 * k + jt * sin(fr * 63 + 21668) + 0.5 * k, cy + 0 * k + jt * sin(fr * 44 + 21825) + 0.4 * k; radius: 3.6 * k * (1 + 0.04 * sin(fr * 47 + 12470)); stroke: 1.19 * k; color: mix(ink, mint, sel); opacity: (1) * 0.34 }
+        ellipse { at: cx + 0 * k + jt * sin(fr * 59 + 21350), cy + 0 * k + jt * sin(fr * 71 + 21507); radius: 1.2 * k * (1 + 0.04 * sin(fr * 47 + 12431)); color: mix(ink, mint, sel); opacity: (1) }
+        ellipse { at: cx + 0 * k + jt * sin(fr * 43 + 21721) + 0.5 * k, cy + 0 * k + jt * sin(fr * 55 + 21878) + 0.4 * k; radius: 1.2 * k * (1 + 0.04 * sin(fr * 47 + 12501)); color: mix(ink, mint, sel); opacity: (1) * 0.34 }
+        path { at: cx, cy; stroke: 2 * k; color: mix(ink, mint, sel); opacity: (1); move 0 * k + jt * sin(fr * 58 + 21730), -4.9 * k + jt * sin(fr * 63 + 21790); line 0 * k + jt * sin(fr * 65 + 21827), -7.3 * k + jt * sin(fr * 70 + 21887); }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 1.4 * k; color: mix(ink, mint, sel); opacity: (1) * 0.34; move 0 * k + jt * sin(fr * 73 + 22101), -4.9 * k + jt * sin(fr * 47 + 22161); line 0 * k + jt * sin(fr * 49 + 22198), -7.3 * k + jt * sin(fr * 54 + 22258); }
+        path { at: cx, cy; stroke: 2 * k; color: mix(ink, mint, sel); opacity: (1); move 3.465 * k + jt * sin(fr * 69 + 21783), -3.465 * k + jt * sin(fr * 43 + 21843); line 5.162 * k + jt * sin(fr * 45 + 21880), -5.162 * k + jt * sin(fr * 50 + 21940); }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 1.4 * k; color: mix(ink, mint, sel); opacity: (1) * 0.34; move 3.465 * k + jt * sin(fr * 53 + 22154), -3.465 * k + jt * sin(fr * 58 + 22214); line 5.162 * k + jt * sin(fr * 60 + 22251), -5.162 * k + jt * sin(fr * 65 + 22311); }
+        path { at: cx, cy; stroke: 2 * k; color: mix(ink, mint, sel); opacity: (1); move 4.9 * k + jt * sin(fr * 49 + 21836), 0 * k + jt * sin(fr * 54 + 21896); line 7.3 * k + jt * sin(fr * 56 + 21933), 0 * k + jt * sin(fr * 61 + 21993); }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 1.4 * k; color: mix(ink, mint, sel); opacity: (1) * 0.34; move 4.9 * k + jt * sin(fr * 64 + 22207), 0 * k + jt * sin(fr * 69 + 22267); line 7.3 * k + jt * sin(fr * 71 + 22304), 0 * k + jt * sin(fr * 45 + 22364); }
+        path { at: cx, cy; stroke: 2 * k; color: mix(ink, mint, sel); opacity: (1); move 3.465 * k + jt * sin(fr * 60 + 21889), 3.465 * k + jt * sin(fr * 65 + 21949); line 5.162 * k + jt * sin(fr * 67 + 21986), 5.162 * k + jt * sin(fr * 72 + 22046); }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 1.4 * k; color: mix(ink, mint, sel); opacity: (1) * 0.34; move 3.465 * k + jt * sin(fr * 44 + 22260), 3.465 * k + jt * sin(fr * 49 + 22320); line 5.162 * k + jt * sin(fr * 51 + 22357), 5.162 * k + jt * sin(fr * 56 + 22417); }
+        path { at: cx, cy; stroke: 2 * k; color: mix(ink, mint, sel); opacity: (1); move 0 * k + jt * sin(fr * 71 + 21942), 4.9 * k + jt * sin(fr * 45 + 22002); line 0 * k + jt * sin(fr * 47 + 22039), 7.3 * k + jt * sin(fr * 52 + 22099); }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 1.4 * k; color: mix(ink, mint, sel); opacity: (1) * 0.34; move 0 * k + jt * sin(fr * 55 + 22313), 4.9 * k + jt * sin(fr * 60 + 22373); line 0 * k + jt * sin(fr * 62 + 22410), 7.3 * k + jt * sin(fr * 67 + 22470); }
+        path { at: cx, cy; stroke: 2 * k; color: mix(ink, mint, sel); opacity: (1); move -3.465 * k + jt * sin(fr * 51 + 21995), 3.465 * k + jt * sin(fr * 56 + 22055); line -5.162 * k + jt * sin(fr * 58 + 22092), 5.162 * k + jt * sin(fr * 63 + 22152); }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 1.4 * k; color: mix(ink, mint, sel); opacity: (1) * 0.34; move -3.465 * k + jt * sin(fr * 66 + 22366), 3.465 * k + jt * sin(fr * 71 + 22426); line -5.162 * k + jt * sin(fr * 73 + 22463), 5.162 * k + jt * sin(fr * 47 + 22523); }
+        path { at: cx, cy; stroke: 2 * k; color: mix(ink, mint, sel); opacity: (1); move -4.9 * k + jt * sin(fr * 62 + 22048), 0 * k + jt * sin(fr * 67 + 22108); line -7.3 * k + jt * sin(fr * 69 + 22145), 0 * k + jt * sin(fr * 43 + 22205); }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 1.4 * k; color: mix(ink, mint, sel); opacity: (1) * 0.34; move -4.9 * k + jt * sin(fr * 46 + 22419), 0 * k + jt * sin(fr * 51 + 22479); line -7.3 * k + jt * sin(fr * 53 + 22516), 0 * k + jt * sin(fr * 58 + 22576); }
+        path { at: cx, cy; stroke: 2 * k; color: mix(ink, mint, sel); opacity: (1); move -3.465 * k + jt * sin(fr * 73 + 22101), -3.465 * k + jt * sin(fr * 47 + 22161); line -5.162 * k + jt * sin(fr * 49 + 22198), -5.162 * k + jt * sin(fr * 54 + 22258); }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 1.4 * k; color: mix(ink, mint, sel); opacity: (1) * 0.34; move -3.465 * k + jt * sin(fr * 57 + 22472), -3.465 * k + jt * sin(fr * 62 + 22532); line -5.162 * k + jt * sin(fr * 64 + 22569), -5.162 * k + jt * sin(fr * 69 + 22629); }
+    }
+
+    component PBSearch(cx: number, cy: number, hot: number, k: number, sel: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let jt = (0.1 + 0.3 * a) * k
+        ellipse { at: cx + -1.2 * k + jt * sin(fr * 51 + 22357), cy + -1.2 * k + jt * sin(fr * 63 + 22514); radius: 4 * k * (1 + 0.04 * sin(fr * 47 + 13020)); stroke: 1.7 * k; color: mix(ink, mint, sel); opacity: (1) }
+        ellipse { at: cx + -1.2 * k + jt * sin(fr * 66 + 22728) + 0.5 * k, cy + -1.2 * k + jt * sin(fr * 47 + 22885) + 0.4 * k; radius: 4 * k * (1 + 0.04 * sin(fr * 47 + 13090)); stroke: 1.19 * k; color: mix(ink, mint, sel); opacity: (1) * 0.34 }
+        path { at: cx, cy; stroke: 1.9 * k; color: mix(ink, mint, sel); opacity: (1); move 1.8 * k + jt * sin(fr * 55 + 22313), 1.8 * k + jt * sin(fr * 60 + 22373); line 5 * k + jt * sin(fr * 62 + 22410), 5 * k + jt * sin(fr * 67 + 22470); }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 1.33 * k; color: mix(ink, mint, sel); opacity: (1) * 0.34; move 1.8 * k + jt * sin(fr * 70 + 22684), 1.8 * k + jt * sin(fr * 44 + 22744); line 5 * k + jt * sin(fr * 46 + 22781), 5 * k + jt * sin(fr * 51 + 22841); }
+    }
+
+    component PBCtl(cx: number, cy: number, hot: number, k: number, sel: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let jt = (0.1 + 0.3 * a) * k
+        path { at: cx, cy; stroke: 1.6 * k; color: mix(ink, mint, sel); opacity: (1); move -6.5 * k + jt * sin(fr * 61 + 22790), -3.5 * k + jt * sin(fr * 66 + 22850); line 6.5 * k + jt * sin(fr * 68 + 22887), -3.5 * k + jt * sin(fr * 73 + 22947); }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 1.12 * k; color: mix(ink, mint, sel); opacity: (1) * 0.34; move -6.5 * k + jt * sin(fr * 45 + 23161), -3.5 * k + jt * sin(fr * 50 + 23221); line 6.5 * k + jt * sin(fr * 52 + 23258), -3.5 * k + jt * sin(fr * 57 + 23318); }
+        path { at: cx, cy; stroke: 1.6 * k; color: mix(ink, mint, sel); opacity: (1); move -6.5 * k + jt * sin(fr * 72 + 22843), 3.5 * k + jt * sin(fr * 46 + 22903); line 6.5 * k + jt * sin(fr * 48 + 22940), 3.5 * k + jt * sin(fr * 53 + 23000); }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 1.12 * k; color: mix(ink, mint, sel); opacity: (1) * 0.34; move -6.5 * k + jt * sin(fr * 56 + 23214), 3.5 * k + jt * sin(fr * 61 + 23274); line 6.5 * k + jt * sin(fr * 63 + 23311), 3.5 * k + jt * sin(fr * 68 + 23371); }
+        ellipse { at: cx + 2.5 * k + jt * sin(fr * 59 + 22993), cy + -3.5 * k + jt * sin(fr * 71 + 23150); radius: 2.6 * k * (1 + 0.04 * sin(fr * 47 + 13392)); color: mix(ink, mint, sel); opacity: (1) }
+        ellipse { at: cx + 2.5 * k + jt * sin(fr * 43 + 23364) + 0.5 * k, cy + -3.5 * k + jt * sin(fr * 55 + 23521) + 0.4 * k; radius: 2.6 * k * (1 + 0.04 * sin(fr * 47 + 13462)); color: mix(ink, mint, sel); opacity: (1) * 0.34 }
+        ellipse { at: cx + -2.5 * k + jt * sin(fr * 70 + 23046), cy + 3.5 * k + jt * sin(fr * 51 + 23203); radius: 2.6 * k * (1 + 0.04 * sin(fr * 47 + 13423)); color: mix(ink, mint, sel); opacity: (1) }
+        ellipse { at: cx + -2.5 * k + jt * sin(fr * 54 + 23417) + 0.5 * k, cy + 3.5 * k + jt * sin(fr * 66 + 23574) + 0.4 * k; radius: 2.6 * k * (1 + 0.04 * sin(fr * 47 + 13493)); color: mix(ink, mint, sel); opacity: (1) * 0.34 }
+    }
+
+    component PBOver(cx: number, cy: number, hot: number, k: number, sw: number, o1: number, o2: number, o3: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let jt = (0.1 + 0.3 * a) * u
+        path { at: cx, cy; stroke: sw; color: ink; opacity: (o1); move -0.25 * k + jt * sin(fr * 47 + 23320), 0.15 * k + jt * sin(fr * 52 + 23380); line -0.41 * k + jt * sin(fr * 54 + 23417), 0.15 * k + jt * sin(fr * 59 + 23477); line -0.41 * k + jt * sin(fr * 61 + 23514), -0.35 * k + jt * sin(fr * 66 + 23574); line 0.25 * k + jt * sin(fr * 68 + 23611), -0.35 * k + jt * sin(fr * 73 + 23671); line 0.25 * k + jt * sin(fr * 44 + 23708), -0.15 * k + jt * sin(fr * 49 + 23768); }
+        path { at: cx + 0.4 * u, cy + 0.3 * u; stroke: 0.7 * sw; color: ink; opacity: (o1) * 0.34; move -0.25 * k + jt * sin(fr * 62 + 23691), 0.15 * k + jt * sin(fr * 67 + 23751); line -0.41 * k + jt * sin(fr * 69 + 23788), 0.15 * k + jt * sin(fr * 43 + 23848); line -0.41 * k + jt * sin(fr * 45 + 23885), -0.35 * k + jt * sin(fr * 50 + 23945); line 0.25 * k + jt * sin(fr * 52 + 23982), -0.35 * k + jt * sin(fr * 57 + 24042); line 0.25 * k + jt * sin(fr * 59 + 24079), -0.15 * k + jt * sin(fr * 64 + 24139); }
+        path { at: cx, cy; stroke: sw; color: ink; opacity: (o2); move -0.25 * k + jt * sin(fr * 58 + 23373), -0.15 * k + jt * sin(fr * 63 + 23433); line 0.41 * k + jt * sin(fr * 65 + 23470), -0.15 * k + jt * sin(fr * 70 + 23530); line 0.41 * k + jt * sin(fr * 72 + 23567), 0.35 * k + jt * sin(fr * 46 + 23627); line -0.25 * k + jt * sin(fr * 48 + 23664), 0.35 * k + jt * sin(fr * 53 + 23724); close }
+        path { at: cx + 0.4 * u, cy + 0.3 * u; stroke: 0.7 * sw; color: ink; opacity: (o2) * 0.34; move -0.25 * k + jt * sin(fr * 73 + 23744), -0.15 * k + jt * sin(fr * 47 + 23804); line 0.41 * k + jt * sin(fr * 49 + 23841), -0.15 * k + jt * sin(fr * 54 + 23901); line 0.41 * k + jt * sin(fr * 56 + 23938), 0.35 * k + jt * sin(fr * 61 + 23998); line -0.25 * k + jt * sin(fr * 63 + 24035), 0.35 * k + jt * sin(fr * 68 + 24095); close }
+        path { at: cx, cy; stroke: sw; color: ink; opacity: (o3); move -0.25 * k + jt * sin(fr * 69 + 23426), -0.01 * k + jt * sin(fr * 43 + 23486); line 0.41 * k + jt * sin(fr * 45 + 23523), -0.01 * k + jt * sin(fr * 50 + 23583); }
+        path { at: cx + 0.4 * u, cy + 0.3 * u; stroke: 0.7 * sw; color: ink; opacity: (o3) * 0.34; move -0.25 * k + jt * sin(fr * 53 + 23797), -0.01 * k + jt * sin(fr * 58 + 23857); line 0.41 * k + jt * sin(fr * 60 + 23894), -0.01 * k + jt * sin(fr * 65 + 23954); }
+    }
+
+    component PBPrev(cx: number, cy: number, hot: number, k: number, o: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let jt = (0.1 + 0.3 * a) * k
+        path { at: cx, cy; stroke: 1.4 * k; color: ink; opacity: (o); move -2 * k + jt * sin(fr * 64 + 23850), -3.5 * k + jt * sin(fr * 69 + 23910); line -2 * k + jt * sin(fr * 71 + 23947), 3.5 * k + jt * sin(fr * 45 + 24007); }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 0.98 * k; color: ink; opacity: (o) * 0.34; move -2 * k + jt * sin(fr * 48 + 24221), -3.5 * k + jt * sin(fr * 53 + 24281); line -2 * k + jt * sin(fr * 55 + 24318), 3.5 * k + jt * sin(fr * 60 + 24378); }
+        path { at: cx, cy; color: ink; opacity: (0.4 * (o)); move 4.5 * k + jt * sin(fr * 55 + 23956), -3.5 * k + jt * sin(fr * 60 + 24016); line -1 * k + jt * sin(fr * 62 + 24053), 0 * k + jt * sin(fr * 67 + 24113); line 4.5 * k + jt * sin(fr * 69 + 24150), 3.5 * k + jt * sin(fr * 43 + 24210); close }
+        path { at: cx, cy; stroke: 1.3 * k; color: ink; opacity: (o); move 4.5 * k + jt * sin(fr * 66 + 24009), -3.5 * k + jt * sin(fr * 71 + 24069); line -1 * k + jt * sin(fr * 73 + 24106), 0 * k + jt * sin(fr * 47 + 24166); line 4.5 * k + jt * sin(fr * 49 + 24203), 3.5 * k + jt * sin(fr * 54 + 24263); close }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 0.91 * k; color: ink; opacity: (o) * 0.34; move 4.5 * k + jt * sin(fr * 50 + 24380), -3.5 * k + jt * sin(fr * 55 + 24440); line -1 * k + jt * sin(fr * 57 + 24477), 0 * k + jt * sin(fr * 62 + 24537); line 4.5 * k + jt * sin(fr * 64 + 24574), 3.5 * k + jt * sin(fr * 69 + 24634); close }
+    }
+
+    component PBNext(cx: number, cy: number, hot: number, k: number, o: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let jt = (0.1 + 0.3 * a) * k
+        path { at: cx, cy; color: ink; opacity: (0.4 * (o)); move -4.5 * k + jt * sin(fr * 50 + 24380), -3.5 * k + jt * sin(fr * 55 + 24440); line 1 * k + jt * sin(fr * 57 + 24477), 0 * k + jt * sin(fr * 62 + 24537); line -4.5 * k + jt * sin(fr * 64 + 24574), 3.5 * k + jt * sin(fr * 69 + 24634); close }
+        path { at: cx, cy; stroke: 1.3 * k; color: ink; opacity: (o); move -4.5 * k + jt * sin(fr * 61 + 24433), -3.5 * k + jt * sin(fr * 66 + 24493); line 1 * k + jt * sin(fr * 68 + 24530), 0 * k + jt * sin(fr * 73 + 24590); line -4.5 * k + jt * sin(fr * 44 + 24627), 3.5 * k + jt * sin(fr * 49 + 24687); close }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 0.91 * k; color: ink; opacity: (o) * 0.34; move -4.5 * k + jt * sin(fr * 45 + 24804), -3.5 * k + jt * sin(fr * 50 + 24864); line 1 * k + jt * sin(fr * 52 + 24901), 0 * k + jt * sin(fr * 57 + 24961); line -4.5 * k + jt * sin(fr * 59 + 24998), 3.5 * k + jt * sin(fr * 64 + 25058); close }
+        path { at: cx, cy; stroke: 1.4 * k; color: ink; opacity: (o); move 2 * k + jt * sin(fr * 72 + 24486), -3.5 * k + jt * sin(fr * 46 + 24546); line 2 * k + jt * sin(fr * 48 + 24583), 3.5 * k + jt * sin(fr * 53 + 24643); }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 0.98 * k; color: ink; opacity: (o) * 0.34; move 2 * k + jt * sin(fr * 56 + 24857), -3.5 * k + jt * sin(fr * 61 + 24917); line 2 * k + jt * sin(fr * 63 + 24954), 3.5 * k + jt * sin(fr * 68 + 25014); }
+    }
+
+    component PBPlay(cx: number, cy: number, hot: number, k: number, o: number, pl: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let jt = (0.1 + 0.3 * a) * k
+        path { at: cx, cy; stroke: 2.2 * k; color: ink; opacity: (o) * pl; move -3 * k + jt * sin(fr * 67 + 24910), -4.5 * k + jt * sin(fr * 72 + 24970); line -3 * k + jt * sin(fr * 43 + 25007), 4.5 * k + jt * sin(fr * 48 + 25067); }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 1.54 * k; color: ink; opacity: (o) * pl * 0.34; move -3 * k + jt * sin(fr * 51 + 25281), -4.5 * k + jt * sin(fr * 56 + 25341); line -3 * k + jt * sin(fr * 58 + 25378), 4.5 * k + jt * sin(fr * 63 + 25438); }
+        path { at: cx, cy; stroke: 2.2 * k; color: ink; opacity: (o) * pl; move 3 * k + jt * sin(fr * 47 + 24963), -4.5 * k + jt * sin(fr * 52 + 25023); line 3 * k + jt * sin(fr * 54 + 25060), 4.5 * k + jt * sin(fr * 59 + 25120); }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 1.54 * k; color: ink; opacity: (o) * pl * 0.34; move 3 * k + jt * sin(fr * 62 + 25334), -4.5 * k + jt * sin(fr * 67 + 25394); line 3 * k + jt * sin(fr * 69 + 25431), 4.5 * k + jt * sin(fr * 43 + 25491); }
+        path { at: cx, cy; color: ink; opacity: (1 - pl) * (0.4 * (o)); move -3 * k + jt * sin(fr * 58 + 25016), -4.5 * k + jt * sin(fr * 63 + 25076); line 7 * k + jt * sin(fr * 65 + 25113), 0 * k + jt * sin(fr * 70 + 25173); line -3 * k + jt * sin(fr * 72 + 25210), 4.5 * k + jt * sin(fr * 46 + 25270); close }
+        path { at: cx, cy; stroke: 1.3 * k; color: ink; opacity: (1 - pl) * (o); move -3 * k + jt * sin(fr * 69 + 25069), -4.5 * k + jt * sin(fr * 43 + 25129); line 7 * k + jt * sin(fr * 45 + 25166), 0 * k + jt * sin(fr * 50 + 25226); line -3 * k + jt * sin(fr * 52 + 25263), 4.5 * k + jt * sin(fr * 57 + 25323); close }
+        path { at: cx + 0.5 * k, cy + 0.4 * k; stroke: 0.91 * k; color: ink; opacity: (1 - pl) * (o) * 0.34; move -3 * k + jt * sin(fr * 53 + 25440), -4.5 * k + jt * sin(fr * 58 + 25500); line 7 * k + jt * sin(fr * 60 + 25537), 0 * k + jt * sin(fr * 65 + 25597); line -3 * k + jt * sin(fr * 67 + 25634), 4.5 * k + jt * sin(fr * 72 + 25694); close }
+    }
+
     //  The controls drawer's icons, drawn in pencil like the gear's, Search's and the notification banner's bell. Each line is drawn twice, the second time fainter, thinner and a hair
     //  off, and every point of it sits a little crooked. `hot` (0 to 1: it is on, or the pointer is over it) makes the icon swell and the lines redraw about five times a second
     //  (`fr`, which stays 0 while it is cold, so a cold icon is still). `cx`, `cy` is the icon's own middle (the slider ones, their origin); the rest is what the icon says.
@@ -4250,8 +4369,6 @@ scene Vitreus {
     //  The Cyber's terminal readouts (bar_glass.plm) flicker and blink on this clock, so it runs while one of them can be seen: only while a drawer is out (`cy_on`).
     let cy_on = clamp(max(max(dk0, dc0), max(max(ds0, dl0), max(dm0, max(dz0, do0)))) * 50, 0, 1) * cy_k
     //  The player's card (docked in its panel or floating) has the same wavy progress line, so it runs the clock while a song plays in it.
-    let need_clock = (cy_on > 0.01) or ds > 0.01 or dl > 0.01 or dk > 0.01 or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or osd_kind == note or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
-    spin time by if(need_clock, 1, 0)
     group {
         pivot: screen.width / 2, screen.height / 2
         scale: 1 - 2 * rt, 1 - 2 * bt
@@ -4487,6 +4604,9 @@ scene Vitreus {
     group {
         move: rt * (screen.width - 2 * lf.x), bt * (yo + vb - 2 * bar.y)
     include "pages/bar_icons.plm"
+    //  The clock runs while something needs it. It is here, after the bar's zones, because it reads their hover: the bar's icons only boil under the pointer.
+    let need_clock = (cy_on > 0.01) or wsh.1 > 0.01 or wsh.2 > 0.01 or wsh.3 > 0.01 or wsh.4 > 0.01 or wsh.5 > 0.01 or set_hit.hover > 0.01 or sr_hit.hover > 0.01 or ctl_hit.hover > 0.01 or ov_btn.hover > 0.01 or bp.prev.hover > 0.01 or bp.play.hover > 0.01 or bp.next.hover > 0.01 or vm_prev.hover > 0.01 or vm_play.hover > 0.01 or vm_next.hover > 0.01 or ds > 0.01 or dl > 0.01 or dk > 0.01 or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or osd_kind == note or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
+    spin time by if(need_clock, 1, 0)
 
 
     //  The bar's text is drawn on top of the bar, outside its wave-shader group: inside it the letters are
