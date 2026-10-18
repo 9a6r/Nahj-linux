@@ -138,8 +138,13 @@ function wm_workspaces()
                 -- (the window manager's facts start from 0 again when its scene is read in again: that is not a press)
                 if desk_seen ~= nil and dn > 0 and dn ~= desk_seen then
                     local x, y, m = tonumber((r[19] or ""):match("%-?[%d.]+")) or 0, tonumber((r[20] or ""):match("%-?[%d.]+")) or 0, tonumber((r[21] or ""):match("%-?[%d.]+")) or 0
-                    run("pleamar", { "--say", "desktopmenu", "fact mx " .. math.floor(x), "fact my " .. math.floor(y), "fact mmon " .. math.floor(m), "fact open true" }, function(_, code)
-                        if code ~= 0 then exec_on_desktop('vitreus-keep "$HOME/.config/pleamar/shells/vitreus/desktopmenu/desktopmenu.plm"') end
+                    -- (the desktop editor, desktopedit/, is what a right press opens; it is started if it is not running)
+                    local function say_editor(cb) run("pleamar", { "--say", "desktopedit", "fact emon " .. math.floor(m), "fact open true" }, cb) end
+                    say_editor(function(_, code)
+                        if code ~= 0 then
+                            exec_on_desktop('vitreus-keep "$HOME/.config/pleamar/shells/vitreus/desktopedit/desktopedit.plm"')
+                            after(3000, function() say_editor(function() end) end)
+                        end
                     end)
                 end
                 desk_seen = dn
@@ -3836,7 +3841,6 @@ function glass.push_obs()
     run("pleamar", { "--say", "desktopcards", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopcava", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopnotes", "fact obs " .. v }, function() end)
-    run("pleamar", { "--say", "desktopmenu", "fact obs " .. v }, function() end)
 end
 local function glass_save_soon()
     glass.push_obs()
@@ -5745,12 +5749,6 @@ end
         { "Desktop audio visualiser: toggle", "action", function() spawn('pleamar --say vitreus "emit dcava_toggle"') end, "audio visualiser visualizer cava spectrum music bars wave equalizer desktop widget show hide on off" },
         { "Webcam: toggle", "action", function() spawn('pleamar --say vitreus "emit cam_toggle"') end, "webcam camera self view mirror face round window record screen show hide on off" },
         { "Webcam: mirror on/off", "action", function() spawn('pleamar --say webcam "emit cam_mirror"') end, "webcam camera mirror flip self view" },
-        { "Desktop menu: start", "action", function()
-            -- The right-click menu on the wallpaper (desktopmenu/) is a scene of its own; this starts it for this session if it is not running (it is in the autostart file after an install).
-            run("pleamar", { "--say", "desktopmenu", "get open" }, function(_, code)
-                if code ~= 0 then exec_on_desktop('vitreus-keep "$HOME/.config/pleamar/shells/vitreus/desktopmenu/' .. (on_hyprland and "desktopmenu_hypr" or "desktopmenu") .. '.plm"') end
-            end)
-        end, "desktop menu right click context wallpaper start" },
         { "Sticky note: new", "action", function() spawn('pleamar --say vitreus "emit sticky_new"') end, "sticky note sticker new add notes desktop paper write" },
         { "Ask about the clipboard", "action", function()
             -- The last thing copied goes to the Desk's Ask tab as an attachment, to be sent with whatever is typed there (never by itself).
