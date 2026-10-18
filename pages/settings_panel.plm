@@ -83,122 +83,167 @@ part SettingsPanel {
         box { at: sl + 75 * pu, sby + (42 + 32 * (2 * set_pg + 3 * set_pgd + 4 * set_pgb + 5 * set_pgn) + (side.hy - 42) * set_pgh + (side.wm - 42) * set_pgw + (side.mon - 42) * set_pgs + (side.nt - 42) * set_pgt + (side.lk - 42) * set_pgl + (side.vpn - 42) * set_pgv + (side.ck - 42) * set_pgk + (side.th - 42) * set_pgp + (side.ky - 42) * set_pgy + (side.ab - 42) * set_pga) * pu; size: 134 * pu, 28 * pu; corner: 10 * pu; color: mint; opacity: 16% }
         group {
             opacity: 65% + 35% * (1 - clamp(set_pg + set_pgd + set_pgb + set_pgn + set_pgh + set_pga + set_pgs + set_pgt + set_pgl + set_pgw + set_pgv + set_pgk + set_pgp + set_pgy, 0, 1))
+            pivot: sl + 24 * pu, sby + 42 * pu
+            scale: 1 + 0.28 * (1 - clamp(set_pg + set_pgd + set_pgb + set_pgn + set_pgh + set_pga + set_pgs + set_pgt + set_pgl + set_pgw + set_pgv + set_pgk + set_pgp + set_pgy, 0, 1)) + 0.03 * (1 - clamp(set_pg + set_pgd + set_pgb + set_pgn + set_pgh + set_pga + set_pgs + set_pgt + set_pgl + set_pgw + set_pgv + set_pgk + set_pgp + set_pgy, 0, 1)) * sin(floor(time * 5) * 47)
+            move: (1 - clamp(set_pg + set_pgd + set_pgb + set_pgn + set_pgh + set_pga + set_pgs + set_pgt + set_pgl + set_pgw + set_pgv + set_pgk + set_pgp + set_pgy, 0, 1)) * 0.6 * pu * sin(floor(time * 5) * 53 + 40), (1 - clamp(set_pg + set_pgd + set_pgb + set_pgn + set_pgh + set_pga + set_pgs + set_pgt + set_pgl + set_pgw + set_pgv + set_pgk + set_pgp + set_pgy, 0, 1)) * 0.6 * pu * sin(floor(time * 5) * 61)
             box { at: sl + 24 * pu, sby + 42 * pu; size: 13 * pu, 10 * pu; corner: 2 * pu; stroke: 1.3 * pu; color: mix(mint, ink, clamp(set_pg + set_pgd + set_pgb + set_pgn + set_pgh + set_pga + set_pgs + set_pgt + set_pgl + set_pgw + set_pgv + set_pgk + set_pgp + set_pgy, 0, 1)) }
             path { at: sl + 24 * pu, sby + 42 * pu; color: mix(mint, ink, clamp(set_pg + set_pgd + set_pgb + set_pgn + set_pgh + set_pga + set_pgs + set_pgt + set_pgl + set_pgw + set_pgv + set_pgk + set_pgp + set_pgy, 0, 1)); move -5 * pu, 3 * pu; line -1.5 * pu, -1 * pu; line 1 * pu, 1.5 * pu; line 2.5 * pu, -1.5 * pu; line 5 * pu, 3 * pu; close }
             ellipse { at: sl + 27 * pu, sby + 39 * pu; radius: 1.2 * pu; color: mix(mint, ink, clamp(set_pg + set_pgd + set_pgb + set_pgn + set_pgh + set_pga + set_pgs + set_pgt + set_pgl + set_pgw + set_pgv + set_pgk + set_pgp + set_pgy, 0, 1)) }
         }
-        group { scale: rs; pivot: floor(sl + 40 * pu + 0.5), floor(sby + 42 * pu + 0.5); text "Wallpaper" { at: floor(sl + 40 * pu + 0.5), floor(sby + 42 * pu + 0.5); anchor: left center; size: 16; weight: 700; color: mix(mint, ink, clamp(set_pg + set_pgd + set_pgb + set_pgn + set_pgh + set_pga + set_pgs + set_pgt + set_pgl + set_pgw + set_pgv + set_pgk + set_pgp + set_pgy, 0, 1)); opacity: 100% - 15% * clamp(set_pg + set_pgd + set_pgb + set_pgn + set_pgh + set_pga + set_pgs + set_pgt + set_pgl + set_pgw + set_pgv + set_pgk + set_pgp + set_pgy, 0, 1); family: "Space Grotesk" } }
+        group { scale: rs * (1 + 0.28 * (1 - clamp(set_pg + set_pgd + set_pgb + set_pgn + set_pgh + set_pga + set_pgs + set_pgt + set_pgl + set_pgw + set_pgv + set_pgk + set_pgp + set_pgy, 0, 1))); pivot: floor(sl + 40 * pu + 0.5), floor(sby + 42 * pu + 0.5); text "Wallpaper" { at: floor(sl + 40 * pu + 0.5), floor(sby + 42 * pu + 0.5); anchor: left center; size: 16; weight: 700; color: mix(mint, ink, clamp(set_pg + set_pgd + set_pgb + set_pgn + set_pgh + set_pga + set_pgs + set_pgt + set_pgl + set_pgw + set_pgv + set_pgk + set_pgp + set_pgy, 0, 1)); opacity: 100% - 15% * clamp(set_pg + set_pgd + set_pgb + set_pgn + set_pgh + set_pga + set_pgs + set_pgt + set_pgl + set_pgw + set_pgv + set_pgk + set_pgp + set_pgy, 0, 1); family: "Space Grotesk" } }
         //  Glass: a pane with a highlight across its corner.
         group {
             opacity: 65% + 35% * set_pg
+            pivot: sl + 24 * pu, sby + 106 * pu
+            scale: 1 + 0.28 * set_pg + 0.03 * set_pg * sin(floor(time * 5) * 47)
+            move: set_pg * 0.6 * pu * sin(floor(time * 5) * 53 + 40), set_pg * 0.6 * pu * sin(floor(time * 5) * 61)
             box { at: sl + 24 * pu, sby + 106 * pu; size: 13 * pu, 13 * pu; corner: 3.5 * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pg) }
             line { from: sl + 20.5 * pu, sby + 108.5 * pu; to: sl + 24.5 * pu, sby + 103 * pu; width: 1.1 * pu; color: mix(ink, mint, set_pg); opacity: 80% }
         }
-        group { scale: rs; pivot: floor(sl + 40 * pu + 0.5), floor(sby + 106 * pu + 0.5); text "Glass" { at: floor(sl + 40 * pu + 0.5), floor(sby + 106 * pu + 0.5); anchor: left center; size: 16; weight: 700; color: mix(ink, mint, set_pg); opacity: 85% + 15% * set_pg; family: "Space Grotesk" } }
+        group { scale: rs * (1 + 0.28 * set_pg); pivot: floor(sl + 40 * pu + 0.5), floor(sby + 106 * pu + 0.5); text "Glass" { at: floor(sl + 40 * pu + 0.5), floor(sby + 106 * pu + 0.5); anchor: left center; size: 16; weight: 700; color: mix(ink, mint, set_pg); opacity: 85% + 15% * set_pg; family: "Space Grotesk" } }
         //  Display: a screen on its stand.
         group {
             opacity: 65% + 35% * set_pgd
+            pivot: sl + 24 * pu, sby + 138 * pu
+            scale: 1 + 0.28 * set_pgd + 0.03 * set_pgd * sin(floor(time * 5) * 47)
+            move: set_pgd * 0.6 * pu * sin(floor(time * 5) * 53 + 40), set_pgd * 0.6 * pu * sin(floor(time * 5) * 61)
             box { at: sl + 24 * pu, sby + 136 * pu; size: 14 * pu, 9.5 * pu; corner: 2 * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pgd) }
             line { from: sl + 24 * pu, sby + 141.5 * pu; to: sl + 24 * pu, sby + 144 * pu; width: 1.3 * pu; color: mix(ink, mint, set_pgd) }
             line { from: sl + 20.5 * pu, sby + 144.5 * pu; to: sl + 27.5 * pu, sby + 144.5 * pu; width: 1.3 * pu; color: mix(ink, mint, set_pgd) }
         }
-        group { scale: rs; pivot: floor(sl + 40 * pu + 0.5), floor(sby + 138 * pu + 0.5); text "Display" { at: floor(sl + 40 * pu + 0.5), floor(sby + 138 * pu + 0.5); anchor: left center; size: 16; weight: 700; color: mix(ink, mint, set_pgd); opacity: 85% + 15% * set_pgd; family: "Space Grotesk" } }
+        group { scale: rs * (1 + 0.28 * set_pgd); pivot: floor(sl + 40 * pu + 0.5), floor(sby + 138 * pu + 0.5); text "Display" { at: floor(sl + 40 * pu + 0.5), floor(sby + 138 * pu + 0.5); anchor: left center; size: 16; weight: 700; color: mix(ink, mint, set_pgd); opacity: 85% + 15% * set_pgd; family: "Space Grotesk" } }
         //  Bar: a pill with its three dots, the bar itself.
         group {
             opacity: 65% + 35% * set_pgb
+            pivot: sl + 24 * pu, sby + 170 * pu
+            scale: 1 + 0.28 * set_pgb + 0.03 * set_pgb * sin(floor(time * 5) * 47)
+            move: set_pgb * 0.6 * pu * sin(floor(time * 5) * 53 + 40), set_pgb * 0.6 * pu * sin(floor(time * 5) * 61)
             box { at: sl + 24 * pu, sby + 170 * pu; size: 16 * pu, 8 * pu; corner: 4 * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pgb) }
             repeat k in 0..3 { ellipse { at: sl + (21 + k * 3) * pu, sby + 170 * pu; radius: 0.9 * pu; color: mix(ink, mint, set_pgb) } }
         }
-        group { scale: rs; pivot: floor(sl + 40 * pu + 0.5), floor(sby + 170 * pu + 0.5); text "Bar" { at: floor(sl + 40 * pu + 0.5), floor(sby + 170 * pu + 0.5); anchor: left center; size: 16; weight: 700; color: mix(ink, mint, set_pgb); opacity: 85% + 15% * set_pgb; family: "Space Grotesk" } }
+        group { scale: rs * (1 + 0.28 * set_pgb); pivot: floor(sl + 40 * pu + 0.5), floor(sby + 170 * pu + 0.5); text "Bar" { at: floor(sl + 40 * pu + 0.5), floor(sby + 170 * pu + 0.5); anchor: left center; size: 16; weight: 700; color: mix(ink, mint, set_pgb); opacity: 85% + 15% * set_pgb; family: "Space Grotesk" } }
         //  Night mode: the same crescent as the Power window's Sleep button, a little smaller.
         group {
             opacity: 65% + 35% * set_pgn
+            pivot: sl + 24 * pu, sby + 202 * pu
+            scale: 1 + 0.28 * set_pgn + 0.03 * set_pgn * sin(floor(time * 5) * 47)
+            move: set_pgn * 0.6 * pu * sin(floor(time * 5) * 53 + 40), set_pgn * 0.6 * pu * sin(floor(time * 5) * 61)
             path { at: sl + 24 * pu, sby + 202 * pu; stroke: 1.6 * pu; color: mix(ink, mint, set_pgn); move 5.97 * pu, 2.28 * pu; line 5.59 * pu, 3.07 * pu; line 5.10 * pu, 3.80 * pu; line 4.51 * pu, 4.45 * pu; line 3.84 * pu, 5.02 * pu; line 3.09 * pu, 5.48 * pu; line 2.29 * pu, 5.83 * pu; line 1.44 * pu, 6.06 * pu; line 0.57 * pu, 6.18 * pu; line -0.30 * pu, 6.16 * pu; line -1.17 * pu, 6.03 * pu; line -2.01 * pu, 5.77 * pu; line -2.81 * pu, 5.40 * pu; line -3.54 * pu, 4.92 * pu; line -4.20 * pu, 4.34 * pu; line -4.77 * pu, 3.68 * pu; line -5.24 * pu, 2.94 * pu; line -5.60 * pu, 2.14 * pu; line -5.85 * pu, 1.30 * pu; line -5.97 * pu, 0.42 * pu; line -5.96 * pu, -0.45 * pu; line -5.84 * pu, -1.32 * pu; line -5.59 * pu, -2.16 * pu; line -5.23 * pu, -2.96 * pu; line -4.76 * pu, -3.70 * pu; line -4.18 * pu, -4.36 * pu; line -3.53 * pu, -4.94 * pu; line -2.79 * pu, -5.42 * pu; line -1.99 * pu, -5.79 * pu; line -1.15 * pu, -6.04 * pu; line -0.29 * pu, -6.18 * pu; line -0.70 * pu, -5.70 * pu; line -1.05 * pu, -5.18 * pu; line -1.34 * pu, -4.63 * pu; line -1.56 * pu, -4.05 * pu; line -1.71 * pu, -3.44 * pu; line -1.79 * pu, -2.82 * pu; line -1.80 * pu, -2.20 * pu; line -1.73 * pu, -1.57 * pu; line -1.59 * pu, -0.96 * pu; line -1.38 * pu, -0.37 * pu; line -1.10 * pu, 0.19 * pu; line -0.76 * pu, 0.71 * pu; line -0.36 * pu, 1.20 * pu; line 0.09 * pu, 1.63 * pu; line 0.60 * pu, 2.00 * pu; line 1.14 * pu, 2.31 * pu; line 1.71 * pu, 2.56 * pu; line 2.31 * pu, 2.74 * pu; line 2.93 * pu, 2.84 * pu; line 3.56 * pu, 2.87 * pu; line 4.18 * pu, 2.84 * pu; line 4.80 * pu, 2.72 * pu; line 5.39 * pu, 2.53 * pu; line 5.97 * pu, 2.28 * pu; line 5.97 * pu, 2.28 * pu }
         }
-        group { scale: rs; pivot: floor(sl + 40 * pu + 0.5), floor(sby + 202 * pu + 0.5); text "Night mode" { at: floor(sl + 40 * pu + 0.5), floor(sby + 202 * pu + 0.5); anchor: left center; size: 16; weight: 700; color: mix(ink, mint, set_pgn); opacity: 85% + 15% * set_pgn; family: "Space Grotesk" } }
+        group { scale: rs * (1 + 0.28 * set_pgn); pivot: floor(sl + 40 * pu + 0.5), floor(sby + 202 * pu + 0.5); text "Night mode" { at: floor(sl + 40 * pu + 0.5), floor(sby + 202 * pu + 0.5); anchor: left center; size: 16; weight: 700; color: mix(ink, mint, set_pgn); opacity: 85% + 15% * set_pgn; family: "Space Grotesk" } }
         zone box side_nt { at: sl + 75 * pu, sby + 202 * pu; size: 134 * pu, 28 * pu; corner: 10 * pu; cursor: pointer }
         on press side_nt { set_page = pg_night }
         group { scale: rs; pivot: floor(sl + 14 * pu + 0.5), floor(sby + 268 * pu + 0.5); text "SYSTEM" { at: floor(sl + 14 * pu + 0.5), floor(sby + 268 * pu + 0.5); anchor: left center; size: 12; weight: 700; color: faint; opacity: 70%; family: "Space Grotesk" } }
         //  Hyprland: a window with its title bar.
         group {
             opacity: 65% + 35% * set_pgh
+            pivot: sl + 24 * pu, sby + side.hy * pu
+            scale: 1 + 0.28 * set_pgh + 0.03 * set_pgh * sin(floor(time * 5) * 47)
+            move: set_pgh * 0.6 * pu * sin(floor(time * 5) * 53 + 40), set_pgh * 0.6 * pu * sin(floor(time * 5) * 61)
             box { at: sl + 24 * pu, sby + side.hy * pu; size: 14 * pu, 11 * pu; corner: 2 * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pgh); show: wm_hypr }
             line { from: sl + 17 * pu, sby + (side.hy - 2) * pu; to: sl + 31 * pu, sby + (side.hy - 2) * pu; width: 1.3 * pu; color: mix(ink, mint, set_pgh); show: wm_hypr }
         }
-        group { scale: rs; pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.hy * pu + 0.5); show: wm_hypr; text "Hyprland" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.hy * pu + 0.5); anchor: left center; size: 16; weight: 700; color: mix(ink, mint, set_pgh); opacity: 85% + 15% * set_pgh; family: "Space Grotesk" } }
+        group { scale: rs * (1 + 0.28 * set_pgh); pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.hy * pu + 0.5); show: wm_hypr; text "Hyprland" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.hy * pu + 0.5); anchor: left center; size: 16; weight: 700; color: mix(ink, mint, set_pgh); opacity: 85% + 15% * set_pgh; family: "Space Grotesk" } }
         //  Pleamar-WM: two tiles side by side.
         group {
             opacity: 65% + 35% * set_pgw
+            pivot: sl + 24 * pu, sby + side.wm * pu
+            scale: 1 + 0.28 * set_pgw + 0.03 * set_pgw * sin(floor(time * 5) * 47)
+            move: set_pgw * 0.6 * pu * sin(floor(time * 5) * 53 + 40), set_pgw * 0.6 * pu * sin(floor(time * 5) * 61)
             box { at: sl + 24 * pu, sby + side.wm * pu; size: 14 * pu, 11 * pu; corner: 2 * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pgw); show: wm_pwm }
             line { from: sl + 26 * pu, sby + (side.wm - 5.5) * pu; to: sl + 26 * pu, sby + (side.wm + 5.5) * pu; width: 1.3 * pu; color: mix(ink, mint, set_pgw); show: wm_pwm }
         }
-        group { scale: rs; pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.wm * pu + 0.5); show: wm_pwm; text "Pleamar-WM" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.wm * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgw); opacity: 85% + 15% * set_pgw; family: "Space Grotesk" } }
+        group { scale: rs * (1 + 0.28 * set_pgw); pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.wm * pu + 0.5); show: wm_pwm; text "Pleamar-WM" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.wm * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgw); opacity: 85% + 15% * set_pgw; family: "Space Grotesk" } }
         zone box side_wm { at: sl + 75 * pu, sby + side.wm * pu; size: 134 * pu, 28 * pu; corner: 10 * pu; cursor: pointer; show: wm_pwm }
         on press side_wm { set_page = pg_wm }
         //  About: an i in a circle.
         group {
             opacity: 65% + 35% * set_pga
+            pivot: sl + 24 * pu, sby + side.ab * pu
+            scale: 1 + 0.28 * set_pga + 0.03 * set_pga * sin(floor(time * 5) * 47)
+            move: set_pga * 0.6 * pu * sin(floor(time * 5) * 53 + 40), set_pga * 0.6 * pu * sin(floor(time * 5) * 61)
             ellipse { at: sl + 24 * pu, sby + side.ab * pu; radius: 6.5 * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pga) }
             line { from: sl + 24 * pu, sby + side.ab * pu; to: sl + 24 * pu, sby + (side.ab + 3.5) * pu; width: 1.3 * pu; color: mix(ink, mint, set_pga) }
             ellipse { at: sl + 24 * pu, sby + (side.ab - 3.2) * pu; radius: 0.9 * pu; color: mix(ink, mint, set_pga) }
         }
-        group { scale: rs; pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.ab * pu + 0.5); text "About" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.ab * pu + 0.5); anchor: left center; size: 16; weight: 700; color: mix(ink, mint, set_pga); opacity: 85% + 15% * set_pga; family: "Space Grotesk" } }
+        group { scale: rs * (1 + 0.28 * set_pga); pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.ab * pu + 0.5); text "About" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.ab * pu + 0.5); anchor: left center; size: 16; weight: 700; color: mix(ink, mint, set_pga); opacity: 85% + 15% * set_pga; family: "Space Grotesk" } }
         //  System monitor: a pulse line.
         group {
             opacity: 65% + 35% * set_pgs
+            pivot: sl + 24 * pu, sby + side.mon * pu
+            scale: 1 + 0.28 * set_pgs + 0.03 * set_pgs * sin(floor(time * 5) * 47)
+            move: set_pgs * 0.6 * pu * sin(floor(time * 5) * 53 + 40), set_pgs * 0.6 * pu * sin(floor(time * 5) * 61)
             path { at: sl + 24 * pu, sby + side.mon * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pgs); move -7 * pu, 1 * pu; line -3.5 * pu, 1 * pu; line -1.5 * pu, -5 * pu; line 1.5 * pu, 5 * pu; line 3.5 * pu, -1 * pu; line 7 * pu, -1 * pu }
         }
-        group { scale: rs; pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.mon * pu + 0.5); text "System monitor" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.mon * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgs); opacity: 85% + 15% * set_pgs; family: "Space Grotesk" } }
+        group { scale: rs * (1 + 0.28 * set_pgs); pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.mon * pu + 0.5); text "System monitor" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.mon * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgs); opacity: 85% + 15% * set_pgs; family: "Space Grotesk" } }
         //  Notifications: a bell.
         group {
             opacity: 65% + 35% * set_pgt
+            pivot: sl + 24 * pu, sby + side.nt * pu
+            scale: 1 + 0.28 * set_pgt + 0.03 * set_pgt * sin(floor(time * 5) * 47)
+            move: set_pgt * 0.6 * pu * sin(floor(time * 5) * 53 + 40), set_pgt * 0.6 * pu * sin(floor(time * 5) * 61)
             path { at: sl + 24 * pu, sby + side.nt * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pgt); move -5.5 * pu, 4 * pu; line -5.5 * pu, 3 * pu; line -4 * pu, 1.5 * pu; line -4 * pu, -2.5 * pu; curve 4 * pu, -2.5 * pu via 0, -9 * pu; line 4 * pu, 1.5 * pu; line 5.5 * pu, 3 * pu; line 5.5 * pu, 4 * pu; close }
             ellipse { at: sl + 24 * pu, sby + (side.nt + 6.5) * pu; radius: 1.6 * pu; color: mix(ink, mint, set_pgt) }
         }
-        group { scale: rs; pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.nt * pu + 0.5); text "Notifications" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.nt * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgt); opacity: 85% + 15% * set_pgt; family: "Space Grotesk" } }
+        group { scale: rs * (1 + 0.28 * set_pgt); pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.nt * pu + 0.5); text "Notifications" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.nt * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgt); opacity: 85% + 15% * set_pgt; family: "Space Grotesk" } }
         //  Lock screen: a padlock.
         group {
             opacity: 65% + 35% * set_pgl
+            pivot: sl + 24 * pu, sby + side.lk * pu
+            scale: 1 + 0.28 * set_pgl + 0.03 * set_pgl * sin(floor(time * 5) * 47)
+            move: set_pgl * 0.6 * pu * sin(floor(time * 5) * 53 + 40), set_pgl * 0.6 * pu * sin(floor(time * 5) * 61)
             path { at: sl + 24 * pu, sby + side.lk * pu - 2.5 * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pgl); move -3.5 * pu, -1 * pu; line -3.5 * pu, -4 * pu; curve 3.5 * pu, -4 * pu via 0 * pu, -10.5 * pu; line 3.5 * pu, -1 * pu }
             box { at: sl + 24 * pu, sby + side.lk * pu + 2 * pu; size: 12 * pu, 8.5 * pu; corner: 2.2 * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pgl) }
         }
-        group { scale: rs; pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.lk * pu + 0.5); text "Lock screen" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.lk * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgl); opacity: 85% + 15% * set_pgl; family: "Space Grotesk" } }
+        group { scale: rs * (1 + 0.28 * set_pgl); pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.lk * pu + 0.5); text "Lock screen" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.lk * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgl); opacity: 85% + 15% * set_pgl; family: "Space Grotesk" } }
         //  Widgets: four small tiles.
         group {
             opacity: 65% + 35% * set_pgk
+            pivot: sl + 24 * pu, sby + side.ck * pu
+            scale: 1 + 0.28 * set_pgk + 0.03 * set_pgk * sin(floor(time * 5) * 47)
+            move: set_pgk * 0.6 * pu * sin(floor(time * 5) * 53 + 40), set_pgk * 0.6 * pu * sin(floor(time * 5) * 61)
             box { at: sl + 20.5 * pu, sby + (side.ck - 3.5) * pu; size: 5.5 * pu, 5.5 * pu; corner: 1.5 * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pgk) }
             box { at: sl + 27.5 * pu, sby + (side.ck - 3.5) * pu; size: 5.5 * pu, 5.5 * pu; corner: 1.5 * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pgk) }
             box { at: sl + 20.5 * pu, sby + (side.ck + 3.5) * pu; size: 5.5 * pu, 5.5 * pu; corner: 1.5 * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pgk) }
             box { at: sl + 27.5 * pu, sby + (side.ck + 3.5) * pu; size: 5.5 * pu, 5.5 * pu; corner: 1.5 * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pgk) }
         }
-        group { scale: rs; pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.ck * pu + 0.5); text "Widgets" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.ck * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgk); opacity: 85% + 15% * set_pgk; family: "Space Grotesk" } }
+        group { scale: rs * (1 + 0.28 * set_pgk); pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.ck * pu + 0.5); text "Widgets" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.ck * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgk); opacity: 85% + 15% * set_pgk; family: "Space Grotesk" } }
         //  Theme: a palette with its three dabs of colour.
         group {
             opacity: 65% + 35% * set_pgp
+            pivot: sl + 24 * pu, sby + side.th * pu
+            scale: 1 + 0.28 * set_pgp + 0.03 * set_pgp * sin(floor(time * 5) * 47)
+            move: set_pgp * 0.6 * pu * sin(floor(time * 5) * 53 + 40), set_pgp * 0.6 * pu * sin(floor(time * 5) * 61)
             box { at: sl + 24 * pu, sby + side.th * pu; size: 15 * pu, 12 * pu; corner: 5 * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pgp) }
             ellipse { at: sl + 21.5 * pu, sby + (side.th - 1.5) * pu; radius: 1.3 * pu; color: mix(ink, mint, set_pgp) }
             ellipse { at: sl + 25 * pu, sby + (side.th - 2.5) * pu; radius: 1.3 * pu; color: mix(ink, mint, set_pgp) }
             ellipse { at: sl + 26.5 * pu, sby + (side.th + 1.5) * pu; radius: 1.3 * pu; color: mix(ink, mint, set_pgp) }
         }
-        group { scale: rs; pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.th * pu + 0.5); text "Theme" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.th * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgp); opacity: 85% + 15% * set_pgp; family: "Space Grotesk" } }
+        group { scale: rs * (1 + 0.28 * set_pgp); pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.th * pu + 0.5); text "Theme" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.th * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgp); opacity: 85% + 15% * set_pgp; family: "Space Grotesk" } }
         zone box side_th { at: sl + 75 * pu, sby + side.th * pu; size: 134 * pu, 28 * pu; corner: 10 * pu; cursor: pointer }
         on press side_th { set_page = pg_theme }
         //  VPN: a shield.
         group {
             opacity: 65% + 35% * set_pgv
+            pivot: sl + 24 * pu, sby + side.vpn * pu
+            scale: 1 + 0.28 * set_pgv + 0.03 * set_pgv * sin(floor(time * 5) * 47)
+            move: set_pgv * 0.6 * pu * sin(floor(time * 5) * 53 + 40), set_pgv * 0.6 * pu * sin(floor(time * 5) * 61)
             path { at: sl + 24 * pu, sby + side.vpn * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pgv); move 0, -7 * pu; line 6 * pu, -4.5 * pu; line 6 * pu, 1 * pu; line 0, 7.5 * pu; line -6 * pu, 1 * pu; line -6 * pu, -4.5 * pu; close }
         }
-        group { scale: rs; pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.vpn * pu + 0.5); text "VPN" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.vpn * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgv); opacity: 85% + 15% * set_pgv; family: "Space Grotesk" } }
+        group { scale: rs * (1 + 0.28 * set_pgv); pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.vpn * pu + 0.5); text "VPN" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.vpn * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgv); opacity: 85% + 15% * set_pgv; family: "Space Grotesk" } }
         zone box side_vpn { at: sl + 75 * pu, sby + side.vpn * pu; size: 134 * pu, 28 * pu; corner: 10 * pu; cursor: pointer }
         on press side_vpn { set_page = pg_vpn }
         //  Keybinds: a keyboard, a plate of keys.
         group {
             opacity: 65% + 35% * set_pgy
+            pivot: sl + 24 * pu, sby + side.ky * pu
+            scale: 1 + 0.28 * set_pgy + 0.03 * set_pgy * sin(floor(time * 5) * 47)
+            move: set_pgy * 0.6 * pu * sin(floor(time * 5) * 53 + 40), set_pgy * 0.6 * pu * sin(floor(time * 5) * 61)
             box { at: sl + 24 * pu, sby + side.ky * pu; size: 16 * pu, 11 * pu; corner: 2.5 * pu; stroke: 1.3 * pu; color: mix(ink, mint, set_pgy) }
             repeat k in 0..3 { ellipse { at: sl + (20.5 + k * 3.5) * pu, sby + (side.ky - 2) * pu; radius: 0.8 * pu; color: mix(ink, mint, set_pgy) } }
             line { from: sl + 21 * pu, sby + (side.ky + 2.2) * pu; to: sl + 27 * pu, sby + (side.ky + 2.2) * pu; width: 1.2 * pu; color: mix(ink, mint, set_pgy) }
         }
-        group { scale: rs; pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.ky * pu + 0.5); text "Keybinds" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.ky * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgy); opacity: 85% + 15% * set_pgy; family: "Space Grotesk" } }
+        group { scale: rs * (1 + 0.28 * set_pgy); pivot: floor(sl + 40 * pu + 0.5), floor(sby + side.ky * pu + 0.5); text "Keybinds" { at: floor(sl + 40 * pu + 0.5), floor(sby + side.ky * pu + 0.5); anchor: left center; size: 16; weight: 700; width: (108 * pu) / rs; lines: 1; color: mix(ink, mint, set_pgy); opacity: 85% + 15% * set_pgy; family: "Space Grotesk" } }
         zone box side_ky { at: sl + 75 * pu, sby + side.ky * pu; size: 134 * pu, 28 * pu; corner: 10 * pu; cursor: pointer }
         on press side_ky { set_page = pg_keys }
         zone box side_lk { at: sl + 75 * pu, sby + side.lk * pu; size: 134 * pu, 28 * pu; corner: 10 * pu; cursor: pointer }

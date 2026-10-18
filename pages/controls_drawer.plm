@@ -26,42 +26,19 @@ part ControlsDrawer {
             let th = (16 + 3 * vol_hit.hover) * cu          // the track thickens under the pointer
             //  A speaker on the left that says how loud it is: two waves that come and go
             //  with the level, or a slash when it is silenced.
-            path { at: pcx - 124 * cu, sy; color: ink; opacity: 70% + 30% * mute_hit.hover; move 0, -3 * cu; line 3.5 * cu, -3 * cu; line 8 * cu, -7 * cu; line 8 * cu, 7 * cu; line 3.5 * cu, 3 * cu; line 0, 3 * cu; close }
-            path { at: pcx - 124 * cu, sy; stroke: 1.5 * cu; color: ink; opacity: if(audio.muted, 0, 25% + 75% * clamp(volume_level * 12, 0, 1)); move 11 * cu, -3 * cu; curve 11 * cu, 3 * cu via 14 * cu, 0 }
-            path { at: pcx - 124 * cu, sy; stroke: 1.5 * cu; color: ink; opacity: if(audio.muted, 0, 20% + 80% * clamp((volume_level - 0.35) * 4, 0, 1)); move 14 * cu, -6.5 * cu; curve 14 * cu, 6.5 * cu via 20 * cu, 0 }
-            path { at: pcx - 124 * cu, sy; stroke: 1.6 * cu; color: alert; opacity: if(audio.muted, 100%, 0); move 11 * cu, -5 * cu; line 20 * cu, 5 * cu }
-            //  The track is a sunken pill with its own thin light on the inside.
-            body {
-                color: deep
-                rim: 9%
-                box { at: sl.x0 + sl.w / 2, sy; size: sl.w, th; corner: th / 2 }
-            }
-            //  The fill is a gradient laid along the whole track, so the more there is, the
-            //  brighter its end. It glows a little.
-            group {
-                show: not audio.muted
-                body {
-                    gradient: sl.x0, 0 to sl.x0 + sl.w, 0, mintlo, mint 55%, minthi
-                    rim: 22%
-                    shadow: 0, 0, 7 * cu, 50%, mint
-                    box { from: sl.x0, sy - th / 2; size: max(0.1, sl.w * volume_level), th; corner: th / 2 }
-                }
-            }
-            body {
-                color: off
-                rim: 12%
-                show: audio.muted
-                box { from: sl.x0, sy - th / 2; size: max(0.1, sl.w * volume_level), th; corner: th / 2 }
-            }
+            PSpk(pcx - 124 * cu, sy, max(vol_hit.hover, mute_hit.hover), 0.7 + 0.3 * mute_hit.hover, if(audio.muted, 0, 25% + 75% * clamp(volume_level * 12, 0, 1)), if(audio.muted, 0, 20% + 80% * clamp((volume_level - 0.35) * 4, 0, 1)), if(audio.muted, 1, 0))
+            //  The track is a pencil slider (PSlider): a crooked double outline, the level shaded in with slanted strokes, and a pencil circle at its end.
+            PSlider(sl.x0, sy, sl.w, vol_shown, vol_hit.hover, cu, th, if(audio.muted, 1, 0))
             //  The zone that takes the click: the whole track and a little more each side
             //  and above and below, so it is easy to hit; on the press and all through a drag
             //  it turns where the pointer is into a volume.
             zone box vol_plate { at: pcx, vol_cy + (vp.h - 64) / 2 * cu; size: 288 * cu, vp.h * cu; corner: 14 * cu }
             on press right vol_plate { vm_open = not vm_open; dd_open = false }
             zone box vol_hit { at: sl.x0 + sl.w / 2, sy; size: sl.w + 16 * cu, 24 * cu; cursor: pointer }
-            on press vol_hit { emit setvol(clamp(((pointer.x - tx.pnl) - sl.x0) / sl.w, 0, 1)) }
+            on press vol_hit { vol_ui = clamp(((pointer.x - tx.pnl) - sl.x0) / sl.w, 0, 1); vol_lock: 1 ~1ms; emit setvol(clamp(((pointer.x - tx.pnl) - sl.x0) / sl.w, 0, 1)) }
             on press right vol_hit { vm_open = not vm_open; dd_open = false }
-            on drag vol_hit { emit setvol(clamp(((pointer.x - tx.pnl) - sl.x0) / sl.w, 0, 1)) }
+            on drag vol_hit { vol_ui = clamp(((pointer.x - tx.pnl) - sl.x0) / sl.w, 0, 1); vol_lock: 1 ~1ms; emit setvol(clamp(((pointer.x - tx.pnl) - sl.x0) / sl.w, 0, 1)) }
+            on release vol_hit { vol_lock: 0 ~1ms after 900ms }
             //  Three small dots at the foot of the plate say there is more under it: the mixer. They are a button too
             //  (right-clicking the plate does the same).
             repeat i in 0..3 {
@@ -84,7 +61,7 @@ part ControlsDrawer {
             text outname { at: floor(pcx + 66 * cu + 0.5), floor(vol_cy - 14 * cu + 0.5); anchor: right center; size: 16; lines: 1; measure: outw; opacity: 0; family: "Space Grotesk" }
             text outname { at: floor(pcx + 66 * cu + 0.5), floor(vol_cy - 14 * cu + 0.5); anchor: right center; align: right; size: 16; width: 118 * cu; lines: 1; color: faint; opacity: 65% + 35% * out_hit.hover; family: "Space Grotesk" }
             //  The percentage is centred between the end of the track (pcx + 74) and the plate's edge (pcx + 158).
-            text number(audio.volume * 100, 0, "%") { at: floor(pcx + 128 * cu + 0.5), floor(vol_cy - 14 * cu + 0.5); anchor: right center; size: 18.5; weight: 600; color: ink; family: "Space Grotesk"; show: not audio.muted }
+            text number(if(vol_lock > 0.5, vol_ui, audio.volume) * 100, 0, "%") { at: floor(pcx + 128 * cu + 0.5), floor(vol_cy - 14 * cu + 0.5); anchor: right center; size: 18.5; weight: 600; color: ink; family: "Space Grotesk"; show: not audio.muted }
             text "Muted" { at: floor(pcx + 128 * cu + 0.5), floor(vol_cy - 14 * cu + 0.5); anchor: right center; size: 18.5; weight: 600; color: faint; family: "Space Grotesk"; show: audio.muted }
             //  The output name is a button: it opens the list of outputs.
             path { at: pcx + 76 * cu, vol_cy - 14 * cu; stroke: 1.4 * cu; color: ink; opacity: 55% + 35% * out_hit.hover; move -3.5 * cu, -2 * cu; line 0, 2 * cu; line 3.5 * cu, -2 * cu }
@@ -96,11 +73,7 @@ part ControlsDrawer {
             //  The microphone, beside the word: a button that mutes it and unmutes it; red, with a slash, while it is muted.
             let mbx = pcx - 76 * cu
             let mby = vol_cy - 14 * cu
-            ellipse { at: mbx, mby; radius: 12 * cu; color: if(audio.input_muted, alert, ink); opacity: if(audio.input_muted, 18%, 0%) + 10% * mic_hit.hover }
-            box { at: mbx, mby - 2.5 * cu; size: 5.5 * cu, 9 * cu; corner: 2.75 * cu; color: if(audio.input_muted, alert, ink); opacity: if(audio.input_muted, 100%, 60% + 40% * mic_hit.hover) }
-            path { at: mbx, mby - 2.5 * cu; stroke: 1.3 * cu; color: if(audio.input_muted, alert, ink); opacity: if(audio.input_muted, 100%, 60% + 40% * mic_hit.hover); move -4.5 * cu, 0.5 * cu; curve 0, 6 * cu via -4.5 * cu, 6 * cu; curve 4.5 * cu, 0.5 * cu via 4.5 * cu, 6 * cu }
-            box { at: mbx, mby + 5.5 * cu; size: 1.3 * cu, 2.5 * cu; corner: 0.65 * cu; color: if(audio.input_muted, alert, ink); opacity: if(audio.input_muted, 100%, 60% + 40% * mic_hit.hover) }
-            path { at: mbx, mby; stroke: 1.6 * cu; color: alert; opacity: if(audio.input_muted, 100%, 0); move -6 * cu, -6.5 * cu; line 6 * cu, 6.5 * cu }
+            PMic(mbx, mby, mic_hit.hover, if(audio.input_muted, 1, 0), mic_hit.hover)
             zone box mic_hit { at: mbx, mby; size: 26 * cu, 26 * cu; corner: 13 * cu; cursor: pointer }
             on press mic_hit { emit mic_toggle }
         }
@@ -135,28 +108,13 @@ part ControlsDrawer {
             let bsl.w = 222 * cu
             let bsy = bcy + 14 * cu
             let bth = (16 + 3 * bright_hit.hover) * cu
-            ellipse { at: pcx - 119 * cu, bsy; radius: 3 * cu; color: ink; opacity: 70% + 30% * bright_hit.hover }
-            path { at: pcx - 119 * cu, bsy; stroke: 1.3 * cu; color: ink; opacity: 40% + 60% * bright_level; move -3.8 * cu, -3.8 * cu; line -(5.5 + 1.5 * bright_level) * cu, -(5.5 + 1.5 * bright_level) * cu }
-            path { at: pcx - 119 * cu, bsy; stroke: 1.3 * cu; color: ink; opacity: 40% + 60% * bright_level; move 3.8 * cu, -3.8 * cu; line (5.5 + 1.5 * bright_level) * cu, -(5.5 + 1.5 * bright_level) * cu }
-            path { at: pcx - 119 * cu, bsy; stroke: 1.3 * cu; color: ink; opacity: 40% + 60% * bright_level; move -3.8 * cu, 3.8 * cu; line -(5.5 + 1.5 * bright_level) * cu, (5.5 + 1.5 * bright_level) * cu }
-            path { at: pcx - 119 * cu, bsy; stroke: 1.3 * cu; color: ink; opacity: 40% + 60% * bright_level; move 3.8 * cu, 3.8 * cu; line (5.5 + 1.5 * bright_level) * cu, (5.5 + 1.5 * bright_level) * cu }
-            body {
-                color: deep
-                rim: 9%
-                box { at: bsl.x0 + bsl.w / 2, bsy; size: bsl.w, bth; corner: bth / 2 }
-            }
-            group {
-                body {
-                    gradient: bsl.x0, 0 to bsl.x0 + bsl.w, 0, mintlo, mint 55%, minthi
-                    rim: 22%
-                    shadow: 0, 0, 7 * cu, 50%, mint
-                    box { from: bsl.x0, bsy - bth / 2; size: max(0.1, bsl.w * bright_level), bth; corner: bth / 2 }
-                }
-            }
+            PSun(pcx - 119 * cu, bsy, bright_hit.hover, bright_level, 0.7 + 0.3 * bright_hit.hover)
+            PSlider(bsl.x0, bsy, bsl.w, bri_shown, bright_hit.hover, cu, bth, 0)
             zone box bright_hit { at: bsl.x0 + bsl.w / 2, bsy; size: bsl.w + 28 * cu, 34 * cu; cursor: pointer; active: brightness.present and bright_avail }
-            on press bright_hit { emit setbright(clamp(((pointer.x - tx.pnl) - bsl.x0) / bsl.w, 0, 1)) }
-            on drag bright_hit { emit setbright(clamp(((pointer.x - tx.pnl) - bsl.x0) / bsl.w, 0, 1)) }
-            text number(bright_level * 100, 0, "%") { at: floor(pcx + 128 * cu + 0.5), floor(bcy - 14 * cu + 0.5); anchor: right center; size: 18.5; weight: 600; color: ink; family: "Space Grotesk"; show: brightness.present and bright_avail }
+            on press bright_hit { bri_ui = clamp(((pointer.x - tx.pnl) - bsl.x0) / bsl.w, 0, 1); bri_lock: 1 ~1ms; emit setbright(clamp(((pointer.x - tx.pnl) - bsl.x0) / bsl.w, 0, 1)) }
+            on drag bright_hit { bri_ui = clamp(((pointer.x - tx.pnl) - bsl.x0) / bsl.w, 0, 1); bri_lock: 1 ~1ms; emit setbright(clamp(((pointer.x - tx.pnl) - bsl.x0) / bsl.w, 0, 1)) }
+            on release bright_hit { bri_lock: 0 ~1ms after 900ms }
+            text number(bri_shown * 100, 0, "%") { at: floor(pcx + 128 * cu + 0.5), floor(bcy - 14 * cu + 0.5); anchor: right center; size: 18.5; weight: 600; color: ink; family: "Space Grotesk"; show: brightness.present and bright_avail }
             text "No backlight" { at: floor(pcx + 128 * cu + 0.5), floor(bcy - 14 * cu + 0.5); anchor: right center; size: 15; color: faint; family: "Space Grotesk"; show: not brightness.present }
             text "brightnessctl missing" { at: floor(pcx + 128 * cu + 0.5), floor(bcy - 14 * cu + 0.5); anchor: right center; size: 14; color: faint; family: "Space Grotesk"; show: brightness.present and not bright_avail }
             text "Brightness" { at: floor(pcx - 128 * cu + 0.5), floor(bcy - 14 * cu + 0.5); anchor: left center; size: 16; color: faint; family: "Space Grotesk" }
@@ -180,9 +138,7 @@ part ControlsDrawer {
             //  Obsidian: the plate is a solid step lighter than the shell, with a small tight shadow under it, in place of the veil.
             body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * cu, 7 * cu, 40%, #000000; show: obs > 0.004; box { at: tb1 - 21 * cu, tile_cy; size: 94 * cu, tiles_h * cu; corner: 14 * cu } }
             box { at: tb1 - 21 * cu, tile_cy; size: 94 * cu, tiles_h * cu; corner: 14 * cu; color: ink; opacity: (veil) * (1 - obs) }
-            box { at: tb1 - 53 * cu, tile_cy - 14 * cu; size: 3 * cu, 6 * cu;  corner: 1.5 * cu; color: ink; opacity: if(on_wifi, 45% + 55% * clamp(net.strength / 0.3, 0, 1), 30%) * (1 - wf_hold) }
-            box { at: tb1 - 48 * cu, tile_cy - 16 * cu; size: 3 * cu, 10 * cu; corner: 1.5 * cu; color: ink; opacity: if(on_wifi, 45% + 55% * clamp(net.strength / 0.65, 0, 1), 30%) * (1 - wf_hold) }
-            box { at: tb1 - 43 * cu, tile_cy - 18 * cu; size: 3 * cu, 14 * cu; corner: 1.5 * cu; color: ink; opacity: if(on_wifi, 45% + 55% * clamp(net.strength / 1.0, 0, 1), 30%) * (1 - wf_hold) }
+            PWifi(tb1 - 48 * cu, tile_cy - 16 * cu, max(if(on_wifi, 1, 0), wifi_tile_hit.hover), if(on_wifi, 45% + 55% * clamp(net.strength / 0.3, 0, 1), 30%) * (1 - wf_hold), if(on_wifi, 45% + 55% * clamp(net.strength / 0.65, 0, 1), 30%) * (1 - wf_hold), if(on_wifi, 45% + 55% * clamp(net.strength / 1.0, 0, 1), 30%) * (1 - wf_hold))
             text "Wi-Fi" { at: floor(tb1 - 58 * cu + 0.5), floor(tile_cy + 4 * cu + 0.5); anchor: left center; size: 13; color: ink; family: "Space Grotesk" }
             text net.name { at: floor(tb1 - 58 * cu + 0.5), floor(tile_cy + 19 * cu + 0.5); anchor: left center; size: 11.5; width: 74 * cu; lines: 1; color: mint; opacity: 90%; family: "Space Grotesk"; show: on_wifi }
             text "Disconnected" { at: floor(tb1 - 58 * cu + 0.5), floor(tile_cy + 19 * cu + 0.5); anchor: left center; size: 11.5; color: faint; family: "Space Grotesk"; show: net.wifi and not (on_wifi) }
@@ -263,9 +219,7 @@ part ControlsDrawer {
             //  Obsidian: the plate is a solid step lighter than the shell, with a small tight shadow under it, in place of the veil.
             body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * cu, 7 * cu, 40%, #000000; show: obs > 0.004; box { at: tb1 - 21 * cu, tile2_cy; size: 94 * cu, tiles_h * cu; corner: 14 * cu } }
             box { at: tb1 - 21 * cu, tile2_cy; size: 94 * cu, tiles_h * cu; corner: 14 * cu; color: ink; opacity: (veil) * (1 - obs) }
-            box { at: tb1 - 48 * cu, tile2_cy - 18 * cu; size: 2.4 * cu, 16 * cu; corner: 1.2 * cu; color: ink; opacity: 45% + 55% * bt_on }
-            path { at: tb1 - 48 * cu, tile2_cy - 18 * cu; stroke: 1.5 * cu; color: ink; opacity: 45% + 55% * bt_on; move -4 * cu, -4 * cu; line 4 * cu, 4 * cu }
-            path { at: tb1 - 48 * cu, tile2_cy - 18 * cu; stroke: 1.5 * cu; color: ink; opacity: 45% + 55% * bt_on; move 4 * cu, -4 * cu; line -4 * cu, 4 * cu }
+            PBt(tb1 - 48 * cu, tile2_cy - 18 * cu, max(bt_on, bt_tile_hit.hover), 0.45 + 0.55 * bt_on)
             text "Bluetooth" { at: floor(tb1 - 58 * cu + 0.5), floor(tile2_cy + 4 * cu + 0.5); anchor: left center; size: 13; color: ink; family: "Space Grotesk" }
             text bt_name { at: floor(tb1 - 58 * cu + 0.5), floor(tile2_cy + 19 * cu + 0.5); anchor: left center; size: 11.5; width: 74 * cu; lines: 1; color: mint; opacity: 90%; family: "Space Grotesk"; show: bt_connected }
             text "No device" { at: floor(tb1 - 58 * cu + 0.5), floor(tile2_cy + 19 * cu + 0.5); anchor: left center; size: 11.5; color: faint; family: "Space Grotesk"; show: bt.powered and not bt_connected }
@@ -332,16 +286,7 @@ part ControlsDrawer {
             body { color: mix(obsidian, ink, (veil + 6% * dnd_hit.hover) * 1.6); opacity: obs; shadow: 0, 2 * cu, 7 * cu, 40%, #000000; show: obs > 0.004; box { at: tb3 - 21 * cu, tile_cy; size: 94 * cu, tiles_h * cu; corner: 14 * cu } }
             box { at: tb3 - 21 * cu, tile_cy; size: 94 * cu, tiles_h * cu; corner: 14 * cu; color: ink; opacity: (veil + 6% * dnd_hit.hover) * (1 - obs) }
             //  A bell: dome, rim and clapper, struck through while it is on.
-            group {
-                pivot: tb3 - 48 * cu, tile_cy - 18 * cu
-                rotate: dnd_wobble * 14deg
-                //  Solid parts, faded as one group: partial opacity per part shows the overlaps.
-                opacity: 45% + 55% * dnd_pill
-                ellipse { at: tb3 - 48 * cu, tile_cy - 19 * cu; radius: 5.5 * cu; color: ink }
-                box { at: tb3 - 48 * cu, tile_cy - 14.5 * cu; size: 14 * cu, 3 * cu; corner: 1.5 * cu; color: ink }
-                ellipse { at: tb3 - 48 * cu, tile_cy - 11 * cu; radius: 1.6 * cu; color: ink }
-            }
-            path { at: tb3 - 48 * cu, tile_cy - 18 * cu; stroke: 1.8 * cu; color: alert; opacity: dnd_pill; move -8 * cu, -8 * cu; line 8 * cu, 8 * cu }
+            PBell(tb3 - 48 * cu, tile_cy - 18 * cu, max(dnd_pill, dnd_hit.hover), 0.45 + 0.55 * dnd_pill, dnd_pill, dnd_wobble)
             text "Notifications" { at: floor(tb3 - 58 * cu + 0.5), floor(tile_cy + 4 * cu + 0.5); anchor: left center; size: 13; width: 74 * cu; lines: 1; color: ink; family: "Space Grotesk" }
             text nt_tile_sub { at: floor(tb3 - 58 * cu + 0.5), floor(tile_cy + 19 * cu + 0.5); anchor: left center; size: 11.5; width: 74 * cu; lines: 1; color: if(dnd_on, mint, faint); family: "Space Grotesk" }
             //  gdn: the pill, like the Wi-Fi one. `gdn_m` is how much it is moving (0 at rest, 1 half way).
@@ -411,11 +356,7 @@ part ControlsDrawer {
                 //  Obsidian: the plate is a solid step lighter than the shell, with a small tight shadow under it, in place of the veil.
                 body { color: mix(obsidian, ink, (veil + 6% * caf_hit.hover * caf_avail) * 1.6); opacity: obs; shadow: 0, 2 * cu, 7 * cu, 40%, #000000; show: obs > 0.004; box { at: tb2 - 21 * cu, tile_cy; size: 94 * cu, tiles_h * cu; corner: 14 * cu } }
                 box { at: tb2 - 21 * cu, tile_cy; size: 94 * cu, tiles_h * cu; corner: 14 * cu; color: ink; opacity: (veil + 6% * caf_hit.hover * caf_avail) * (1 - obs) }
-                group {
-                    opacity: 45% + 55% * caf_pill
-                    box { at: tb2 - 49 * cu, tile_cy - 16 * cu; size: 12 * cu, 10 * cu; corner: 3 * cu; color: ink }
-                    ellipse { at: tb2 - 41.5 * cu, tile_cy - 16 * cu; radius: 3 * cu; stroke: 1.5 * cu; color: ink }
-                }
+                PCup(tb2 - 46 * cu, tile_cy - 16 * cu, max(caf_pill, caf_hit.hover), 0.45 + 0.55 * caf_pill)
                 repeat i in 0..3 {
                     let sp = fract(time * 0.7 + i * 0.33)
                     box { at: tb2 - 52 * cu + i * 3.5 * cu, tile_cy - 24 * cu - sp * 6 * cu; size: 1.4 * cu, 5 * cu; corner: 0.7 * cu; color: ink; opacity: caf_pill * 55% * sin(sp * 180) }
@@ -495,13 +436,12 @@ part ControlsDrawer {
             //  Obsidian: the plate is a solid step lighter than the shell, with a small tight shadow under it, in place of the veil.
             body { color: mix(obsidian, ink, (veil + 6% * cap_hit.hover) * 1.6); opacity: obs; shadow: 0, 2 * cu, 7 * cu, 40%, #000000; show: obs > 0.004; box { at: tb2 - 21 * cu, tile2_cy; size: 94 * cu, tiles_h * cu; corner: 14 * cu } }
             box { at: tb2 - 21 * cu, tile2_cy; size: 94 * cu, tiles_h * cu; corner: 14 * cu; color: ink; opacity: (veil + 6% * cap_hit.hover) * (1 - obs) }
-            box { at: tb2 - 48 * cu, tile2_cy - 17 * cu; size: 16 * cu, 12 * cu; corner: 3 * cu; stroke: 1.5 * cu; color: ink; opacity: 45% + 55% * rec_pill }
-            ellipse { at: tb2 - 48 * cu, tile2_cy - 17 * cu; radius: 2.6 * cu; stroke: 1.4 * cu; color: ink; opacity: 45% + 55% * rec_pill }
+            PCam(tb2 - 48 * cu, tile2_cy - 17 * cu, max(rec_pill, cap_hit.hover), 0.45 + 0.55 * rec_pill)
             text "Capture" { at: floor(tb2 - 58 * cu + 0.5), floor(tile2_cy + 4 * cu + 0.5); anchor: left center; size: 13; color: ink; family: "Space Grotesk" }
             text rec_time { at: floor(tb2 - 58 * cu + 0.5), floor(tile2_cy + 19 * cu + 0.5); anchor: left center; size: 11.5; width: 74 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: rec_on }
             text "Shot · Record" { at: floor(tb2 - 58 * cu + 0.5), floor(tile2_cy + 19 * cu + 0.5); anchor: left center; size: 11.5; width: 74 * cu; lines: 1; color: faint; family: "Space Grotesk"; show: not rec_on }
             //  The record button: a ring with a dot in it, which becomes a square (and beats) while it records.
-            ellipse { at: tb2 + 8 * cu, tile2_cy - 18 * cu; radius: 10 * cu; stroke: 1.5 * cu; color: mint; opacity: 55% + 45% * rec_pill }
+            PRing(tb2 + 8 * cu, tile2_cy - 18 * cu, max(rec_pill, cap_rec_hit.hover), 0.55 + 0.45 * rec_pill)
             box { at: tb2 + 8 * cu, tile2_cy - 18 * cu; size: (10 - 2 * rec_pill) * cu, (10 - 2 * rec_pill) * cu; corner: (5 - 3 * rec_pill) * cu; color: mint; opacity: 65% + 35% * rec_pill - rec_pill * 0.25 * (0.5 + 0.5 * sin(time * 300)) }
             zone box cap_hit { at: tb2 - 21 * cu, tile2_cy; size: 94 * cu, tiles_h * cu; cursor: pointer }
             on press cap_hit { panel_sub = if(panel_sub == capview, none, capview) }
@@ -512,8 +452,7 @@ part ControlsDrawer {
             body { color: mix(obsidian, ink, (veil + 6% * pow_hit.hover) * 1.6); opacity: obs; shadow: 0, 2 * cu, 7 * cu, 40%, #000000; show: obs > 0.004; box { at: tb3 - 21 * cu, tile2_cy; size: 94 * cu, tiles_h * cu; corner: 14 * cu } }
             box { at: tb3 - 21 * cu, tile2_cy; size: 94 * cu, tiles_h * cu; corner: 14 * cu; color: ink; opacity: (veil + 6% * pow_hit.hover) * (1 - obs) }
             //  A power symbol: a ring open at the top, and the bar through the gap.
-            path { at: tb3 - 48 * cu, tile2_cy - 17 * cu; stroke: 1.6 * cu; color: ink; opacity: 75%; move 3.73 * cu, -5.32 * cu; line 5.32 * cu, -3.73 * cu; line 6.28 * cu, -1.68 * cu; line 6.48 * cu, 0.57 * cu; line 5.89 * cu, 2.75 * cu; line 4.60 * cu, 4.60 * cu; line 2.75 * cu, 5.89 * cu; line 0.57 * cu, 6.48 * cu; line -1.68 * cu, 6.28 * cu; line -3.73 * cu, 5.32 * cu; line -5.32 * cu, 3.73 * cu; line -6.28 * cu, 1.68 * cu; line -6.48 * cu, -0.57 * cu; line -5.89 * cu, -2.75 * cu; line -4.60 * cu, -4.60 * cu }
-            box { at: tb3 - 48 * cu, tile2_cy - 21.5 * cu; size: 1.6 * cu, 8 * cu; corner: 0.8 * cu; color: ink; opacity: 75% }
+            PPower(tb3 - 48 * cu, tile2_cy - 17 * cu, pow_hit.hover, 0.75)
             text "Power" { at: floor(tb3 - 58 * cu + 0.5), floor(tile2_cy + 4 * cu + 0.5); anchor: left center; size: 13; color: ink; family: "Space Grotesk" }
             text "Power saver" { at: floor(tb3 - 58 * cu + 0.5), floor(tile2_cy + 19 * cu + 0.5); anchor: left center; size: 11.5; width: 74 * cu; lines: 1; color: mint; opacity: 90%; family: "Space Grotesk"; show: pow_prof == 0 }
             text "Balanced" { at: floor(tb3 - 58 * cu + 0.5), floor(tile2_cy + 19 * cu + 0.5); anchor: left center; size: 11.5; width: 74 * cu; lines: 1; color: mint; opacity: 90%; family: "Space Grotesk"; show: pow_prof == 1 }
@@ -860,8 +799,7 @@ part ControlsDrawer {
                 box { at: pcx + -113.0 * cu, px_top + 96 * cu + 29 * cu - 29 * cu * clamp(pw_hp0, 0, 1); size: 52 * cu, 58 * cu * clamp(pw_hp0, 0, 1); color: mint; opacity: 34% }
                 box { at: pcx + -113.0 * cu, px_top + 96 * cu + 29 * cu - 58 * cu * clamp(pw_hp0, 0, 1); size: 52 * cu, 2 * cu; color: mint; opacity: 70% * clamp(pw_hp0 * 8, 0, 1) }
             }
-            path { at: pcx + -113.0 * cu, px_top + 96 * cu - 8 * cu; stroke: 1.6 * cu; color: mix(ink, mint, max(pw_t0.hover, clamp(pw_hp0 * 3, 0, 1))); opacity: 100%; move -3.5 * cu, -1 * cu; line -3.5 * cu, -4 * cu; curve 3.5 * cu, -4 * cu via 0 * cu, -10.5 * cu; line 3.5 * cu, -1 * cu }
-            box { at: pcx + -113.0 * cu, px_top + 96 * cu - 8 * cu + 3.5 * cu; size: 13 * cu, 9.5 * cu; corner: 2.5 * cu; stroke: 1.6 * cu; color: mix(ink, mint, max(pw_t0.hover, clamp(pw_hp0 * 3, 0, 1))); opacity: 100% }
+            PSLock(pcx + -113.0 * cu, px_top + 96 * cu - 8 * cu, max(pw_t0.hover, clamp(pw_hp0 * 3, 0, 1)))
             text "Lock" { at: floor(pcx + -113.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 600; width: 50 * cu; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; show: pw_hp0 < 0.03 }
             text number(1 - clamp(pw_hp0, 0, 1), 1, "s") { at: floor(pcx + -113.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 700; width: 50 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: pw_hp0 >= 0.03 }
             zone box pw_t0 { at: pcx + -113.0 * cu, px_top + 96 * cu; size: 54 * cu, 60 * cu; corner: 15 * cu; cursor: pointer }
@@ -875,7 +813,7 @@ part ControlsDrawer {
                 box { at: pcx + -56.5 * cu, px_top + 96 * cu + 29 * cu - 29 * cu * clamp(pw_hp1, 0, 1); size: 52 * cu, 58 * cu * clamp(pw_hp1, 0, 1); color: mint; opacity: 34% }
                 box { at: pcx + -56.5 * cu, px_top + 96 * cu + 29 * cu - 58 * cu * clamp(pw_hp1, 0, 1); size: 52 * cu, 2 * cu; color: mint; opacity: 70% * clamp(pw_hp1 * 8, 0, 1) }
             }
-            path { at: pcx + -56.5 * cu, px_top + 96 * cu - 8 * cu; stroke: 1.6 * cu; color: mix(ink, mint, max(pw_t1.hover, clamp(pw_hp1 * 3, 0, 1))); opacity: 100%; move 8.29 * cu, 3.17 * cu; line 7.76 * cu, 4.27 * cu; line 7.08 * cu, 5.28 * cu; line 6.26 * cu, 6.18 * cu; line 5.33 * cu, 6.97 * cu; line 4.29 * cu, 7.61 * cu; line 3.18 * cu, 8.10 * cu; line 2.00 * cu, 8.42 * cu; line 0.79 * cu, 8.58 * cu; line -0.42 * cu, 8.56 * cu; line -1.63 * cu, 8.38 * cu; line -2.79 * cu, 8.02 * cu; line -3.90 * cu, 7.50 * cu; line -4.92 * cu, 6.84 * cu; line -5.83 * cu, 6.03 * cu; line -6.62 * cu, 5.11 * cu; line -7.28 * cu, 4.08 * cu; line -7.78 * cu, 2.97 * cu; line -8.12 * cu, 1.80 * cu; line -8.29 * cu, 0.59 * cu; line -8.28 * cu, -0.63 * cu; line -8.11 * cu, -1.83 * cu; line -7.77 * cu, -3.00 * cu; line -7.26 * cu, -4.11 * cu; line -6.61 * cu, -5.14 * cu; line -5.81 * cu, -6.06 * cu; line -4.90 * cu, -6.86 * cu; line -3.87 * cu, -7.53 * cu; line -2.77 * cu, -8.04 * cu; line -1.60 * cu, -8.39 * cu; line -0.40 * cu, -8.58 * cu; line -0.97 * cu, -7.92 * cu; line -1.46 * cu, -7.20 * cu; line -1.86 * cu, -6.43 * cu; line -2.17 * cu, -5.62 * cu; line -2.38 * cu, -4.78 * cu; line -2.49 * cu, -3.91 * cu; line -2.50 * cu, -3.05 * cu; line -2.40 * cu, -2.18 * cu; line -2.21 * cu, -1.33 * cu; line -1.92 * cu, -0.52 * cu; line -1.53 * cu, 0.26 * cu; line -1.06 * cu, 0.99 * cu; line -0.50 * cu, 1.66 * cu; line 0.13 * cu, 2.26 * cu; line 0.83 * cu, 2.78 * cu; line 1.58 * cu, 3.21 * cu; line 2.38 * cu, 3.55 * cu; line 3.21 * cu, 3.80 * cu; line 4.07 * cu, 3.95 * cu; line 4.94 * cu, 3.99 * cu; line 5.81 * cu, 3.94 * cu; line 6.66 * cu, 3.78 * cu; line 7.49 * cu, 3.52 * cu; line 8.29 * cu, 3.17 * cu; line 8.29 * cu, 3.17 * cu }
+            PSSleep(pcx + -56.5 * cu, px_top + 96 * cu - 8 * cu, max(pw_t1.hover, clamp(pw_hp1 * 3, 0, 1)))
             text "Sleep" { at: floor(pcx + -56.5 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 600; width: 50 * cu; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; show: pw_hp1 < 0.03 }
             text number(1 - clamp(pw_hp1, 0, 1), 1, "s") { at: floor(pcx + -56.5 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 700; width: 50 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: pw_hp1 >= 0.03 }
             zone box pw_t1 { at: pcx + -56.5 * cu, px_top + 96 * cu; size: 54 * cu, 60 * cu; corner: 15 * cu; cursor: pointer }
@@ -889,9 +827,7 @@ part ControlsDrawer {
                 box { at: pcx + 0.0 * cu, px_top + 96 * cu + 29 * cu - 29 * cu * clamp(pw_hp2, 0, 1); size: 52 * cu, 58 * cu * clamp(pw_hp2, 0, 1); color: mint; opacity: 34% }
                 box { at: pcx + 0.0 * cu, px_top + 96 * cu + 29 * cu - 58 * cu * clamp(pw_hp2, 0, 1); size: 52 * cu, 2 * cu; color: mint; opacity: 70% * clamp(pw_hp2 * 8, 0, 1) }
             }
-            path { at: pcx + 0.0 * cu, px_top + 96 * cu - 8 * cu; stroke: 1.6 * cu; color: mix(ink, mint, max(pw_t2.hover, clamp(pw_hp2 * 3, 0, 1))); opacity: 100%; move 1 * cu, -7.5 * cu; line -5.5 * cu, -7.5 * cu; line -5.5 * cu, 7.5 * cu; line 1 * cu, 7.5 * cu }
-            path { at: pcx + 0.0 * cu, px_top + 96 * cu - 8 * cu; stroke: 1.6 * cu; color: mix(ink, mint, max(pw_t2.hover, clamp(pw_hp2 * 3, 0, 1))); opacity: 100%; move -2 * cu, 0 * cu; line 7 * cu, 0 * cu }
-            path { at: pcx + 0.0 * cu, px_top + 96 * cu - 8 * cu; stroke: 1.6 * cu; color: mix(ink, mint, max(pw_t2.hover, clamp(pw_hp2 * 3, 0, 1))); opacity: 100%; move 4 * cu, -3.2 * cu; line 7.2 * cu, 0 * cu; line 4 * cu, 3.2 * cu }
+            PSOut(pcx + 0.0 * cu, px_top + 96 * cu - 8 * cu, max(pw_t2.hover, clamp(pw_hp2 * 3, 0, 1)))
             text "Log out" { at: floor(pcx + 0.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 600; width: 50 * cu; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; show: pw_hp2 < 0.03 }
             text number(1 - clamp(pw_hp2, 0, 1), 1, "s") { at: floor(pcx + 0.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 700; width: 50 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: pw_hp2 >= 0.03 }
             zone box pw_t2 { at: pcx + 0.0 * cu, px_top + 96 * cu; size: 54 * cu, 60 * cu; corner: 15 * cu; cursor: pointer }
@@ -905,8 +841,7 @@ part ControlsDrawer {
                 box { at: pcx + 56.5 * cu, px_top + 96 * cu + 29 * cu - 29 * cu * clamp(pw_hp3, 0, 1); size: 52 * cu, 58 * cu * clamp(pw_hp3, 0, 1); color: mint; opacity: 34% }
                 box { at: pcx + 56.5 * cu, px_top + 96 * cu + 29 * cu - 58 * cu * clamp(pw_hp3, 0, 1); size: 52 * cu, 2 * cu; color: mint; opacity: 70% * clamp(pw_hp3 * 8, 0, 1) }
             }
-            path { at: pcx + 56.5 * cu, px_top + 96 * cu - 8 * cu; stroke: 1.6 * cu; color: mix(ink, mint, max(pw_t3.hover, clamp(pw_hp3 * 3, 0, 1))); opacity: 100%; move 5.3 * cu, -5.3 * cu; line 6.8 * cu, -3.17 * cu; line 7.47 * cu, -0.65 * cu; line 7.24 * cu, 1.94 * cu; line 6.14 * cu, 4.3 * cu; line 4.3 * cu, 6.14 * cu; line 1.94 * cu, 7.24 * cu; line -0.65 * cu, 7.47 * cu; line -3.17 * cu, 6.8 * cu; line -5.3 * cu, 5.3 * cu; line -6.8 * cu, 3.17 * cu; line -7.47 * cu, 0.65 * cu; line -7.24 * cu, -1.94 * cu; line -6.14 * cu, -4.3 * cu; line -4.3 * cu, -6.14 * cu }
-            path { at: pcx + 56.5 * cu, px_top + 96 * cu - 8 * cu; stroke: 1.6 * cu; color: mix(ink, mint, max(pw_t3.hover, clamp(pw_hp3 * 3, 0, 1))); opacity: 100%; move -6.75 * cu, -8.04 * cu; line -2.17 * cu, -7.63 * cu; line -3.36 * cu, -3.19 * cu }
+            PSRestart(pcx + 56.5 * cu, px_top + 96 * cu - 8 * cu, max(pw_t3.hover, clamp(pw_hp3 * 3, 0, 1)))
             text "Restart" { at: floor(pcx + 56.5 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 600; width: 50 * cu; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; show: pw_hp3 < 0.03 }
             text number(1 - clamp(pw_hp3, 0, 1), 1, "s") { at: floor(pcx + 56.5 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 700; width: 50 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: pw_hp3 >= 0.03 }
             zone box pw_t3 { at: pcx + 56.5 * cu, px_top + 96 * cu; size: 54 * cu, 60 * cu; corner: 15 * cu; cursor: pointer }
@@ -920,8 +855,7 @@ part ControlsDrawer {
                 box { at: pcx + 113.0 * cu, px_top + 96 * cu + 29 * cu - 29 * cu * clamp(pw_hp4, 0, 1); size: 52 * cu, 58 * cu * clamp(pw_hp4, 0, 1); color: mint; opacity: 34% }
                 box { at: pcx + 113.0 * cu, px_top + 96 * cu + 29 * cu - 58 * cu * clamp(pw_hp4, 0, 1); size: 52 * cu, 2 * cu; color: mint; opacity: 70% * clamp(pw_hp4 * 8, 0, 1) }
             }
-            path { at: pcx + 113.0 * cu, px_top + 96 * cu - 8 * cu; stroke: 1.6 * cu; color: mix(ink, mint, max(pw_t4.hover, clamp(pw_hp4 * 3, 0, 1))); opacity: 100%; move 4.43 * cu, -5.67 * cu; line 6.11 * cu, -3.82 * cu; line 7.04 * cu, -1.5 * cu; line 7.13 * cu, 1 * cu; line 6.36 * cu, 3.38 * cu; line 4.82 * cu, 5.35 * cu; line 2.7 * cu, 6.68 * cu; line 0.25 * cu, 7.2 * cu; line -2.22 * cu, 6.85 * cu; line -4.43 * cu, 5.67 * cu; line -6.11 * cu, 3.82 * cu; line -7.04 * cu, 1.5 * cu; line -7.13 * cu, -1 * cu; line -6.36 * cu, -3.38 * cu; line -4.82 * cu, -5.35 * cu; line -4.43 * cu, -5.67 * cu }
-            box { at: pcx + 113.0 * cu, px_top + 96 * cu - 8 * cu - 5.5 * cu; size: 1.6 * cu, 9 * cu; corner: 0.8 * cu; color: mix(ink, mint, max(pw_t4.hover, clamp(pw_hp4 * 3, 0, 1))); opacity: 100% }
+            PSOff(pcx + 113.0 * cu, px_top + 96 * cu - 8 * cu, max(pw_t4.hover, clamp(pw_hp4 * 3, 0, 1)))
             text "Power off" { at: floor(pcx + 113.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 600; width: 50 * cu; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; show: pw_hp4 < 0.03 }
             text number(1 - clamp(pw_hp4, 0, 1), 1, "s") { at: floor(pcx + 113.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 700; width: 50 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: pw_hp4 >= 0.03 }
             zone box pw_t4 { at: pcx + 113.0 * cu, px_top + 96 * cu; size: 54 * cu, 60 * cu; corner: 15 * cu; cursor: pointer }
@@ -946,17 +880,15 @@ part ControlsDrawer {
                     shadow: 0, 2 * cu, 8 * cu, 25%, #000000
                     box { at: pcx + (pow_th - 1) * 92 * cu, px_top + (176 + bat_h) * cu; size: (90 + 8 * abs(pow_th - if(pow_prof < 0, 1, pow_prof))) * cu, 40 * cu; corner: 14 * cu }
                 }
-                path { at: pcx + -92 * cu, px_top + (176 + bat_h) * cu - 8 * cu; stroke: 1.6 * cu; color: mix(ink, mint, clamp(1 - abs(pow_th - 0), 0, 1)); opacity: 55% + 45% * max(clamp(1 - abs(pow_th - 0), 0, 1), pw_p0.hover); move -6.5 * cu, 6.5 * cu; curve 6.5 * cu, -6.5 * cu via -8 * cu, -6 * cu; curve -6.5 * cu, 6.5 * cu via 8 * cu, 6 * cu }
-                path { at: pcx + -92 * cu, px_top + (176 + bat_h) * cu - 8 * cu; stroke: 1.3 * cu; color: mix(ink, mint, clamp(1 - abs(pow_th - 0), 0, 1)); opacity: 55% + 45% * max(clamp(1 - abs(pow_th - 0), 0, 1), pw_p0.hover); move -6.5 * cu, 6.5 * cu; line 1 * cu, -1 * cu }
+                PPLeaf(pcx + -92 * cu, px_top + (176 + bat_h) * cu - 8 * cu, max(clamp(1 - abs(pow_th - 0), 0, 1), pw_p0.hover), clamp(1 - abs(pow_th - 0), 0, 1), 0.55 + 0.45 * max(clamp(1 - abs(pow_th - 0), 0, 1), pw_p0.hover))
                 text "Saver" { at: floor(pcx + -92 * cu + 0.5), floor(px_top + (176 + bat_h) * cu + 12 * cu + 0.5); anchor: center; align: center; size: 11.5; weight: 600; width: 88 * cu; lines: 1; color: mix(ink, mint, clamp(1 - abs(pow_th - 0), 0, 1)); opacity: 60% + 40% * max(clamp(1 - abs(pow_th - 0), 0, 1), pw_p0.hover); family: "Space Grotesk" }
                 zone box pw_p0 { at: pcx + -92 * cu, px_top + (176 + bat_h) * cu; size: 90 * cu, 44 * cu; corner: 15 * cu; cursor: pointer; active: pow_prof >= 0 }
                 on press pw_p0 { emit pow_prof_set(0) }
-                box { at: pcx + 0 * cu, px_top + (176 + bat_h) * cu - 8 * cu - 3 * cu; size: 13 * cu, 1.7 * cu; corner: 0.85 * cu; color: mix(ink, mint, clamp(1 - abs(pow_th - 1), 0, 1)); opacity: 55% + 45% * max(clamp(1 - abs(pow_th - 1), 0, 1), pw_p1.hover) }
-                box { at: pcx + 0 * cu, px_top + (176 + bat_h) * cu - 8 * cu + 3 * cu; size: 13 * cu, 1.7 * cu; corner: 0.85 * cu; color: mix(ink, mint, clamp(1 - abs(pow_th - 1), 0, 1)); opacity: 55% + 45% * max(clamp(1 - abs(pow_th - 1), 0, 1), pw_p1.hover) }
+                PPBalance(pcx + 0 * cu, px_top + (176 + bat_h) * cu - 8 * cu, max(clamp(1 - abs(pow_th - 1), 0, 1), pw_p1.hover), clamp(1 - abs(pow_th - 1), 0, 1), 0.55 + 0.45 * max(clamp(1 - abs(pow_th - 1), 0, 1), pw_p1.hover))
                 text "Balanced" { at: floor(pcx + 0 * cu + 0.5), floor(px_top + (176 + bat_h) * cu + 12 * cu + 0.5); anchor: center; align: center; size: 11.5; weight: 600; width: 88 * cu; lines: 1; color: mix(ink, mint, clamp(1 - abs(pow_th - 1), 0, 1)); opacity: 60% + 40% * max(clamp(1 - abs(pow_th - 1), 0, 1), pw_p1.hover); family: "Space Grotesk" }
                 zone box pw_p1 { at: pcx + 0 * cu, px_top + (176 + bat_h) * cu; size: 90 * cu, 44 * cu; corner: 15 * cu; cursor: pointer; active: pow_prof >= 0 }
                 on press pw_p1 { emit pow_prof_set(1) }
-                path { at: pcx + 92 * cu, px_top + (176 + bat_h) * cu - 8 * cu; stroke: 1.5 * cu; color: mix(ink, mint, clamp(1 - abs(pow_th - 2), 0, 1)); opacity: 55% + 45% * max(clamp(1 - abs(pow_th - 2), 0, 1), pw_p2.hover); move 1.5 * cu, -8.5 * cu; line -5 * cu, 1.5 * cu; line -0.6 * cu, 1.5 * cu; line -1.6 * cu, 8.5 * cu; line 5 * cu, -1.5 * cu; line 0.6 * cu, -1.5 * cu; line 1.5 * cu, -8.5 * cu }
+                PPBolt(pcx + 92 * cu, px_top + (176 + bat_h) * cu - 8 * cu, max(clamp(1 - abs(pow_th - 2), 0, 1), pw_p2.hover), clamp(1 - abs(pow_th - 2), 0, 1), 0.55 + 0.45 * max(clamp(1 - abs(pow_th - 2), 0, 1), pw_p2.hover))
                 text "Performance" { at: floor(pcx + 92 * cu + 0.5), floor(px_top + (176 + bat_h) * cu + 12 * cu + 0.5); anchor: center; align: center; size: 11.5; weight: 600; width: 88 * cu; lines: 1; color: mix(ink, mint, clamp(1 - abs(pow_th - 2), 0, 1)); opacity: 60% + 40% * max(clamp(1 - abs(pow_th - 2), 0, 1), pw_p2.hover); family: "Space Grotesk" }
                 zone box pw_p2 { at: pcx + 92 * cu, px_top + (176 + bat_h) * cu; size: 90 * cu, 44 * cu; corner: 15 * cu; cursor: pointer; active: pow_prof >= 0 }
                 on press pw_p2 { emit pow_prof_set(2) }

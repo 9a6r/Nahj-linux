@@ -459,13 +459,27 @@ on("mcmd", function(k)
 end)
 
 -- The volume slider: the scene turns the pointer into 0..1, the mixer takes it.
-on("setvol", function(v)
-    sys.call("audio.volume", v)
-end)
-
-on("setbright", function(v)
-    sys.call("brightness.level", v)
-end)
+-- A drag sends a value for every step of the pointer; each used to start its own call, and they queued up behind each other (the slider answered up to a second late). Now only
+-- the latest value waits its turn: one call at most every 40 ms, and the last one always goes.
+local function coalesced(service)
+    local pending, busy = nil, false
+    local function pump()
+        if pending ~= nil then
+            local v = pending
+            pending = nil
+            sys.call(service, v)
+            after(40, pump)
+        else
+            busy = false
+        end
+    end
+    return function(v)
+        pending = v
+        if not busy then busy = true; pump() end
+    end
+end
+on("setvol", coalesced("audio.volume"))
+on("setbright", coalesced("brightness.level"))
 
 -- An event's payload crosses over as a plain number (1/0), not a Luau
 -- boolean, even for something written `not net.wifi` in the scene - and
