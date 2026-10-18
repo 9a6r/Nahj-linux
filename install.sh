@@ -359,9 +359,20 @@ LIST
                 fi
             fi
         fi
-        case "$pv" in
-            0.0*|0.1*|0.2.[0-8]) warn "Vitreus needs pleamar 0.2.9 or newer (the lock screen's monitor choice, and a crash when a monitor goes away, need it): update it with pleamar-update" ;;
-        esac
+        # 0.4.14 is where text `size:` takes expressions; older pleamar stops at "expected a number here" and the shell does not load.
+        pleamar_min="0.4.14"
+        if [ -n "$pv" ] && [ "$(printf '%s\n%s\n' "$pleamar_min" "$pv" | sort -V | head -1)" != "$pleamar_min" ]; then
+            warn "Vitreus needs pleamar $pleamar_min or newer (this is $pv): older ones fail to load the scene with \"expected a number here\""
+            if have pleamar-update; then
+                if ask "update pleamar now? (built from source; a few minutes)"; then
+                    if $dry; then echo "    would run: pleamar-update"
+                    else pleamar-update || warn "pleamar-update failed: run it yourself before starting Vitreus"
+                    fi
+                fi
+            else
+                warn "pleamar-update was not found: reinstall pleamar from https://github.com/k4ditano/pleamar"
+            fi
+        fi
     else
         say "pleamar, the runtime Vitreus is written for, is not installed"
         if ask "install it now? (it is built from source; the first time takes a few minutes)"; then
