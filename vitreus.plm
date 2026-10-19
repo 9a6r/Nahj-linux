@@ -2069,6 +2069,7 @@ scene Vitreus {
     //  number; since pleamar 0.4.14 `size:` is an expression, and `size: 14 * rs` could take the place of the group.
     let rs = clamp(screen.height / 1350, 0.55, 1)
     let cu = 1.5525                  // u * 1.15: the control center, the calendar and the player and tray are laid out 15% larger than the rest
+    let pr = 14 * cu * (1 - 0.5 * sq)        // a plate's corner in the control center, calendar and player: it sharpens with the theme, like the bar's (`bar.rad`)
     let rc = (26 - 19 * sq) * u              // a drawer's corner
     let bk = 1 - 0.85 * sq                   // how much of a melt (a neck) is left
     let du = 1.5525 * rs             // the Desk's own unit: cu (u * 1.15) at the scale of the screen
@@ -2172,7 +2173,7 @@ scene Vitreus {
                 opacity: 8% + 14% * touch.hover
                 rim: 14% + 26% * touch.hover
                 shadow: 0, 2 * cu * touch.hover, 9 * cu * touch.hover, 30% * touch.hover, #000000
-                box { from: 0, 0; size: 134 * cu, 52 * cu; corner: 14 * cu }
+                box { from: 0, 0; size: 134 * cu, 52 * cu; corner: pr }
             }
             ellipse { at: 28 * cu, 26 * cu; radius: (15 * cu) * 1.3; color: mint; opacity: (40% * touch.hover) * 0.28 }
             ellipse { at: 28 * cu, 26 * cu; radius: (15 * cu) * 0.95; color: mint; opacity: (40% * touch.hover) * 0.34 }
@@ -2185,7 +2186,7 @@ scene Vitreus {
             text label { at: floor(54 * cu + 0.5), floor(21 * cu + 0.5); anchor: left center; size: 14; weight: 600; width: 76 * cu; lines: 1; color: ink; family: "Space Grotesk" }
             text note { at: floor(54 * cu + 0.5), floor(36 * cu + 0.5); anchor: left center; size: 10.5; width: 76 * cu; lines: 1; color: mix(faint, mint, touch.hover); family: "Space Grotesk" }
         }
-        zone box touch { from: 0, 0; size: 134 * cu, 52 * cu; corner: 14 * cu; cursor: pointer }
+        zone box touch { from: 0, 0; size: 134 * cu, 52 * cu; corner: pr; cursor: pointer }
         on press touch { emit go(arg) }
     }
 
@@ -2335,7 +2336,7 @@ scene Vitreus {
             group {
                 show: lv > 0.02
                 clip inset 0 box { from: 0, 0; size: 276 * cu * lv, 50 * cu }
-                box { from: 1 * cu, 1 * cu; size: 274 * cu, 48 * cu; corner: 14 * cu; stroke: 2 * cu; color: tone; opacity: 70% }
+                box { from: 1 * cu, 1 * cu; size: 274 * cu, 48 * cu; corner: pr; stroke: 2 * cu; color: tone; opacity: 70% }
             }
             box { from: 276 * cu * lv - 2 * cu, 0; size: 2 * cu, 50 * cu; color: tone; opacity: 70%; show: lv > 0.02 and lv < 0.99 }
             box { from: (276 * charge_sweep - 40) * cu, 0; size: 40 * cu, 50 * cu; color: #ffffff; opacity: 10% * sin(clamp(charge_sweep, 0, 1) * 180); show: charging }

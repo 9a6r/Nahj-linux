@@ -52,8 +52,8 @@ part Player {
             move: 0, (1 - f3) * 12 * cu
             let ty = ck + 34 * cu                           // the app plate's middle
             //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
-            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * cu, 7 * cu, 40%, #000000; show: obs > 0.004; box { at: mdx, ty; size: 288 * cu, 52 * cu; corner: 14 * cu } }
-            box { at: mdx, ty; size: 288 * cu, 52 * cu; corner: 14 * cu; color: ink; opacity: (veil) * (1 - obs) }
+            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * cu, 7 * cu, 40%, #000000; show: obs > 0.004; box { at: mdx, ty; size: 288 * cu, 52 * cu; corner: pr } }
+            box { at: mdx, ty; size: 288 * cu, 52 * cu; corner: pr; color: ink; opacity: (veil) * (1 - obs) }
             image tm_icon { at: floor(mdx - 132 * cu + 0.5), floor(ty - 15 * cu + 0.5); size: floor(30 * cu + 0.5), floor(30 * cu + 0.5) }
             text tm_title { at: floor(mdx - 94 * cu + 0.5), floor(ty - 8 * cu + 0.5); anchor: left center; size: 15.5; weight: 700; width: 170 * cu; lines: 1; color: ink; family: "Space Grotesk" }
             text tm_sub { at: floor(mdx - 94 * cu + 0.5), floor(ty + 9 * cu + 0.5); anchor: left center; size: 12; width: 170 * cu; lines: 1; color: faint; family: "Space Grotesk" }
@@ -62,7 +62,7 @@ part Player {
             ellipse { at: mdx + 122 * cu, ty - 3 * cu; radius: 4 * cu; color: mix(ink, mint, if(tm_pinned, 1, 0)); opacity: if(tm_pinned, 100%, 0%) }
             ellipse { at: mdx + 122 * cu, ty - 3 * cu; radius: 4 * cu; stroke: 1.4 * cu; color: mix(ink, mint, if(tm_pinned, 1, 0)); opacity: if(tm_pinned, 0%, 70%) }
             line { from: mdx + 122 * cu, ty + 1 * cu; to: mdx + 122 * cu, ty + 7 * cu; width: 1.5 * cu; color: mix(ink, mint, if(tm_pinned, 1, 0)); opacity: if(tm_pinned, 100%, 70%) }
-            zone box tm_pin_hit { at: mdx + 122 * cu, ty; size: 28 * cu, 28 * cu; corner: 14 * cu; cursor: pointer }
+            zone box tm_pin_hit { at: mdx + 122 * cu, ty; size: 28 * cu, 28 * cu; corner: pr; cursor: pointer }
             on press tm_pin_hit { emit tm_pin }
             //  Open and Alt: what a left and a middle click on its icon would do.
             box { at: mdx - 71 * cu, ck + 79 * cu; size: 138 * cu, 26 * cu; corner: 9 * cu; color: ink; opacity: 8% + 10% * tm_open_hit.hover }

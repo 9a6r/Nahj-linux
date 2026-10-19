@@ -26,8 +26,8 @@ part MediaFloat {
 
             //  The plate it has in the panel: the volume plate's veil. Floating, the glass under it is its plate.
             //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
-            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs * (1 - mfl); shadow: 0, 2 * cu, 7 * cu, 40%, #000000; show: obs * (1 - mfl) > 0.004; box { at: mf.cx, mf.cy; size: 288 * cu, 148 * cu; corner: 14 * cu } }
-            box { at: mf.cx, mf.cy; size: 288 * cu, 148 * cu; corner: 14 * cu; color: ink; opacity: (veil) * (1 - obs) * (1 - mfl) }
+            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs * (1 - mfl); shadow: 0, 2 * cu, 7 * cu, 40%, #000000; show: obs * (1 - mfl) > 0.004; box { at: mf.cx, mf.cy; size: 288 * cu, 148 * cu; corner: pr } }
+            box { at: mf.cx, mf.cy; size: 288 * cu, 148 * cu; corner: pr; color: ink; opacity: (veil) * (1 - obs) * (1 - mfl) }
 
             //  Take it by anywhere that is not a button, and pull it off the panel; let go over the open panel and it goes back. While it is held its zone is the
             //  whole screen: the surface's input region is only what has a zone, so with no panel open a drag would be lost where the card is not. The buttons and the seek bar are declared after it, so they win.
