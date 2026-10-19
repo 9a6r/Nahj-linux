@@ -49,6 +49,10 @@ scene DesktopEdit {
     fact pal_alert_b = 0.2667
 
     fact open = false          // the editor is out
+    fact shx = 0               // how far the shelf has been dragged from its place (along the bottom, in the middle), and where it was when the press began
+    fact shy = 0
+    fact shx0 = 0
+    fact shy0 = 0
     fact emon = -1             // which monitor shows the shelf (`screen.index`; -1: the first)
     fact hov = -1              // the tile under the pointer (-1 none, 5 Done)
     fact on0 = false           // what each tile shows: the clock, the system monitor, the audio visualiser, the webcam
@@ -116,8 +120,8 @@ scene DesktopEdit {
     let sh = max(screen.height, 600)
     let shw = min(sw - 80, 1220)
     let shh = 150
-    let sx0 = (sw - shw) / 2
-    let sy0 = sh - shh - 48
+    let sx0 = clamp((sw - shw) / 2 + shx, 8, max(8, sw - shw - 8))      // dragged by its bare parts (`shx`, `shy`), and kept on the screen
+    let sy0 = clamp(sh - shh - 48 + shy, 8, max(8, sh - shh - 8))
     let tw = 104
     let tp = 114
     let tx0 = sx0 + 262
@@ -144,7 +148,9 @@ scene DesktopEdit {
     }
 
     //  The shelf's own zone first (a press on the bare shelf goes nowhere), then the tiles and Done over it.
-    zone box shelf { at: sx0 + shw / 2, sy0 + shh / 2; size: shw, shh; active: open and eo > 0.6 and mine }
+    zone box shelf { at: sx0 + shw / 2, sy0 + shh / 2; size: shw, shh; cursor: grab; active: open and eo > 0.6 and mine; label: "Desktop editor: drag to move it" }
+    on press shelf { shx0 = shx; shy0 = shy }
+    on drag shelf { shx = clamp(shx0 + drag.dx, 8 - (sw - shw) / 2, (sw - shw) / 2 - 8); shy = clamp(shy0 + drag.dy, 8 - (sh - shh - 48), sh - shh - 8 - (sh - shh - 48)) }
     repeat i in 0..7 {
         zone box tz.$i { at: tx0 + i * tp + tw / 2, sy0 + 26 + 52; size: tw, 104; corner: 16; cursor: pointer; active: open and eo > 0.6 and mine; label: pick(i, "Clock", "System monitor", "Audio visualiser", "Webcam", "Calendar", "Reminders", "New sticky note") }
         on press tz.$i { emit tile_do(i) }
@@ -185,6 +191,10 @@ scene DesktopEdit {
             box { from: sx0, sy0; size: shw, shh; corner: 26 }
         }
 
+        //  a grip at the top: the shelf is dragged by any bare part of it
+        repeat q in 0..3 {
+            ellipse { at: sx0 + shw / 2 - 10 + q * 10, sy0 + 11; radius: 2; color: ink; opacity: 38% }
+        }
         //  what it is, and what the mouse does
         box { at: sx0 + 34, sy0 + 34; size: 11, 11; corner: 2; rotate: 45deg; color: mint }
         text "EDIT DESKTOP" { at: sx0 + 54, sy0 + 34; anchor: left center; size: 15; weight: 700; color: ink; family: "Space Grotesk" }
