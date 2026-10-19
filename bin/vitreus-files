@@ -1,6 +1,17 @@
 #!/bin/sh
-# Opens the home folder in the user's file manager (SUPER + E). Asks the file manager itself over D-Bus (org.freedesktop.FileManager1,
-# which Nautilus, Dolphin, Thunar and others answer), because xdg-open follows the inode/directory handler, and on some systems that is a terminal.
+# Opens the file manager (SUPER + E, and "Files" in the launcher): Vitreus's own window, files/files.plm, a pleamar window in the shell's glass. `vitreus-files [FOLDER]` starts it in FOLDER (else the home
+# folder). Each call opens a window of its own (the second one to start answers to `files-<number>` when talked to with `pleamar --say`); files are dragged between them.
+#
+# Without pleamar or without the scene, the user's own file manager, asked over D-Bus (org.freedesktop.FileManager1, which Nautilus, Dolphin, Thunar and others answer), because xdg-open follows the
+# inode/directory handler, and on some systems that is a terminal.
+here=$(dirname "$(readlink -f "$0")")
+scene="$here/../files/files.plm"
+export PATH="$HOME/.local/bin:$PATH"
+folder=${1:-$HOME}
+if [ -f "$scene" ] && command -v pleamar > /dev/null 2>&1; then
+    FILES_START="$folder" setsid pleamar --scene "$scene" --no-hud > /dev/null 2>&1 &
+    exit 0
+fi
 dbus-send --session --type=method_call --dest=org.freedesktop.FileManager1 /org/freedesktop/FileManager1 \
-    org.freedesktop.FileManager1.ShowFolders array:string:"file://$HOME" string:"" 2> /dev/null && exit 0
-exec xdg-open "$HOME"
+    org.freedesktop.FileManager1.ShowFolders array:string:"file://$folder" string:"" 2> /dev/null && exit 0
+exec xdg-open "$folder"

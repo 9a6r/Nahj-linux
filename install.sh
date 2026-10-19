@@ -57,7 +57,7 @@ fonts_mochiy="$data/fonts/MochiyPopOne"
 fonts_orbitron="$data/fonts/Orbitron"
 
 # Official-repo packages, then AUR ones: what each is for is in the README.
-pacman_pkgs="git curl jq python fontconfig socat imagemagick cava playerctl networkmanager bluez bluez-utils brightnessctl hypridle hyprsunset libnotify xdg-user-dirs xdg-utils wl-clipboard cliphist awww ffmpeg grim slurp wf-recorder power-profiles-daemon polkit python-gobject python-pyte ttf-space-mono-nerd pipewire-audio sound-theme-freedesktop tesseract tesseract-data-eng"
+pacman_pkgs="git curl jq python fontconfig socat glib2 file imagemagick cava playerctl networkmanager bluez bluez-utils brightnessctl hypridle hyprsunset libnotify xdg-user-dirs xdg-utils wl-clipboard cliphist awww ffmpeg grim slurp wf-recorder power-profiles-daemon polkit python-gobject python-pyte ttf-space-mono-nerd pipewire-audio sound-theme-freedesktop tesseract tesseract-data-eng"
 aur_pkgs="iris-colors mpvpaper"
 
 assume_yes=false
@@ -310,7 +310,7 @@ if $deps; then
     awww            the wallpaper picker
     mpvpaper (AUR), ffmpeg  video wallpapers (mp4, webm, mov): mpvpaper plays them, ffmpeg takes the frame the rest of the shell reads; ffmpeg also reads the webcam
     iris            theming from the wallpaper (https://aur.archlinux.org/packages/iris-colors)
-    imagemagick     wallpaper thumbnails, the launcher's picture previews, Snap's marked-up picture
+    imagemagick     wallpaper thumbnails, the launcher's picture previews, Snap's marked-up picture, and the pictures' own pictures in Files
     wl-clipboard    the launcher copying (wl-copy: results, snippets), and Capture copying a screenshot
     polkit, python-gobject  the authentication dialog (Vitreus asks for your password when something wants admin rights)
     python-pyte, SpaceMono Nerd Font  the Desk's terminal (pyte keeps its screen; the font is Space Grotesk's monospaced sibling)
@@ -321,7 +321,8 @@ if $deps; then
     wf-recorder     Capture's screen recording (slurp picks the region)
     power-profiles-daemon  the power profile in Power (powerprofilesctl)
     cliphist        the launcher's clipboard search (something must run: wl-paste --watch cliphist store)
-    xdg-utils       the launcher opening a file or a web search (xdg-open)
+    xdg-utils       the launcher opening a file or a web search (xdg-open), and Files opening a file
+    glib2 (gio)     Files putting things in the Trash and emptying it; file  the kind of file Files shows in Properties
     curl            weather, remote cover art and the launcher's web answers
     NetworkManager  Wi-Fi (nmcli)
     BlueZ           Bluetooth (bluetoothctl)
@@ -329,7 +330,7 @@ if $deps; then
     hypridle        Caffeine
     hyprsunset      Night mode (REQUIRED on Hyprland: https://github.com/hyprwm/hyprsunset)
     libnotify       calendar reminders (notify-send)
-    xdg-user-dirs   finding your Pictures folder
+    xdg-user-dirs   finding your Pictures folder, and the places in Files' sidebar
     git, fontconfig
     python          the font setup of the Retro and UwU themes and the font picker (bin/vitreus-fonts)
     Audiowide, Mochiy Pop One, Orbitron  the typefaces of the Retro, UwU and Cyber themes (Space Grotesk's neighbours, installed into ~/.local/share/fonts)

@@ -3009,7 +3009,7 @@ do
         run("pleamar", { "--say", "desktopsysmon", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopcards", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopnotes", "fact look " .. v }, function() end)
-        run("pleamar", { "--say", "desktopcava", "fact look " .. v }, function() end)
+        run("pleamar", { "--say", "files", "fact look " .. v }, function() end)
     end
     local function show()
         push_look()
@@ -3842,7 +3842,7 @@ function glass.push_obs()
     run("pleamar", { "--say", "desktopclock", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopsysmon", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopcards", "fact obs " .. v }, function() end)
-    run("pleamar", { "--say", "desktopcava", "fact obs " .. v }, function() end)
+    run("pleamar", { "--say", "files", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopnotes", "fact obs " .. v }, function() end)
 end
 local function glass_save_soon()
@@ -5752,6 +5752,7 @@ end
         { "Webcam: toggle", "action", function() spawn('pleamar --say vitreus "emit cam_toggle"') end, "webcam camera self view mirror face round window record screen show hide on off" },
         { "Webcam: mirror on/off", "action", function() spawn('pleamar --say webcam "emit cam_mirror"') end, "webcam camera mirror flip self view" },
         { "Sticky note: new", "action", function() spawn('pleamar --say vitreus "emit sticky_new"') end, "sticky note sticker new add notes desktop paper write" },
+        { "Files", "action", function() spawn('PATH="$HOME/.local/bin:$PATH" vitreus-files') end, "files file manager folder folders browse explorer home documents downloads search sonda nautilus" },
         { "Ask about the clipboard", "action", function()
             -- The last thing copied goes to the Desk's Ask tab as an attachment, to be sent with whatever is typed there (never by itself).
             run("cliphist", { "list" }, function(o)

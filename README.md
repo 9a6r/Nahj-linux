@@ -130,6 +130,7 @@ natepayn3@gmail.com if you have no account. With Vitreus installed it is just `v
 * **Authentication** — a polkit agent drawn in the same glass.
 * **Lock screen**, **Night mode**, and a **desktop clock** drawn as glass.
 * **Audio visualiser** — the bottom edge of the screen rises into the music: cava's bars as columns of the shell's own glass, melted into the frame (or, in the Island layout, into the screen's edge). Switch it on or off, and choose how many columns, how sensitive it is, how tall, and how blended, from Settings > Widgets, the desktop editor's tile, or the launcher; it falls flat while nothing plays.
+* **Files** — a small file manager of its own, in the shell's glass (**SUPER + E**, or "Files" in the launcher): places down the left (your folders, and any you drag over to pin), where you are across the top, the folder as tiles or lines with a pencil picture for each kind of file (and the picture itself for images), a right-click menu, **Properties** (with a switch for hidden), copy, cut, paste, rename, new folder, the Trash and emptying it. Drag files between folders, onto the sidebar, or from one window to another; open as many windows as you like. It follows the theme (glass off, Retro, UwU, Cyber) and needs nothing but the tools the installer already asks for.
 * **Desktop** — right-click the bare wallpaper for a menu: **Webcam** (your camera in a round glass pane over everything; drag it, and pull its edge to resize it, as the Desk's corners do), the clock, the system monitor, and **New sticky note**. Stickers are glass notes, tinted from your palette, that stay where you put them and can be dragged onto other monitors.
 * **Theme** — four looks, each with its own typeface: **Glass**, which Iris recolours from your wallpaper; **Retro**, moulded
   plastic; **UwU**, candy plastic with cat ears; and **Cyber**, a neon HUD on black glass.
@@ -152,7 +153,7 @@ The packages `install.sh` installs (pacman, and the AUR for the last two):
 | `awww` | the wallpaper picker |
 | `iris-colors` (AUR) | theming from the wallpaper |
 | `mpvpaper` (AUR), `ffmpeg` | video wallpapers, and the webcam (`ffmpeg` reads the camera) |
-| `imagemagick` | wallpaper thumbnails and the launcher's picture previews |
+| `imagemagick` | wallpaper thumbnails, the launcher's picture previews and the pictures in Files |
 | `cava` | the bass pulse, the equalizer and the audio visualiser |
 | `playerctl` | the player and its cover art |
 | `networkmanager` | Wi-Fi |
