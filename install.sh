@@ -422,11 +422,20 @@ LIST
             if have pleamar-update; then
                 if ask "update pleamar now? (built from source; a few minutes)"; then
                     if $dry; then echo "    would run: pleamar-update"
-                    else pleamar-update || warn "pleamar-update failed: run it yourself before starting Vitreus"
+                    else
+                        pleamar-update || fail "pleamar-update failed (see above); Vitreus needs pleamar $pleamar_min or newer. Run it yourself, then run this again"
+                        # Read the version again: a build that ends well can still leave an older pleamar first on the PATH.
+                        pv=$( { pleamar --version 2> /dev/null || "$HOME/.local/bin/pleamar" --version 2> /dev/null; } | sed -n 's/^pleamar \([0-9][0-9.]*\).*/\1/p' | head -1)
+                        if [ -z "$pv" ] || [ "$(printf '%s\n%s\n' "$pleamar_min" "$pv" | sort -V | head -1)" != "$pleamar_min" ]; then
+                            fail "pleamar is still ${pv:-of an unknown version} after the update; Vitreus needs $pleamar_min or newer. Check which pleamar comes first in your PATH ($(command -v pleamar))"
+                        fi
+                        say "pleamar is now $pv"
                     fi
+                elif ! $dry; then
+                    fail "Vitreus needs pleamar $pleamar_min or newer and will not load on $pv. Run pleamar-update, then run this again"
                 fi
             else
-                warn "pleamar-update was not found: reinstall pleamar from https://github.com/k4ditano/pleamar"
+                fail "Vitreus needs pleamar $pleamar_min or newer (this is $pv) and pleamar-update was not found: reinstall pleamar from https://github.com/k4ditano/pleamar"
             fi
         fi
     else

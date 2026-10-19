@@ -247,3 +247,15 @@ text. It takes about half a second after a wallpaper change.
 
 Vitreus is released under the [MIT License](LICENSE). It runs on [pleamar](https://github.com/k4ditano/pleamar), which
 is BSD-3-Clause and is not part of this repository.
+
+---
+
+## ⭐ Star History
+
+<a href="https://www.star-history.com/?repos=natepayn3%2Fvitreus&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=natepayn3/vitreus&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=natepayn3/vitreus&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=natepayn3/vitreus&type=date&legend=top-left" />
+ </picture>
+</a>
