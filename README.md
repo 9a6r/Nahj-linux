@@ -115,7 +115,7 @@ natepayn3@gmail.com if you have no account. With Vitreus installed it is just `v
   private (addresses, links, long numbers) in one click, and copy it, save it, or drag it straight into another app. It is drawn
   in the shell's look.
 * **Player** — cover art, a live spectrum, and your running windows.
-* **Launcher** (`SUPER + Space`) — apps, files, commands, emoji, clipboard history and wallpapers, with previews. A sum or a conversion (`5 km to mi`, `20 c in f`, `15% of 80`) is answered as you type; `?` or `!yt lofi` searches the web (twenty-one `!bang` sites, and DuckDuckGo's instant answer); `@` switches to an open window; `$` expands snippets and quicklinks from `snippets.json`.
+* **Launcher** (`SUPER + Space`) — apps, files, commands, emoji, clipboard history and wallpapers, with previews. A sum or a conversion (`5 km to mi`, `20 c in f`, `15% of 80`) is answered as you type; `?` or `!yt lofi` searches the web (twenty-one `!bang` sites, and DuckDuckGo's instant answer); `@` switches to an open window; `$` expands snippets and quicklinks from `snippets.json`. `+firefox` searches the repositories and, if you have `paru` or `yay`, the AUR (Arch only): Enter installs the package in a terminal window, where it can ask for your password.
 * **Settings** (`SUPER + SHIFT + Space`) — wallpaper, theme, glass, display, Hyprland, notifications, clock and a system monitor.
 * **Wallpaper picker** (`SUPER + B`) — your wallpapers as a honeycomb of glass hexagons, and (`Tab`) a row of slanted cards that changes the wallpaper live as you step through them, with a colour filter and each picture's size and kind. It opens on the one you used last.
 * **Workspace overview** (`SUPER + TAB`) — a glass card per workspace; drag a window to move it.

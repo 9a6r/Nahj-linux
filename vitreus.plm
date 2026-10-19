@@ -66,7 +66,7 @@ scene Vitreus {
     let wcol.alert = rgb(wcol_alert_r, wcol_alert_g, wcol_alert_b)
     surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 68 while bar_anchor == top and not bar_frame; screens: each max 2; keyboard: exclusive while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or dash_open }
     permissions { services: "files", "files.write", "auth", "clock", "clock.seconds", "thumbnails", "thumbnails.*", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
-                  run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "claude", "ollama", "codex", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "date", "udevadm" }
+                  run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "claude", "ollama", "codex", "pacman", "paru", "yay", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "date", "udevadm" }
 
     model wifi_nets max 16 { ssid: text; strength: number; secure: bool; known: bool; active: bool; band: number; bands: text; bandw: number; chan: number; rate: number; sec: text; busy: number }
     model bat_devs max 6 { name: text; level: number }
@@ -147,6 +147,7 @@ scene Vitreus {
     measure lhw6
     measure lhw7
     measure lhw8
+    measure lhw9
     measure titw                   // and its window title
     measure vclw                   // the same two, at the size they are drawn down the left bar
     measure vtiw
@@ -5373,6 +5374,7 @@ scene Vitreus {
         text "web" { at: 0, 0; size: 13; lines: 1; measure: lhw6; opacity: 0; family: "Space Grotesk" }
         text "snippets" { at: 0, 0; size: 13; lines: 1; measure: lhw7; opacity: 0; family: "Space Grotesk" }
         text "calc" { at: 0, 0; size: 13; lines: 1; measure: lhw8; opacity: 0; family: "Space Grotesk" }
+        text "packages" { at: 0, 0; size: 13; lines: 1; measure: lhw9; opacity: 0; family: "Space Grotesk" }
         //  What the first character of the search does, in small type under the field: press one to type it. Five
         //  equal cells across the field, each pair (character, name) centred in its cell, a divider between cells.
         repeat i in 0..5 {
@@ -5386,16 +5388,16 @@ scene Vitreus {
             zone box lhint_hit.$i { at: hc, hy; size: 84 * pu, 18 * pu; corner: 9 * pu; cursor: pointer }
             on press lhint_hit.$i { emit launch_hint(i) }
         }
-        //  A second row of the same under it: four more (windows, the web, snippets, a sum or a conversion), four cells across the field.
-        repeat j in 0..4 {
-            let hc2 = lx + (j + 0.5) * 107.5 * pu
+        //  A second row of the same under it: five more (windows, the web, snippets, a sum or a conversion, packages), five cells across the field like the first.
+        repeat j in 0..5 {
+            let hc2 = lx + (j + 0.5) * 86 * pu
             let hy2 = ly + 72 * pu
-            let hx2 = floor(hc2 - (12 * pu + rs * pick(j, lhw5.width, lhw6.width, lhw7.width, lhw8.width)) / 2 + 0.5)
-            box { at: hc2, hy2; size: 103 * pu, 18 * pu; corner: 9 * pu; color: ink; opacity: 8% * lhint2_hit.$j.hover }
-            group { scale: rs; pivot: hx2, floor(hy2 + 0.5); text pick(j, "@", "?", "$", "=") { at: hx2, floor(hy2 + 0.5); anchor: left center; size: 15; weight: 700; color: mint; family: "Space Grotesk" } }
-            group { scale: rs; pivot: hx2 + floor(12 * pu + 0.5), floor(hy2 + 0.5); text pick(j, "windows", "web", "snippets", "calc") { at: hx2 + floor(12 * pu + 0.5), floor(hy2 + 0.5); anchor: left center; size: 13; color: ink; opacity: 70%; family: "Space Grotesk" } }
-            line { from: lx + j * 107.5 * pu, hy2 - 5 * pu; to: lx + j * 107.5 * pu, hy2 + 5 * pu; width: 1 * pu; color: ink; opacity: 18%; show: j > 0 }
-            zone box lhint2_hit.$j { at: hc2, hy2; size: 105 * pu, 18 * pu; corner: 9 * pu; cursor: pointer }
+            let hx2 = floor(hc2 - (12 * pu + rs * pick(j, lhw5.width, lhw6.width, lhw7.width, lhw8.width, lhw9.width)) / 2 + 0.5)
+            box { at: hc2, hy2; size: 82 * pu, 18 * pu; corner: 9 * pu; color: ink; opacity: 8% * lhint2_hit.$j.hover }
+            group { scale: rs; pivot: hx2, floor(hy2 + 0.5); text pick(j, "@", "?", "$", "=", "+") { at: hx2, floor(hy2 + 0.5); anchor: left center; size: 15; weight: 700; color: mint; family: "Space Grotesk" } }
+            group { scale: rs; pivot: hx2 + floor(12 * pu + 0.5), floor(hy2 + 0.5); text pick(j, "windows", "web", "snippets", "calc", "packages") { at: hx2 + floor(12 * pu + 0.5), floor(hy2 + 0.5); anchor: left center; size: 13; color: ink; opacity: 70%; family: "Space Grotesk" } }
+            line { from: lx + j * 86 * pu, hy2 - 5 * pu; to: lx + j * 107.5 * pu, hy2 + 5 * pu; width: 1 * pu; color: ink; opacity: 18%; show: j > 0 }
+            zone box lhint2_hit.$j { at: hc2, hy2; size: 84 * pu, 18 * pu; corner: 9 * pu; cursor: pointer }
             on press lhint2_hit.$j { emit launch_hint(j + 5) }
         }
         //  The wheel over the rows scrolls the list (under the rows, so their presses still win).

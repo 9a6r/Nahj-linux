@@ -5323,8 +5323,8 @@ end
     local schedule_preview_fwd
     local S = { desc = {}, apps = {}, res = {}, sel = 1, start = 1, last = nil, seq = 0, counts = {}, emoji = nil, clip = nil }
     local ROWS = 6
-    local MODES = { ["#"] = "files", [">"] = "commands", [":"] = "emoji", ["^"] = "clipboard", ["~"] = "wallpapers", ["@"] = "windows", ["?"] = "web", ["!"] = "web", ["$"] = "snippets", ["="] = "calc" }
-    local LABEL = { apps = "Apps", calc = "Calc", files = "Files", commands = "Commands", emoji = "Emoji", clipboard = "Clipboard", wallpapers = "Wallpapers", windows = "Windows", web = "Web", snippets = "Snippets" }
+    local MODES = { ["#"] = "files", [">"] = "commands", [":"] = "emoji", ["^"] = "clipboard", ["~"] = "wallpapers", ["@"] = "windows", ["?"] = "web", ["!"] = "web", ["$"] = "snippets", ["="] = "calc", ["+"] = "packages" }
+    local LABEL = { apps = "Apps", calc = "Calc", files = "Files", commands = "Commands", emoji = "Emoji", clipboard = "Clipboard", wallpapers = "Wallpapers", windows = "Windows", web = "Web", snippets = "Snippets", packages = "Packages" }
     local HINT = {
         apps = "Search apps…  # files  > commands  : emoji  ^ clipboard  ~ wallpapers",
     }
@@ -6117,6 +6117,86 @@ end
         end)
     end
 
+
+    -- ── packages (Arch) ──
+    -- `+` then a name: the repositories are searched with `pacman -Ss`, or with `paru` or `yay` when there is one, which looks in the AUR too. Enter installs the package in a terminal window of its own: it
+    -- may ask for a password, or which of several to take, and the terminal is the progress. The exact name comes first, the official repositories before the AUR, then names that start with what was typed.
+    local PK = { tool = nil }
+    local function pk_tool(fn)
+        if PK.tool then return fn(PK.tool) end
+        run("which", { "paru" }, function(_, c1)
+            if c1 == 0 then PK.tool = "paru"; return fn("paru") end
+            run("which", { "yay" }, function(_, c2)
+                if c2 == 0 then PK.tool = "yay"; return fn("yay") end
+                run("which", { "pacman" }, function(_, c3)
+                    PK.tool = c3 == 0 and "pacman" or "none"
+                    fn(PK.tool)
+                end)
+            end)
+        end)
+    end
+    local function pk_rank(rows, q)
+        local needle = q:lower()
+        local function group(r) return r.name:lower() == needle and 0 or (r.repo == "aur" and 2 or 1) end
+        local function match(r)
+            local n = r.name:lower()
+            if n:sub(1, #needle) == needle then return 0 end
+            if n:find(needle, 1, true) then return 1 end
+            return r.desc:lower():find(needle, 1, true) and 2 or 3
+        end
+        for i, r in ipairs(rows) do r.i = i; r.g = group(r); r.m = match(r) end
+        table.sort(rows, function(a, b)
+            if a.g ~= b.g then return a.g < b.g end
+            if a.m ~= b.m then return a.m < b.m end
+            return a.i < b.i
+        end)
+    end
+    local function pk_install(r)
+        if r.installed then                                       -- already there: say so, as a notification, instead of doing nothing
+            run("notify-send", { "-a", "Vitreus", r.name .. " is already installed" }, function() end)
+            return
+        end
+        local inner = 'tool="$1"; pkg="$2"; if [ "$tool" = pacman ]; then sudo pacman -S -- "$pkg"; else "$tool" -S -- "$pkg"; fi; ec=$?; '
+            .. 'if [ "$ec" -eq 0 ]; then notify-send -a Vitreus "$pkg installed"; else notify-send -a Vitreus "$pkg install failed (exit $ec)"; fi; '
+            .. 'echo; printf "Press Enter to close… "; read _x; exit "$ec"'
+        local args = "_ " .. PK.tool .. " " .. r.name
+        spawn('t=$(command -v kitty foot alacritty ghostty konsole xterm | head -n1); [ -n "$t" ] || exit 1; case "$t" in *kitty) "$t" sh -c \'' .. inner .. '\' ' .. args
+            .. ' ;; *) "$t" -e sh -c \'' .. inner .. '\' ' .. args .. ' ;; esac')
+    end
+    local function search_packages(q, seq, done)
+        q = trim(q):gsub("^%-+", "")
+        if q == "" then return done({}, "Type a package's name to search the repositories and the AUR") end
+        if #q < 2 then return done({}, "Keep typing…") end
+        text.lmsg = "Searching…"
+        after(280, function()
+            if seq ~= S.seq then return end
+            pk_tool(function(tool)
+                if seq ~= S.seq then return end
+                if tool == "none" then return done({}, "pacman was not found: Packages is for Arch and its relatives") end
+                run(tool, { "--color=never", "-Ss", q }, function(out)
+                    if seq ~= S.seq then return end
+                    local lines, rows = {}, {}
+                    for l in (out or ""):gmatch("[^\n]+") do lines[#lines + 1] = l end
+                    for i, l in ipairs(lines) do
+                        local repo, name, ver = l:match("^([%w%-_.]+)/(%S+)%s+(%S+)")
+                        if repo and name:match("^[%w@._+%-]+$") then
+                            rows[#rows + 1] = { repo = repo, name = name, ver = ver, installed = l:lower():find("[installed", 1, true) ~= nil or l:lower():find("(installed", 1, true) ~= nil,   -- paru and pacman: [Installed]; yay: (Installed…)
+                                                desc = (lines[i + 1] or ""):match("^%s+(.+)$") or "" }
+                        end
+                    end
+                    pk_rank(rows, q)
+                    local out_rows = {}
+                    for i = 1, math.min(#rows, 40) do
+                        local r = rows[i]
+                        out_rows[i] = { title = r.name, sub = r.ver, desc = (r.installed and "Installed  ·  " or "") .. r.repo .. (r.desc ~= "" and ("  ·  " .. r.desc:sub(1, 90)) or ""),
+                                        glyph = r.installed and "✓" or "+", run = function() return pk_install(r) end }
+                    end
+                    done(out_rows, "No package matches")
+                end)
+            end)
+        end)
+    end
+
     -- ── what is typed → what is shown ──
     -- The kind of search shown in the header chip; a change of kind also tells the scene (`sr_n`: the Search icon turns a quarter).
     local shown_mode, mode_turns = nil, 0
@@ -6165,6 +6245,7 @@ end
         elseif mode == "web" then search_web(q, seq, done)
         elseif mode == "windows" then window_rows(q, 30, function(rows) done(rows, "No open window matches") end)
         elseif mode == "snippets" then search_snippets(q, done)
+        elseif mode == "packages" then search_packages(q, seq, done)
         elseif mode == "commands" then done(search_commands(q))
         elseif mode == "wallpapers" then done(search_wallpapers(q))
         elseif mode == "emoji" then search_emoji(q, done)
@@ -6230,7 +6311,7 @@ end
     on("launch_pick", function(i) run_result(S.res[S.start + math.floor(i + 0.5)]) end)
     on("launch_run", function() run_result(S.res[S.sel]) end)
     on("launch_hint", function(i)
-        text.lq = ({ "#", ">", ":", "^", "~", "@", "?", "$", "=" })[math.floor(i + 0.5) + 1] or ""
+        text.lq = ({ "#", ">", ":", "^", "~", "@", "?", "$", "=", "+" })[math.floor(i + 0.5) + 1] or ""
         focus("lq")
     end)
 end)()
