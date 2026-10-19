@@ -15,7 +15,7 @@ scene Files {
 
     permissions {
         services: "files", "files.write"
-        run: "find", "magick", "stat", "du", "file", "rm", "hyprctl", "xdg-open", "gio", "cp", "mv", "mkdir", "df", "xdg-user-dir", "printenv", "pleamar"
+        run: "find", "magick", "ffmpeg", "stat", "du", "file", "rm", "hyprctl", "xdg-open", "gio", "cp", "mv", "mkdir", "df", "xdg-user-dir", "printenv", "pleamar"
     }
 
     // ── what the logic says ──
@@ -513,6 +513,22 @@ scene Files {
     }
     // <<< icons
 
+    //  A picture's own picture, drawn in pencil: the picture clipped to a hand-drawn rectangle (the corners a little off, the sides a little bowed, a different one for each place it is
+    //  drawn), with its outline in two pencil strokes on top, that boil about five times a second under the pointer. The picture goes in as its child. `hot` is the hover.
+    component PThumb(x: number, y: number, w: number, h: number, hot: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let jb = 1.2 * a
+        group {
+            clip path { at: x, y; move 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 0.0), 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 2.3); line w * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 4.6), -a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 6.9); line w + 3.2 * a * sin(x * 0.37 + y * 0.91 + 9.2), 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 11.5); line w + a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 13.8), h * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 16.1); line w + 3.2 * a * sin(x * 0.37 + y * 0.91 + 18.4), h + 3.2 * a * sin(x * 0.37 + y * 0.91 + 20.7); line w * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 23.0), h + a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 25.3); line 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 27.6), h + 3.2 * a * sin(x * 0.37 + y * 0.91 + 29.9); line -a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 32.2), h * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 34.5); close }
+            path { at: x, y; color: deep; opacity: 70%; move 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 0.0), 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 2.3); line w * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 4.6), -a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 6.9); line w + 3.2 * a * sin(x * 0.37 + y * 0.91 + 9.2), 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 11.5); line w + a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 13.8), h * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 16.1); line w + 3.2 * a * sin(x * 0.37 + y * 0.91 + 18.4), h + 3.2 * a * sin(x * 0.37 + y * 0.91 + 20.7); line w * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 23.0), h + a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 25.3); line 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 27.6), h + 3.2 * a * sin(x * 0.37 + y * 0.91 + 29.9); line -a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 32.2), h * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 34.5); close }
+            children
+        }
+        path { at: x, y; stroke: 1.6; color: ink; opacity: 85%; move 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 0.0) + jb * sin(fr * 47 + 1000), 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 2.3) + jb * sin(fr * 61 + 2000); line w * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 4.6) + jb * sin(fr * 50 + 1311), -a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 6.9) + jb * sin(fr * 63 + 2277); line w + 3.2 * a * sin(x * 0.37 + y * 0.91 + 9.2) + jb * sin(fr * 53 + 1622), 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 11.5) + jb * sin(fr * 65 + 2554); line w + a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 13.8) + jb * sin(fr * 56 + 1933), h * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 16.1) + jb * sin(fr * 67 + 2831); line w + 3.2 * a * sin(x * 0.37 + y * 0.91 + 18.4) + jb * sin(fr * 59 + 2244), h + 3.2 * a * sin(x * 0.37 + y * 0.91 + 20.7) + jb * sin(fr * 69 + 3108); line w * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 23.0) + jb * sin(fr * 62 + 2555), h + a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 25.3) + jb * sin(fr * 71 + 3385); line 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 27.6) + jb * sin(fr * 65 + 2866), h + 3.2 * a * sin(x * 0.37 + y * 0.91 + 29.9) + jb * sin(fr * 73 + 3662); line -a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 32.2) + jb * sin(fr * 68 + 3177), h * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 34.5) + jb * sin(fr * 75 + 3939); close }
+        path { at: x + 0.6, y + 0.6; stroke: 1.0; color: ink; opacity: 25% * a; move 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 0.0) + jb * sin(fr * 47 + 1000), 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 2.3) + jb * sin(fr * 61 + 2000); line w * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 4.6) + jb * sin(fr * 50 + 1311), -a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 6.9) + jb * sin(fr * 63 + 2277); line w + 3.2 * a * sin(x * 0.37 + y * 0.91 + 9.2) + jb * sin(fr * 53 + 1622), 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 11.5) + jb * sin(fr * 65 + 2554); line w + a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 13.8) + jb * sin(fr * 56 + 1933), h * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 16.1) + jb * sin(fr * 67 + 2831); line w + 3.2 * a * sin(x * 0.37 + y * 0.91 + 18.4) + jb * sin(fr * 59 + 2244), h + 3.2 * a * sin(x * 0.37 + y * 0.91 + 20.7) + jb * sin(fr * 69 + 3108); line w * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 23.0) + jb * sin(fr * 62 + 2555), h + a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 25.3) + jb * sin(fr * 71 + 3385); line 0 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 27.6) + jb * sin(fr * 65 + 2866), h + 3.2 * a * sin(x * 0.37 + y * 0.91 + 29.9) + jb * sin(fr * 73 + 3662); line -a + 3.2 * a * sin(x * 0.37 + y * 0.91 + 32.2) + jb * sin(fr * 68 + 3177), h * 0.5 + 3.2 * a * sin(x * 0.37 + y * 0.91 + 34.5) + jb * sin(fr * 75 + 3939); close }
+    }
+
     // ── the shape of the window ──
     let W = screen.width
     let H = screen.height
@@ -666,13 +682,9 @@ scene Files {
                                 // A picture shows itself, in a frame, instead of its icon.
                                 group {
                                     show: c.has.thumb
-                                    body {
-                                        color: deep
-                                        rim: 14%
-                                        box { from: tx + 6, 6; size: tw - 12, 80; corner: 9 * rr }
+                                    PThumb(tx + 6, 6, tw - 12, 80, hv) {
+                                        image c.thumb { at: tx + 6, 6; size: tw - 12, 80; opacity: ta }
                                     }
-                                    clip box { from: tx + 6, 6; size: tw - 12, 80; corner: 9 * rr }
-                                    image c.thumb { at: tx + 6, 6; size: tw - 12, 80; opacity: ta }
                                 }
                                 text c.name { at: tx + tw / 2, 90; anchor: center top; width: tile.w - 20; lines: 2; align: center; size: 12; weight: 500; color: ink; line_height: 1.2; family: "Space Grotesk" }
                             }
@@ -683,14 +695,15 @@ scene Files {
                                 group { show: not c.has.thumb; PFile(tx + 24, 17, 0.4, c.ik, hv, 1) }
                                 group {
                                     show: c.has.thumb
-                                    clip box { from: tx + 8, 3; size: 34, 26; corner: 6 * rr }
-                                    image c.thumb { at: tx + 8, 3; size: 34, 26; opacity: ta }
+                                    PThumb(tx + 8, 3, 34, 26, hv) {
+                                        image c.thumb { at: tx + 8, 3; size: 34, 26; opacity: ta }
+                                    }
                                 }
                                 text c.name { at: tx + 50, 17; anchor: left center; width: tw - 380; lines: 1; size: 13; weight: 500; color: ink; family: "Space Grotesk" }
                                 text c.date { at: tx + tw - 130, 17; anchor: left center; size: 12; color: faint; width: 150; lines: 1; family: "Space Grotesk" }
                                 text c.size { at: tx + tw - 16, 17; anchor: right center; size: 12; color: faint; family: "Space Grotesk" }
                             }
-                            zone box t { from: tx, 0; size: tw, tile.h - 4; corner: 12 * rr; cursor: pointer; carries: "{c.carry}"; label: "{c.name}"; role: item; selected: c.picked }
+                            zone box t { from: tx, 0; size: tw, tile.h - 4; corner: 12 * rr; carries: "{c.carry}"; label: "{c.name}"; role: item; selected: c.picked }
                             on press t { emit tile(c.at) }
                             on press right t { menu.x = pointer.x; menu.y = pointer.y; emit tile_menu(c.at) }
                             on drop t { emit dropped(c.at) }

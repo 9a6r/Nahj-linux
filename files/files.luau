@@ -164,16 +164,20 @@ end
 
 -- ── the pictures' own pictures ──
 -- A small copy of each picture that is on screen is made with ImageMagick, once, and kept in this scene's folder (`th-<hash of its path, size and date>.png`), so that a folder of photos
--- shows them and not a row of icons. Two are made at a time; one that cannot be made (a broken file) is left with its icon.
+-- shows them and not a row of icons. Several are made at a time (one thread each, so they do not fight over the processor); one that cannot be made (a broken file) is left with its icon.
+-- A video's picture is a frame from its first seconds, taken with ffmpeg.
 local THUMB_EXT = {}
 for e in ("png jpg jpeg gif webp bmp svg tif tiff avif ico"):gmatch("%S+") do THUMB_EXT[e] = true end
 local THUMB_MAX_BYTES = 300 * 1000 * 1000
+local THUMB_JOBS = 6
 s.thumbs, s.pending, s.queue, s.making = {}, {}, {}, 0
 local tdir = nil
 do
     local ok, folder = pcall(sys.ask, "files.folder")
     if ok and type(folder) == "string" and folder ~= "" then tdir = folder end
 end
+-- The scene's folder is only there once something has been saved in it, and magick does not make the folder it writes to.
+if tdir then run("mkdir", { "-p", "--", tdir }, function() end) end
 local function thumb_name(e)
     local key = e.path .. "|" .. e.size .. "|" .. e.mtime
     local h1, h2 = 7, 13
@@ -185,7 +189,9 @@ local function thumb_name(e)
     return string.format("th-%d-%d.png", h1, h2)
 end
 local function can_thumb(e)
-    if e.dir or e.ik ~= 1 or e.size > THUMB_MAX_BYTES then return false end
+    if e.dir or (e.ik ~= 1 and e.ik ~= 4) then return false end
+    if e.ik == 4 then return true end                  -- a video: any size, ffmpeg only reads the start
+    if e.size > THUMB_MAX_BYTES then return false end
     local ext = e.name:match("%.([^.]+)$")
     return ext ~= nil and THUMB_EXT[ext:lower()] == true
 end
@@ -199,7 +205,7 @@ local function flush_later()
     end)
 end
 local function pump()
-    while s.making < 2 and #s.queue > 0 do
+    while s.making < THUMB_JOBS and #s.queue > 0 do
         local e = table.remove(s.queue, 1)
         local name = thumb_name(e)
         local out = tdir .. "/" .. name
@@ -208,20 +214,31 @@ local function pump()
         else
             s.making = s.making + 1
             local tmp = out .. ".tmp.png"
-            run("magick", { "-define", "jpeg:size=480x480", e.path .. "[0]", "-auto-orient", "-thumbnail", "288x216^", "-gravity", "center", "-extent", "288x216", "-strip", tmp }, function(_, code)
-                local function done(ok)
-                    s.making = s.making - 1
-                    s.pending[e.path] = nil
-                    s.thumbs[e.path .. "|" .. e.size .. "|" .. e.mtime] = ok and out or false
-                    flush_later()
-                    pump()
-                end
+            local function done(ok)
+                s.making = s.making - 1
+                s.pending[e.path] = nil
+                s.thumbs[e.path .. "|" .. e.size .. "|" .. e.mtime] = ok and out or false
+                flush_later()
+                pump()
+            end
+            local function finish(code)
                 if code == 0 then
                     run("mv", { "-f", "--", tmp, out }, function(_, c2) done(c2 == 0) end)
                 else
                     done(false)
                 end
-            end)
+            end
+            if e.ik == 4 then
+                -- a frame a second in (a shorter video gives none there, so the first frame is asked for then)
+                local function frame(at, retry)
+                    run("ffmpeg", { "-v", "error", "-y", "-ss", at, "-i", e.path, "-frames:v", "1", "-vf", "scale=288:216:force_original_aspect_ratio=increase,crop=288:216", "-compression_level", "1", tmp }, function(_, code)
+                        if code ~= 0 and retry then frame("0", false) else finish(code) end
+                    end)
+                end
+                frame("1", true)
+            else
+                run("magick", { "-limit", "thread", "1", "-define", "jpeg:size=480x480", e.path .. "[0]", "-auto-orient", "-thumbnail", "288x216^", "-gravity", "center", "-extent", "288x216", "-strip", "-define", "png:compression-level=1", tmp }, function(_, code) finish(code) end)
+            end
         end
     end
 end
