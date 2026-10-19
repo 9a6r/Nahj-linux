@@ -96,12 +96,23 @@ def strokes(items):
                 out.append(f"            path {{ at: cx + off, cy + off; stroke: w2; color: {c}; opacity: (o) * 0.28; " + "; ".join(steps) + " }")
     return out
 
-def comp(name, doc, param, table, boil):
+def comp(name, doc, param, table, boil, share=0):
+    # `share`: how many leading drawings every kind but 0 has in common (a file's page and its folded corner). They are written once, for all of them, and not again for each kind: the scene
+    # takes longer to load for every copy, and Files opens in a window of its own each time. The random numbers are still drawn as before, so what is drawn does not change.
     body = []
+    shared = None
     for k, items in table.items():
+        lines = strokes(items)
+        if share and k >= 1:
+            n = 2 * share                      # a drawing is two lines (the stroke and its fainter copy)
+            if shared is None:
+                shared = lines[:n]
+            lines = lines[n:]
         body.append(f"            group {{\n                show: {param} == {k}")
-        body += ["    " + x for x in strokes(items)]
+        body += ["    " + x for x in lines]
         body.append("            }")
+    if shared:
+        body[0:0] = [f"            group {{\n                show: {param} >= 1"] + ["    " + x for x in shared] + ["            }"]
     head = f"    component {name}(cx: number, cy: number, s: number, {param}: number, " + ("hot: number, " if boil else "") + "o: number) {\n"
     if boil:
         head += "        prop a = 0 ~calm\n        follow a = hot\n        let fr = if(a > 0.02, floor(time * 5), 0)\n"
@@ -113,7 +124,7 @@ def comp(name, doc, param, table, boil):
     return "    //  " + doc + "\n" + head + "\n".join(body) + "\n        }\n    }\n"
 
 block = BEGIN + "\n"
-block += comp("PFile", "A file's or a folder's picture in pencil: a folder, a picture, a PDF, a sound, a video, code, an archive or any other file (`ik`, which the logic sets). `s` is its size (1 is 64 px); `hot` (hover) swells it and redraws it about five times a second. The folder takes the accent and the files the ink, so any palette is theirs.", "ik", FILES, True) + "\n"
+block += comp("PFile", "A file's or a folder's picture in pencil: a folder, a picture, a PDF, a sound, a video, code, an archive or any other file (`ik`, which the logic sets). `s` is its size (1 is 64 px); `hot` (hover) swells it and redraws it about five times a second. The folder takes the accent and the files the ink, so any palette is theirs.", "ik", FILES, True, share=2) + "\n"
 block += comp("PPlace", "A place's picture in pencil for the sidebar (`pk`): a folder, home, the trash, this computer, downloads, documents, pictures, music, videos, a drive. Still, and a little crooked.", "pk", PLACES, False) + "\n"
 block += comp("PGlyph", "A toolbar button's picture (`g`): back, forward, up, tiles, lines, hidden files, new folder, close. `hot` swells it, turns it to the accent and redraws it, like the shell's own.", "g", GLYPHS, True)
 block += END + "\n"
