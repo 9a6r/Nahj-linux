@@ -1977,6 +1977,12 @@ function window_urgent(addr)
         end
     end)
 end
+-- Which mark a special workspace gets on the bar: 1 for `special:music`, 2 for `special:private`, 0 for the rest (the sparkle).
+local function special_kind(name)
+    local n = name:gsub("^special:", "")
+    if n == "music" then return 1 elseif n == "private" then return 2 end
+    return 0
+end
 local sc_active, sc_gen = 0, 0                       -- screencasts running now, and a counter that tells a later event from the one a timer was set for
 function watch_urgent()
     run("printenv", { "XDG_RUNTIME_DIR" }, function(rt)
@@ -1986,7 +1992,10 @@ function watch_urgent()
             spawn("socat", { "-u", "UNIX-CONNECT:" .. rt .. "/hypr/" .. sig .. "/.socket2.sock", "-" }, function(line)
                 -- A special workspace (the scratchpads) shown or put away: `activespecial>>special:magic,<name>`, with no name when it is put away.
                 local spn = line:match("^activespecial>>([^,]*),")
-                if spn then fact["ws.special"] = spn ~= "" end
+                if spn then
+                    fact["ws.special"] = spn ~= ""
+                    fact["ws.spk"] = special_kind(spn)
+                end
                 local addr = line:match("^urgent>>(%x+)")
                 if addr then window_urgent(addr) end
                 -- the screen being shared or recorded through the portal (logic/privacy.luau has the rest of the privacy lights)
@@ -2039,7 +2048,10 @@ after(2000, function()
     if not on_hyprland then return end
     watch_urgent()
     -- One may already be in view when the shell starts.
-    hypr_monitors(0, function(out) if out and out:match('"specialWorkspace":%s*{[^}]*"name":%s*"special:') then fact["ws.special"] = true end end)
+    hypr_monitors(0, function(out)
+        local sn = out and out:match('"specialWorkspace":%s*{[^}]*"name":%s*"(special:[^"]*)"')
+        if sn then fact["ws.special"] = true; fact["ws.spk"] = special_kind(sn) end
+    end)
 end)
 
 sys.watch("apps", function(list)

@@ -106,23 +106,13 @@ part BarIcons {
             }
             PWsOutline(mix(pl.m, lf.x, lm), mix(bar.y, pl.m, lm), pl.w, pl.h, bs.ws * (1 - ws.sp), 0, 1, max(max(max(wsh.1, wsh.2), max(wsh.3, wsh.4)), wsh.5))
         }
-        //  A special workspace in view: a sparkle where the marks were, coming up from nothing: four points joined by curves that sag in towards the middle,
-        //  and a small one at its shoulder.
-        let sk.r = 9 * ws.U * max(ws.sp, 0.01)
-        let sk.q = 0.12 * sk.r
+        //  A special workspace in view: a pencil mark where the marks were, coming up from nothing: the sparkle (magic, and any other), a pair of notes (music) or an eye
+        //  crossed out (private). Their lines are redrawn about five times a second the whole time they are there, the way a workspace mark's are under the pointer.
         let sk.x = mix(ws.o + 9 * ws.U, lf.x, lm)
         let sk.y = mix(bar.y, ws.o + 9 * ws.U, lm)
-        let sk.s = 0.36 * sk.r
-        let sk.t = 0.12 * sk.s
-        body ws_spark {
-            color: mint
-            shadow: 0, 0, 8 * u, 40%, mint
-            opacity: ws.sp * bs.ws
-        path { at: sk.x, sk.y
-            move 0, -sk.r; curve sk.r, 0 via sk.q, -sk.q; curve 0, sk.r via sk.q, sk.q; curve -sk.r, 0 via -sk.q, sk.q; curve 0, -sk.r via -sk.q, -sk.q; close }
-        path { at: sk.x + 0.95 * sk.r, sk.y - 0.8 * sk.r; opacity: 80%
-            move 0, -sk.s; curve sk.s, 0 via sk.t, -sk.t; curve 0, sk.s via sk.t, sk.t; curve -sk.s, 0 via -sk.t, sk.t; curve 0, -sk.s via -sk.t, -sk.t; close }
-        }
+        PBSpark(sk.x, sk.y, 9 * ws.U * max(ws.spa, 0.01), ws.spa * bs.ws)
+        PBNote(sk.x, sk.y, 9 * ws.U * max(ws.spm, 0.01), ws.spm * bs.ws)
+        PBHide(sk.x, sk.y, 9 * ws.U * max(ws.spp, 0.01), ws.spp * bs.ws)
         //  The plus: two strokes, there while the workspace in view has a window.
         let wpl.x = mix(ws.a6, lf.x, lm)
         let wpl.y = mix(bar.y, ws.a6, lm)

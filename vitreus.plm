@@ -834,6 +834,7 @@ scene Vitreus {
     event pow_prof_set ->          // 0, 1 or 2
     fact ws.active = 1
     fact ws.special = false          // a special workspace (a scratchpad) is shown over them: the marks give way to one of its own
+    fact ws.spk = 0                  // which one: 0 magic (or any other), 1 music, 2 private
     repeat i in 1..6 { fact ws.$i.urgent = false }   // a window on that workspace asked for attention while it was out of view
     fact ws.1.busy = false
     fact ws.2.busy = false
@@ -1112,6 +1113,12 @@ scene Vitreus {
     follow ws.pv = if(ws.new > 0 and not ws_empty and not ws.special, 1, 0)
     prop ws.sp = 0 ~lively                              // how much the special workspace's mark is there
     follow ws.sp = if(ws.special, 1, 0)
+    prop ws.spa = 0 ~lively                             // which mark it is: the sparkle (magic, and any other), the music notes, the crossed-out eye (private)
+    prop ws.spm = 0 ~lively
+    prop ws.spp = 0 ~lively
+    follow ws.spa = if(ws.special and ws.spk == 0, 1, 0)
+    follow ws.spm = if(ws.special and ws.spk == 1, 1, 0)
+    follow ws.spp = if(ws.special and ws.spk == 2, 1, 0)
     prop wspl = 0 ~pop                                  // the plus's hover, on the spring that pops past
     //  The mark of the workspace in view is one piece that travels: its head runs ahead to the new place and its tail follows, so it
     //  stretches across what lies between and gathers again.
@@ -2949,6 +2956,45 @@ scene Vitreus {
         path { at: cx + 0.4 * u, cy + 0.3 * u; stroke: 0.7 * sw; color: ink; opacity: (o2) * 0.34; move -0.25 * k + jt * sin(fr * 73 + 23744), -0.15 * k + jt * sin(fr * 47 + 23804); line 0.41 * k + jt * sin(fr * 49 + 23841), -0.15 * k + jt * sin(fr * 54 + 23901); line 0.41 * k + jt * sin(fr * 56 + 23938), 0.35 * k + jt * sin(fr * 61 + 23998); line -0.25 * k + jt * sin(fr * 63 + 24035), 0.35 * k + jt * sin(fr * 68 + 24095); close }
         path { at: cx, cy; stroke: sw; color: ink; opacity: (o3); move -0.25 * k + jt * sin(fr * 69 + 23426), -0.01 * k + jt * sin(fr * 43 + 23486); line 0.41 * k + jt * sin(fr * 45 + 23523), -0.01 * k + jt * sin(fr * 50 + 23583); }
         path { at: cx + 0.4 * u, cy + 0.3 * u; stroke: 0.7 * sw; color: ink; opacity: (o3) * 0.34; move -0.25 * k + jt * sin(fr * 53 + 23797), -0.01 * k + jt * sin(fr * 58 + 23857); line 0.41 * k + jt * sin(fr * 60 + 23894), -0.01 * k + jt * sin(fr * 65 + 23954); }
+    }
+
+    //  The special workspace's mark: a four-pointed sparkle and a small one at its shoulder, in pencil like the rest (a line and a fainter copy a hair off, the points
+    //  redrawn about five times a second all the time while it is there, as a workspace mark's are under the pointer). `k` is the big one's radius, so the mark grows from nothing with it.
+    component PBSpark(cx: number, cy: number, k: number, o: number) {
+        let fr = floor(time * 5)
+        let jt = 0.4 * u
+        path { at: cx + 0 + 0, cy + 0 + 0; stroke: 1.5 * u; color: mint; opacity: o; move 0 + jt * sin(fr * 67 + 31037), -1 * k + jt * sin(fr * 54 + 31074); curve 1 * k + jt * sin(fr * 73 + 31111), 0 + jt * sin(fr * 62 + 31148) via 0.12 * k + jt * sin(fr * 52 + 31185), -0.12 * k + jt * sin(fr * 69 + 31222); curve 0 + jt * sin(fr * 59 + 31259), 1 * k + jt * sin(fr * 47 + 31296) via 0.12 * k + jt * sin(fr * 67 + 31333), 0.12 * k + jt * sin(fr * 54 + 31370); curve -1 * k + jt * sin(fr * 73 + 31407), 0 + jt * sin(fr * 62 + 31444) via -0.12 * k + jt * sin(fr * 52 + 31481), 0.12 * k + jt * sin(fr * 69 + 31518); curve 0 + jt * sin(fr * 59 + 31555), -1 * k + jt * sin(fr * 47 + 31592) via -0.12 * k + jt * sin(fr * 67 + 31629), -0.12 * k + jt * sin(fr * 54 + 31666); close }
+        path { at: cx + 0 + 0.5 * u, cy + 0 + 0.4 * u; stroke: 0.7 * (1.5 * u); color: mint; opacity: o * 0.34; move 0 + jt * sin(fr * 73 + 31703), -1 * k + jt * sin(fr * 62 + 31740); curve 1 * k + jt * sin(fr * 52 + 31777), 0 + jt * sin(fr * 69 + 31814) via 0.12 * k + jt * sin(fr * 59 + 31851), -0.12 * k + jt * sin(fr * 47 + 31888); curve 0 + jt * sin(fr * 67 + 31925), 1 * k + jt * sin(fr * 54 + 31962) via 0.12 * k + jt * sin(fr * 73 + 31999), 0.12 * k + jt * sin(fr * 62 + 32036); curve -1 * k + jt * sin(fr * 52 + 32073), 0 + jt * sin(fr * 69 + 32110) via -0.12 * k + jt * sin(fr * 59 + 32147), 0.12 * k + jt * sin(fr * 47 + 32184); curve 0 + jt * sin(fr * 67 + 32221), -1 * k + jt * sin(fr * 54 + 32258) via -0.12 * k + jt * sin(fr * 73 + 32295), -0.12 * k + jt * sin(fr * 62 + 32332); close }
+        path { at: cx + 0.95 * k + 0, cy + -0.8 * k + 0; stroke: 1.2 * u; color: mint; opacity: 0.8 * o; move 0 + jt * sin(fr * 52 + 32369), -0.36 * k + jt * sin(fr * 69 + 32406); curve 0.36 * k + jt * sin(fr * 59 + 32443), 0 + jt * sin(fr * 47 + 32480) via 0.043 * k + jt * sin(fr * 67 + 32517), -0.043 * k + jt * sin(fr * 54 + 32554); curve 0 + jt * sin(fr * 73 + 32591), 0.36 * k + jt * sin(fr * 62 + 32628) via 0.043 * k + jt * sin(fr * 52 + 32665), 0.043 * k + jt * sin(fr * 69 + 32702); curve -0.36 * k + jt * sin(fr * 59 + 32739), 0 + jt * sin(fr * 47 + 32776) via -0.043 * k + jt * sin(fr * 67 + 32813), 0.043 * k + jt * sin(fr * 54 + 32850); curve 0 + jt * sin(fr * 73 + 32887), -0.36 * k + jt * sin(fr * 62 + 32924) via -0.043 * k + jt * sin(fr * 52 + 32961), -0.043 * k + jt * sin(fr * 69 + 32998); close }
+        path { at: cx + 0.95 * k + 0.5 * u, cy + -0.8 * k + 0.4 * u; stroke: 0.7 * (1.2 * u); color: mint; opacity: 0.8 * o * 0.34; move 0 + jt * sin(fr * 59 + 33035), -0.36 * k + jt * sin(fr * 47 + 33072); curve 0.36 * k + jt * sin(fr * 67 + 33109), 0 + jt * sin(fr * 54 + 33146) via 0.043 * k + jt * sin(fr * 73 + 33183), -0.043 * k + jt * sin(fr * 62 + 33220); curve 0 + jt * sin(fr * 52 + 33257), 0.36 * k + jt * sin(fr * 69 + 33294) via 0.043 * k + jt * sin(fr * 59 + 33331), 0.043 * k + jt * sin(fr * 47 + 33368); curve -0.36 * k + jt * sin(fr * 67 + 33405), 0 + jt * sin(fr * 54 + 33442) via -0.043 * k + jt * sin(fr * 73 + 33479), 0.043 * k + jt * sin(fr * 62 + 33516); curve 0 + jt * sin(fr * 52 + 33553), -0.36 * k + jt * sin(fr * 69 + 33590) via -0.043 * k + jt * sin(fr * 59 + 33627), -0.043 * k + jt * sin(fr * 47 + 33664); close }
+    }
+
+    //  The music special workspace's mark: a pair of eighth notes joined by a beam, in pencil like PBSpark.
+    component PBNote(cx: number, cy: number, k: number, o: number) {
+        let fr = floor(time * 5)
+        let jt = 0.4 * u
+        path { at: cx, cy; stroke: 1.5 * u; color: mint; opacity: o; move -0.4 * k + jt * sin(fr * 67 + 41037), 0.45 * k + jt * sin(fr * 54 + 41074); line -0.4 * k + jt * sin(fr * 73 + 41111), -0.75 * k + jt * sin(fr * 62 + 41148); }
+        path { at: cx + 0.5 * u, cy + 0.4 * u; stroke: 0.7 * (1.5 * u); color: mint; opacity: o * 0.34; move -0.4 * k + jt * sin(fr * 52 + 41185), 0.45 * k + jt * sin(fr * 69 + 41222); line -0.4 * k + jt * sin(fr * 59 + 41259), -0.75 * k + jt * sin(fr * 47 + 41296); }
+        path { at: cx, cy; stroke: 1.5 * u; color: mint; opacity: o; move 0.6 * k + jt * sin(fr * 67 + 41333), 0.25 * k + jt * sin(fr * 54 + 41370); line 0.6 * k + jt * sin(fr * 73 + 41407), -0.95 * k + jt * sin(fr * 62 + 41444); }
+        path { at: cx + 0.5 * u, cy + 0.4 * u; stroke: 0.7 * (1.5 * u); color: mint; opacity: o * 0.34; move 0.6 * k + jt * sin(fr * 52 + 41481), 0.25 * k + jt * sin(fr * 69 + 41518); line 0.6 * k + jt * sin(fr * 59 + 41555), -0.95 * k + jt * sin(fr * 47 + 41592); }
+        path { at: cx, cy; stroke: 2.2 * u; color: mint; opacity: o; move -0.4 * k + jt * sin(fr * 67 + 41629), -0.75 * k + jt * sin(fr * 54 + 41666); line 0.6 * k + jt * sin(fr * 73 + 41703), -0.95 * k + jt * sin(fr * 62 + 41740); }
+        path { at: cx + 0.5 * u, cy + 0.4 * u; stroke: 0.7 * (2.2 * u); color: mint; opacity: o * 0.34; move -0.4 * k + jt * sin(fr * 52 + 41777), -0.75 * k + jt * sin(fr * 69 + 41814); line 0.6 * k + jt * sin(fr * 59 + 41851), -0.95 * k + jt * sin(fr * 47 + 41888); }
+        ellipse { at: cx + -0.65 * k + jt * sin(fr * 67 + 41925), cy + 0.55 * k + jt * sin(fr * 54 + 41962); radius: 0.3 * k; color: mint; opacity: o  }
+        ellipse { at: cx + -0.65 * k + jt * sin(fr * 73 + 41999) + 0.5 * u, cy + 0.55 * k + jt * sin(fr * 62 + 42036) + 0.4 * u; radius: 0.3 * k; color: mint; opacity: o * 0.34 }
+        ellipse { at: cx + 0.35 * k + jt * sin(fr * 52 + 42073), cy + 0.35 * k + jt * sin(fr * 69 + 42110); radius: 0.3 * k; color: mint; opacity: o  }
+        ellipse { at: cx + 0.35 * k + jt * sin(fr * 59 + 42147) + 0.5 * u, cy + 0.35 * k + jt * sin(fr * 47 + 42184) + 0.4 * u; radius: 0.3 * k; color: mint; opacity: o * 0.34 }
+    }
+
+    //  The private special workspace's mark: an eye crossed out, in pencil like PBSpark.
+    component PBHide(cx: number, cy: number, k: number, o: number) {
+        let fr = floor(time * 5)
+        let jt = 0.4 * u
+        path { at: cx, cy; stroke: 1.5 * u; color: mint; opacity: o; move -1 * k + jt * sin(fr * 67 + 42221), 0 * k + jt * sin(fr * 54 + 42258); curve 1 * k + jt * sin(fr * 73 + 42295), 0 * k + jt * sin(fr * 62 + 42332) via 0 * k + jt * sin(fr * 52 + 42369), -1.15 * k + jt * sin(fr * 69 + 42406); curve -1 * k + jt * sin(fr * 59 + 42443), 0 * k + jt * sin(fr * 47 + 42480) via 0 * k + jt * sin(fr * 67 + 42517), 1.15 * k + jt * sin(fr * 54 + 42554); close }
+        path { at: cx + 0.5 * u, cy + 0.4 * u; stroke: 0.7 * (1.5 * u); color: mint; opacity: o * 0.34; move -1 * k + jt * sin(fr * 73 + 42591), 0 * k + jt * sin(fr * 62 + 42628); curve 1 * k + jt * sin(fr * 52 + 42665), 0 * k + jt * sin(fr * 69 + 42702) via 0 * k + jt * sin(fr * 59 + 42739), -1.15 * k + jt * sin(fr * 47 + 42776); curve -1 * k + jt * sin(fr * 67 + 42813), 0 * k + jt * sin(fr * 54 + 42850) via 0 * k + jt * sin(fr * 73 + 42887), 1.15 * k + jt * sin(fr * 62 + 42924); close }
+        path { at: cx, cy; stroke: 1.8 * u; color: mint; opacity: o; move -0.75 * k + jt * sin(fr * 52 + 42961), 0.85 * k + jt * sin(fr * 69 + 42998); line 0.75 * k + jt * sin(fr * 59 + 43035), -0.85 * k + jt * sin(fr * 47 + 43072); }
+        path { at: cx + 0.5 * u, cy + 0.4 * u; stroke: 0.7 * (1.8 * u); color: mint; opacity: o * 0.34; move -0.75 * k + jt * sin(fr * 67 + 43109), 0.85 * k + jt * sin(fr * 54 + 43146); line 0.75 * k + jt * sin(fr * 73 + 43183), -0.85 * k + jt * sin(fr * 62 + 43220); }
+        ellipse { at: cx + 0 * k + jt * sin(fr * 52 + 43257), cy + 0 * k + jt * sin(fr * 69 + 43294); radius: 0.24 * k; color: mint; opacity: o  }
+        ellipse { at: cx + 0 * k + jt * sin(fr * 59 + 43331) + 0.5 * u, cy + 0 * k + jt * sin(fr * 47 + 43368) + 0.4 * u; radius: 0.24 * k; color: mint; opacity: o * 0.34 }
     }
 
     component PBPrev(cx: number, cy: number, hot: number, k: number, o: number) {
@@ -5239,7 +5285,7 @@ scene Vitreus {
         move: rt * (screen.width - 2 * lf.x), bt * (yo + vb - 2 * bar.y)
     include "pages/bar_icons.plm"
     //  The clock runs while something needs it. It is here, after the bar's zones, because it reads their hover: the bar's icons only boil under the pointer.
-    let need_clock = (cy_on > 0.01) or bar_hit.hover > 0.01 or wsh.1 > 0.01 or wsh.2 > 0.01 or wsh.3 > 0.01 or wsh.4 > 0.01 or wsh.5 > 0.01 or set_hit.hover > 0.01 or sr_hit.hover > 0.01 or ctl_hit.hover > 0.01 or ov_btn.hover > 0.01 or bp.prev.hover > 0.01 or bp.play.hover > 0.01 or bp.next.hover > 0.01 or vm_prev.hover > 0.01 or vm_play.hover > 0.01 or vm_next.hover > 0.01 or ds > 0.01 or dl > 0.01 or dk > 0.01 or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or osd_kind == note or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
+    let need_clock = (cy_on > 0.01) or bar_hit.hover > 0.01 or wsh.1 > 0.01 or wsh.2 > 0.01 or wsh.3 > 0.01 or wsh.4 > 0.01 or wsh.5 > 0.01 or ws.sp > 0.01 or set_hit.hover > 0.01 or sr_hit.hover > 0.01 or ctl_hit.hover > 0.01 or ov_btn.hover > 0.01 or bp.prev.hover > 0.01 or bp.play.hover > 0.01 or bp.next.hover > 0.01 or vm_prev.hover > 0.01 or vm_play.hover > 0.01 or vm_next.hover > 0.01 or ds > 0.01 or dl > 0.01 or dk > 0.01 or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or osd_kind == note or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
     spin time by if(need_clock, 1, 0)
 
 
