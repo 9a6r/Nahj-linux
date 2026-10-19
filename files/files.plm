@@ -15,7 +15,7 @@ scene Files {
 
     permissions {
         services: "files", "files.write"
-        run: "find", "magick", "ffmpeg", "stat", "du", "file", "rm", "hyprctl", "xdg-open", "gio", "cp", "mv", "mkdir", "df", "xdg-user-dir", "printenv", "pleamar"
+        run: "find", "magick", "ffmpeg", "stat", "du", "file", "rm", "hyprctl", "xdg-open", "gio", "cp", "mv", "mkdir", "df", "xdg-user-dir", "printenv", "pleamar", "wl-copy", "wl-paste"
     }
 
     // ── what the logic says ──
@@ -62,7 +62,7 @@ scene Files {
     model pinfo max 1 { name: text; sub: text; ik: number; thumb: image 192, 144; has.thumb: bool }
     model prows max 12 { label: text; value: text; tog: bool; on: bool }
     model menuitems max 10 { label: text; k: number; on: bool; ic: number; key: text; danger: bool; sep: bool }
-    model rows max 14 {
+    model rows max 28 {
         list cells max 12 {
             at: number
             name: text
@@ -687,7 +687,7 @@ scene Files {
                                     }
                                 }
                                 text c.name { at: tx + 50, 17; anchor: left center; width: tw - 380; lines: 1; size: 13; weight: 500; color: ink; family: "Space Grotesk" }
-                                text c.date { at: tx + tw - 130, 17; anchor: left center; size: 12; color: faint; width: 150; lines: 1; family: "Space Grotesk" }
+                                text c.date { at: tx + tw - 220, 17; anchor: left center; size: 12; color: faint; width: 125; lines: 1; family: "Space Grotesk" }
                                 text c.size { at: tx + tw - 16, 17; anchor: right center; size: 12; color: faint; family: "Space Grotesk" }
                             }
                             zone box t { from: tx, 0; size: tw, tile.h - 4; corner: 12 * rr; carries: "{c.carry}"; label: "{c.name}"; role: item; selected: c.picked }
@@ -706,6 +706,7 @@ scene Files {
     //  The list lies over the middle and takes the presses on its empty part: those are the middle's too.
     on press right grid { menu.x = pointer.x; menu.y = pointer.y; emit bg_menu }
     on press grid { emit tile(-1) }
+    on drop grid { emit dropped(-1) }
     on change floor(grid.scroll / tile.h) { emit slid(grid.scroll) }
     on change gen { grid.scroll: 0 ~0ms }
     on change scroll_to while scroll_to >= 0 { grid.scroll: scroll_to ~calm }

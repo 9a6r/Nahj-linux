@@ -3,7 +3,8 @@
 -- It starts in the folder named by $FILES_START when there is one, else in the home folder.
 -- What is kept, in this scene's own folder (~/.local/share/pleamar/files): files.json, the view, whether hidden files show and the sort order.
 
-local ROW_WINDOW = 14       -- rows of tiles sent to the scene at once (it declares 14)
+local ROW_WINDOW = 28       -- rows sent to the scene at once in the lines view, which has one thing a row (it declares 28)
+local GRID_ROWS = 14        -- ... and in the grid, whose rows are four times as tall
 local MAX_COLS = 12
 local GRID_H, LINES_H = 132, 38
 
@@ -79,6 +80,7 @@ end
 
 local function cols() return s.view == "grid" and s.cols or 1 end
 local function tile_h() return s.view == "grid" and GRID_H or LINES_H end
+local function row_window() return s.view == "grid" and GRID_ROWS or ROW_WINDOW end
 
 local function save()
     pcall(sys.call, "files.write", "files.json", { view = s.view, hidden = s.hidden, sort = s.sort, pins = s.pins })
@@ -130,7 +132,7 @@ local function sorted(items)
     table.sort(out, function(a, b)
         if a.dir ~= b.dir then return a.dir end
         if s.sort == "date" and a.mtime ~= b.mtime then return a.mtime > b.mtime end
-        if s.sort == "size" and a.size ~= b.size then return a.size > b.size end
+        if s.sort == "size" and not a.dir and a.size ~= b.size then return a.size > b.size end       -- (a folder's own size is the room its list takes: they go by name)
         local x, y = a.name:lower(), b.name:lower()
         if x ~= y then return x < y end
         return a.name < b.name
@@ -248,7 +250,7 @@ local function prime_thumbs()
     if not tdir then return end
     local c = cols()
     local from = s.first * c + 1
-    local upto = math.min(#s.items, (s.first + ROW_WINDOW) * c)
+    local upto = math.min(#s.items, (s.first + row_window()) * c)
     local queued = false
     for i = from, upto do
         local e = s.items[i]
@@ -270,12 +272,16 @@ local function prime_thumbs()
     if queued then pump() end
 end
 
+local carry_all = nil      -- the whole choice as one text, made once for each showing of the rows (a folder's worth of paths, for every tile in it, would be a lot of text)
 local function carry_of(e)
     -- what a drag out of this tile takes: the whole choice when this tile is in it, else just itself
     if s.picked[e.path] then
-        local paths = {}
-        for _, it in ipairs(s.items) do if s.picked[it.path] then paths[#paths + 1] = it.path end end
-        if #paths > 1 then return table.concat(paths, "\n") end
+        if carry_all == nil then
+            local paths = {}
+            for _, it in ipairs(s.items) do if s.picked[it.path] then paths[#paths + 1] = it.path end end
+            carry_all = #paths > 1 and table.concat(paths, "\n") or false
+        end
+        if carry_all then return carry_all end
     end
     return e.path
 end
@@ -291,14 +297,16 @@ local function cell(i, e)
 end
 
 function show_rows()
+    carry_all = nil
     prime_thumbs()
     local c = cols()
     local n = #s.items
     local total = math.ceil(n / c)
     fact.total = total
-    local first = math.max(0, math.min(s.first, math.max(total - ROW_WINDOW, 0)))
+    local rw = row_window()
+    local first = math.max(0, math.min(s.first, math.max(total - rw, 0)))
     local rows = {}
-    for r = 1, ROW_WINDOW do
+    for r = 1, rw do
         local row = first + r - 1
         if row >= total then break end
         local cells = {}
@@ -389,11 +397,16 @@ local function nav_flags()
 end
 
 -- ── going somewhere ──
-local function go(path, how, then_pick)
+local go_seq = 0          -- each going has a number: the answer of one that was overtaken (two clicks in a row, the first folder slow) is dropped
+local function go(path, how, then_pick, on_fail)
     path = clean(path)
+    go_seq = go_seq + 1
+    local mine = go_seq
     list_dir(path, function(items)
+        if mine ~= go_seq then return end
         if not items then
             text.status = "Can't open " .. basename(path)
+            if on_fail then on_fail() end
             return
         end
         if how == nil and s.path ~= "" and s.path ~= path then
@@ -424,8 +437,9 @@ local function go(path, how, then_pick)
 end
 
 local function refresh(then_pick, cb)
-    list_dir(s.path, function(items)
-        if not items then return end
+    local here = s.path
+    list_dir(here, function(items)
+        if not items or here ~= s.path then return end       -- (or we have gone somewhere else meanwhile: that listing is of the old folder)
         local old = {}
         for p in pairs(s.picked) do old[p] = true end
         s.all = items
@@ -495,7 +509,8 @@ local function start()
                         build_places(found)
                         run("printenv", { "FILES_START" }, function(o, code)
                             local start_at = trim(o)
-                            go(code == 0 and start_at:sub(1, 1) == "/" and start_at or s.home)
+                            local want = code == 0 and start_at:sub(1, 1) == "/" and start_at or s.home
+                            go(want, nil, nil, function() if want ~= s.home then go(s.home) end end)       -- a start folder that is not there: the home folder, not an empty window
                         end)
                     end
                     if #paths == 0 then finish({}) return end
@@ -562,7 +577,13 @@ end)
 
 on("place", function(i)
     local p = s.places[(tonumber(i) or -1) + 1]
-    if p then go(p.path) end
+    if not p then return end
+    if p.pk == 2 then
+        -- the Trash folder is only there once something has been put in it
+        run("mkdir", { "-p", "--", p.path }, function() go(p.path) end)
+    else
+        go(p.path)
+    end
 end)
 on("crumb", function(i)
     local c = s.crumbs[(tonumber(i) or -1) + 1]
@@ -623,14 +644,15 @@ local function exists(name)
     return false
 end
 -- a name that is free in this folder: "name copy", "name copy 2" … (before the extension)
-local function free_name(name)
-    if not exists(name) then return name end
+local function free_name(name, reserved)
+    local function taken(n) return exists(n) or (reserved ~= nil and reserved[n] == true) end
+    if not taken(name) then return name end
     local stem, ext = name:match("^(.+)(%.[^.]+)$")
     if not stem then stem, ext = name, "" end
     local n = 1
     while true do
         local cand = stem .. (n == 1 and " copy" or (" copy " .. n)) .. ext
-        if not exists(cand) then return cand end
+        if not taken(cand) then return cand end
         n = n + 1
     end
 end
@@ -746,11 +768,15 @@ function show_props()
             if mime ~= "" then update("Type", (KIND_LABEL[e.ik] or "File") .. "  (" .. mime .. ")") end
         end)
         if e.dir then
-            run("du", { "-sb", "--", e.path }, function(d)
-                local n = tonumber((d or ""):match("^(%d+)"))
-                if n then update("Size", size_text(n) .. " (" .. commas(n) .. " bytes)") else update("Size", "unknown") end
-            end)
-            run("find", { e.path, "-mindepth", "1", "-maxdepth", "1", "-printf", "." }, function(c)
+            if e.path == "/" then
+                update("Size", "—")       -- (adding up the whole computer takes minutes, and is not stopped when the card is closed)
+            else
+                run("du", { "-sbxD", "--", e.path }, function(d)       -- D: a link to a folder is its folder; x: not into other disks
+                    local n = tonumber((d or ""):match("^(%d+)"))
+                    if n then update("Size", size_text(n) .. " (" .. commas(n) .. " bytes)") else update("Size", "unknown") end
+                end)
+            end
+            run("find", { "-H", e.path, "-mindepth", "1", "-maxdepth", "1", "-printf", "." }, function(c)
                 local n = #(c or "")
                 update("Contains", n == 1 and "1 item" or (commas(n) .. " items"))
             end)
@@ -763,7 +789,7 @@ local function toggle_hidden_file()
     local e = s.props_e
     if not (e and s.props) then return end
     local new = e.hidden and e.name:gsub("^%.", "") or ("." .. e.name)
-    if new == "" or new == e.name then return end
+    if new == "" or new == "." or new == ".." or new == e.name then return end
     if exists(new) then text.status = "\"" .. new .. "\" is already here" return end
     run("mv", { "-n", "--", e.path, join(s.path, new) }, function(_, code)
         if code ~= 0 then text.status = "Could not change it" return end
@@ -826,7 +852,10 @@ local function transfer(paths, dest)
     for _, src in ipairs(paths) do
         if src ~= dest and dirname(src) ~= dest and (dest .. "/"):sub(1, #src + 1) ~= src .. "/" then jobs[#jobs + 1] = src end
     end
-    if #jobs == 0 then return end
+    if #jobs == 0 then
+        text.status = "Already in " .. basename(dest)      -- (a drop that changes nothing says so, not nothing)
+        return
+    end
     if dest == s.data .. "/Trash/files" then
         local pending = #jobs
         for _, p in ipairs(jobs) do
@@ -909,7 +938,7 @@ local function settle()
         if data and k then do_drop(data, k) end
     end)
 end
-for _, zone in ipairs({ "midzone", "t", "pz", "cz", "pinzone" }) do
+for _, zone in ipairs({ "midzone", "grid", "t", "pz", "cz", "pinzone" }) do       -- (the list lies over the middle: a drop on its empty part is the list's)
     on("drop:" .. zone, function(data)
         drop_data = data
         settle()
@@ -940,7 +969,7 @@ local function open_menu(kind)
     else
         if in_trash then add("Empty Trash", 18, #s.items > 0, 13, "", false, true) end
         add("New folder", 1, true, 6, "Ctrl+Shift+N", in_trash)
-        add("Paste", 6, s.clip ~= nil, 12, "Ctrl+V")
+        add("Paste", 6, true, 12, "Ctrl+V")
         add("Select all", 8, #s.items > 0, 14, "Ctrl+A", true)
         add(s.hidden and "Hide hidden files" or "Show hidden files", 14, true, 5, "Ctrl+H")
         add("Refresh", 9, true, 15, "F5")
@@ -996,36 +1025,64 @@ local function run_each(cmd, args_for, list, done)
     end
 end
 
+-- Copy and cut go on the system clipboard (what the file managers use: `x-special/gnome-copied-files`, a first line `copy` or `cut` and then one `file://` address a line), so that
+-- another window of this, or another file manager, can paste what was copied here, and the other way round. `s.clip` only remembers what this window cut, to draw it faint.
+local function uri_of(path)
+    return "file://" .. path:gsub("[^%w%-%._~/]", function(c) return string.format("%%%02X", c:byte()) end)
+end
 local function set_clip(cut)
     local list = picked_list()
     if #list == 0 then return end
-    local set = {}
-    for _, e in ipairs(list) do set[e.path] = true end
-    s.clip = { paths = {}, cut = cut, set = set }
-    for _, e in ipairs(list) do s.clip.paths[#s.clip.paths + 1] = e.path end
+    local set, uris = {}, { cut and "cut" or "copy" }
+    for _, e in ipairs(list) do set[e.path] = true; uris[#uris + 1] = uri_of(e.path) end
+    s.clip = { cut = cut, set = set }
+    run("wl-copy", { "-t", "x-special/gnome-copied-files", "--", table.concat(uris, "\n") }, function(_, code)
+        if code ~= 0 then text.status = "The clipboard could not be written" end
+    end)
     fact["clip.on"] = true
     text.status = string.format("%d %s", #list, cut and "cut" or "copied")
     show_rows()
 end
+local function clear_clip()
+    s.clip = nil
+    fact["clip.on"] = false
+    run("wl-copy", { "--clear" }, function() end)
+end
+
+-- What is on the clipboard, from this window or any other program: the paths and whether they were cut. The file managers' own kind first, then a plain list of addresses.
+local function read_clip(cb)
+    run("wl-paste", { "--no-newline", "-t", "x-special/gnome-copied-files" }, function(out, code)
+        if code == 0 and out and out ~= "" then
+            local paths = paths_of(out)
+            if #paths > 0 then cb(paths, out:match("^[^\r\n]*") == "cut") return end
+        end
+        run("wl-paste", { "--no-newline", "-t", "text/uri-list" }, function(out2, code2)
+            local paths = code2 == 0 and paths_of(out2) or {}
+            if #paths > 0 then cb(paths, false) else cb(nil) end
+        end)
+    end)
+end
 
 local function paste()
-    if not s.clip then return end
-    local clip = s.clip
-    local jobs = {}
-    for _, src in ipairs(clip.paths) do
-        local name = free_name(basename(src))
-        if s.path == src or (s.path .. "/"):sub(1, #src + 1) == src .. "/" then
-            text.status = "A folder cannot go into itself"
-        elseif not (clip.cut and dirname(src) == s.path) then
-            jobs[#jobs + 1] = { src = src, dst = join(s.path, name) }
-            s.all[#s.all + 1] = { name = name }     -- so that the next one of the same name gets another
+    read_clip(function(paths, cut)
+        if not paths then text.status = "Nothing to paste" return end
+        local jobs = {}
+        local reserved = {}      -- the names this paste has given already, so that the next one of the same name gets another
+        for _, src in ipairs(paths) do
+            local name = free_name(basename(src), reserved)
+            if s.path == src or (s.path .. "/"):sub(1, #src + 1) == src .. "/" then
+                text.status = "A folder cannot go into itself"
+            elseif not (cut and dirname(src) == s.path) then
+                jobs[#jobs + 1] = { src = src, dst = join(s.path, name) }
+                reserved[name] = true
+            end
         end
-    end
-    if clip.cut then s.clip = nil; fact["clip.on"] = false end
-    run_each(clip.cut and "mv" or "cp", function(j)
-        if clip.cut then return { "-n", "--", j.src, j.dst } end
-        return { "-r", "--", j.src, j.dst }
-    end, jobs, function() refresh() end)
+        if cut then clear_clip() end
+        run_each(cut and "mv" or "cp", function(j)
+            if cut then return { "-n", "--", j.src, j.dst } end
+            return { "-r", "--", j.src, j.dst }
+        end, jobs, function() refresh() end)
+    end)
 end
 
 local function trash()
@@ -1100,6 +1157,11 @@ end
 on("act", function(k)
     k = math.floor(tonumber(k) or 0)
     if k ~= 6 and k ~= 10 then close_menu() end
+    if (k == 1 or k == 6) and fact["in.trash"] == true then
+        close_menu()
+        text.status = k == 1 and "A folder cannot be made in the Trash" or "Use Move to Trash to put things in the Trash"
+        return
+    end
     if k == 1 then
         ask("new", "New folder", "", "Create")
     elseif k == 2 then
@@ -1137,13 +1199,13 @@ on("act", function(k)
         local p = table.remove(s.back)
         if p then
             s.fwd[#s.fwd + 1] = s.path
-            go(p, "nav")
+            go(p, "nav", nil, function() table.remove(s.fwd); s.back[#s.back + 1] = p end)       -- (a folder that has gone: the history stays as it was)
         end
     elseif k == 13 then
         local p = table.remove(s.fwd)
         if p then
             s.back[#s.back + 1] = s.path
-            go(p, "nav")
+            go(p, "nav", nil, function() table.remove(s.back); s.fwd[#s.fwd + 1] = p end)
         end
     elseif k == 14 then
         s.hidden = not s.hidden
@@ -1201,6 +1263,10 @@ end)
 -- coming back to this window: what was dragged out or in from another one shows
 on("focused", function()
     if s.path ~= "" then refresh() end
+    -- a cut that was pasted from another window (which clears the clipboard) is not a cut here any more
+    if s.clip then
+        read_clip(function(paths) if not paths and s.clip then s.clip = nil; fact["clip.on"] = false; show_rows() end end)
+    end
 end)
 
 -- the clock for telling a double click from two clicks
