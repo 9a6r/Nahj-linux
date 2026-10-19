@@ -2179,20 +2179,9 @@ scene Vitreus {
             ellipse { at: 28 * cu, 26 * cu; radius: (15 * cu) * 0.62; color: mint; opacity: (40% * touch.hover) * 0.4 }
             ellipse { at: 28 * cu, 26 * cu; radius: 17 * cu; color: mix(ink, mint, touch.hover); opacity: 10% + 18% * touch.hover }
             ellipse { at: 28 * cu, 26 * cu; radius: 17 * cu; stroke: 1 * cu; color: mint; opacity: 45% * touch.hover }
-            group {
-                show: kind == 0
-                path { at: 28 * cu, 26 * cu; stroke: 1.7 * cu; color: mix(ink, mint, touch.hover); move -7 * cu, -3 * cu; line -7 * cu, -7 * cu; line -3 * cu, -7 * cu }
-                path { at: 28 * cu, 26 * cu; stroke: 1.7 * cu; color: mix(ink, mint, touch.hover); move -7 * cu, 3 * cu; line -7 * cu, 7 * cu; line -3 * cu, 7 * cu }
-                path { at: 28 * cu, 26 * cu; stroke: 1.7 * cu; color: mix(ink, mint, touch.hover); move 7 * cu, -3 * cu; line 7 * cu, -7 * cu; line 3 * cu, -7 * cu }
-                path { at: 28 * cu, 26 * cu; stroke: 1.7 * cu; color: mix(ink, mint, touch.hover); move 7 * cu, 3 * cu; line 7 * cu, 7 * cu; line 3 * cu, 7 * cu }
-                ellipse { at: 28 * cu, 26 * cu; radius: 1.6 * cu; color: mix(ink, mint, touch.hover) }
-            }
-            group {
-                show: kind == 1
-                box { at: 28 * cu, 25 * cu; size: 17 * cu, 11.5 * cu; corner: 2.5 * cu; stroke: 1.7 * cu; color: mix(ink, mint, touch.hover) }
-                path { at: 28 * cu, 26 * cu; stroke: 1.7 * cu; color: mix(ink, mint, touch.hover); move -3 * cu, 7.5 * cu; line 3 * cu, 7.5 * cu }
-            }
-            ellipse { at: 38 * cu, 16 * cu; radius: 3 * cu; color: mint; show: rec == 1 }
+            group { show: kind == 0; PRegion(28 * cu, 26 * cu, touch.hover, 1) }
+            group { show: kind == 1; PScreen(28 * cu, 26 * cu, touch.hover, 1) }
+            group { show: rec == 1; PRecDot(40 * cu, 13.5 * cu, touch.hover, 1) }
             text label { at: floor(54 * cu + 0.5), floor(21 * cu + 0.5); anchor: left center; size: 14; weight: 600; width: 76 * cu; lines: 1; color: ink; family: "Space Grotesk" }
             text note { at: floor(54 * cu + 0.5), floor(36 * cu + 0.5); anchor: left center; size: 10.5; width: 76 * cu; lines: 1; color: mix(faint, mint, touch.hover); family: "Space Grotesk" }
         }
@@ -3080,6 +3069,58 @@ scene Vitreus {
             path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: ink; opacity: (o) * 0.28; move -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 50 + 3021), -6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 55 + 3081); line 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 3118), -6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 3178); line 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 64 + 3215), -3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 69 + 3275); line 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 3312), 3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 45 + 3372); line 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 47 + 3409), 6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 52 + 3469); line -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 54 + 3506), 6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 59 + 3566); line -8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 61 + 3603), 3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 66 + 3663); line -8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 3700), -3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 73 + 3760); close }
             ellipse { at: cx + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 53 + 2800), cy + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 65 + 2957); radius: 2.6 * cu * (1 + 0.04 * sin(fr * 47 + 1581)); stroke: 1.5 * cu; color: ink; opacity: (o) }
             ellipse { at: cx + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 3171) + 0.35 * cu, cy + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 49 + 3328) + 0.28 * cu; radius: 2.6 * cu * (1 + 0.04 * sin(fr * 47 + 1651)); stroke: 1.05 * cu; color: ink; opacity: (o) * 0.28 }
+        }
+    }
+
+    //  The Capture window's icons in pencil, like the rest: the region's four corner brackets and the screen's monitor, each stroke drawn twice, a hair off, and redrawn about five times a second under the pointer.
+    component PRegion(cx: number, cy: number, hot: number, o: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        group {
+            pivot: cx, cy
+            scale: 1 + 0.10 * a
+            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (o); move -7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 54 + 3826), -2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 3509); line -7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 76 + 3105), -7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 61 + 4202); line -2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 42 + 3825), -7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 75 + 3595) }
+            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (o) * 0.28; move -7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 58 + 2494), -2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 47 + 4834); line -7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 44 + 3364), -7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 46 + 2005); line -2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 76 + 3385), -7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 58 + 4393) }
+            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (o); move -7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 2438), 2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 53 + 3278); line -7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 72 + 2514), 7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 66 + 4403); line -2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 42 + 3425), 7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 49 + 4361) }
+            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (o) * 0.28; move -7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 73 + 2312), 2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 74 + 4238); line -7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 4826), 7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 2386); line -2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 75 + 3844), 7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 50 + 2044) }
+            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (o); move 7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 3050), -2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 53 + 4703); line 7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 76 + 3569), -7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 45 + 3542); line 2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 51 + 3966), -7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 44 + 4196) }
+            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (o) * 0.28; move 7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 65 + 4297), -2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 60 + 3255); line 7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 52 + 2387), -7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 51 + 2507); line 2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 75 + 4384), -7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 42 + 2025) }
+            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (o); move 7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 70 + 4402), 2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 56 + 4651); line 7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 2043), 7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 50 + 4861); line 2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 47 + 4630), 7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 3579) }
+            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (o) * 0.28; move 7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 47 + 4677), 2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 3662); line 7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 3634), 7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 3405); line 2.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 75 + 3460), 7.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 74 + 4478) }
+            ellipse { at: cx + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 72 + 2215), cy + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 43 + 3531); radius: 1.7 * cu * (1 + 0.04 * sin(fr * 47 + 1293)); color: mix(ink, mint, a); opacity: (o) }
+            ellipse { at: cx + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 72 + 4855) + 0.35 * cu, cy + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 2616) + 0.28 * cu; radius: 1.7 * cu * (1 + 0.04 * sin(fr * 47 + 1694)); stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (o) * 0.28 }
+        }
+    }
+
+    component PScreen(cx: number, cy: number, hot: number, o: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        group {
+            pivot: cx, cy
+            scale: 1 + 0.10 * a
+            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (o); move -8.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 58 + 4882), -6.3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 4805); line 8.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 65 + 2052), -6.7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 4002); line 8.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 4115), 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 70 + 2648); line -8.7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 48 + 3329), 4.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 45 + 3160); line -8.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 3233), -7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 2641) }
+            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (o) * 0.28; move -8.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 75 + 4427), -6.3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 4328); line 8.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 50 + 2354), -6.7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 69 + 2293); line 8.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 61 + 2398), 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 64 + 4731); line -8.7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 52 + 4513), 4.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 48 + 4632); line -8.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 46 + 4468), -7 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 58 + 3895) }
+            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (o); move 0.2 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 76 + 3772), 5.2 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 74 + 4785); line -0.1 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 64 + 2169), 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 40 + 2816) }
+            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (o) * 0.28; move 0.2 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 2578), 5.2 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 50 + 3753); line -0.1 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 3478), 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 4770) }
+            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (o); move -3.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 43 + 4680), 8.1 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 66 + 3920); line 3.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 56 + 2262), 7.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 61 + 2245) }
+            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (o) * 0.28; move -3.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 4805), 8.1 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 73 + 2115); line 3.6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 48 + 4517), 7.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 44 + 2383) }
+        }
+    }
+
+    //  The recording dot on the Capture window's video buttons, in pencil like the icons: a bigger dot, drawn twice, with a loose ring round it, redrawn about five times a second under the pointer.
+    component PRecDot(cx: number, cy: number, hot: number, o: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        group {
+            pivot: cx, cy
+            scale: 1 + 0.10 * a
+            ellipse { at: cx + (0.18 + 0.25 * a) * cu * sin(fr * 66 + 2539), cy + (0.18 + 0.25 * a) * cu * sin(fr * 41 + 4525); radius: 4.6 * cu * (1 + 0.05 * sin(fr * 47 + 1399)); color: mint; opacity: (o) }
+            ellipse { at: cx + (0.18 + 0.25 * a) * cu * sin(fr * 64 + 3314) + 0.4 * cu, cy + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 2757) + 0.3 * cu; radius: 4.2 * cu * (1 + 0.05 * sin(fr * 47 + 1527)); stroke: 1.05 * cu; color: mint; opacity: (o) * 0.4 }
+            ellipse { at: cx + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 2098), cy + (0.18 + 0.25 * a) * cu * sin(fr * 70 + 2644); radius: 6.6 * cu * (1 + 0.05 * sin(fr * 47 + 1159)); stroke: 1.2 * cu; color: mint; opacity: (o) * 0.6 }
+            ellipse { at: cx + (0.18 + 0.25 * a) * cu * sin(fr * 76 + 4752) + 0.35 * cu, cy + (0.18 + 0.25 * a) * cu * sin(fr * 70 + 2491) + 0.28 * cu; radius: 6.3 * cu * (1 + 0.05 * sin(fr * 47 + 1027)); stroke: 0.9 * cu; color: mint; opacity: (o) * 0.22 }
         }
     }
 
