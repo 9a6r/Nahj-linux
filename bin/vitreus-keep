@@ -56,6 +56,8 @@ while :; do
     # The shell's typeface (Settings > Theme): Glass is Space Grotesk and Retro a VCR face, unless the Theme page's font picker chose another. pleamar's
     # font names are fixed in the scenes, so another typeface is shown by starting it with a font setup where "Space Grotesk" is that one (bin/vitreus-fonts
     # makes it). Any trouble there and the shell keeps its own font.
+    # The themes (themes/*.toml and the person's own folder) first: the font setup and the shell both read the list it leaves in the data folder.
+    "$(dirname "$(readlink -f "$0")")/vitreus-themes" "$data" 2>/dev/null || true
     fonts=$("$(dirname "$(readlink -f "$0")")/vitreus-fonts" "$data" 2>/dev/null) || fonts=""
     if [ -n "$fonts" ]; then
         FONTCONFIG_FILE="$fonts" pleamar --scene "$P" --no-hud >> "$L" 2>&1 9>&-

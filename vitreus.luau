@@ -2981,32 +2981,64 @@ local function check_wallpaper()
     end)
 end
 
--- Settings > Theme has looks: Glass (`iris_cfg.look` is nil), Retro (8) and UwU (9); picking one also takes that theme's own palette (`iris_cfg.preset` is its number). The palette can then
--- be changed to the wallpaper's (Iris, `preset` nil) without leaving the look. Everything that follows
--- the palette follows it: the shell, the lock screen, pleamar-wm's border, Hyprland's borders.
--- Retro (preset 8): moulded putty plastic, not glass. Its colours skip the legibility floor (which is for light text on dark glass): the text is a
--- dark ink on the plastic, the accent a Famicom red, and `deep` (the hard shadow, the outlines) is the ink itself.
+-- Settings > Theme has themes, each a file in themes/ (Vitreus's own) or in ~/.config/pleamar/vitreus-themes/ (a person's; themes/_template.toml is the
+-- model to copy). bin/vitreus-themes reads them and leaves `themes.json` here; this is that list. A theme wears one of four shapes (`look`: Glass nil,
+-- Retro 8, UwU 9, Cyber 10, the numbers iris.json has always used) and has a palette of its own, or none (Glass takes the wallpaper's: Iris).
+-- Picking one takes its palette (`iris_cfg.preset` is its look, or 100 for a person's theme on the Glass shape). The palette can then be changed to the
+-- wallpaper's (Iris, `preset` nil) without leaving the theme. Everything that follows the palette follows it: the shell, the lock screen, pleamar-wm's
+-- border, Hyprland's borders. `iris_cfg.theme` is the theme's id (nil: Glass); its font, window corners and fonts.json entry are all keyed by it.
 iris_fx.CASSETTE = 8
--- UwU (preset 9): bubblegum plastic, bright and over the top. Cream bodies, a deep grape for text and outlines, hot pink for the accent.
 iris_fx.UWU = 9
--- Cyber (preset 10): a neon HUD. Near-black glass, cyan for the accent and magenta for the second neon (`deep`, which the theme's outlines and brackets use).
 iris_fx.CYBER = 10
-iris_fx.uwu = { ink = "#5a2a8c", faint = "#9a6bc4", mint = "#ff5fae", mintlo = "#e03a93", minthi = "#ff9ccf", onmint = "#ffffff",
-                tint = "#ffe3f2", panel = "#ffc9e6", deep = "#4a2b6b", off = "#e7c8f0", alert = "#ff3d6e" }
-iris_fx.cyber = { ink = "#d6f7ff", faint = "#6f93a8", mint = "#00e5ff", mintlo = "#00a9c4", minthi = "#7df3ff", onmint = "#001018",
-                  tint = "#04070d", panel = "#0a1220", deep = "#ff2bd6", off = "#26384a", alert = "#ff3b5c" }
-iris_fx.cassette = { ink = "#2b2833", faint = "#6a665a", mint = "#e63a3a", mintlo = "#a8242b", minthi = "#ff7b5c", onmint = "#fff3dc",
-                     tint = "#d6d0bd", panel = "#bfb9a5", deep = "#2b2833", off = "#a39e8e", alert = "#d81b60" }
+iris_fx.CUSTOM = 100
+vtheme = { list = {}, by_id = {}, errors = {}, folder = "" }
+vtheme.look_id = { [8] = "retro", [9] = "uwu", [10] = "cyber" }
+function vtheme.load()
+    local ok, f = pcall(sys.ask, "files.read", "themes.json", "json")
+    if not ok or type(f) ~= "table" or type(f.themes) ~= "table" then return false end
+    local list, by_id = {}, {}
+    for _, t in ipairs(f.themes) do
+        if type(t) == "table" and type(t.id) == "string" and type(t.name) == "string" and not by_id[t.id] then
+            list[#list + 1] = t
+            by_id[t.id] = t
+        end
+    end
+    if #list == 0 then return false end
+    vtheme.list, vtheme.by_id = list, by_id
+    vtheme.loaded = true
+    vtheme.errors = type(f.errors) == "table" and f.errors or {}
+    vtheme.folder = type(f.folder) == "string" and f.folder or ""
+    return true
+end
+-- Without themes.json (the keeper makes it before the shell starts; a shell started by hand, or one just updated, may not have it yet) there is Glass, the
+-- helper is asked, and the theme that was in use is trusted until the list is there: `current()` stands in for it, so nothing is reset meanwhile.
+vtheme.loaded = false
+if not vtheme.load() then
+    vtheme.list = { { id = "glass", name = "Glass", tagline = "Wallpaper", base = "glass", font = "Space Grotesk", round = 22, builtin = true } }
+    vtheme.by_id = { glass = vtheme.list[1] }
+end
+function vtheme.of_look(look) return vtheme.look_id[look] or "glass" end
+function vtheme.current()
+    local id = iris_cfg.theme or "glass"
+    return vtheme.by_id[id] or (not vtheme.loaded and { id = id, name = id, tagline = "", base = "glass" }) or vtheme.list[1]
+end
+function vtheme.index(t) for k, v in ipairs(vtheme.list) do if v == t then return k end end return 1 end
+function vtheme.font_of(id) local t = vtheme.by_id[id]; return t and t.font or "Space Grotesk" end
+function vtheme.round_of(id) local t = vtheme.by_id[id]; return t and t.round end
 do
     local ok, saved = pcall(sys.ask, "files.read", "iris.json", "json")
     if ok and type(saved) == "table" then
         if saved.enabled ~= nil then iris_cfg.enabled = saved.enabled and true or false end
         local pr = tonumber(saved.preset)
-        if pr and (math.floor(pr) == iris_fx.CASSETTE or math.floor(pr) == iris_fx.UWU or math.floor(pr) == iris_fx.CYBER) then iris_cfg.preset = math.floor(pr) end
-        -- The look (Glass, Retro, UwU) is its own setting, apart from where the colours come from: Iris may colour a Retro or UwU shell and it stays one.
+        if pr and (math.floor(pr) == iris_fx.CASSETTE or math.floor(pr) == iris_fx.UWU or math.floor(pr) == iris_fx.CYBER or math.floor(pr) == iris_fx.CUSTOM) then iris_cfg.preset = math.floor(pr) end
+        -- The look (the shape of the shell) is its own setting, apart from where the colours come from: Iris may colour a Retro or UwU shell and it stays one.
         local lk = tonumber(saved.look)
         if lk and (math.floor(lk) == iris_fx.CASSETTE or math.floor(lk) == iris_fx.UWU or math.floor(lk) == iris_fx.CYBER) then iris_cfg.look = math.floor(lk)
-        elseif lk == nil then iris_cfg.look = iris_cfg.preset end      -- an older file: the look was the palette
+        elseif lk == nil then iris_cfg.look = iris_cfg.preset ~= iris_fx.CUSTOM and iris_cfg.preset or nil end      -- an older file: the look was the palette
+        -- The theme itself. An older file has only the look, which names one of Vitreus's own; a theme whose file has gone leaves Glass.
+        if type(saved.theme) == "string" then iris_cfg.theme = saved.theme
+        elseif iris_cfg.look then iris_cfg.theme = vtheme.of_look(iris_cfg.look) end
+        if vtheme.loaded and iris_cfg.theme and not vtheme.by_id[iris_cfg.theme] then iris_cfg.theme, iris_cfg.look, iris_cfg.preset = nil, nil, nil end
     else
         pcall(sys.call, "files.write", "iris.json", iris_cfg)     -- so there is a file to edit
     end
@@ -3027,23 +3059,68 @@ do
         push_look()
         after(1200, push_look)         -- the palette file is rewritten with the theme and the desktop widgets reload: tell them again once they are back
         fact.iris_on = iris_cfg.enabled and not iris_cfg.preset
-        fact.theme_sel = iris_cfg.look or (iris_cfg.enabled and 0 or 7)       -- 0 Glass, 8 Retro, 9 UwU (7: Iris switched off on the Wallpaper page, greys)
+        fact.theme_sel = iris_cfg.theme and (vtheme.index(vtheme.current()) - 1) or (iris_cfg.enabled and 0 or -1)       -- the card's place on the Theme page (-1: Iris switched off on the Wallpaper page, greys)
         fact.cas = iris_cfg.look == iris_fx.CASSETTE
         fact.uwu = iris_cfg.look == iris_fx.UWU
         fact.cyber_on = iris_cfg.look == iris_fx.CYBER
-        if hy_theme_changed then hy_theme_changed(iris_cfg.look == iris_fx.CASSETTE and "retro" or iris_cfg.look == iris_fx.UWU and "uwu" or iris_cfg.look == iris_fx.CYBER and "cyber" or "glass") end
+        if hy_theme_changed then hy_theme_changed(vtheme.current().id) end
         for k, name in ipairs(INTENSITIES) do if name == iris_cfg.intensity then fact.iris_int = k - 1 end end
     end
     local function save()
-        pcall(sys.call, "files.write", "iris.json", { enabled = iris_cfg.enabled, intensity = iris_cfg.intensity, preset = iris_cfg.preset, look = iris_cfg.look })
+        pcall(sys.call, "files.write", "iris.json", { enabled = iris_cfg.enabled, intensity = iris_cfg.intensity, preset = iris_cfg.preset, look = iris_cfg.look, theme = iris_cfg.theme })
     end
     local function follow_wallpaper()
         if iris_last_wp then run_iris(iris_last_wp) else check_wallpaper() end
     end
+    -- The cards of the Theme page: each theme's name, its small line and its five stripes (three numbers a colour: the model has no colour field).
+    -- Glass is `live`: its stripes are the wallpaper's, which the scene already holds. A line under the cards says what is wrong with a file of the
+    -- person's, or where to put one.
+    local CARDS = 16
+    local function fill_cards()
+        local rows = {}
+        for k, t in ipairs(vtheme.list) do
+            if k > CARDS then break end
+            local row = { name = t.name, tag = t.tagline or "", live = t.palette == nil }
+            for j = 1, 5 do
+                local r, g, b = hex_to_rgb(type(t.card) == "table" and t.card[j] or "#808080")
+                row["c" .. (j - 1) .. "r"], row["c" .. (j - 1) .. "g"], row["c" .. (j - 1) .. "b"] = r, g, b
+            end
+            rows[#rows + 1] = row
+        end
+        model.themes = rows
+        local errs = vtheme.errors
+        if #errs > 0 then
+            text.th_note = errs[1] .. (#errs > 1 and ("  (+" .. (#errs - 1) .. " more)") or "")
+        elseif #vtheme.list > CARDS then
+            text.th_note = "Only the first " .. CARDS .. " themes are shown"
+        else
+            text.th_note = "Your themes: ~/.config/pleamar/vitreus-themes"
+        end
+        fact.th_err = #errs > 0
+    end
+    -- The files are read again (a person's file may have been added or changed): the list, the cards and, if the theme in use was edited, its colours.
+    local function refresh_themes()
+        local folder = sys.ask("files.folder")
+        if type(folder) ~= "string" then return end
+        run("vitreus-themes", { folder }, function(_, code)
+            local first = not vtheme.loaded
+            if code ~= 0 or not vtheme.load() then return end
+            if iris_cfg.theme and not vtheme.by_id[iris_cfg.theme] then iris_cfg.theme, iris_cfg.look, iris_cfg.preset = nil, nil, nil; save(); follow_wallpaper() end
+            local cur = vtheme.current()
+            if iris_cfg.preset and not cur.palette then iris_cfg.preset = nil; save(); follow_wallpaper()
+            elseif iris_cfg.preset then iris_fx.apply_palette(cur.palette) end
+            fill_cards()
+            show()
+            if fonts_refresh then fonts_refresh(first) end
+        end)
+    end
+    on("themes_refresh", refresh_themes)
+    if vtheme.loaded and iris_cfg.preset and not vtheme.current().palette then iris_cfg.preset = nil end      -- a theme that has lost its palette follows the wallpaper
+    fill_cards()
+    fact.th_first = math.max(0, math.min((iris_cfg.theme and vtheme.index(vtheme.current()) or 1) - 4, #vtheme.list - 4))       -- the strip opens with the theme in use in view
+    after(500, refresh_themes)       -- a shell started by hand may have no themes.json yet
     show()
-    if iris_cfg.preset == iris_fx.CASSETTE then iris_fx.apply_palette(iris_fx.cassette)
-    elseif iris_cfg.preset == iris_fx.UWU then iris_fx.apply_palette(iris_fx.uwu)
-    elseif iris_cfg.preset == iris_fx.CYBER then iris_fx.apply_palette(iris_fx.cyber)
+    if iris_cfg.preset and vtheme.current().palette then iris_fx.apply_palette(vtheme.current().palette)       -- (before the list is there, palette.json already has the colours)
     elseif not iris_cfg.enabled then iris_fx.apply_mono() end
     -- The switch on the Wallpaper page. Off: greys at once. On: Iris is run on the wallpaper in use, and the colours come back (a theme's own palette is
     -- let go too: the switch says Iris is off while one is in use, and turning it on is asking for the wallpaper's colours). The look stays: Retro or UwU
@@ -3058,23 +3135,19 @@ do
         show()
         if iris_cfg.enabled then follow_wallpaper() else iris_fx.apply_mono() end
     end)
-    -- Settings > Theme: 0 Glass (the wallpaper's colours), 8 Retro, 9 UwU.
+    -- Settings > Theme: a card is a theme, by its place in the list (0 is Glass, the wallpaper's colours).
     on("theme_pick", function(k)
-        k = math.floor((tonumber(k) or 0) + 0.5)
-        if k == 0 then
-            iris_cfg.look, iris_cfg.preset, iris_cfg.enabled = nil, nil, true
-            follow_wallpaper()
-        elseif k == iris_fx.CASSETTE then
-            iris_cfg.look, iris_cfg.preset, iris_cfg.enabled = k, k, true
-            iris_fx.apply_palette(iris_fx.cassette)
-        elseif k == iris_fx.UWU then
-            iris_cfg.look, iris_cfg.preset, iris_cfg.enabled = k, k, true
-            iris_fx.apply_palette(iris_fx.uwu)
-        elseif k == iris_fx.CYBER then
-            iris_cfg.look, iris_cfg.preset, iris_cfg.enabled = k, k, true
-            iris_fx.apply_palette(iris_fx.cyber)
+        local t = vtheme.list[math.floor((tonumber(k) or 0) + 0.5) + 1]
+        if not t then return end
+        iris_cfg.theme = t.id ~= "glass" and t.id or nil
+        iris_cfg.look = t.look
+        iris_cfg.enabled = true
+        if t.palette then
+            iris_cfg.preset = t.look or iris_fx.CUSTOM
+            iris_fx.apply_palette(t.palette)
         else
-            return
+            iris_cfg.preset = nil
+            follow_wallpaper()
         end
         save()
         show()
@@ -3099,7 +3172,6 @@ end
 -- has narrowed it (`view`); a picture of the chosen typeface (ImageMagick, from its file) is the preview, since a scene can only draw in its own font.
 -- The arrows move the choice with the dropdown open or shut, and typing opens it and searches.
 do
-    local DEFAULTS = { glass = "Space Grotesk", retro = "Audiowide", uwu = "Mochiy Pop One", cyber = "Orbitron" }
     local ROWS = 8
     local saved = {}                       -- what the shell is drawn in; a theme with no entry has its default
     local all = { { label = "", value = nil } }       -- the theme's default first, then the installed families, sorted
@@ -3109,8 +3181,9 @@ do
     local inuse                            -- the family the running shell is drawn in (set once the choice is read; only a start changes it)
     local top = 0                          -- the first row shown
     local pv_n, pv_token = 0, 0
-    local function theme() return iris_cfg.look == iris_fx.CASSETTE and "retro" or iris_cfg.look == iris_fx.UWU and "uwu" or iris_cfg.look == iris_fx.CYBER and "cyber" or "glass" end
-    local function label() return theme() == "retro" and "Retro" or theme() == "uwu" and "UwU" or theme() == "cyber" and "Cyber" or "Glass" end
+    local function theme() return vtheme.current().id end
+    local function label() return vtheme.current().name end
+    local function default_font() return vtheme.font_of(theme()) end
     local function index_of(v)
         for i, e in ipairs(view) do if e.value == v then return i end end
         return nil
@@ -3128,10 +3201,10 @@ do
         fact.font_none = n == 0
     end
     local function show()
-        all[1].label = "Default · " .. DEFAULTS[theme()]
+        all[1].label = "Default · " .. default_font()
         text.font_for = "Font for " .. label()
-        text.font_name = chosen or DEFAULTS[theme()]
-        local same = (chosen or DEFAULTS[theme()]) == inuse
+        text.font_name = chosen or default_font()
+        local same = (chosen or default_font()) == inuse
         if same then
             text.font_note = chosen and "In use" or ("The default for " .. label())
         else
@@ -3159,7 +3232,7 @@ do
     -- (Both fc programs run without FONTCONFIG_FILE: the shell's own font setup makes "Space Grotesk" the typeface in use, which would answer for it.)
     -- The preview: the typeface's file (fc-match answers with the one the name stands for), drawn as three lines in the text colour.
     local function preview()
-        local fam = chosen or DEFAULTS[theme()]
+        local fam = chosen or default_font()
         local pat = ":family=" .. fam:gsub("[-:,=\\]", "\\%0")
         run("env", { "-u", "FONTCONFIG_FILE", "fc-match", pat, "-f", "%{file}" }, function(file, code)
             if code ~= 0 or not file or file == "" then return end
@@ -3183,17 +3256,17 @@ do
     end
     local ok, file = pcall(sys.ask, "files.read", "fonts.json", "json")
     if ok and type(file) == "table" then
-        if type(file.glass) == "string" and file.glass ~= "" then saved.glass = file.glass end
-        if type(file.retro) == "string" and file.retro ~= "" then saved.retro = file.retro end
-        if type(file.uwu) == "string" and file.uwu ~= "" then saved.uwu = file.uwu end
-        if type(file.cyber) == "string" and file.cyber ~= "" then saved.cyber = file.cyber end
+        for id, family in pairs(file) do
+            if type(id) == "string" and type(family) == "string" and family ~= "" then saved[id] = family end      -- by theme id: glass, retro, uwu, cyber, a person's
+        end
     end
     chosen = saved[theme()]
-    inuse = chosen or DEFAULTS[theme()]
+    inuse = chosen or default_font()
     show()
     -- A theme was just picked: the picker shows that theme's font (and Apply, if it is not the one in use).
-    function fonts_refresh()
+    function fonts_refresh(started_with_stub)
         chosen = saved[theme()]
+        if started_with_stub then inuse = chosen or default_font() end      -- the list of themes came after the shell: the font it runs in is the theme's own
         if #all > 0 then
             narrow()
             keep_in_view()
@@ -3301,9 +3374,9 @@ do
         preview()
     end)
     on("font_apply", function()
-        if (chosen or DEFAULTS[theme()]) == inuse and chosen == saved[theme()] then return end
+        if (chosen or default_font()) == inuse and chosen == saved[theme()] then return end
         saved[theme()] = chosen
-        pcall(sys.call, "files.write", "fonts.json", { glass = saved.glass, retro = saved.retro, uwu = saved.uwu, cyber = saved.cyber })
+        pcall(sys.call, "files.write", "fonts.json", saved)
         show()
         -- The lock screen is drawn in the same typeface, so it starts again too, unless the session is locked right now (that would unlock it).
         after(500, function()
@@ -4826,7 +4899,6 @@ do
     -- and the slider edits the current theme's, which is kept in hy-round.json and comes back when that theme is picked again.
     -- The frame's inner corner is `rc` in vitreus.plm: (26 - 19 * sq) * 1.35, 35 px on Glass and UwU, 9 on Retro and Cyber. A window sits about 13 px inside it
     -- (24 gap - 8 * 1.35 frame), so the window's own corner, concentric with the frame's, is that minus 13: 22 and (almost) square.
-    local HY_ROUND_DEFAULT = { glass = 22, uwu = 22, retro = 3, cyber = 3 }
     local hy_round_by = {}
     local hy_theme = nil
     do
@@ -4929,11 +5001,11 @@ do
     hy_show()
     hy_read()
 
-    hy_theme = iris_cfg.look == iris_fx.CASSETTE and "retro" or iris_cfg.look == iris_fx.UWU and "uwu" or iris_cfg.look == iris_fx.CYBER and "cyber" or "glass"   -- at start Hyprland already holds what was kept
+    hy_theme = vtheme.current().id   -- at start Hyprland already holds what was kept
     hy_theme_changed = function(key)
         if key == hy_theme then return end
         hy_theme = key
-        hy.round = hy_round_by[key] or HY_ROUND_DEFAULT[key] or hy.round
+        hy.round = hy_round_by[key] or vtheme.round_of(key) or hy.round
         hy_changed()
     end
 
@@ -4982,7 +5054,6 @@ end
 do
     local wm = { layout = 0, lays = {}, share = 0.56, gap = 12, free = false, rain = false, snow = false, bw = 1.5, ba = 70, rad = 12, shd = 100, tb = 22, tbo = 72, wa = 100, wi = 100, fr = 80, wst = 0, tbt = true }
     -- The windows' corners follow the theme here too, as on Hyprland (same per-theme values, kept apart in wm-round.json): the slider edits the current theme's.
-    local WM_ROUND_DEFAULT = { glass = 22, uwu = 22, retro = 3, cyber = 3 }
     local wm_round_by, wm_theme = {}, "glass"
     do
         local ok, saved = pcall(sys.ask, "files.read", "wm-round.json", "json")
@@ -4991,7 +5062,7 @@ do
         end
     end
     local function wm_theme_key()
-        return iris_cfg.look == iris_fx.CASSETTE and "retro" or iris_cfg.look == iris_fx.UWU and "uwu" or iris_cfg.look == iris_fx.CYBER and "cyber" or "glass"
+        return vtheme.current().id
     end
     -- The layout is each monitor's own, by its name (wm.lays); wm.layout is the one a monitor gets that has none chosen yet. `wm_names` are the
     -- monitors in the window manager's own order (its `lay.N`), `wm_sel` the one the Layout chips are for.
@@ -5252,7 +5323,7 @@ do
             wm.wst = math.max(0, math.min(3, math.floor(tonumber(saved.wst) or wm.wst)))
             if saved.tbt ~= nil then wm.tbt = saved.tbt == true end
             wm_theme = wm_theme_key()
-            wm.rad = wm_round_by[wm_theme] or WM_ROUND_DEFAULT[wm_theme] or wm.rad
+            wm.rad = wm_round_by[wm_theme] or vtheme.round_of(wm_theme) or wm.rad
             wm_show()
             wm_send()
         end
@@ -5295,7 +5366,7 @@ do
         if prev_theme_changed then prev_theme_changed(key) end
         if on_hyprland or key == wm_theme then return end
         wm_theme = key
-        wm.rad = wm_round_by[key] or WM_ROUND_DEFAULT[key] or wm.rad
+        wm.rad = wm_round_by[key] or vtheme.round_of(key) or wm.rad
         wm_changed()
     end
 

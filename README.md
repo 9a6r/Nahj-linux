@@ -132,8 +132,21 @@ natepayn3@gmail.com if you have no account. With Vitreus installed it is just `v
 * **Audio visualiser** — the bottom edge of the screen rises into the music: cava's bars as columns of the shell's own glass, melted into the frame (or, in the Island layout, into the screen's edge). Switch it on or off, and choose how many columns, how sensitive it is, how tall, and how blended, from Settings > Widgets, the desktop editor's tile, or the launcher; it falls flat while nothing plays.
 * **Files** — a small file manager of its own, in the shell's glass (**SUPER + E**, or "Files" in the launcher): places down the left (your folders, and any you drag over to pin), where you are across the top, the folder as tiles or lines with a pencil picture for each kind of file (and the picture itself for images), a right-click menu, **Properties** (with a switch for hidden), copy, cut, paste, rename, new folder, the Trash and emptying it. Drag files between folders, onto the sidebar, or from one window to another; open as many windows as you like. It follows the theme (glass off, Retro, UwU, Cyber) and needs nothing but the tools the installer already asks for.
 * **Desktop** — right-click the bare wallpaper for a menu: **Webcam** (your camera in a round glass pane over everything; drag it, and pull its edge to resize it, as the Desk's corners do), the clock, the system monitor, and **New sticky note**. Stickers are glass notes, tinted from your palette, that stay where you put them and can be dragged onto other monitors.
-* **Theme** — four looks, each with its own typeface: **Glass**, which Iris recolours from your wallpaper; **Retro**, moulded
-  plastic; **UwU**, candy plastic with cat ears; and **Cyber**, a neon HUD on black glass.
+* **Theme** — a card for each theme, each with its own typeface: **Glass**, which Iris recolours from your wallpaper; **Retro**, moulded
+  plastic; **UwU**, candy plastic with cat ears; **Cyber**, a neon HUD on black glass; and any you make yourself (see below).
+
+### Making your own theme
+
+A theme is a small `.toml` file: eleven colours, a typeface and how round the window corners are. Vitreus's own are in `themes/`
+(`retro.toml`, `uwu.toml`, `cyber.toml`, and `glass.toml`, which only carries Glass's font and corners because the wallpaper is its palette).
+
+1. Copy `themes/_template.toml` to `~/.config/pleamar/vitreus-themes/` under any name (`sunset.toml`) and change it. Every setting is
+   explained in the template.
+2. Open **Settings > Theme** (or open the page again): your theme is a card at the end of the strip. Pick it.
+
+A file that cannot be read is named in the line under the cards and left out; the others are not affected. `base` chooses the shape the colours
+are worn on (`glass`, `retro`, `uwu` or `cyber`); a theme cannot add shapes of its own. `bin/vitreus-themes` reads the files and leaves the
+list in `themes.json` in the data folder, which the shell, its font setup and the window-corner code all read.
 
 ---
 
@@ -168,6 +181,7 @@ The packages `install.sh` installs (pacman, and the AUR for the last two):
 | `power-profiles-daemon` | the power profile |
 | `polkit`, `python-gobject` | the authentication dialog |
 | `python-pyte`, `ttf-space-mono-nerd` | the Desk's terminal |
+| `python` 3.11 or newer | reads the theme `.toml` files (`bin/vitreus-themes`) and sets up the font for each theme |
 | `pipewire-audio`, `sound-theme-freedesktop` | notification sounds |
 | `tesseract`, `tesseract-data-eng` | the text of a screenshot, and Snap's Copy text and Redact private info |
 
@@ -240,6 +254,13 @@ Vitreus keeps its data in `~/.local/share/pleamar/vitreus`.
 
 Iris reads your wallpaper and Vitreus recolours itself, with a legibility floor on the
 text. It takes about half a second after a wallpaper change.
+
+### 🖌️ Your own themes
+
+Glass follows the wallpaper through Iris; every other theme is a `.toml` file with its own colours, typeface and window corners.
+Copy `themes/_template.toml` into `~/.config/pleamar/vitreus-themes/`, edit it, and it shows up as a card on **Settings > Theme**
+(see [Making your own theme](#making-your-own-theme)). Your files stay where they are when Vitreus updates. A theme's typeface can be changed
+on the Theme page, and the choice is remembered per theme in `fonts.json` in the data folder.
 
 ---
 

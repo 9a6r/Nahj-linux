@@ -206,6 +206,7 @@ if [ "$action" = uninstall ]; then
     if [ -L "$HOME/.local/bin/vitreus-sysmon" ]; then run rm -f "$HOME/.local/bin/vitreus-sysmon"; fi
     if [ -L "$HOME/.local/bin/vitreus-term" ]; then run rm -f "$HOME/.local/bin/vitreus-term"; fi
     if [ -L "$HOME/.local/bin/vitreus-keep" ]; then run rm -f "$HOME/.local/bin/vitreus-keep"; fi
+    if [ -L "$HOME/.local/bin/vitreus-themes" ]; then run rm -f "$HOME/.local/bin/vitreus-themes"; fi
     if [ -L "$HOME/.local/bin/vitreus-report" ]; then run rm -f "$HOME/.local/bin/vitreus-report"; fi
     if [ -L "$conf/hypr/hypr_vitreus.lua" ]; then run rm -f "$conf/hypr/hypr_vitreus.lua"; fi
     run rm -f "$conf/hypr/vitreus_monitors.lua" "$conf/hypr/vitreus_hypr.lua" "$conf/hypr/vitreus_colors.lua"
@@ -603,6 +604,7 @@ if [ -x "$dest/bin/vitreus-clipimg" ] || $dry; then
     # The keeper the autostart lines run each scene under: it starts a scene again when it stops (a crash on a monitor's wake).
     [ -x "$dest/bin/vitreus-files" ] && run ln -sf "$dest/bin/vitreus-files" "$HOME/.local/bin/vitreus-files"
     [ -x "$dest/bin/vitreus-keep" ] && run ln -sf "$dest/bin/vitreus-keep" "$HOME/.local/bin/vitreus-keep"
+    [ -x "$dest/bin/vitreus-themes" ] && run ln -sf "$dest/bin/vitreus-themes" "$HOME/.local/bin/vitreus-themes"       # the shell reads the theme files through it
     # For a problem report that does not need the shell to be running: `vitreus-report` writes one text file to read and send.
     [ -x "$dest/bin/vitreus-report" ] && run ln -sf "$dest/bin/vitreus-report" "$HOME/.local/bin/vitreus-report"
     case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) warn "$HOME/.local/bin is not in your PATH: the launcher's clipboard pictures need it" ;; esac

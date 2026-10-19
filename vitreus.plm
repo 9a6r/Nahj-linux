@@ -66,7 +66,7 @@ scene Vitreus {
     let wcol.alert = rgb(wcol_alert_r, wcol_alert_g, wcol_alert_b)
     surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 68 while bar_anchor == top and not bar_frame; screens: each max 2; keyboard: exclusive while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or dash_open }
     permissions { services: "files", "files.write", "auth", "clock", "clock.seconds", "thumbnails", "thumbnails.*", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
-                  run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "claude", "ollama", "codex", "pacman", "paru", "yay", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "date", "udevadm" }
+                  run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "vitreus-themes", "claude", "ollama", "codex", "pacman", "paru", "yay", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "date", "udevadm" }
 
     model wifi_nets max 16 { ssid: text; strength: number; secure: bool; known: bool; active: bool; band: number; bands: text; bandw: number; chan: number; rate: number; sec: text; busy: number }
     model bat_devs max 6 { name: text; level: number }
@@ -696,7 +696,16 @@ scene Vitreus {
         fact font_r.$i.lit = false
         text font_r.$i.text = ""
     }
-    fact theme_sel = 0               // Settings > Theme: 0 the wallpaper's colours, 1 to 6 a named palette, 7 monochrome
+    fact theme_sel = 0               // Settings > Theme: the selected card's place in the list (0 the wallpaper's colours, -1 monochrome)
+    //  The cards of Settings > Theme, one per theme file (themes/*.toml, ~/.config/pleamar/vitreus-themes): the name, its small line, and five stripes (three
+    //  numbers a colour, 0 to 1: a model has no colour field). `live`: the stripes are the wallpaper's (Glass), which the scene already holds.
+    model themes max 16 { name: text; tag: text; live: bool; c0r: number; c0g: number; c0b: number; c1r: number; c1g: number; c1b: number; c2r: number; c2g: number; c2b: number; c3r: number; c3g: number; c3b: number; c4r: number; c4g: number; c4b: number }
+    fact th_first = 0                // the first card in view (four are, of however many themes there are)
+    prop th_pos = 0 ~calm            // ... and where the strip is, travelling there
+    follow th_pos = clamp(th_first, 0, max(0, themes.count - 4))
+    text th_note = ""                // the line under the cards: a file that did not load, or where to put a theme
+    fact th_err = false
+    event themes_refresh ->
     fact iris_int = 1                // how strongly the wallpaper's accent is pushed: 0 subtle, 1 medium, 2 bold
     event theme_pick ->
     fact snd_on = true               // Settings > Theme: the little sound when a panel opens
@@ -2050,6 +2059,7 @@ scene Vitreus {
     //  The Hyprland and Pleamar-WM pages read their settings from the system when they are shown, and only then: reading them on every page change
     //  (a dozen commands and a couple of hundred fact writes) stalled the scene for half a second on each click anywhere in Settings.
     on change set_page while set_page == pg_hypr { emit hy_refresh }
+    on change set_page while set_page == pg_theme { emit themes_refresh }       // a theme file may have been added or edited since
     on change set_page while set_page == pg_keys { emit kb_refresh }
     on change panel while panel == settings and set_page == pg_keys { emit kb_refresh }
     on change set_page while set_page == pg_wm { emit wm_refresh }
