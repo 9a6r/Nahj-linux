@@ -38,20 +38,13 @@ return function()
             local n = tonumber(trim(r[2])); if n then fact.sy_cl = n end
         end)
     end
-    -- And the desktop audio visualiser (desktopcava/).
-    local function say_cv(cmd, fn) run("pleamar", { "--say", "desktopcava", cmd }, fn or function() end) end
-    -- Which monitor draws it: the chips are the monitors plugged in now (the order hyprctl lists them in); a name that is not plugged in shows as "All",
-    -- which is what the visualiser does then too.
-    local cv_pref = "all"
+    -- The chips of the clock and the system monitor are the monitors plugged in now (the order hyprctl lists them in).
     local function show_cv_mons()
-        local at = 0
         for i = 0, 3 do
             local n = cv_names[i + 1]
             fact["cv_m." .. i .. ".on"] = n ~= nil
             text["cv_m." .. i .. ".name"] = n or ""
-            if n and n == cv_pref then at = i + 1 end
         end
-        fact.cv_mon = at
     end
     local function read_cv_mons()
         run("hyprctl", { "monitors", "-j" }, function(out, code)
@@ -70,17 +63,7 @@ return function()
             show_wd_mons()
         end)
     end
-    local function refresh_cv()
-        read_cv_mons()
-        say_many("desktopcava", { "get shown", "get sty", "get pos", "get siz", "get cm", "get mon_pick" }, function(r)
-            if not r then fact.cv_ok = false return end
-            fact.cv_ok = true
-            fact.cv_on = trim(r[1]):match("true") ~= nil
-            local function num(i, key) local n = tonumber(trim(r[i])); if n then fact[key] = n end end
-            num(2, "cv_sty"); num(3, "cv_pos"); num(4, "cv_siz"); num(5, "cv_cm")
-            cv_pref = trim(r[6]):match("^[%w%._%-]+$") and trim(r[6]) or "all"; show_cv_mons()
-        end)
-    end
+    local function refresh_cv() read_cv_mons() end
     read_cv_mons()
     on("fact:set_page", function(v) if v == "pg_clock" then refresh(); refresh_sy(); refresh_cv() end end)
 
@@ -205,29 +188,6 @@ return function()
         say_sy("fact cli " .. v)
     end)
 
-    on("cv_toggle", function()
-        local b = not fact.cv_on
-        fact.cv_on = b
-        say_cv("fact shown " .. tostring(b), function(_, code)
-            if code ~= 0 and b then
-                exec_on_desktop('vitreus-keep "$HOME/.config/pleamar/shells/vitreus/desktopcava/desktopcava.plm"')
-                after(2500, function() say_cv("fact shown true"); refresh_cv() end)
-            else
-                refresh_cv()
-            end
-        end)
-    end)
-    local function setter(event, key, fkey, hi)
-        on(event, function(i)
-            local v = math.max(0, math.min(hi, math.floor(i + 0.5)))
-            fact[key] = v
-            say_cv("fact " .. fkey .. " " .. v)
-        end)
-    end
-    setter("cv_sty_set", "cv_sty", "sty", 5)
-    setter("cv_pos_set", "cv_pos", "pos", 4)
-    setter("cv_siz_set", "cv_siz", "siz", 2)
-    setter("cv_cm_set", "cv_cm", "cm", 3)
     on("ck_mon_set", function(i)
         local n = cv_names[math.floor(i + 0.5)]
         if not n then return end
@@ -239,11 +199,5 @@ return function()
         if not n then return end
         sy_pref = n; show_wd_mons()
         say_sy("text mon_name " .. n)
-    end)
-    on("cv_mon_set", function(i)
-        local k = math.floor(i + 0.5)
-        cv_pref = (k >= 1 and cv_names[k]) or "all"
-        show_cv_mons()
-        say_cv("text mon_pick " .. cv_pref)
     end)
 end

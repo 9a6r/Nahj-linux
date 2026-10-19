@@ -222,6 +222,7 @@ local cava = nil
 local last = 0
 local spec_last = {}
 local watching = false      -- the player's panel is open: when the equalizer is worth feeding (or while its card floats, `eq_float`)
+function fw_on() return fact.fw_on == true or fact.fw_on == 1 end    -- the bottom frame rises into waves with the music (`fw_on`: Frame layout)
 function eq_float() return fact.mf_out == true or fact.mf_out == 1 or fact.dash_open == true end    -- the media card is floating on the desktop (a global: this chunk is at Luau's limit of locals)
 
 -- cava wants its config as a file. It is kept here rather than in a file next to the scene, so
@@ -231,8 +232,9 @@ function eq_float() return fact.mf_out == true or fact.mf_out == 1 or fact.dash_
 -- `os.getenv`, so the environment is asked of the system once. A player that starts before the
 -- answer arrives waits for it.
 local CAVA_CONF = table.concat({
-    "[general]", "bars = 24", "framerate = 30",
+    "[general]", "bars = 24", "framerate = 60",
     "[input]", "method = pipewire",
+    "[smoothing]", "noise_reduction = 25",     -- cava's own smoothing, low: the springs of `spec.s.*` (vitreus.plm) smooth what is drawn, and the bass keeps its spikes
     "[output]", "method = raw", "raw_target = /dev/stdout", "data_format = ascii",
     "ascii_max_range = 1000", "bar_delimiter = 59", "frame_delimiter = 10",
 }, "\n") .. "\n"
@@ -268,7 +270,7 @@ listen = function()
         if #b < 2 then return end
         local bass = math.min(1, (b[1] + b[2] + (b[3] or 0)) / 3)
         -- the equalizer in the media card: only worth sending while that panel is showing
-        if watching or eq_float() then
+        if watching or eq_float() or fw_on() then
             for i = 1, 24 do
                 local v = math.min(1, b[i] or 0)
                 if math.abs(v - (spec_last[i] or 0)) > 0.02 then
@@ -302,7 +304,7 @@ end
 -- monitor's rate for as long as music played. (Globals: this chunk is at Luau's limit of locals.)
 cava_playing = false
 function cava_want()
-    if cava_playing and (fact.bar_anchor == "top" or fact.bar_anchor == "bottom" or watching or eq_float()) then listen() else hush() end
+    if cava_playing and (fact.bar_anchor == "top" or fact.bar_anchor == "bottom" or watching or eq_float() or fw_on()) then listen() else hush() end
 end
 
 -- The cover. Every player publishes it the same way (MPRIS `mpris:artUrl`), and
@@ -2054,6 +2056,7 @@ on("fact:tasks_watch", function(v)
     cava_want()
 end)
 on("fact:bar_anchor", function() cava_want() end)
+on("fact:fw_on", function() cava_want() end)
 on("fact:dash_open", function() cava_want() end)
 every(1000, function() if watching then refresh_tasks() end end)
 -- This Hyprland takes its dispatchers in Lua. `close` has no way to name a window that is not the
@@ -5697,7 +5700,6 @@ end
     end)
     on("dclock_toggle", function() toggle_scene("desktopclock", "desktopclock") end)
     on("dsys_toggle", function() toggle_scene("desktopsysmon", "desktopsysmon") end)
-    on("dcava_toggle", function() toggle_scene("desktopcava", "desktopcava") end)
 
     -- ── commands ──
     local function open_settings(page)
@@ -5746,7 +5748,7 @@ end
                 run("pleamar", { "--say", "desktopsysmon", "fact shown " .. (on and "false" or "true") }, function() end)
             end)
         end, "system monitor desktop widget card cpu memory gpu network show hide on off" },
-        { "Desktop audio visualiser: toggle", "action", function() spawn('pleamar --say vitreus "emit dcava_toggle"') end, "audio visualiser visualizer cava spectrum music bars wave equalizer desktop widget show hide on off" },
+        { "Audio visualiser: toggle", "action", function() spawn('pleamar --say vitreus "emit fw_toggle"') end, "audio visualiser visualizer cava spectrum music bars wave equalizer desktop widget show hide on off" },
         { "Webcam: toggle", "action", function() spawn('pleamar --say vitreus "emit cam_toggle"') end, "webcam camera self view mirror face round window record screen show hide on off" },
         { "Webcam: mirror on/off", "action", function() spawn('pleamar --say webcam "emit cam_mirror"') end, "webcam camera mirror flip self view" },
         { "Sticky note: new", "action", function() spawn('pleamar --say vitreus "emit sticky_new"') end, "sticky note sticker new add notes desktop paper write" },
@@ -6326,6 +6328,9 @@ require("logic/tray")(set_panel)
 
 -- nightmode: see logic/nightmode.luau
 require("logic/nightmode")(with_dirs)
+
+-- the audio visualiser (the bottom edge rising into the music): see logic/visualizer.luau
+require("logic/visualizer")()
 -- Settings > Keybinds.
 require("logic/keybinds")()
 

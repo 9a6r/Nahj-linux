@@ -660,7 +660,6 @@ lockline="PLEAMAR_SWAPCHAIN=1 vitreus-keep $dest/lockscreen/lockscreen.plm"
 transline="vitreus-keep $dest/wptrans/wptrans.plm"
 clockline="vitreus-keep $dest/desktopclock/desktopclock.plm"
 sysmonline="vitreus-keep $dest/desktopsysmon/desktopsysmon.plm"
-cavaline="vitreus-keep $dest/desktopcava/desktopcava.plm"
 if $do_autostart; then
     # Lines from before the keeper started the scenes straight, once: they go through it now (with or without VAR=value words in front: a line that
     # keeps the shell outside the keeper is one that nothing starts again when Settings stops it to apply a theme's font).
@@ -712,13 +711,7 @@ if $do_autostart; then
         if $dry; then echo "    would add to $autostart: $sysmonline"; else printf '%s\n' "$sysmonline" >> "$autostart"; fi
         say "the desktop system monitor starts with the desktop too, hidden (a line in $autostart); \"Desktop system monitor: toggle\" in the launcher shows it"
     fi
-    # The desktop audio visualiser (cava's bars on the bottom layer) is a scene of its own too; it starts hidden, and "Desktop audio visualiser: toggle" in the launcher, the desktop's menu or Settings > Widgets shows it.
-    if [ -f "$autostart" ] && grep -q 'desktopcava/desktopcava.plm' "$autostart"; then
-        say "the desktop audio visualiser is already in $autostart"
-    else
-        if $dry; then echo "    would add to $autostart: $cavaline"; else printf '%s\n' "$cavaline" >> "$autostart"; fi
-        say "the desktop audio visualiser starts with the desktop too, hidden (a line in $autostart); \"Desktop audio visualiser: toggle\" in the launcher shows it"
-    fi
+    # (The audio visualiser is part of the shell itself now, the bottom edge rising into the music: no scene of its own, no line here.)
     # The desktop stickers and the desktop's right-click menu are scenes of their own too, but Vitreus starts them itself (see vitreus.luau), so they have no line here.
 fi
 

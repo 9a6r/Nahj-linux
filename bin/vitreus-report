@@ -159,7 +159,7 @@ tailf() { # tailf file lines [filter-out-regex]
 
     sec "Does each scene load?"
     if have pleamar && [ -d "$dest" ]; then
-        for s in vitreus.plm lockscreen/lockscreen.plm wptrans/wptrans.plm desktopclock/desktopclock.plm desktopsysmon/desktopsysmon.plm desktopcava/desktopcava.plm; do
+        for s in vitreus.plm lockscreen/lockscreen.plm wptrans/wptrans.plm desktopclock/desktopclock.plm desktopsysmon/desktopsysmon.plm;  do
             [ -f "$dest/$s" ] || { printf '%s: missing\n' "$s"; continue; }
             tmo pleamar --check "$dest/$s" 2>&1 | grep -v '^note' | tail -4
         done

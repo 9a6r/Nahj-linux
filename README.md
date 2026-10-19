@@ -129,8 +129,8 @@ natepayn3@gmail.com if you have no account. With Vitreus installed it is just `v
 * **Notifications** — history, rules and sounds for each app, quiet hours, and silence while a window is fullscreen.
 * **Authentication** — a polkit agent drawn in the same glass.
 * **Lock screen**, **Night mode**, and a **desktop clock** drawn as glass.
-* **Audio visualiser** — cava's bars on your wallpaper, in six styles (bars, mirror, wave, line, dots, radial), five places (bottom, top, left, right, middle), three sizes and four looks (the shell's glass, accent, light, warm). Switch it from Settings > Widgets or the desktop's right-click menu; it fades out while nothing plays.
-* **Desktop** — right-click the bare wallpaper for a menu: **Webcam** (your camera in a round glass pane over everything; drag it, and pull its edge to resize it, as the Desk's corners do), the clock, the system monitor, the **audio visualiser**, and **New sticky note**. Stickers are glass notes, tinted from your palette, that stay where you put them and can be dragged onto other monitors.
+* **Audio visualiser** — the bottom edge of the screen rises into the music: cava's bars as columns of the shell's own glass, melted into the frame (or, in the Island layout, into the screen's edge). Switch it on or off, and choose how many columns, how sensitive it is, how tall, and how blended, from Settings > Widgets, the desktop editor's tile, or the launcher; it falls flat while nothing plays.
+* **Desktop** — right-click the bare wallpaper for a menu: **Webcam** (your camera in a round glass pane over everything; drag it, and pull its edge to resize it, as the Desk's corners do), the clock, the system monitor, and **New sticky note**. Stickers are glass notes, tinted from your palette, that stay where you put them and can be dragged onto other monitors.
 * **Theme** — four looks, each with its own typeface: **Glass**, which Iris recolours from your wallpaper; **Retro**, moulded
   plastic; **UwU**, candy plastic with cat ears; and **Cyber**, a neon HUD on black glass.
 
@@ -153,7 +153,7 @@ The packages `install.sh` installs (pacman, and the AUR for the last two):
 | `iris-colors` (AUR) | theming from the wallpaper |
 | `mpvpaper` (AUR), `ffmpeg` | video wallpapers, and the webcam (`ffmpeg` reads the camera) |
 | `imagemagick` | wallpaper thumbnails and the launcher's picture previews |
-| `cava` | the bass pulse, the equalizer and the desktop audio visualiser |
+| `cava` | the bass pulse, the equalizer and the audio visualiser |
 | `playerctl` | the player and its cover art |
 | `networkmanager` | Wi-Fi |
 | `bluez`, `bluez-utils` | Bluetooth |

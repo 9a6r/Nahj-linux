@@ -160,13 +160,84 @@ scene Vitreus {
     fact panel: none | calendar | controls | player | volume | notif | settings | launch | tray | desk = none
     fact media_on = false          // is there a player at all
     fact bass = 0
+    fact fw_on = true      // the bottom frame rises into waves with the music (needs the Frame layout; `pleamar --say vitreus "fact fw_on false"` turns it off)
     //  The 24 bars cava reports, 0..1 each, for the equalizer in the media card. Each one
     //  has its own quick spring, so they rise and fall smoothly instead of stepping.
-    repeat i in 0..24 {
-        fact spec.$i = 0
-        prop spec.s.$i = 0 ~quick
-        follow spec.s.$i = spec.$i
-    }                  // 0..1, from cava: how hard the low end is hitting
+    spring spike = 520, 26        // the audio bars: a fast attack with a little overshoot, so a bass hit jumps and then settles
+    //  (Written out one by one, not in a `repeat`: a `let` cannot read what a `repeat` declares, and the audio visualiser's columns, `fwh_*`, read these.)
+    fact spec.0 = 0
+    prop spec.s.0 = 0 ~spike
+    follow spec.s.0 = spec.0
+    fact spec.1 = 0
+    prop spec.s.1 = 0 ~spike
+    follow spec.s.1 = spec.1
+    fact spec.2 = 0
+    prop spec.s.2 = 0 ~spike
+    follow spec.s.2 = spec.2
+    fact spec.3 = 0
+    prop spec.s.3 = 0 ~spike
+    follow spec.s.3 = spec.3
+    fact spec.4 = 0
+    prop spec.s.4 = 0 ~spike
+    follow spec.s.4 = spec.4
+    fact spec.5 = 0
+    prop spec.s.5 = 0 ~spike
+    follow spec.s.5 = spec.5
+    fact spec.6 = 0
+    prop spec.s.6 = 0 ~spike
+    follow spec.s.6 = spec.6
+    fact spec.7 = 0
+    prop spec.s.7 = 0 ~spike
+    follow spec.s.7 = spec.7
+    fact spec.8 = 0
+    prop spec.s.8 = 0 ~spike
+    follow spec.s.8 = spec.8
+    fact spec.9 = 0
+    prop spec.s.9 = 0 ~spike
+    follow spec.s.9 = spec.9
+    fact spec.10 = 0
+    prop spec.s.10 = 0 ~spike
+    follow spec.s.10 = spec.10
+    fact spec.11 = 0
+    prop spec.s.11 = 0 ~spike
+    follow spec.s.11 = spec.11
+    fact spec.12 = 0
+    prop spec.s.12 = 0 ~spike
+    follow spec.s.12 = spec.12
+    fact spec.13 = 0
+    prop spec.s.13 = 0 ~spike
+    follow spec.s.13 = spec.13
+    fact spec.14 = 0
+    prop spec.s.14 = 0 ~spike
+    follow spec.s.14 = spec.14
+    fact spec.15 = 0
+    prop spec.s.15 = 0 ~spike
+    follow spec.s.15 = spec.15
+    fact spec.16 = 0
+    prop spec.s.16 = 0 ~spike
+    follow spec.s.16 = spec.16
+    fact spec.17 = 0
+    prop spec.s.17 = 0 ~spike
+    follow spec.s.17 = spec.17
+    fact spec.18 = 0
+    prop spec.s.18 = 0 ~spike
+    follow spec.s.18 = spec.18
+    fact spec.19 = 0
+    prop spec.s.19 = 0 ~spike
+    follow spec.s.19 = spec.19
+    fact spec.20 = 0
+    prop spec.s.20 = 0 ~spike
+    follow spec.s.20 = spec.20
+    fact spec.21 = 0
+    prop spec.s.21 = 0 ~spike
+    follow spec.s.21 = spec.21
+    fact spec.22 = 0
+    prop spec.s.22 = 0 ~spike
+    follow spec.s.22 = spec.22
+    fact spec.23 = 0
+    prop spec.s.23 = 0 ~spike
+    follow spec.s.23 = spec.23
+                  // 0..1, from cava: how hard the low end is hitting
     model outlist max 6 { name: text; current: bool }   // every place the sound can go
     //  The mixer under the volume slider (right-click it): one row per app that is playing sound.
     model mixer max 6 { name: text; pct: number; muted: bool; corked: bool; icon: image 27, 27 }
@@ -410,7 +481,6 @@ scene Vitreus {
     event face_home ->
     prop face_k = 0 ~calm
     follow face_k = if(face_open, 1, 0)
-    event dcava_toggle ->           // the desktop audio visualiser
     event launch_open ->
     event launch_move ->            // -1 up, +1 down
     event launch_pick ->            // a row, by place
@@ -1404,28 +1474,33 @@ scene Vitreus {
     follow sy_pill = if(sy_on, 1, 0)
     event sy_toggle ->
     event sy_cl_set ->                 // 0 to 2
-    //  The desktop audio visualiser (desktopcava/), under the system monitor on the same page: its own scene too.
-    fact cv_on = false
-    fact cv_ok = true
-    fact cv_sty = 0                    // 0 bars, 1 mirror, 2 wave, 3 line, 4 dots, 5 radial
-    fact cv_pos = 0                    // 0 bottom, 1 top, 2 left, 3 right, 4 middle
-    fact cv_siz = 1                    // 0 small, 1 medium, 2 large
-    fact cv_cm = 0                     // 0 glass, 1 accent, 2 light, 3 warm
-    prop cv_pill = 0 ~pop
-    follow cv_pill = if(cv_on, 1, 0)
-    event cv_toggle ->
-    event cv_sty_set ->
-    event cv_pos_set ->
-    event cv_siz_set ->
-    event cv_cm_set ->
-    //  Which monitor draws it: `cv_mon` is 0 for all, or 1 and up for a monitor's slot (as the lock screen's).
-    fact cv_mon = 0
+    //  The audio visualiser: the bottom edge of the screen rising into the music (pages/bar_shapes.plm), under the system monitor on the same page. Sliders in Settings > Widgets;
+    //  their events carry where on the track (0 to 1) and logic/visualizer.luau turns that into these (and keeps them in framewave.json). `fw_on` is the switch (declared with the bass, above).
+    fact fw_cols = 47                  // how many columns: 6 to 47
+    fact fw_sens = 1                   // how far the music pushes them: 0.3 to 3 (a log scale on the slider)
+    fact fw_hgt = 150                  // how tall at most, in px at scale 1: 40 to 300
+    fact fw_lay = 0                    // where it stands: 0 along the bottom, 1 in the four corners, 2 along the top, 3 down the left, 4 down the right
+    fact fw_bl = 1                     // 0 apart, 1 liquid: how much each column melts into the next
+    text fw_cols_text = "47"
+    text fw_sens_text = "1.0x"
+    text fw_hgt_text = "150"
+    text fw_bl_text = "100%"
+    prop fw_pill = 0 ~pop
+    prop fw_lsel = 0 ~calm              // the layout tiles' glow moving from one to the other
+    follow fw_lsel = fw_lay
+    follow fw_pill = if(fw_on, 1, 0)
+    event fw_toggle ->
+    event fw_cols_set ->
+    event fw_sens_set ->
+    event fw_hgt_set ->
+    event fw_bl_set ->
+    event fw_lay_set ->
+    //  The monitor chips' names (the clock's and the system monitor's use them too).
     repeat i in 0..4 {
         fact cv_m.$i.on = false
         text cv_m.$i.name = ""
     }
-    event cv_mon_set ->
-    //  And the clock's and the system monitor's: 1 and up is a monitor's slot (the same chips' names as the visualiser's).
+    //  The clock's and the system monitor's: 1 and up is a monitor's slot (the chips' names are `cv_m.N.name`).
     fact ck_mon = 0
     fact sy_mon = 0
     event ck_mon_set ->
@@ -3739,7 +3814,7 @@ scene Vitreus {
     let vpn.ab = vpn.pb + vpn.pbh + 12
     let vpn.fh = if(vpn_mode == vpm_wg, 180, if(vpn_mode == vpm_ovpn, 144, 276))
     let wm.h = 946                     // the Pleamar-WM page: to the bottom of its last card
-    let ck.h = 1024                    // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
+    let ck.h = 1174                    // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
     let gl.h = 554                     // the Glass page: to the bottom of its last card
     let lk.h = 806                     // the Lock screen page: its cards, to the bottom of the last
     //  The Notifications page: the apps card has a row for each app (up to 14), and the rules card is there while one is open.
@@ -4388,6 +4463,503 @@ scene Vitreus {
     //  The Cyber's terminal readouts (bar_glass.plm) flicker and blink on this clock, so it runs while one of them can be seen: only while a drawer is out (`cy_on`).
     let cy_on = clamp(max(max(dk0, dc0), max(max(ds0, dl0), max(dm0, max(dz0, do0)))) * 50, 0, 1) * cy_k
     //  The player's card (docked in its panel or floating) has the same wavy progress line, so it runs the clock while a song plays in it.
+    //  The audio visualiser's columns (pages/bar_shapes.plm): up to 47 slots, each taking its height from the 24 sprung cava bars (`spec.s.*`), interpolated between the two nearest, bent by a curve that favours the peaks (`pow(…, 1.4)`) and scaled by
+    //  the sensitivity. `fw_lay` says where they stand: 0 along the bottom, 1 fanned out of the four corners, 2 along the top, 3 down the left, 4 down the right. Each slot works out where its base is
+    //  (`fwbx_*, fwby_*`: a point on the frame's inner edge, or the screen's edge without the frame) and which way it grows (`fwdx_*, fwdy_*`, a unit vector); the box is then centred
+    //  half its length from the base, turned to point along it. Along an edge the `fw.n` slots in use are spread along it and mirrored about the middle (the bass, bar 0, at the centre, the highs at both ends,
+    //  tapering to nothing over the last 5%); in the corners slot j belongs to corner j mod 4 (bottom left, bottom right, top left, top right), column j div 4 round it, `fw.m` per corner, fanned from 0
+    //  (along the edge) to 90 degrees with the bass at the middle angle. The drawing is flipped about the middle when the bar is at the bottom (`bt`) or the right (`rt`), which the bases allow for. Written by a script.
+    let fw.n = clamp(floor(fw_cols + 0.5), 6, 47)
+    let fw.m = clamp(floor(fw.n / 4), 2, 11)
+    let fw.nuse = if(fw_lay == 1, 4 * fw.m, fw.n)
+    let fw.sm = fw_sens
+    let fw.hm = fw_hgt
+    let fw.wf = mix(0.8, 1.9, fw_bl)
+    let fw.bl = mix(10, 32, fw_bl)
+    let fw.W = screen.width - th.l - th.r
+    let fw.y0 = yo + th.t * fm                                        // the top and bottom inner edges (the screen's own without the frame)
+    let fw.y1 = vb - th.b * fm
+    let fw.Hv = fw.y1 - fw.y0
+    let fw.al = if(fw_lay > 2.5, fw.Hv, fw.W)                         // how long the edge is that the columns stand along
+    let fw.bw = if(fw_lay == 1, 17 * u * fw.wf, fw.al / fw.n * fw.wf) // a column's width
+    let fw.ey_b = mix(fw.y1, fw.y0, bt)                               // the real bottom and top edges, as drawn (flipped when the bar is at the bottom)
+    let fw.ey_t = mix(fw.y0, fw.y1, bt)
+    let fw.sy_b = mix(-1, 1, bt)
+    let fw.sy_t = mix(1, -1, bt)
+    let fw.ex_l = mix(th.l * fm, screen.width - th.r * fm, rt)        // the real left and right edges (the strip's side is th.l, which the right layout flips)
+    let fw.ex_r = mix(screen.width - th.r * fm, th.l * fm, rt)
+    let fw.sx_l = mix(1, -1, rt)
+    let fw.sx_r = mix(-1, 1, rt)
+    let fwa_0 = ((0 + 0.5) / fw.m) * 90
+    let fwb_0 = if(fw_lay == 1, ((0 + 0.5) / fw.m) * 23, abs(2 * ((0 + 0.5) / fw.n) - 1) * 23)
+    let fwl_0 = clamp(floor(fwb_0), 0, 22)
+    let fwh_0 = if(0 < fw.nuse, min(1, pow(mix(pick(fwl_0, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_0 - fwl_0, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(0 + 0.5, fw.n - 0 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_0 = pick(fw_lay, th.l + ((0 + 0.5) / fw.n) * fw.W, th.l, th.l + ((0 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_0 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((0 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((0 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_0 = pick(fw_lay, 0, 1 * cos(fwa_0), 0, fw.sx_l, fw.sx_r)
+    let fwdy_0 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_0), fw.sy_t, 0, 0)
+    let fwx_0 = fwbx_0 + fwdx_0 * (fwh_0 - 3 * u) / 2
+    let fwy_0 = fwby_0 + fwdy_0 * (fwh_0 - 3 * u) / 2
+    let fwa_1 = ((0 + 0.5) / fw.m) * 90
+    let fwb_1 = if(fw_lay == 1, ((0 + 0.5) / fw.m) * 23, abs(2 * ((1 + 0.5) / fw.n) - 1) * 23)
+    let fwl_1 = clamp(floor(fwb_1), 0, 22)
+    let fwh_1 = if(1 < fw.nuse, min(1, pow(mix(pick(fwl_1, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_1, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_1 - fwl_1, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(1 + 0.5, fw.n - 1 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_1 = pick(fw_lay, th.l + ((1 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((1 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_1 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((1 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((1 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_1 = pick(fw_lay, 0, -1 * cos(fwa_1), 0, fw.sx_l, fw.sx_r)
+    let fwdy_1 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_1), fw.sy_t, 0, 0)
+    let fwx_1 = fwbx_1 + fwdx_1 * (fwh_1 - 3 * u) / 2
+    let fwy_1 = fwby_1 + fwdy_1 * (fwh_1 - 3 * u) / 2
+    let fwa_2 = ((0 + 0.5) / fw.m) * 90
+    let fwb_2 = if(fw_lay == 1, ((0 + 0.5) / fw.m) * 23, abs(2 * ((2 + 0.5) / fw.n) - 1) * 23)
+    let fwl_2 = clamp(floor(fwb_2), 0, 22)
+    let fwh_2 = if(2 < fw.nuse, min(1, pow(mix(pick(fwl_2, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_2, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_2 - fwl_2, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(2 + 0.5, fw.n - 2 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_2 = pick(fw_lay, th.l + ((2 + 0.5) / fw.n) * fw.W, th.l, th.l + ((2 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_2 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((2 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((2 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_2 = pick(fw_lay, 0, 1 * cos(fwa_2), 0, fw.sx_l, fw.sx_r)
+    let fwdy_2 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_2), fw.sy_t, 0, 0)
+    let fwx_2 = fwbx_2 + fwdx_2 * (fwh_2 - 3 * u) / 2
+    let fwy_2 = fwby_2 + fwdy_2 * (fwh_2 - 3 * u) / 2
+    let fwa_3 = ((0 + 0.5) / fw.m) * 90
+    let fwb_3 = if(fw_lay == 1, ((0 + 0.5) / fw.m) * 23, abs(2 * ((3 + 0.5) / fw.n) - 1) * 23)
+    let fwl_3 = clamp(floor(fwb_3), 0, 22)
+    let fwh_3 = if(3 < fw.nuse, min(1, pow(mix(pick(fwl_3, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_3, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_3 - fwl_3, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(3 + 0.5, fw.n - 3 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_3 = pick(fw_lay, th.l + ((3 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((3 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_3 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((3 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((3 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_3 = pick(fw_lay, 0, -1 * cos(fwa_3), 0, fw.sx_l, fw.sx_r)
+    let fwdy_3 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_3), fw.sy_t, 0, 0)
+    let fwx_3 = fwbx_3 + fwdx_3 * (fwh_3 - 3 * u) / 2
+    let fwy_3 = fwby_3 + fwdy_3 * (fwh_3 - 3 * u) / 2
+    let fwa_4 = ((1 + 0.5) / fw.m) * 90
+    let fwb_4 = if(fw_lay == 1, ((1 + 0.5) / fw.m) * 23, abs(2 * ((4 + 0.5) / fw.n) - 1) * 23)
+    let fwl_4 = clamp(floor(fwb_4), 0, 22)
+    let fwh_4 = if(4 < fw.nuse, min(1, pow(mix(pick(fwl_4, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_4, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_4 - fwl_4, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(4 + 0.5, fw.n - 4 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_4 = pick(fw_lay, th.l + ((4 + 0.5) / fw.n) * fw.W, th.l, th.l + ((4 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_4 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((4 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((4 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_4 = pick(fw_lay, 0, 1 * cos(fwa_4), 0, fw.sx_l, fw.sx_r)
+    let fwdy_4 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_4), fw.sy_t, 0, 0)
+    let fwx_4 = fwbx_4 + fwdx_4 * (fwh_4 - 3 * u) / 2
+    let fwy_4 = fwby_4 + fwdy_4 * (fwh_4 - 3 * u) / 2
+    let fwa_5 = ((1 + 0.5) / fw.m) * 90
+    let fwb_5 = if(fw_lay == 1, ((1 + 0.5) / fw.m) * 23, abs(2 * ((5 + 0.5) / fw.n) - 1) * 23)
+    let fwl_5 = clamp(floor(fwb_5), 0, 22)
+    let fwh_5 = if(5 < fw.nuse, min(1, pow(mix(pick(fwl_5, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_5, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_5 - fwl_5, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(5 + 0.5, fw.n - 5 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_5 = pick(fw_lay, th.l + ((5 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((5 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_5 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((5 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((5 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_5 = pick(fw_lay, 0, -1 * cos(fwa_5), 0, fw.sx_l, fw.sx_r)
+    let fwdy_5 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_5), fw.sy_t, 0, 0)
+    let fwx_5 = fwbx_5 + fwdx_5 * (fwh_5 - 3 * u) / 2
+    let fwy_5 = fwby_5 + fwdy_5 * (fwh_5 - 3 * u) / 2
+    let fwa_6 = ((1 + 0.5) / fw.m) * 90
+    let fwb_6 = if(fw_lay == 1, ((1 + 0.5) / fw.m) * 23, abs(2 * ((6 + 0.5) / fw.n) - 1) * 23)
+    let fwl_6 = clamp(floor(fwb_6), 0, 22)
+    let fwh_6 = if(6 < fw.nuse, min(1, pow(mix(pick(fwl_6, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_6, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_6 - fwl_6, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(6 + 0.5, fw.n - 6 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_6 = pick(fw_lay, th.l + ((6 + 0.5) / fw.n) * fw.W, th.l, th.l + ((6 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_6 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((6 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((6 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_6 = pick(fw_lay, 0, 1 * cos(fwa_6), 0, fw.sx_l, fw.sx_r)
+    let fwdy_6 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_6), fw.sy_t, 0, 0)
+    let fwx_6 = fwbx_6 + fwdx_6 * (fwh_6 - 3 * u) / 2
+    let fwy_6 = fwby_6 + fwdy_6 * (fwh_6 - 3 * u) / 2
+    let fwa_7 = ((1 + 0.5) / fw.m) * 90
+    let fwb_7 = if(fw_lay == 1, ((1 + 0.5) / fw.m) * 23, abs(2 * ((7 + 0.5) / fw.n) - 1) * 23)
+    let fwl_7 = clamp(floor(fwb_7), 0, 22)
+    let fwh_7 = if(7 < fw.nuse, min(1, pow(mix(pick(fwl_7, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_7, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_7 - fwl_7, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(7 + 0.5, fw.n - 7 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_7 = pick(fw_lay, th.l + ((7 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((7 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_7 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((7 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((7 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_7 = pick(fw_lay, 0, -1 * cos(fwa_7), 0, fw.sx_l, fw.sx_r)
+    let fwdy_7 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_7), fw.sy_t, 0, 0)
+    let fwx_7 = fwbx_7 + fwdx_7 * (fwh_7 - 3 * u) / 2
+    let fwy_7 = fwby_7 + fwdy_7 * (fwh_7 - 3 * u) / 2
+    let fwa_8 = ((2 + 0.5) / fw.m) * 90
+    let fwb_8 = if(fw_lay == 1, ((2 + 0.5) / fw.m) * 23, abs(2 * ((8 + 0.5) / fw.n) - 1) * 23)
+    let fwl_8 = clamp(floor(fwb_8), 0, 22)
+    let fwh_8 = if(8 < fw.nuse, min(1, pow(mix(pick(fwl_8, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_8, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_8 - fwl_8, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(8 + 0.5, fw.n - 8 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_8 = pick(fw_lay, th.l + ((8 + 0.5) / fw.n) * fw.W, th.l, th.l + ((8 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_8 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((8 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((8 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_8 = pick(fw_lay, 0, 1 * cos(fwa_8), 0, fw.sx_l, fw.sx_r)
+    let fwdy_8 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_8), fw.sy_t, 0, 0)
+    let fwx_8 = fwbx_8 + fwdx_8 * (fwh_8 - 3 * u) / 2
+    let fwy_8 = fwby_8 + fwdy_8 * (fwh_8 - 3 * u) / 2
+    let fwa_9 = ((2 + 0.5) / fw.m) * 90
+    let fwb_9 = if(fw_lay == 1, ((2 + 0.5) / fw.m) * 23, abs(2 * ((9 + 0.5) / fw.n) - 1) * 23)
+    let fwl_9 = clamp(floor(fwb_9), 0, 22)
+    let fwh_9 = if(9 < fw.nuse, min(1, pow(mix(pick(fwl_9, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_9, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_9 - fwl_9, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(9 + 0.5, fw.n - 9 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_9 = pick(fw_lay, th.l + ((9 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((9 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_9 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((9 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((9 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_9 = pick(fw_lay, 0, -1 * cos(fwa_9), 0, fw.sx_l, fw.sx_r)
+    let fwdy_9 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_9), fw.sy_t, 0, 0)
+    let fwx_9 = fwbx_9 + fwdx_9 * (fwh_9 - 3 * u) / 2
+    let fwy_9 = fwby_9 + fwdy_9 * (fwh_9 - 3 * u) / 2
+    let fwa_10 = ((2 + 0.5) / fw.m) * 90
+    let fwb_10 = if(fw_lay == 1, ((2 + 0.5) / fw.m) * 23, abs(2 * ((10 + 0.5) / fw.n) - 1) * 23)
+    let fwl_10 = clamp(floor(fwb_10), 0, 22)
+    let fwh_10 = if(10 < fw.nuse, min(1, pow(mix(pick(fwl_10, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_10, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_10 - fwl_10, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(10 + 0.5, fw.n - 10 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_10 = pick(fw_lay, th.l + ((10 + 0.5) / fw.n) * fw.W, th.l, th.l + ((10 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_10 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((10 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((10 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_10 = pick(fw_lay, 0, 1 * cos(fwa_10), 0, fw.sx_l, fw.sx_r)
+    let fwdy_10 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_10), fw.sy_t, 0, 0)
+    let fwx_10 = fwbx_10 + fwdx_10 * (fwh_10 - 3 * u) / 2
+    let fwy_10 = fwby_10 + fwdy_10 * (fwh_10 - 3 * u) / 2
+    let fwa_11 = ((2 + 0.5) / fw.m) * 90
+    let fwb_11 = if(fw_lay == 1, ((2 + 0.5) / fw.m) * 23, abs(2 * ((11 + 0.5) / fw.n) - 1) * 23)
+    let fwl_11 = clamp(floor(fwb_11), 0, 22)
+    let fwh_11 = if(11 < fw.nuse, min(1, pow(mix(pick(fwl_11, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_11, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_11 - fwl_11, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(11 + 0.5, fw.n - 11 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_11 = pick(fw_lay, th.l + ((11 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((11 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_11 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((11 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((11 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_11 = pick(fw_lay, 0, -1 * cos(fwa_11), 0, fw.sx_l, fw.sx_r)
+    let fwdy_11 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_11), fw.sy_t, 0, 0)
+    let fwx_11 = fwbx_11 + fwdx_11 * (fwh_11 - 3 * u) / 2
+    let fwy_11 = fwby_11 + fwdy_11 * (fwh_11 - 3 * u) / 2
+    let fwa_12 = ((3 + 0.5) / fw.m) * 90
+    let fwb_12 = if(fw_lay == 1, ((3 + 0.5) / fw.m) * 23, abs(2 * ((12 + 0.5) / fw.n) - 1) * 23)
+    let fwl_12 = clamp(floor(fwb_12), 0, 22)
+    let fwh_12 = if(12 < fw.nuse, min(1, pow(mix(pick(fwl_12, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_12, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_12 - fwl_12, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(12 + 0.5, fw.n - 12 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_12 = pick(fw_lay, th.l + ((12 + 0.5) / fw.n) * fw.W, th.l, th.l + ((12 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_12 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((12 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((12 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_12 = pick(fw_lay, 0, 1 * cos(fwa_12), 0, fw.sx_l, fw.sx_r)
+    let fwdy_12 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_12), fw.sy_t, 0, 0)
+    let fwx_12 = fwbx_12 + fwdx_12 * (fwh_12 - 3 * u) / 2
+    let fwy_12 = fwby_12 + fwdy_12 * (fwh_12 - 3 * u) / 2
+    let fwa_13 = ((3 + 0.5) / fw.m) * 90
+    let fwb_13 = if(fw_lay == 1, ((3 + 0.5) / fw.m) * 23, abs(2 * ((13 + 0.5) / fw.n) - 1) * 23)
+    let fwl_13 = clamp(floor(fwb_13), 0, 22)
+    let fwh_13 = if(13 < fw.nuse, min(1, pow(mix(pick(fwl_13, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_13, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_13 - fwl_13, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(13 + 0.5, fw.n - 13 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_13 = pick(fw_lay, th.l + ((13 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((13 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_13 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((13 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((13 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_13 = pick(fw_lay, 0, -1 * cos(fwa_13), 0, fw.sx_l, fw.sx_r)
+    let fwdy_13 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_13), fw.sy_t, 0, 0)
+    let fwx_13 = fwbx_13 + fwdx_13 * (fwh_13 - 3 * u) / 2
+    let fwy_13 = fwby_13 + fwdy_13 * (fwh_13 - 3 * u) / 2
+    let fwa_14 = ((3 + 0.5) / fw.m) * 90
+    let fwb_14 = if(fw_lay == 1, ((3 + 0.5) / fw.m) * 23, abs(2 * ((14 + 0.5) / fw.n) - 1) * 23)
+    let fwl_14 = clamp(floor(fwb_14), 0, 22)
+    let fwh_14 = if(14 < fw.nuse, min(1, pow(mix(pick(fwl_14, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_14, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_14 - fwl_14, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(14 + 0.5, fw.n - 14 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_14 = pick(fw_lay, th.l + ((14 + 0.5) / fw.n) * fw.W, th.l, th.l + ((14 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_14 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((14 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((14 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_14 = pick(fw_lay, 0, 1 * cos(fwa_14), 0, fw.sx_l, fw.sx_r)
+    let fwdy_14 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_14), fw.sy_t, 0, 0)
+    let fwx_14 = fwbx_14 + fwdx_14 * (fwh_14 - 3 * u) / 2
+    let fwy_14 = fwby_14 + fwdy_14 * (fwh_14 - 3 * u) / 2
+    let fwa_15 = ((3 + 0.5) / fw.m) * 90
+    let fwb_15 = if(fw_lay == 1, ((3 + 0.5) / fw.m) * 23, abs(2 * ((15 + 0.5) / fw.n) - 1) * 23)
+    let fwl_15 = clamp(floor(fwb_15), 0, 22)
+    let fwh_15 = if(15 < fw.nuse, min(1, pow(mix(pick(fwl_15, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_15, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_15 - fwl_15, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(15 + 0.5, fw.n - 15 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_15 = pick(fw_lay, th.l + ((15 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((15 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_15 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((15 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((15 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_15 = pick(fw_lay, 0, -1 * cos(fwa_15), 0, fw.sx_l, fw.sx_r)
+    let fwdy_15 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_15), fw.sy_t, 0, 0)
+    let fwx_15 = fwbx_15 + fwdx_15 * (fwh_15 - 3 * u) / 2
+    let fwy_15 = fwby_15 + fwdy_15 * (fwh_15 - 3 * u) / 2
+    let fwa_16 = ((4 + 0.5) / fw.m) * 90
+    let fwb_16 = if(fw_lay == 1, ((4 + 0.5) / fw.m) * 23, abs(2 * ((16 + 0.5) / fw.n) - 1) * 23)
+    let fwl_16 = clamp(floor(fwb_16), 0, 22)
+    let fwh_16 = if(16 < fw.nuse, min(1, pow(mix(pick(fwl_16, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_16, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_16 - fwl_16, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(16 + 0.5, fw.n - 16 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_16 = pick(fw_lay, th.l + ((16 + 0.5) / fw.n) * fw.W, th.l, th.l + ((16 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_16 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((16 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((16 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_16 = pick(fw_lay, 0, 1 * cos(fwa_16), 0, fw.sx_l, fw.sx_r)
+    let fwdy_16 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_16), fw.sy_t, 0, 0)
+    let fwx_16 = fwbx_16 + fwdx_16 * (fwh_16 - 3 * u) / 2
+    let fwy_16 = fwby_16 + fwdy_16 * (fwh_16 - 3 * u) / 2
+    let fwa_17 = ((4 + 0.5) / fw.m) * 90
+    let fwb_17 = if(fw_lay == 1, ((4 + 0.5) / fw.m) * 23, abs(2 * ((17 + 0.5) / fw.n) - 1) * 23)
+    let fwl_17 = clamp(floor(fwb_17), 0, 22)
+    let fwh_17 = if(17 < fw.nuse, min(1, pow(mix(pick(fwl_17, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_17, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_17 - fwl_17, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(17 + 0.5, fw.n - 17 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_17 = pick(fw_lay, th.l + ((17 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((17 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_17 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((17 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((17 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_17 = pick(fw_lay, 0, -1 * cos(fwa_17), 0, fw.sx_l, fw.sx_r)
+    let fwdy_17 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_17), fw.sy_t, 0, 0)
+    let fwx_17 = fwbx_17 + fwdx_17 * (fwh_17 - 3 * u) / 2
+    let fwy_17 = fwby_17 + fwdy_17 * (fwh_17 - 3 * u) / 2
+    let fwa_18 = ((4 + 0.5) / fw.m) * 90
+    let fwb_18 = if(fw_lay == 1, ((4 + 0.5) / fw.m) * 23, abs(2 * ((18 + 0.5) / fw.n) - 1) * 23)
+    let fwl_18 = clamp(floor(fwb_18), 0, 22)
+    let fwh_18 = if(18 < fw.nuse, min(1, pow(mix(pick(fwl_18, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_18, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_18 - fwl_18, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(18 + 0.5, fw.n - 18 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_18 = pick(fw_lay, th.l + ((18 + 0.5) / fw.n) * fw.W, th.l, th.l + ((18 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_18 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((18 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((18 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_18 = pick(fw_lay, 0, 1 * cos(fwa_18), 0, fw.sx_l, fw.sx_r)
+    let fwdy_18 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_18), fw.sy_t, 0, 0)
+    let fwx_18 = fwbx_18 + fwdx_18 * (fwh_18 - 3 * u) / 2
+    let fwy_18 = fwby_18 + fwdy_18 * (fwh_18 - 3 * u) / 2
+    let fwa_19 = ((4 + 0.5) / fw.m) * 90
+    let fwb_19 = if(fw_lay == 1, ((4 + 0.5) / fw.m) * 23, abs(2 * ((19 + 0.5) / fw.n) - 1) * 23)
+    let fwl_19 = clamp(floor(fwb_19), 0, 22)
+    let fwh_19 = if(19 < fw.nuse, min(1, pow(mix(pick(fwl_19, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_19, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_19 - fwl_19, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(19 + 0.5, fw.n - 19 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_19 = pick(fw_lay, th.l + ((19 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((19 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_19 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((19 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((19 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_19 = pick(fw_lay, 0, -1 * cos(fwa_19), 0, fw.sx_l, fw.sx_r)
+    let fwdy_19 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_19), fw.sy_t, 0, 0)
+    let fwx_19 = fwbx_19 + fwdx_19 * (fwh_19 - 3 * u) / 2
+    let fwy_19 = fwby_19 + fwdy_19 * (fwh_19 - 3 * u) / 2
+    let fwa_20 = ((5 + 0.5) / fw.m) * 90
+    let fwb_20 = if(fw_lay == 1, ((5 + 0.5) / fw.m) * 23, abs(2 * ((20 + 0.5) / fw.n) - 1) * 23)
+    let fwl_20 = clamp(floor(fwb_20), 0, 22)
+    let fwh_20 = if(20 < fw.nuse, min(1, pow(mix(pick(fwl_20, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_20, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_20 - fwl_20, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(20 + 0.5, fw.n - 20 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_20 = pick(fw_lay, th.l + ((20 + 0.5) / fw.n) * fw.W, th.l, th.l + ((20 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_20 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((20 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((20 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_20 = pick(fw_lay, 0, 1 * cos(fwa_20), 0, fw.sx_l, fw.sx_r)
+    let fwdy_20 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_20), fw.sy_t, 0, 0)
+    let fwx_20 = fwbx_20 + fwdx_20 * (fwh_20 - 3 * u) / 2
+    let fwy_20 = fwby_20 + fwdy_20 * (fwh_20 - 3 * u) / 2
+    let fwa_21 = ((5 + 0.5) / fw.m) * 90
+    let fwb_21 = if(fw_lay == 1, ((5 + 0.5) / fw.m) * 23, abs(2 * ((21 + 0.5) / fw.n) - 1) * 23)
+    let fwl_21 = clamp(floor(fwb_21), 0, 22)
+    let fwh_21 = if(21 < fw.nuse, min(1, pow(mix(pick(fwl_21, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_21, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_21 - fwl_21, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(21 + 0.5, fw.n - 21 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_21 = pick(fw_lay, th.l + ((21 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((21 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_21 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((21 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((21 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_21 = pick(fw_lay, 0, -1 * cos(fwa_21), 0, fw.sx_l, fw.sx_r)
+    let fwdy_21 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_21), fw.sy_t, 0, 0)
+    let fwx_21 = fwbx_21 + fwdx_21 * (fwh_21 - 3 * u) / 2
+    let fwy_21 = fwby_21 + fwdy_21 * (fwh_21 - 3 * u) / 2
+    let fwa_22 = ((5 + 0.5) / fw.m) * 90
+    let fwb_22 = if(fw_lay == 1, ((5 + 0.5) / fw.m) * 23, abs(2 * ((22 + 0.5) / fw.n) - 1) * 23)
+    let fwl_22 = clamp(floor(fwb_22), 0, 22)
+    let fwh_22 = if(22 < fw.nuse, min(1, pow(mix(pick(fwl_22, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_22, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_22 - fwl_22, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(22 + 0.5, fw.n - 22 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_22 = pick(fw_lay, th.l + ((22 + 0.5) / fw.n) * fw.W, th.l, th.l + ((22 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_22 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((22 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((22 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_22 = pick(fw_lay, 0, 1 * cos(fwa_22), 0, fw.sx_l, fw.sx_r)
+    let fwdy_22 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_22), fw.sy_t, 0, 0)
+    let fwx_22 = fwbx_22 + fwdx_22 * (fwh_22 - 3 * u) / 2
+    let fwy_22 = fwby_22 + fwdy_22 * (fwh_22 - 3 * u) / 2
+    let fwa_23 = ((5 + 0.5) / fw.m) * 90
+    let fwb_23 = if(fw_lay == 1, ((5 + 0.5) / fw.m) * 23, abs(2 * ((23 + 0.5) / fw.n) - 1) * 23)
+    let fwl_23 = clamp(floor(fwb_23), 0, 22)
+    let fwh_23 = if(23 < fw.nuse, min(1, pow(mix(pick(fwl_23, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_23, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_23 - fwl_23, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(23 + 0.5, fw.n - 23 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_23 = pick(fw_lay, th.l + ((23 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((23 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_23 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((23 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((23 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_23 = pick(fw_lay, 0, -1 * cos(fwa_23), 0, fw.sx_l, fw.sx_r)
+    let fwdy_23 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_23), fw.sy_t, 0, 0)
+    let fwx_23 = fwbx_23 + fwdx_23 * (fwh_23 - 3 * u) / 2
+    let fwy_23 = fwby_23 + fwdy_23 * (fwh_23 - 3 * u) / 2
+    let fwa_24 = ((6 + 0.5) / fw.m) * 90
+    let fwb_24 = if(fw_lay == 1, ((6 + 0.5) / fw.m) * 23, abs(2 * ((24 + 0.5) / fw.n) - 1) * 23)
+    let fwl_24 = clamp(floor(fwb_24), 0, 22)
+    let fwh_24 = if(24 < fw.nuse, min(1, pow(mix(pick(fwl_24, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_24, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_24 - fwl_24, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(24 + 0.5, fw.n - 24 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_24 = pick(fw_lay, th.l + ((24 + 0.5) / fw.n) * fw.W, th.l, th.l + ((24 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_24 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((24 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((24 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_24 = pick(fw_lay, 0, 1 * cos(fwa_24), 0, fw.sx_l, fw.sx_r)
+    let fwdy_24 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_24), fw.sy_t, 0, 0)
+    let fwx_24 = fwbx_24 + fwdx_24 * (fwh_24 - 3 * u) / 2
+    let fwy_24 = fwby_24 + fwdy_24 * (fwh_24 - 3 * u) / 2
+    let fwa_25 = ((6 + 0.5) / fw.m) * 90
+    let fwb_25 = if(fw_lay == 1, ((6 + 0.5) / fw.m) * 23, abs(2 * ((25 + 0.5) / fw.n) - 1) * 23)
+    let fwl_25 = clamp(floor(fwb_25), 0, 22)
+    let fwh_25 = if(25 < fw.nuse, min(1, pow(mix(pick(fwl_25, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_25, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_25 - fwl_25, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(25 + 0.5, fw.n - 25 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_25 = pick(fw_lay, th.l + ((25 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((25 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_25 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((25 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((25 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_25 = pick(fw_lay, 0, -1 * cos(fwa_25), 0, fw.sx_l, fw.sx_r)
+    let fwdy_25 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_25), fw.sy_t, 0, 0)
+    let fwx_25 = fwbx_25 + fwdx_25 * (fwh_25 - 3 * u) / 2
+    let fwy_25 = fwby_25 + fwdy_25 * (fwh_25 - 3 * u) / 2
+    let fwa_26 = ((6 + 0.5) / fw.m) * 90
+    let fwb_26 = if(fw_lay == 1, ((6 + 0.5) / fw.m) * 23, abs(2 * ((26 + 0.5) / fw.n) - 1) * 23)
+    let fwl_26 = clamp(floor(fwb_26), 0, 22)
+    let fwh_26 = if(26 < fw.nuse, min(1, pow(mix(pick(fwl_26, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_26, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_26 - fwl_26, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(26 + 0.5, fw.n - 26 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_26 = pick(fw_lay, th.l + ((26 + 0.5) / fw.n) * fw.W, th.l, th.l + ((26 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_26 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((26 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((26 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_26 = pick(fw_lay, 0, 1 * cos(fwa_26), 0, fw.sx_l, fw.sx_r)
+    let fwdy_26 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_26), fw.sy_t, 0, 0)
+    let fwx_26 = fwbx_26 + fwdx_26 * (fwh_26 - 3 * u) / 2
+    let fwy_26 = fwby_26 + fwdy_26 * (fwh_26 - 3 * u) / 2
+    let fwa_27 = ((6 + 0.5) / fw.m) * 90
+    let fwb_27 = if(fw_lay == 1, ((6 + 0.5) / fw.m) * 23, abs(2 * ((27 + 0.5) / fw.n) - 1) * 23)
+    let fwl_27 = clamp(floor(fwb_27), 0, 22)
+    let fwh_27 = if(27 < fw.nuse, min(1, pow(mix(pick(fwl_27, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_27, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_27 - fwl_27, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(27 + 0.5, fw.n - 27 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_27 = pick(fw_lay, th.l + ((27 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((27 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_27 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((27 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((27 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_27 = pick(fw_lay, 0, -1 * cos(fwa_27), 0, fw.sx_l, fw.sx_r)
+    let fwdy_27 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_27), fw.sy_t, 0, 0)
+    let fwx_27 = fwbx_27 + fwdx_27 * (fwh_27 - 3 * u) / 2
+    let fwy_27 = fwby_27 + fwdy_27 * (fwh_27 - 3 * u) / 2
+    let fwa_28 = ((7 + 0.5) / fw.m) * 90
+    let fwb_28 = if(fw_lay == 1, ((7 + 0.5) / fw.m) * 23, abs(2 * ((28 + 0.5) / fw.n) - 1) * 23)
+    let fwl_28 = clamp(floor(fwb_28), 0, 22)
+    let fwh_28 = if(28 < fw.nuse, min(1, pow(mix(pick(fwl_28, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_28, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_28 - fwl_28, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(28 + 0.5, fw.n - 28 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_28 = pick(fw_lay, th.l + ((28 + 0.5) / fw.n) * fw.W, th.l, th.l + ((28 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_28 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((28 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((28 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_28 = pick(fw_lay, 0, 1 * cos(fwa_28), 0, fw.sx_l, fw.sx_r)
+    let fwdy_28 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_28), fw.sy_t, 0, 0)
+    let fwx_28 = fwbx_28 + fwdx_28 * (fwh_28 - 3 * u) / 2
+    let fwy_28 = fwby_28 + fwdy_28 * (fwh_28 - 3 * u) / 2
+    let fwa_29 = ((7 + 0.5) / fw.m) * 90
+    let fwb_29 = if(fw_lay == 1, ((7 + 0.5) / fw.m) * 23, abs(2 * ((29 + 0.5) / fw.n) - 1) * 23)
+    let fwl_29 = clamp(floor(fwb_29), 0, 22)
+    let fwh_29 = if(29 < fw.nuse, min(1, pow(mix(pick(fwl_29, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_29, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_29 - fwl_29, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(29 + 0.5, fw.n - 29 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_29 = pick(fw_lay, th.l + ((29 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((29 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_29 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((29 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((29 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_29 = pick(fw_lay, 0, -1 * cos(fwa_29), 0, fw.sx_l, fw.sx_r)
+    let fwdy_29 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_29), fw.sy_t, 0, 0)
+    let fwx_29 = fwbx_29 + fwdx_29 * (fwh_29 - 3 * u) / 2
+    let fwy_29 = fwby_29 + fwdy_29 * (fwh_29 - 3 * u) / 2
+    let fwa_30 = ((7 + 0.5) / fw.m) * 90
+    let fwb_30 = if(fw_lay == 1, ((7 + 0.5) / fw.m) * 23, abs(2 * ((30 + 0.5) / fw.n) - 1) * 23)
+    let fwl_30 = clamp(floor(fwb_30), 0, 22)
+    let fwh_30 = if(30 < fw.nuse, min(1, pow(mix(pick(fwl_30, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_30, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_30 - fwl_30, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(30 + 0.5, fw.n - 30 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_30 = pick(fw_lay, th.l + ((30 + 0.5) / fw.n) * fw.W, th.l, th.l + ((30 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_30 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((30 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((30 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_30 = pick(fw_lay, 0, 1 * cos(fwa_30), 0, fw.sx_l, fw.sx_r)
+    let fwdy_30 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_30), fw.sy_t, 0, 0)
+    let fwx_30 = fwbx_30 + fwdx_30 * (fwh_30 - 3 * u) / 2
+    let fwy_30 = fwby_30 + fwdy_30 * (fwh_30 - 3 * u) / 2
+    let fwa_31 = ((7 + 0.5) / fw.m) * 90
+    let fwb_31 = if(fw_lay == 1, ((7 + 0.5) / fw.m) * 23, abs(2 * ((31 + 0.5) / fw.n) - 1) * 23)
+    let fwl_31 = clamp(floor(fwb_31), 0, 22)
+    let fwh_31 = if(31 < fw.nuse, min(1, pow(mix(pick(fwl_31, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_31, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_31 - fwl_31, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(31 + 0.5, fw.n - 31 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_31 = pick(fw_lay, th.l + ((31 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((31 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_31 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((31 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((31 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_31 = pick(fw_lay, 0, -1 * cos(fwa_31), 0, fw.sx_l, fw.sx_r)
+    let fwdy_31 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_31), fw.sy_t, 0, 0)
+    let fwx_31 = fwbx_31 + fwdx_31 * (fwh_31 - 3 * u) / 2
+    let fwy_31 = fwby_31 + fwdy_31 * (fwh_31 - 3 * u) / 2
+    let fwa_32 = ((8 + 0.5) / fw.m) * 90
+    let fwb_32 = if(fw_lay == 1, ((8 + 0.5) / fw.m) * 23, abs(2 * ((32 + 0.5) / fw.n) - 1) * 23)
+    let fwl_32 = clamp(floor(fwb_32), 0, 22)
+    let fwh_32 = if(32 < fw.nuse, min(1, pow(mix(pick(fwl_32, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_32, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_32 - fwl_32, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(32 + 0.5, fw.n - 32 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_32 = pick(fw_lay, th.l + ((32 + 0.5) / fw.n) * fw.W, th.l, th.l + ((32 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_32 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((32 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((32 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_32 = pick(fw_lay, 0, 1 * cos(fwa_32), 0, fw.sx_l, fw.sx_r)
+    let fwdy_32 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_32), fw.sy_t, 0, 0)
+    let fwx_32 = fwbx_32 + fwdx_32 * (fwh_32 - 3 * u) / 2
+    let fwy_32 = fwby_32 + fwdy_32 * (fwh_32 - 3 * u) / 2
+    let fwa_33 = ((8 + 0.5) / fw.m) * 90
+    let fwb_33 = if(fw_lay == 1, ((8 + 0.5) / fw.m) * 23, abs(2 * ((33 + 0.5) / fw.n) - 1) * 23)
+    let fwl_33 = clamp(floor(fwb_33), 0, 22)
+    let fwh_33 = if(33 < fw.nuse, min(1, pow(mix(pick(fwl_33, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_33, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_33 - fwl_33, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(33 + 0.5, fw.n - 33 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_33 = pick(fw_lay, th.l + ((33 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((33 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_33 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((33 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((33 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_33 = pick(fw_lay, 0, -1 * cos(fwa_33), 0, fw.sx_l, fw.sx_r)
+    let fwdy_33 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_33), fw.sy_t, 0, 0)
+    let fwx_33 = fwbx_33 + fwdx_33 * (fwh_33 - 3 * u) / 2
+    let fwy_33 = fwby_33 + fwdy_33 * (fwh_33 - 3 * u) / 2
+    let fwa_34 = ((8 + 0.5) / fw.m) * 90
+    let fwb_34 = if(fw_lay == 1, ((8 + 0.5) / fw.m) * 23, abs(2 * ((34 + 0.5) / fw.n) - 1) * 23)
+    let fwl_34 = clamp(floor(fwb_34), 0, 22)
+    let fwh_34 = if(34 < fw.nuse, min(1, pow(mix(pick(fwl_34, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_34, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_34 - fwl_34, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(34 + 0.5, fw.n - 34 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_34 = pick(fw_lay, th.l + ((34 + 0.5) / fw.n) * fw.W, th.l, th.l + ((34 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_34 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((34 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((34 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_34 = pick(fw_lay, 0, 1 * cos(fwa_34), 0, fw.sx_l, fw.sx_r)
+    let fwdy_34 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_34), fw.sy_t, 0, 0)
+    let fwx_34 = fwbx_34 + fwdx_34 * (fwh_34 - 3 * u) / 2
+    let fwy_34 = fwby_34 + fwdy_34 * (fwh_34 - 3 * u) / 2
+    let fwa_35 = ((8 + 0.5) / fw.m) * 90
+    let fwb_35 = if(fw_lay == 1, ((8 + 0.5) / fw.m) * 23, abs(2 * ((35 + 0.5) / fw.n) - 1) * 23)
+    let fwl_35 = clamp(floor(fwb_35), 0, 22)
+    let fwh_35 = if(35 < fw.nuse, min(1, pow(mix(pick(fwl_35, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_35, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_35 - fwl_35, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(35 + 0.5, fw.n - 35 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_35 = pick(fw_lay, th.l + ((35 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((35 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_35 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((35 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((35 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_35 = pick(fw_lay, 0, -1 * cos(fwa_35), 0, fw.sx_l, fw.sx_r)
+    let fwdy_35 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_35), fw.sy_t, 0, 0)
+    let fwx_35 = fwbx_35 + fwdx_35 * (fwh_35 - 3 * u) / 2
+    let fwy_35 = fwby_35 + fwdy_35 * (fwh_35 - 3 * u) / 2
+    let fwa_36 = ((9 + 0.5) / fw.m) * 90
+    let fwb_36 = if(fw_lay == 1, ((9 + 0.5) / fw.m) * 23, abs(2 * ((36 + 0.5) / fw.n) - 1) * 23)
+    let fwl_36 = clamp(floor(fwb_36), 0, 22)
+    let fwh_36 = if(36 < fw.nuse, min(1, pow(mix(pick(fwl_36, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_36, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_36 - fwl_36, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(36 + 0.5, fw.n - 36 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_36 = pick(fw_lay, th.l + ((36 + 0.5) / fw.n) * fw.W, th.l, th.l + ((36 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_36 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((36 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((36 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_36 = pick(fw_lay, 0, 1 * cos(fwa_36), 0, fw.sx_l, fw.sx_r)
+    let fwdy_36 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_36), fw.sy_t, 0, 0)
+    let fwx_36 = fwbx_36 + fwdx_36 * (fwh_36 - 3 * u) / 2
+    let fwy_36 = fwby_36 + fwdy_36 * (fwh_36 - 3 * u) / 2
+    let fwa_37 = ((9 + 0.5) / fw.m) * 90
+    let fwb_37 = if(fw_lay == 1, ((9 + 0.5) / fw.m) * 23, abs(2 * ((37 + 0.5) / fw.n) - 1) * 23)
+    let fwl_37 = clamp(floor(fwb_37), 0, 22)
+    let fwh_37 = if(37 < fw.nuse, min(1, pow(mix(pick(fwl_37, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_37, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_37 - fwl_37, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(37 + 0.5, fw.n - 37 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_37 = pick(fw_lay, th.l + ((37 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((37 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_37 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((37 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((37 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_37 = pick(fw_lay, 0, -1 * cos(fwa_37), 0, fw.sx_l, fw.sx_r)
+    let fwdy_37 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_37), fw.sy_t, 0, 0)
+    let fwx_37 = fwbx_37 + fwdx_37 * (fwh_37 - 3 * u) / 2
+    let fwy_37 = fwby_37 + fwdy_37 * (fwh_37 - 3 * u) / 2
+    let fwa_38 = ((9 + 0.5) / fw.m) * 90
+    let fwb_38 = if(fw_lay == 1, ((9 + 0.5) / fw.m) * 23, abs(2 * ((38 + 0.5) / fw.n) - 1) * 23)
+    let fwl_38 = clamp(floor(fwb_38), 0, 22)
+    let fwh_38 = if(38 < fw.nuse, min(1, pow(mix(pick(fwl_38, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_38, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_38 - fwl_38, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(38 + 0.5, fw.n - 38 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_38 = pick(fw_lay, th.l + ((38 + 0.5) / fw.n) * fw.W, th.l, th.l + ((38 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_38 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((38 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((38 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_38 = pick(fw_lay, 0, 1 * cos(fwa_38), 0, fw.sx_l, fw.sx_r)
+    let fwdy_38 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_38), fw.sy_t, 0, 0)
+    let fwx_38 = fwbx_38 + fwdx_38 * (fwh_38 - 3 * u) / 2
+    let fwy_38 = fwby_38 + fwdy_38 * (fwh_38 - 3 * u) / 2
+    let fwa_39 = ((9 + 0.5) / fw.m) * 90
+    let fwb_39 = if(fw_lay == 1, ((9 + 0.5) / fw.m) * 23, abs(2 * ((39 + 0.5) / fw.n) - 1) * 23)
+    let fwl_39 = clamp(floor(fwb_39), 0, 22)
+    let fwh_39 = if(39 < fw.nuse, min(1, pow(mix(pick(fwl_39, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_39, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_39 - fwl_39, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(39 + 0.5, fw.n - 39 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_39 = pick(fw_lay, th.l + ((39 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((39 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_39 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((39 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((39 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_39 = pick(fw_lay, 0, -1 * cos(fwa_39), 0, fw.sx_l, fw.sx_r)
+    let fwdy_39 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_39), fw.sy_t, 0, 0)
+    let fwx_39 = fwbx_39 + fwdx_39 * (fwh_39 - 3 * u) / 2
+    let fwy_39 = fwby_39 + fwdy_39 * (fwh_39 - 3 * u) / 2
+    let fwa_40 = ((10 + 0.5) / fw.m) * 90
+    let fwb_40 = if(fw_lay == 1, ((10 + 0.5) / fw.m) * 23, abs(2 * ((40 + 0.5) / fw.n) - 1) * 23)
+    let fwl_40 = clamp(floor(fwb_40), 0, 22)
+    let fwh_40 = if(40 < fw.nuse, min(1, pow(mix(pick(fwl_40, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_40, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_40 - fwl_40, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(40 + 0.5, fw.n - 40 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_40 = pick(fw_lay, th.l + ((40 + 0.5) / fw.n) * fw.W, th.l, th.l + ((40 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_40 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((40 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((40 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_40 = pick(fw_lay, 0, 1 * cos(fwa_40), 0, fw.sx_l, fw.sx_r)
+    let fwdy_40 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_40), fw.sy_t, 0, 0)
+    let fwx_40 = fwbx_40 + fwdx_40 * (fwh_40 - 3 * u) / 2
+    let fwy_40 = fwby_40 + fwdy_40 * (fwh_40 - 3 * u) / 2
+    let fwa_41 = ((10 + 0.5) / fw.m) * 90
+    let fwb_41 = if(fw_lay == 1, ((10 + 0.5) / fw.m) * 23, abs(2 * ((41 + 0.5) / fw.n) - 1) * 23)
+    let fwl_41 = clamp(floor(fwb_41), 0, 22)
+    let fwh_41 = if(41 < fw.nuse, min(1, pow(mix(pick(fwl_41, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_41, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_41 - fwl_41, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(41 + 0.5, fw.n - 41 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_41 = pick(fw_lay, th.l + ((41 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((41 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_41 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((41 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((41 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_41 = pick(fw_lay, 0, -1 * cos(fwa_41), 0, fw.sx_l, fw.sx_r)
+    let fwdy_41 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_41), fw.sy_t, 0, 0)
+    let fwx_41 = fwbx_41 + fwdx_41 * (fwh_41 - 3 * u) / 2
+    let fwy_41 = fwby_41 + fwdy_41 * (fwh_41 - 3 * u) / 2
+    let fwa_42 = ((10 + 0.5) / fw.m) * 90
+    let fwb_42 = if(fw_lay == 1, ((10 + 0.5) / fw.m) * 23, abs(2 * ((42 + 0.5) / fw.n) - 1) * 23)
+    let fwl_42 = clamp(floor(fwb_42), 0, 22)
+    let fwh_42 = if(42 < fw.nuse, min(1, pow(mix(pick(fwl_42, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_42, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_42 - fwl_42, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(42 + 0.5, fw.n - 42 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_42 = pick(fw_lay, th.l + ((42 + 0.5) / fw.n) * fw.W, th.l, th.l + ((42 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_42 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((42 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((42 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_42 = pick(fw_lay, 0, 1 * cos(fwa_42), 0, fw.sx_l, fw.sx_r)
+    let fwdy_42 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_42), fw.sy_t, 0, 0)
+    let fwx_42 = fwbx_42 + fwdx_42 * (fwh_42 - 3 * u) / 2
+    let fwy_42 = fwby_42 + fwdy_42 * (fwh_42 - 3 * u) / 2
+    let fwa_43 = ((10 + 0.5) / fw.m) * 90
+    let fwb_43 = if(fw_lay == 1, ((10 + 0.5) / fw.m) * 23, abs(2 * ((43 + 0.5) / fw.n) - 1) * 23)
+    let fwl_43 = clamp(floor(fwb_43), 0, 22)
+    let fwh_43 = if(43 < fw.nuse, min(1, pow(mix(pick(fwl_43, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_43, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_43 - fwl_43, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(43 + 0.5, fw.n - 43 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_43 = pick(fw_lay, th.l + ((43 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((43 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_43 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((43 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((43 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_43 = pick(fw_lay, 0, -1 * cos(fwa_43), 0, fw.sx_l, fw.sx_r)
+    let fwdy_43 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_43), fw.sy_t, 0, 0)
+    let fwx_43 = fwbx_43 + fwdx_43 * (fwh_43 - 3 * u) / 2
+    let fwy_43 = fwby_43 + fwdy_43 * (fwh_43 - 3 * u) / 2
+    let fwa_44 = ((11 + 0.5) / fw.m) * 90
+    let fwb_44 = if(fw_lay == 1, ((11 + 0.5) / fw.m) * 23, abs(2 * ((44 + 0.5) / fw.n) - 1) * 23)
+    let fwl_44 = clamp(floor(fwb_44), 0, 22)
+    let fwh_44 = if(44 < fw.nuse, min(1, pow(mix(pick(fwl_44, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_44, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_44 - fwl_44, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(44 + 0.5, fw.n - 44 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_44 = pick(fw_lay, th.l + ((44 + 0.5) / fw.n) * fw.W, th.l, th.l + ((44 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_44 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((44 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((44 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_44 = pick(fw_lay, 0, 1 * cos(fwa_44), 0, fw.sx_l, fw.sx_r)
+    let fwdy_44 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_44), fw.sy_t, 0, 0)
+    let fwx_44 = fwbx_44 + fwdx_44 * (fwh_44 - 3 * u) / 2
+    let fwy_44 = fwby_44 + fwdy_44 * (fwh_44 - 3 * u) / 2
+    let fwa_45 = ((11 + 0.5) / fw.m) * 90
+    let fwb_45 = if(fw_lay == 1, ((11 + 0.5) / fw.m) * 23, abs(2 * ((45 + 0.5) / fw.n) - 1) * 23)
+    let fwl_45 = clamp(floor(fwb_45), 0, 22)
+    let fwh_45 = if(45 < fw.nuse, min(1, pow(mix(pick(fwl_45, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_45, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_45 - fwl_45, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(45 + 0.5, fw.n - 45 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_45 = pick(fw_lay, th.l + ((45 + 0.5) / fw.n) * fw.W, screen.width - th.r, th.l + ((45 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_45 = pick(fw_lay, fw.ey_b, fw.ey_b, fw.ey_t, fw.y0 + ((45 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((45 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_45 = pick(fw_lay, 0, -1 * cos(fwa_45), 0, fw.sx_l, fw.sx_r)
+    let fwdy_45 = pick(fw_lay, fw.sy_b, (fw.sy_b) * sin(fwa_45), fw.sy_t, 0, 0)
+    let fwx_45 = fwbx_45 + fwdx_45 * (fwh_45 - 3 * u) / 2
+    let fwy_45 = fwby_45 + fwdy_45 * (fwh_45 - 3 * u) / 2
+    let fwa_46 = ((11 + 0.5) / fw.m) * 90
+    let fwb_46 = if(fw_lay == 1, ((11 + 0.5) / fw.m) * 23, abs(2 * ((46 + 0.5) / fw.n) - 1) * 23)
+    let fwl_46 = clamp(floor(fwb_46), 0, 22)
+    let fwh_46 = if(46 < fw.nuse, min(1, pow(mix(pick(fwl_46, spec.s.0, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23), pick(fwl_46, spec.s.1, spec.s.2, spec.s.3, spec.s.4, spec.s.5, spec.s.6, spec.s.7, spec.s.8, spec.s.9, spec.s.10, spec.s.11, spec.s.12, spec.s.13, spec.s.14, spec.s.15, spec.s.16, spec.s.17, spec.s.18, spec.s.19, spec.s.20, spec.s.21, spec.s.22, spec.s.23, spec.s.23), clamp(fwb_46 - fwl_46, 0, 1)), 1.4) * fw.sm) * if(fw_lay == 1, 1, clamp(min(46 + 0.5, fw.n - 46 - 0.5) / (0.05 * fw.n), 0, 1)) * fw.hm * u * fw_on, 0)
+    let fwbx_46 = pick(fw_lay, th.l + ((46 + 0.5) / fw.n) * fw.W, th.l, th.l + ((46 + 0.5) / fw.n) * fw.W, fw.ex_l, fw.ex_r)
+    let fwby_46 = pick(fw_lay, fw.ey_b, fw.ey_t, fw.ey_t, fw.y0 + ((46 + 0.5) / fw.n) * fw.Hv, fw.y0 + ((46 + 0.5) / fw.n) * fw.Hv)
+    let fwdx_46 = pick(fw_lay, 0, 1 * cos(fwa_46), 0, fw.sx_l, fw.sx_r)
+    let fwdy_46 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_46), fw.sy_t, 0, 0)
+    let fwx_46 = fwbx_46 + fwdx_46 * (fwh_46 - 3 * u) / 2
+    let fwy_46 = fwby_46 + fwdy_46 * (fwh_46 - 3 * u) / 2
     group {
         pivot: screen.width / 2, screen.height / 2
         scale: 1 - 2 * rt, 1 - 2 * bt
