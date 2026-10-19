@@ -51,6 +51,13 @@ hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd([[PATH="$HOME/.local/bin:$PATH"
 hl.unbind("SUPER + E")
 hl.bind("SUPER + E", hl.dsp.exec_cmd("PATH=\"$HOME/.local/bin:$PATH\" vitreus-files"))
 
+-- Files is a window of its own (app_id vitreus.files), and it floats rather than tiling.
+hl.window_rule({
+    name  = "float-vitreus-files",
+    match = { class = "^vitreus\\.files$" },
+    float = true,
+})
+
 -- What starts with the session: pleamar runs ~/.config/pleamar/autostart (the Vitreus scene, lock screen and desktop widgets), and the
 -- daemons the shell relies on (wallpaper, idle lock, clipboard history). Hyprland's PATH has no ~/.local/bin, hence the export.
 hl.on("hyprland.start", function ()
