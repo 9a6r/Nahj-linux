@@ -9,7 +9,7 @@ import "../palette.plm"
 //  Its settings are kept in desktopsysmon.json, in ~/.local/share/pleamar/desktopsysmon (see desktopsysmon.luau).
 
 scene DesktopSysmon {
-    surface { size: full, full; anchor: top_left; margin: 0; level: bottom; screens: each; reserve: -1; rate: 60 }
+    surface { size: full, full; anchor: top_left; margin: 0; level: bottom, top while edit; screens: each; reserve: -1; rate: 60 }
 
     permissions {
         services: "files", "files.write"

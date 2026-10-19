@@ -11,7 +11,7 @@ import "clockface_styled.plm"
 //  Its settings are kept in desktopclock.json, in ~/.local/share/pleamar/desktopclock (see desktopclock.luau).
 
 scene DesktopClock {
-    surface { size: full, full; anchor: top_left; margin: 0; level: bottom; screens: each; reserve: -1 }
+    surface { size: full, full; anchor: top_left; margin: 0; level: bottom, top while edit; screens: each; reserve: -1 }
 
     permissions { services: "clock", "files", "files.write"; run: "pleamar", "hyprctl" }
 

@@ -9,7 +9,7 @@ import "../palette-live.plm"
 //  THIS FILE IS WRITTEN BY gen.py: edit that and run it.
 
 scene DesktopCards {
-    surface { size: full, full; anchor: top_left; margin: 0; level: bottom; screens: each max 4; reserve: -1; keyboard: on_demand }
+    surface { size: full, full; anchor: top_left; margin: 0; level: bottom, top while edit; screens: each max 4; reserve: -1; keyboard: on_demand }
 
     permissions { services: "clock", "files", "files.write"; run: "pleamar", "hyprctl" }
 
