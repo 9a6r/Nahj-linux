@@ -26,6 +26,9 @@ scene Snap {
     text shot_path = ""    // the picture: its file, `?` and a number
     image shot = from shot_path, 1920, 1080
     image shotv = from shot_path, 1080, 1920      // the same picture for a monitor standing on its side: the cell has the shape it is drawn in, or it is squashed
+    //  and for an ultrawide one (21:9, wider than 2:1): in the 16:9 cell it was fitted with a band above and below, and the cell stretched to the
+    //  screen showed it smaller in the middle, with the real screen above and below it. At 3440 x 1440 it is also the monitor's own resolution.
+    image shotw = from shot_path, 3440, 1440
     event do_copy ->
     event do_save ->
     event do_quit ->
@@ -179,11 +182,13 @@ scene Snap {
     }
 
     //  ── The frozen screen ───────────────────────────────────────────────────────────────────────────────────────
-    image shot { at: 0, 0; size: W, H; show: phase > 0 and full == 0 and W >= H }
+    image shot { at: 0, 0; size: W, H; show: phase > 0 and full == 0 and W >= H and W <= 2 * H }
+    image shotw { at: 0, 0; size: W, H; show: phase > 0 and full == 0 and W > 2 * H }
     image shotv { at: 0, 0; size: W, H; show: phase > 0 and full == 0 and H > W }
     //  the whole-screen picture: the screen behind it, blurred and dimmed, and the picture smaller in front, with the bar under it
-    group { show: phase > 0 and full == 1; blur: 14; image shot { at: 0, 0; size: W, H; show: W >= H }; image shotv { at: 0, 0; size: W, H; show: H > W } }
-    image shot { at: vx, vy; size: W * vs, H * vs; show: phase > 0 and full == 1 and W >= H }
+    group { show: phase > 0 and full == 1; blur: 14; image shot { at: 0, 0; size: W, H; show: W >= H and W <= 2 * H }; image shotw { at: 0, 0; size: W, H; show: W > 2 * H }; image shotv { at: 0, 0; size: W, H; show: H > W } }
+    image shot { at: vx, vy; size: W * vs, H * vs; show: phase > 0 and full == 1 and W >= H and W <= 2 * H }
+    image shotw { at: vx, vy; size: W * vs, H * vs; show: phase > 0 and full == 1 and W > 2 * H }
     image shotv { at: vx, vy; size: W * vs, H * vs; show: phase > 0 and full == 1 and H > W }
 
     //  ── The marks, inside the selection only (what is outside it is not in the picture) ─────────────────────────────────
@@ -316,7 +321,8 @@ scene Snap {
         group {
             show: phase == 1 and sw <= 8 and wz.$i.hover > 0.5
             clip inset 0 box { from: wa, wb; size: max(1, wc - wa), max(1, wd - wb) }
-            image shot { at: 0, 0; size: W, H; show: W >= H }
+            image shot { at: 0, 0; size: W, H; show: W >= H and W <= 2 * H }
+            image shotw { at: 0, 0; size: W, H; show: W > 2 * H }
             image shotv { at: 0, 0; size: W, H; show: H > W }
         }
         box { from: wa, wb; size: max(1, wc - wa), max(1, wd - wb); corner: pick(look, 6, 0, 8, 0); stroke: pick(look, 2, 2.2, 3, 1.5); color: mint; show: phase == 1 and sw <= 8 and wz.$i.hover > 0.5 }
