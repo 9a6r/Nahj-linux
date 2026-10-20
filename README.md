@@ -102,7 +102,7 @@ natepayn3@gmail.com if you have no account. With Vitreus installed it is just `v
 
 ## ✨ Features
 
-* **Two layouts** — an *island* pill along the top, or a *frame*: a strip down the left edge with glass round the screen.
+* **Three layouts** — an *island* pill along the top; a *frame*: a strip on any edge with glass round the screen; or *notches*: a thin frame with the bar in three pieces of glass (workspaces, clock and title, controls) hanging from the top edge, the panels melting into it.
 * **Dashboard** (`SUPER + SHIFT + D`) — one screen of glass cards that surface through the water: volume and brightness, a big clock with reminders,
   weather with a sky that moves, scrollable notifications (swipe to dismiss), your picture and machine, the power state and a power button that
   slides over the session options, a system monitor, and what is playing with a cava ring and a wavy progress bar.
