@@ -77,6 +77,7 @@ scene Files {
     text locin = ""                  // what is typed where the path is
     fact loc.edit = false            // the path is being typed
     fact rb.on = false               // a box is being dragged over the folder to choose what is in it
+    fact rb.down = false             // the press that may start it was on the folder itself (a press that closed the menu was not: the zone under the menu's catch-all still sees the pointer move)
     fact rb.ax = 0                   // where it began and where it is, in the folder's own measures (the list's width, and down from its top)
     fact rb.ay = 0
     fact rb.bx = 0
@@ -1359,9 +1360,9 @@ scene Files {
     on change floor(sc / row.h) { emit slid(sc) }
     on change gen { sct = 0; sc: 0 ~0ms }
     zone box midzone { from: mx, cy0; size: mw, vph; label: "The folder"; role: region }
-    on press midzone { rb.ax = clamp(pointer.x - mx, 0, mw); rb.ay = clamp(pointer.y - cy0, 0, vph) + sc; rb.bx = rb.ax; rb.by = rb.ay; emit tile(-1) }
-    on drag midzone { rb.on = true; rb.bx = clamp(pointer.x - mx, 0, mw); rb.by = clamp(pointer.y - cy0, 0, vph) + sc; emit band }
-    on release midzone { rb.on = false; emit band_end }
+    on press midzone { rb.down = true; rb.ax = clamp(pointer.x - mx, 0, mw); rb.ay = clamp(pointer.y - cy0, 0, vph) + sc; rb.bx = rb.ax; rb.by = rb.ay; emit tile(-1) }
+    on drag midzone while rb.down { rb.on = true; rb.bx = clamp(pointer.x - mx, 0, mw); rb.by = clamp(pointer.y - cy0, 0, vph) + sc; emit band }
+    on release midzone { rb.down = false; rb.on = false; emit band_end }
     every 40ms while rb.on {
         sct = clamp(sct + clamp(pointer.y - (cy0 + vph - 30), 0, 60) * 0.5 - clamp((cy0 + 30) - pointer.y, 0, 60) * 0.5, 0, maxsc)
         rb.by = clamp(pointer.y - cy0, 0, vph) + sc
@@ -1634,7 +1635,7 @@ scene Files {
         scale: 0.9 + 0.1 * mo
         opacity: mo
         zone box menucatch { from: 0, 0; size: W, H; active: menu.on }
-        on press menucatch { emit menu_close }
+        on press menucatch { rb.down = false; rb.on = false; emit menu_close }
         on press right menucatch { emit menu_close }
         Pane(mpx, mpy, 268, menu.h, 16, 0.6)
         column menuc {
