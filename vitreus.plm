@@ -4708,7 +4708,7 @@ scene Vitreus {
     let fw.wf = mix(0.8, 1.9, fw_bl)
     let fw.bl = mix(10, 32, fw_bl)
     let fw.W = screen.width - th.l - th.r
-    let fw.y0 = yo + th.t * fm                                        // the top and bottom inner edges (the screen's own without the frame)
+    let fw.y0 = yo + th.ts * fm                                       // the top and bottom inner edges (the screen's own without the frame; in the three pieces, the thin frame the pieces hang from)
     let fw.y1 = vb - th.b * fm
     let fw.Hv = fw.y1 - fw.y0
     let fw.al = if(fw_lay > 2.5, fw.Hv, fw.W)                         // how long the edge is that the columns stand along
