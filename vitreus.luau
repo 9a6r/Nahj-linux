@@ -6493,6 +6493,9 @@ end)()
 -- bar monitors: see logic/bar_monitors.luau
 require("logic/bar_monitors")(with_dirs)
 
+-- panels from a key, on the focused monitor: see logic/panel_monitor.luau
+require("logic/panel_monitor")()
+
 -- bar position: see logic/bar_position.luau
 require("logic/bar_position")()
 
@@ -6510,6 +6513,10 @@ require("logic/nightmode")(with_dirs)
 
 -- the audio visualiser (the bottom edge rising into the music): see logic/visualizer.luau
 require("logic/visualizer")()
+
+-- how big a notification is (Settings > Notifications): see logic/notif_size.luau
+require("logic/notif_size")()
+
 -- Settings > Keybinds.
 require("logic/keybinds")()
 

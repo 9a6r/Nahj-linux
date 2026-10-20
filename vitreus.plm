@@ -288,6 +288,8 @@ scene Vitreus {
     //  which one it draws; unlike `panel` it stays put while the drawer closes, so it fades out
     //  showing what it was showing.
     fact osd_kind: vol | note | shot = vol
+    fact nt_size = 1                 // how big a notification's drawer is (Settings > Notifications, "Size": 0.7, 0.85 or 1; logic/notif_size.luau)
+    event nt_size_set ->             // its chips: 0 small, 1 medium, 2 large
     fact osd_on = false                                     // the volume / notification drawer is out: set by the logic; it is not a value of `panel`, so it shows beside Settings, the search, the desk...
     //  The volume drawer holds up to two rows, one above the other: the volume and the brightness, each out for two seconds after it changes (the logic's
     //  timers). With both, the drawer is as tall as both, so neither covers the other.
@@ -1520,6 +1522,9 @@ scene Vitreus {
     fact fw_hgt = 150                  // how tall at most, in px at scale 1: 40 to 300
     fact fw_lay = 0                    // where it stands: 0 along the bottom, 1 in the four corners, 2 along the top, 3 down the left, 4 down the right
     fact fw_bl = 1                     // 0 apart, 1 liquid: how much each column melts into the next
+    fact fw_mon = 0                    // which monitor shows it (Settings > Widgets, "Show on"): 0 all of them, k + 1 the chip `cv_m.k`
+    fact fw_sw = 0                     // and that monitor's size, which each copy of the scene compares with its own (0: every copy draws it)
+    fact fw_sh = 0
     text fw_cols_text = "24"
     text fw_sens_text = "1.0x"
     text fw_hgt_text = "150"
@@ -1534,6 +1539,7 @@ scene Vitreus {
     event fw_hgt_set ->
     event fw_bl_set ->
     event fw_lay_set ->
+    event fw_mon_set ->                // "Show on": 0 all the monitors, k + 1 the chip `cv_m.k` (logic/visualizer.luau)
     //  The monitor chips' names (the clock's and the system monitor's use them too).
     repeat i in 0..4 {
         fact cv_m.$i.on = false
@@ -2074,8 +2080,7 @@ scene Vitreus {
     follow dd = if(dd_open and panel == controls, 1, 0)
     follow vm = if(vm_open and panel == controls, 1, 0)
     follow mvis = if(mixer.count > 0 or vm_open, 1, 0)
-    on launch_toggle { panel = if(panel == launch, none, launch) }
-    on settings_toggle { panel = if(panel == settings, none, settings) }
+    //  launch_toggle and settings_toggle are handled by the logic (logic/panel_monitor.luau): it opens them on the focused monitor.
     on change panel { wpd_open = false; font_dd_open = false; dd_open = false; vm_open = false; panel_sub = none; disp_res_open = false; disp_scroll_to = 0; sm_scroll_to = 0; nt_scroll_to = 0; lk_scroll_to = 0; gl_scroll_to = 0; ck_scroll_to = 0; wm_scroll_to = 0; vpn_scroll_to = 0 }
     on change set_page { font_dd_open = false; disp_res_open = false; disp_scroll_to = 0; sm_scroll_to = 0; nt_scroll_to = 0; lk_scroll_to = 0; gl_scroll_to = 0; ck_scroll_to = 0; wm_scroll_to = 0; vpn_scroll_to = 0; vpn_arm = -1 }
     //  The Hyprland and Pleamar-WM pages read their settings from the system when they are shown, and only then: reading them on every page change
@@ -3393,8 +3398,10 @@ scene Vitreus {
             image t.icon { at: 0, 0; size: floor(18 * u + 0.5), floor(18 * u + 0.5); opacity: (78% + 22% * touch.hover) * bs.tray }
         }
         zone box touch { at: 9 * u, 9 * u; size: 24 * u, 30 * u; cursor: pointer; active: bs.tray > 0.5 }
-        on press touch { emit click(t.index) }
-        on press right touch { emit menu(t.index) }
+        //  `panel_scr`: the menu opens on this monitor's copy (the logic opens the panel without saying which, so with the bar on
+        //  more than one monitor it came out wherever the last panel had been). A left click opens it too, for an app that is only a menu.
+        on press touch { panel_scr = screen.index; emit click(t.index) }
+        on press right touch { panel_scr = screen.index; emit menu(t.index) }
     }
 
     //  A pinned app in the corner dock. Pressed and let go it starts; pressed and pulled (more than a few pixels) it takes the whole dock with it, which settles in
@@ -3999,7 +4006,7 @@ scene Vitreus {
     let vpn.ab = vpn.pb + vpn.pbh + 12
     let vpn.fh = if(vpn_mode == vpm_wg, 180, if(vpn_mode == vpm_ovpn, 144, 276))
     let wm.h = 946                     // the Pleamar-WM page: to the bottom of its last card
-    let ck.h = 1174                    // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
+    let ck.h = 1208                    // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
     let gl.h = 554                     // the Glass page: to the bottom of its last card
     let lk.h = 806                     // the Lock screen page: its cards, to the bottom of the last
     //  The Notifications page: the apps card has a row for each app (up to 14), and the rules card is there while one is open.
@@ -4158,7 +4165,10 @@ scene Vitreus {
     let dl.ey = mix((dl.top + bar.y + dl.hh) / 2, lp.cy, fm)
     //  The volume's and the notifications' drawer has its own place, whatever else is open: out of the right frame, the volume low and the
     //  notification high (down the left); from the bar, as before (along the top). Its content hangs from `os.ck` and is centred on `os.px`.
-    let os.hd = (8 + osd_h + 16 + 13) * u
+    //  A notification's drawer at its size (`nt_size`), the volume's and a screenshot's always whole: the glass is made smaller here, from its top right corner (the
+    //  top stays 24 under the frame, the right edge in it), and what it holds is scaled about the same corner (pages/osd_drawer.plm), so the margins shrink with it.
+    let nk = if(osd_kind == note, clamp(nt_size, 0.5, 1), 1)
+    let os.hd = (8 + osd_h + 16 + 13) * u * nk
     let os.cy = if(if(osd_kind == vol or osd_kind == shot, 1, 0) + bt == 1, vb - th.b - 24 * u - os.hd / 2, yo + th.t + 24 * u + os.hd / 2)
     //  The same two places in both layouts (the left layout's): the volume low and the notification high, out of the right edge of the screen. Along the top there
     //  is no frame there, so they come out of the edge of the screen itself. Content hangs from `os.ck`, centred on `os.px`.
@@ -4166,7 +4176,7 @@ scene Vitreus {
     let os.px = screen.width - th.r - 176.5 * u
     let os.ck = os.cy - (8 + osd_h / 2) * u
     let do.lf = min(1, do0 * 1.6) + max(0, do0 - 1) * 0.6
-    let do.rt = th.r + 379 * u
+    let do.rt = th.r + (26 + 353 * nk) * u
     let do.gw = max(0.1, do.rt * do.lf)
     let do.gh = (os.hd + max(0, sag)) * do.lf
     let do.gx = screen.width + 26 * u * do.lf - do.gw / 2
@@ -4174,7 +4184,7 @@ scene Vitreus {
     let do.eh = do.gh
     let do.ex = do.gx
     let do.ey = os.cy
-    let do.iw = max(0.1, 352 * u * do.lf)                       // along the top the panel is wholly on screen (the right frame's 8 in from the edge), so its corners are all rounded
+    let do.iw = max(0.1, 352 * u * nk * do.lf)                       // along the top the panel is wholly on screen (the right frame's 8 in from the edge), so its corners are all rounded
     let do.ix = screen.width - th.r - do.iw / 2
     let do.bl = (26 + 20 * do.bell) * u * min(1, do0 * 4)         // how much the drawer melts into what it joins
     let do.stretch = clamp(vel(do) * 0.07, 0, 0.5)
@@ -4363,7 +4373,7 @@ scene Vitreus {
     //  drawers (`dz.*`: the same springs and shape) but with its own geometry, which does not depend on whichever of those is out.
     fact desk_open = false
     event desk_toggle ->                                   // from a key bind (SUPER + D)
-    on desk_toggle { desk_open = not desk_open }
+    //  desk_toggle: in the logic (logic/panel_monitor.luau), which opens the desk on the focused monitor.
     fact desk_tab = 3                                      // 0 Pad, 1 Shelf, 2 Clip, 3 Focus, 4 Term, 5 Ask
     prop desk_sel = 3 ~slide                               // which tab the thumb is on
     //  Carrying the desk: `desk_gx`, `desk_gy` is where it is being taken to (an offset from its place in the frame), `desk_ox`, `desk_oy` where it
@@ -4702,7 +4712,9 @@ scene Vitreus {
     //  (along the edge) to 90 degrees with the bass at the middle angle. The drawing is flipped about the middle when the bar is at the bottom (`bt`) or the right (`rt`), which the bases allow for. Written by a script.
     let fw.n = clamp(floor(fw_cols + 0.5), 6, 47)
     let fw.m = clamp(floor(fw.n / 4), 2, 11)
-    let fw.nuse = if(fw_lay == 1, 4 * fw.m, fw.n)
+    //  On a monitor other than the one chosen in Settings > Widgets (`fw_sw`, `fw_sh`; 0: all) no column is in use, so that copy neither draws nor carries any.
+    let fw.here = if(fw_sw < 1, 1, if(abs(screen.width - fw_sw) < 2 and abs(screen.height - fw_sh) < 2, 1, 0))
+    let fw.nuse = if(fw_lay == 1, 4 * fw.m, fw.n) * fw.here
     let fw.sm = fw_sens
     let fw.hm = fw_hgt
     let fw.wf = mix(0.8, 1.9, fw_bl)

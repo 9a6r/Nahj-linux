@@ -9,6 +9,10 @@ part OsdDrawer {
         group {
             pivot: mix(mix(screen.width - th.r, screen.width + 26 * u, fm), 2 * os.px - mix(screen.width - th.r, screen.width + 26 * u, fm), rt), do.ey
             scale: max(do.lf, 0.05)
+        //  A notification at a smaller size (`nk`, vitreus.plm): its content scaled about the drawer's top right corner, as the glass is made smaller.
+        group {
+            pivot: screen.width - th.r, os.cy
+            scale: nk
         //  Two effects cannot sit one inside the other, so the Retro theme's pixelation of the drawer (`px.do`) is on this group, and the face's own (below) on a
         //  group beside it.
         group {
@@ -203,6 +207,7 @@ part OsdDrawer {
                 scale: (1.2 + 0.25 * if(audio.muted, 0, volume_level)) * u / cu
                 PSpk(fvx - 10 * cu, fvy, 1, 0.9, if(audio.muted, 0, 25% + 75% * clamp(volume_level * 12, 0, 1)), if(audio.muted, 0, 20% + 80% * clamp((volume_level - 0.35) * 4, 0, 1)), if(audio.muted, 1, 0))
             }
+        }
         }
         }
     }

@@ -7,9 +7,10 @@
 --   hgt   how tall at most, 40 to 300 px (`fw_hgt`)
 --   bl    how much each melts into the next, 0 to 1 (`fw_bl`)
 --   lay   where it stands (`fw_lay`): 0 along the bottom, 1 fanned out of the four corners, 2 along the top, 3 down the left, 4 down the right
+--   mon   which monitor shows it, by name ("": all of them); the page's chip is `fw_mon`, and the scene gets that monitor's size (`fw_sw`, `fw_sh`)
 -- The slider events (`fw_cols_set` …) carry where on the track it was pressed, 0 to 1. The facts can be set from outside too (`pleamar --say vitreus "fact fw_sens 2"`) and are kept.
 return function()
-    local cfg = { v = 2, on = true, cols = 24, sens = 1, hgt = 150, bl = 1, lay = 0 }
+    local cfg = { v = 2, on = true, cols = 24, sens = 1, hgt = 150, bl = 1, lay = 0, mon = "" }
     local function clamp(v, lo, hi) return math.max(lo, math.min(hi, v)) end
     local function norm(k, v)
         v = tonumber(v) or cfg[k]
@@ -31,6 +32,7 @@ return function()
     local ok, saved = pcall(sys.ask, "files.read", "framewave.json", "json")
     if ok and type(saved) == "table" and saved.v == 2 then
         if type(saved.on) == "boolean" then cfg.on = saved.on end
+        if type(saved.mon) == "string" then cfg.mon = saved.mon end
         for k in pairs(FACT) do
             if type(saved[k]) == "number" then cfg[k] = norm(k, saved[k]) end
         end
@@ -73,5 +75,42 @@ return function()
             if n ~= cfg[k] then cfg[k] = n; show(k); save() end
         end)
     end
+
+    -- Which monitor shows it ("Show on"): the chips are the monitors in hyprctl's order, as the system monitor's are (`cv_m.*`, logic/clock.luau).
+    -- The scene is told the chosen one's size, which each of its copies (one per monitor) compares with its own; one that is not plugged in: all of them.
+    local mons = {}
+    local function show_mon()
+        local at, w, h = 0, 0, 0
+        for i, m in ipairs(mons) do if m.name == cfg.mon then at, w, h = i, m.w, m.h end end
+        if fact.fw_mon ~= at then fact.fw_mon = at end
+        if fact.fw_sw ~= w then fact.fw_sw = w end
+        if fact.fw_sh ~= h then fact.fw_sh = h end
+    end
+    local function read_mons()
+        hypr_monitors(4, function(out, code)
+            if code ~= 0 or not out then return end
+            local okj, list = pcall(json.decode, out)
+            if not okj or type(list) ~= "table" then return end      -- (pleamar-wm's text: the visualiser stays on all of them)
+            table.sort(list, function(a, b) return (a.id or 0) < (b.id or 0) end)
+            local l = {}
+            for _, j in ipairs(list) do
+                local t = j.transform or 0
+                local sc = (j.scale and j.scale > 0) and j.scale or 1
+                local w, h = math.floor((j.width or 0) / sc + 0.5), math.floor((j.height or 0) / sc + 0.5)
+                if t == 1 or t == 3 or t == 5 or t == 7 then w, h = h, w end
+                l[#l + 1] = { name = tostring(j.name), w = w, h = h }
+            end
+            mons = l
+            show_mon()
+        end)
+    end
+    read_mons()
+    every(5000, read_mons)
+    on("fw_mon_set", function(i)
+        local m = mons[math.floor((tonumber(i) or 0) + 0.5)]
+        cfg.mon = m and m.name or ""
+        save()
+        show_mon()
+    end)
     cava_want()
 end
