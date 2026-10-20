@@ -807,6 +807,8 @@ on("face_set", function(i)
         FACE.ver = (FACE.ver or 0) + 1
         text.sm_avatar = face .. "?" .. FACE.ver
         fact.sm_has_avatar = true
+        -- the login screen shows the same picture: it reads it from a folder install.sh made for it (nothing happens if there is none)
+        run("cp", { "-f", face, "/usr/local/share/vitreus-greeter/avatar.png" }, function() end)
     end)
 end)
 

@@ -185,7 +185,11 @@ Item {
         Image {
             id: face
             anchors.fill: parent
-            source: config.avatar
+            // your face, from the folder install.sh made for it (it is the one that changes when you change your picture); the copy in the theme is the one it was installed with
+            property bool bundled: false
+            source: bundled ? config.avatar : "file://" + (config.shared ? config.shared : "/usr/local/share/vitreus-greeter") + "/avatar.png"
+            onStatusChanged: if (status === Image.Error && !bundled) bundled = true
+            cache: false
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
             visible: status === Image.Ready

@@ -36,3 +36,9 @@ The next login screen is the new one. To see the installed one without logging o
 
 `vitreus/theme.conf` holds the colours and the 12 or 24 hour clock (installing writes the colours from `palette.plm`: install again after the palette changes). `vitreus/Main.qml` is the whole screen.
 `./sddm/build-assets.sh OUTDIR [IMAGE]` makes a theme folder without installing it, to try with `--test-mode`.
+
+## Your picture
+
+The greeter cannot read your home folder, so your face (`~/.face`) is kept in `/usr/local/share/vitreus-greeter`, a folder `install.sh` makes and gives to you. Changing your picture in Vitreus's Settings copies it there (no sudo);
+for any other way of changing `~/.face`, run `./sddm/refresh-avatar.sh`.
+

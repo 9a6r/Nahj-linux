@@ -39,7 +39,7 @@ if [ "$action" = remove ]; then
     elif [ "$(current_theme)" = vitreus ]; then
         sudo rm -f "$f"
     fi
-    sudo rm -rf "$themes/vitreus"
+    sudo rm -rf "$themes/vitreus" /usr/local/share/vitreus-greeter
     echo "taken away; the login screen uses: $(current_theme | sed 's/^$/SDDM'"'"'s own/')"
     exit 0
 fi
@@ -53,6 +53,10 @@ sudo rm -rf "$themes/vitreus"
 sudo cp -r "$tmp/vitreus" "$themes/vitreus"
 sudo chmod -R a+rX "$themes/vitreus"
 echo "installed in $themes/vitreus"
+# Your face is kept in a folder that is yours (the greeter cannot read your home folder), so that changing your picture needs no sudo: Vitreus's Settings copy it there.
+shared=/usr/local/share/vitreus-greeter
+sudo install -d -o "$(id -un)" -m 755 "$shared"
+[ -f "$HOME/.face" ] && "$here/refresh-avatar.sh" || true
 
 # Making it the one in use: with none (or already this one) there is nothing to replace; with another one, ask.
 now=$(current_theme)
