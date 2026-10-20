@@ -3,8 +3,9 @@
 -- It starts in the folder named by $FILES_START when there is one, else in the home folder.
 -- What is kept, in this scene's own folder (~/.local/share/pleamar/files): files.json, the view, whether hidden files show and the sort order.
 
-local ROW_WINDOW = 28       -- rows sent to the scene at once in the lines view, which has one thing a row (it declares 28)
-local GRID_ROWS = 14        -- ... and in the grid, whose rows are four times as tall
+local GRID_ROWS = 14        -- rows of tiles sent to the scene at once (it declares 14)
+local LINES_PER_ROW = 12    -- in the lines view a row of the scene is a block of this many lines, one under the other: a window full of them is a few blocks, and the scene stays small
+local LINES_ROWS = 5        -- ... and this many blocks are sent at once
 local MAX_COLS = 12
 local GRID_H, LINES_H = 132, 38
 
@@ -78,9 +79,15 @@ local function ik_of(name, dir)
     return e and KIND_NUM[EXT[e:lower()] or ""] or 7
 end
 
-local function cols() return s.view == "grid" and s.cols or 1 end
+local function cols() return s.view == "grid" and s.cols or LINES_PER_ROW end       -- things to a row of the scene
 local function tile_h() return s.view == "grid" and GRID_H or LINES_H end
-local function row_window() return s.view == "grid" and GRID_ROWS or ROW_WINDOW end
+local function row_h() return s.view == "grid" and GRID_H or LINES_H * LINES_PER_ROW end
+local function row_window() return s.view == "grid" and GRID_ROWS or LINES_ROWS end
+local function down_by() return s.view == "grid" and s.cols or 1 end        -- what the Up and Down keys move the choice by
+local function item_top(idx)
+    if s.view == "grid" then return math.floor((idx - 1) / s.cols) * GRID_H end
+    return (idx - 1) * LINES_H
+end
 
 local function save()
     pcall(sys.call, "files.write", "files.json", { view = s.view, hidden = s.hidden, sort = s.sort, pins = s.pins })
@@ -273,6 +280,56 @@ local function prime_thumbs()
 end
 
 local carry_all = nil      -- the whole choice as one text, made once for each showing of the rows (a folder's worth of paths, for every tile in it, would be a lot of text)
+-- ── the picture in the hand ──
+-- While a file is dragged out, a small card goes under the pointer (the zone's `carry_icon:` is this file): a badge for the kind of thing, or its own picture, with the name and a line
+-- under it ("3.0 KB", "Folder", "+2 more"). It is made with ImageMagick when a tile is pressed, so that it is there by the time the pointer has moved enough to start the drag; until it is,
+-- the drag has none. Each one has a number in its file name, so that one still being made cannot be drawn over the one that was asked for next.
+local ICON_W, ICON_H = 232, 64
+local ICON_COLOR = { [0] = "#e0a43a", "#a86fdf", "#e0584d", "#4aa3df", "#4fb286", "#8a93a0", "#c9a14a", [7] = "#7f8c99" }
+local ICON_LABEL = { [0] = "DIR", "IMG", "PDF", "SND", "VID", "TXT", "ZIP", [7] = "FILE" }
+local icon_seq, icon_font = 0, nil
+run("fc-match", { "-f", "%{file}", "Space Grotesk:bold" }, function(out, code)
+    if code == 0 and type(out) == "string" and out:sub(1, 1) == "/" then icon_font = trim(out) end
+end)
+local function mtext(t, max)
+    -- text for ImageMagick's -annotate: its `%` and `\` mean things, and a leading `@` reads a file
+    t = t:gsub("[%c]", " "):gsub("^@", "")
+    if #t > max then t = t:sub(1, max - 1) .. "…" end
+    return (t:gsub("\\", "\\\\"):gsub("%%", "%%%%"))
+end
+local function prep_drag_icon()
+    text.dragicon = ""
+    if not tdir then return end
+    local list = picked_list()
+    local first = list[1]
+    if not first then return end
+    icon_seq = icon_seq + 1
+    local mine = icon_seq
+    local out = string.format("%s/dragicon-%d.png", tdir, mine % 6)
+    local sub
+    if #list > 1 then sub = string.format("+%d more", #list - 1)
+    elseif first.dir then sub = "Folder"
+    else sub = size_text(first.size) end
+    local args = { "-size", ICON_W .. "x" .. ICON_H, "xc:none", "-fill", "#1b2127ee", "-stroke", "#ffffff70", "-strokewidth", "1", "-draw", string.format("roundrectangle 1,1 %d,%d 14,14", ICON_W - 2, ICON_H - 2) }
+    local thumb = (#list == 1 and not first.dir) and s.thumbs[tkey(first)] or nil
+    local color = ICON_COLOR[first.ik] or ICON_COLOR[7]
+    if thumb then
+        -- its own picture, in the same rounded square as the badge
+        for _, a in ipairs({ "(", thumb, "-auto-orient", "-resize", "46x46^", "-gravity", "center", "-extent", "46x46", "(", "-size", "46x46", "xc:none", "-fill", "white", "-draw", "roundrectangle 0,0 45,45 9,9", ")", "-alpha", "set", "-compose", "DstIn", "-composite", ")", "-gravity", "northwest", "-geometry", "+9+9", "-compose", "over", "-composite" }) do args[#args + 1] = a end
+    else
+        for _, a in ipairs({ "-stroke", "none", "-fill", color, "-draw", "roundrectangle 9,9 55,55 10,10" }) do args[#args + 1] = a end
+        local label = #list > 1 and tostring(#list) or (ICON_LABEL[first.ik] or "FILE")
+        if not first.dir and first.ik == 7 then label = (first.name:match("%.([^.]+)$") or "FILE"):upper():sub(1, 4) end
+        if icon_font then args[#args + 1] = "-font"; args[#args + 1] = icon_font end
+        for _, a in ipairs({ "-stroke", "none", "-fill", "white", "-pointsize", "15", "-gravity", "northwest", "-annotate", string.format("+%d+24", math.floor(32 - #label * 4.4)), mtext(label, 5) }) do args[#args + 1] = a end
+    end
+    if icon_font then args[#args + 1] = "-font"; args[#args + 1] = icon_font end
+    for _, a in ipairs({ "-stroke", "none", "-gravity", "northwest", "-fill", "white", "-pointsize", "16", "-annotate", "+66+12", mtext(first.name, 18), "-fill", "#b8c2cc", "-pointsize", "13", "-annotate", "+66+36", mtext(sub, 20), "-define", "png:compression-level=1", out }) do args[#args + 1] = a end
+    run("magick", args, function(_, code)
+        if code == 0 and mine == icon_seq then text.dragicon = out end
+    end)
+end
+
 local function carry_of(e)
     -- what a drag out of this tile takes: the whole choice when this tile is in it, else just itself
     if s.picked[e.path] then
@@ -303,6 +360,7 @@ function show_rows()
     local n = #s.items
     local total = math.ceil(n / c)
     fact.total = total
+    fact.itemsn = n
     local rw = row_window()
     local first = math.max(0, math.min(s.first, math.max(total - rw, 0)))
     local rows = {}
@@ -573,6 +631,7 @@ on("tile", function(i)
     s.picked = { [e.path] = true }
     s.anchor = i + 1
     show_rows()
+    prep_drag_icon()
 end)
 
 on("place", function(i)
@@ -592,8 +651,9 @@ end)
 
 on("slid", function(scroll)
     s.scroll = tonumber(scroll) or 0
-    local first = math.max(math.floor(s.scroll / tile_h()) - 2, 0)
-    if math.abs(first - s.first) >= 2 then
+    local back = s.view == "grid" and 2 or 1
+    local first = math.max(math.floor(s.scroll / row_h()) - back, 0)
+    if math.abs(first - s.first) >= back then
         s.first = first
         show_rows()
     end
@@ -1126,9 +1186,7 @@ local function select_all()
 end
 
 local function ensure_visible(idx)
-    local c = cols()
-    local row = math.floor((idx - 1) / c)
-    local top = row * tile_h()
+    local top = item_top(idx)
     local vh = tonumber(fact.vh) or 400
     local target
     if top < s.scroll then target = top
@@ -1227,9 +1285,9 @@ on("act", function(k)
     elseif k == 21 then
         if s.view == "grid" then move_choice(1) end
     elseif k == 22 then
-        move_choice(-cols())
+        move_choice(-down_by())
     elseif k == 23 then
-        move_choice(cols())
+        move_choice(down_by())
     elseif k == 16 then
         show_props()
     elseif k == 19 then

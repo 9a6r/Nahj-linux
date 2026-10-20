@@ -15,14 +15,16 @@ scene Files {
 
     permissions {
         services: "files", "files.write"
-        run: "find", "magick", "ffmpeg", "stat", "du", "file", "rm", "hyprctl", "xdg-open", "gio", "cp", "mv", "mkdir", "df", "xdg-user-dir", "printenv", "pleamar", "wl-copy", "wl-paste"
+        run: "find", "magick", "ffmpeg", "stat", "du", "file", "rm", "hyprctl", "xdg-open", "gio", "cp", "mv", "mkdir", "df", "xdg-user-dir", "printenv", "pleamar", "wl-copy", "wl-paste", "fc-match"
     }
 
     // ── what the logic says ──
+    text dragicon = ""               // the picture that goes under the pointer while a file is dragged out (the logic makes it when a tile is pressed)
     fact view: grid | lines = grid
     fact hidden = false              // hidden files shown
     fact sort: name | date | size = name
-    fact total = 0                   // rows of tiles in the folder (or lines)
+    fact total = 0                   // rows of tiles in the folder (or blocks of lines)
+    fact itemsn = 0                  // how many things are in it
     fact first = 0                   // the first row of the window the logic is showing
     fact cols = 6                    // tiles across, as the middle is wide
     fact gen = 0                     // goes up with each folder you go into: the list starts at its top
@@ -62,7 +64,7 @@ scene Files {
     model pinfo max 1 { name: text; sub: text; ik: number; thumb: image 192, 144; has.thumb: bool }
     model prows max 12 { label: text; value: text; tog: bool; on: bool }
     model menuitems max 10 { label: text; k: number; on: bool; ic: number; key: text; danger: bool; sep: bool }
-    model rows max 28 {
+    model rows max 14 {
         list cells max 12 {
             at: number
             name: text
@@ -523,6 +525,8 @@ scene Files {
     let mh = H - my - sbh - 8
     let tile.w = 128
     let tile.h = if(view == grid, 132, 38)
+    let lpr = 12                         // in the lines, a row of the model is a block of this many lines, one under the other (so the model stays small)
+    let row.h = if(view == grid, 132, 38 * lpr)
     let cols.now = if(view == grid, max(floor(mw / tile.w), 1), 1)
     on change cols.now { emit set_cols(cols.now) }
     on change view { emit set_cols(cols.now) }
@@ -589,8 +593,12 @@ scene Files {
     let pin.y = 72 + places.count * 38 + 10
     zone box pinzone { from: 8, pin.y; size: side - 16, max(H - pin.y - 52, 40); corner: 12 * rr; label: "Drop a folder here to pin it"; role: region }
     on drop pinzone { emit dropped(-400) }
+    //  (Only while the pointer is over it: a hint that shows whenever anything is carried over the window is a hint where you are not going.)
+    prop pinh = 0 ~quick
+    follow pinh = if(drag.over > 0.5, pinzone.hover, 0)
     group {
-        show: drag.over > 0.5 and H - pin.y - 52 > 40
+        show: pinh > 0.01 and H - pin.y - 52 > 40
+        opacity: pinh
         box { from: 8, pin.y; size: side - 16, max(H - pin.y - 52, 40); corner: 12 * rr; stroke: 1.4; color: mint; opacity: 55% }
         box { from: 8, pin.y; size: side - 16, max(H - pin.y - 52, 40); corner: 12 * rr; color: mint; opacity: 8% }
         text "Drop a folder here to pin it" { at: side / 2, pin.y + 24; anchor: center; width: side - 40; lines: 2; align: center; size: 12.5; weight: 600; color: mint; show: not slim; family: "Space Grotesk" }
@@ -639,14 +647,15 @@ scene Files {
         column grid {
             at: mx, my
             view: mw, mh
-            step: tile.h
-            content: total * tile.h
+            step: row.h
+            content: if(view == grid, total * 132, itemsn * 38)
             for r in rows from first {
                 group {
-                    size: mw, tile.h
-                    move: 0, first * tile.h
+                    size: mw, row.h
+                    move: 0, first * row.h
                     for c in r.cells {
                         group {
+                            move: 0, if(view == grid, 0, mod(c.at, lpr) * tile.h)
                             let tx = if(view == grid, mod(c.at, cols) * tile.w, 0)
                             let tw = if(view == grid, tile.w - 8, mw)
                             prop on = 0 ~quick
@@ -657,6 +666,7 @@ scene Files {
                             follow ta = if(c.has.thumb, 1, 0)
                             box { from: tx, 0; size: tw, tile.h - 4; corner: 12 * rr; color: mix(ink, mint, on); opacity: 8% * hv + 20% * on }
                             box { from: tx, 0; size: tw, tile.h - 4; corner: 12 * rr; stroke: 1.2; color: mint; opacity: 65% * on }
+                            box { from: tx, 0; size: tw, tile.h - 4; corner: 12 * rr; stroke: 1.6; color: mint; opacity: 80% * hv * drag.over * if(c.ik == 0, 1, 0); show: c.ik == 0 and drag.over > 0.5 }
                             // A file's or a folder's picture, for the tiles and the lines alike: there is one copy of it here, not two, since each is long to load.
                             group {
                                 show: not c.has.thumb
@@ -707,7 +717,18 @@ scene Files {
     on press right grid { menu.x = pointer.x; menu.y = pointer.y; emit bg_menu }
     on press grid { emit tile(-1) }
     on drop grid { emit dropped(-1) }
-    on change floor(grid.scroll / tile.h) { emit slid(grid.scroll) }
+    //  What is carried over the folder lands in it: the same kind of hint as the pin zone's, for the middle, while the pointer is there.
+    prop midh = 0 ~quick
+    follow midh = if(drag.over > 0.5, midzone.hover, 0)
+    group {
+        show: midh > 0.01
+        opacity: midh
+        box { from: mx - 4, my - 2; size: mw + 8, mh + 2; corner: 14 * rr; stroke: 1.4; color: mint; opacity: 55% }
+        box { from: mx - 4, my - 2; size: mw + 8, mh + 2; corner: 14 * rr; color: mint; opacity: 6% }
+        box { from: mx + mw / 2 - 130, my + mh - 46; size: 260, 30; corner: 15 * rr; color: tint; opacity: 90% }
+        text "Drop to put it in this folder" { at: mx + mw / 2, my + mh - 31; anchor: center; size: 13; weight: 600; color: mint; family: "Space Grotesk" }
+    }
+    on change floor(grid.scroll / row.h) { emit slid(grid.scroll) }
     on change gen { grid.scroll: 0 ~0ms }
     on change scroll_to while scroll_to >= 0 { grid.scroll: scroll_to ~calm }
 
