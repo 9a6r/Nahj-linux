@@ -2668,10 +2668,11 @@ end
 -- along the top), told to the desktop scenes so that the grid their widgets sit on starts inside it and nothing can be put under the bar.
 iris_fx.rooms = {
     left = { 24, 24, 24, 76 }, right = { 24, 76, 24, 24 }, top = { 76, 24, 24, 24 }, bottom = { 24, 24, 76, 24 },   -- top, right, bottom, left
+    seg = { 59, 24, 24, 24 },                                                                                         -- the top frame in pieces: thin, with room at the top for the pieces only
 }
 function iris_fx.push_room()
     local r = { 0, 0, 0, 0 }
-    if fact.bar_frame == true then r = iris_fx.rooms[fact.bar_anchor] or r
+    if fact.bar_frame == true then r = iris_fx.rooms[(fact.bar_seg == true) and "seg" or fact.bar_anchor] or r
     elseif fact.bar_anchor == "top" then r = { 56, 0, 0, 0 } end
     for _, scene in ipairs({ "desktopclock", "desktopsysmon", "desktopcards", "desktopedit" }) do
         run("pleamar", { "--say", scene, "fact room_t " .. r[1], "fact room_r " .. r[2], "fact room_b " .. r[3], "fact room_l " .. r[4] }, function() end)
@@ -2679,6 +2680,7 @@ function iris_fx.push_room()
 end
 on("fact:bar_anchor", function() iris_fx.push_room() end)
 on("fact:bar_frame", function() iris_fx.push_room() end)
+on("fact:bar_seg", function() iris_fx.push_room() end)
 
 on("pal_push", function() iris_fx.push_pal(); iris_fx.push_room() end)
 
@@ -2768,6 +2770,7 @@ function iris_fx.gaps_code(left)
     end
     local WIDE = { top = { lp, px, px, px }, right = { px, lp, px, px }, bottom = { px, px, lp, px }, left = { px, px, px, lp } }   -- top, right, bottom, left: the wide one is the strip's
     local bar_gaps = WIDE[bar_fx.edge] or WIDE.left
+    if bar_fx.seg then bar_gaps = { math.floor(1.35 * 36 + 0.5) + 10, px, px, px } end       -- the top frame in pieces: thin, but the windows start below the pieces (36 * u) and a gap
     local everywhere = (bar_fx.on or "all") == "all"
     local parts = { cfg((left and everywhere) and bar_gaps or o) }
     for _, name in ipairs(bar_fx.mons or {}) do

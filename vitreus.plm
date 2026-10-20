@@ -538,6 +538,7 @@ scene Vitreus {
     //  edge, `lp_w` wide (the one last opened), their left edge by the strip.
     fact bar_anchor: top | left | right | bottom = top
     fact bar_frame = false                   // the frame round the screen is on (the Island is the bar without it)
+    fact bar_seg = false                     // along the top with a frame: a thin frame, and the bar in three pieces of glass (workspaces, clock, controls) out of it
     //  Down the left a panel never turns into another: asking for one while another is open closes the open one first, and the new one
     //  opens when it has gone (see the rule after `lp.top`). `pcur` is the panel as the rule last saw it, `pending` the one that is waiting.
     fact pcur: none | calendar | controls | player | volume | notif | settings | launch | tray = none
@@ -1242,6 +1243,7 @@ scene Vitreus {
     prop iris_pill = 0 ~pop
     prop bar_lm = 0 ~calm
     prop bar_tm = 0 ~calm
+    prop bar_sg = 0 ~calm
     prop pw_x = 450 ~90ms
     prop dtrav = 0 ~dripl             // how far a panel has come out of the strip, 0 to 1 (the left layout's own, slow, drop)
     prop pbounce = 0 ~splash          // the strip's edge bouncing when the thread breaks
@@ -1320,6 +1322,7 @@ scene Vitreus {
     follow iris_pill = if(iris_on, 1, 0)
     follow bar_lm = if(bar_frame and (bar_anchor == left or bar_anchor == right), 1, 0)
     follow bar_tm = if(bar_frame and (bar_anchor == top or bar_anchor == bottom), 1, 0)
+    follow bar_sg = if(bar_frame and bar_seg and bar_anchor == top, 1, 0)
     follow pw_x = lp_w
     follow rand_spin = rand_turn
     follow set_pg = if(set_page == pg_glass, 1, 0)
@@ -3397,14 +3400,14 @@ scene Vitreus {
     //  A pinned app in the corner dock. Pressed and let go it starts; pressed and pulled (more than a few pixels) it takes the whole dock with it, which settles in
     //  the nearer of the two corners when let go. A right click unpins it.
     component CdkIcon(t: record) {
-        size: floor(20 * u + 0.5), floor(20 * u + 0.5)
-        box { at: 10 * u, 10 * u; size: 28 * u, 28 * u; corner: 9 * u * (1 - 0.5 * sq); color: ink; opacity: 16% * touch.hover * (1 - cdk_drag) }
+        size: floor(24 * u + 0.5), floor(24 * u + 0.5)
+        box { at: 12 * u, 12 * u; size: 33 * u, 33 * u; corner: 10 * u * (1 - 0.5 * sq); color: ink; opacity: 16% * touch.hover * (1 - cdk_drag) }
         group {
-            pivot: 10 * u, 10 * u
+            pivot: 12 * u, 12 * u
             scale: 1 + 0.16 * touch.hover * (1 - cdk_drag)
-            image t.icon { at: 0, 0; size: floor(20 * u + 0.5), floor(20 * u + 0.5); opacity: 88% + 12% * touch.hover }
+            image t.icon { at: 0, 0; size: floor(24 * u + 0.5), floor(24 * u + 0.5); opacity: 88% + 12% * touch.hover }
         }
-        zone box touch { at: 10 * u, 10 * u; size: 26 * u, 28 * u; cursor: pointer; active: cdk_ga > 0.6 }
+        zone box touch { at: 12 * u, 12 * u; size: 31 * u, 33 * u; cursor: pointer; active: cdk_ga > 0.6 }
         on press touch { cdk_down = 1; cdk_drag = 0; cdk_hx = pointer.x - cdk.rcx; cdk_hy = pointer.y - cdk.rcy }
         on drag touch while cdk_down > 0.5 { cdk_px = clamp(pointer.x - cdk_hx, 0, screen.width); cdk_py = clamp(pointer.y - cdk_hy, 0, screen.height); cdk_drag = if(cdk_drag > 0.5 or abs(drag.dx) + abs(drag.dy) > 8, 1, 0) }
         on release touch while cdk_down > 0.5 and cdk_drag < 0.5 { emit cdk_go(t.index) }
@@ -3605,12 +3608,14 @@ scene Vitreus {
     let bt = if(bar_frame and bar_anchor == bottom, 1, 0)         // the strip along the bottom is the top one flipped about the middle of the screen; search and settings swap their notches
     let tm = clamp(bar_tm, 0, 1)
     let fm = min(1, lm + tm)
+    let sg = clamp(bar_sg, 0, 1)                                  // the top frame in three pieces (see `sg.*`)
     let tu = clamp(1 - lm, 0, 1)                                  // the drawers that come out of a horizontal edge: the Island's pill, and the top and bottom frames
     let lf.t = 8 * u
     let lf.w = 46 * u
     let lf.x = lf.w / 2                                    // the strip's middle line, where its pieces sit
     let th.l = mix(lf.t, lf.w, lm)
     let th.t = mix(lf.t, lf.w, tm)
+    let th.ts = mix(th.t, lf.t, sg)                                // the top edge of the glass as drawn: as thin as the others, but where the pieces are
     let th.r = lf.t
     let th.b = lf.t
     //  Down the left a panel comes out of the strip like a drop and ends up in the middle of the screen. The Settings and the launcher are larger
@@ -3652,7 +3657,6 @@ scene Vitreus {
     //  Along the top or the bottom the control centre and the calendar hang from the strip's right end (where their buttons are), not from the middle as on the
     //  Island: `rtop` is how far over that is, with their right edge against the right frame.
     let rtop = if(lp_k == 3 or lp_k == 4, tm, 0)
-    let pcx = mix(pcx0, screen.width - th.r - 6.5 * ku - pw_x * ku / 2, rtop)
     //  Click away. The surface is the whole screen (its input region is only what has a zone, so the rest lets clicks through), and this
     //  zone, declared before everything else so that everything else wins over it, closes the panel on a press anywhere that is not
     //  the panel or the bar. A second surface for this would take Escape away from the panel, so it is done here.
@@ -3667,8 +3671,8 @@ scene Vitreus {
     let bw.tray = fw.tray + bar.gap * min(1, tn)
     //  Along the top with a frame the bar is the strip: as long as the screen, as thick as the left one is wide, its pieces spread along it.
     let bar.w = mix(450 * u + bw.tray, screen.width - 24 * u, tm)
-    let bar.h = mix(40 * u, lf.w, tm)
-    let bar.y0 = mix(8 + 20 * u, th.t / 2, tm)
+    let bar.h = mix(40 * u, lf.w + 10 * u * sg, tm)               // (the top frame in pieces: the pieces are 36 * u deep, so the middle line is 5 higher and the strip 10 taller, which leaves where the panels start where it was)
+    let bar.y0 = mix(8 + 20 * u, th.t / 2 - 5 * u * sg, tm)
     //  Down the left the panels come out of the strip at the height of their button: `pw_y` is where the open panel's top is (see `lp.top`), and
     //  the bar's "middle line" is half a bar above it, so that the first plate keeps the 12 it has under a panel's top (`bar.y` + 32).
     let bar.y = bar.y0
@@ -3717,26 +3721,58 @@ scene Vitreus {
     let post.title = if(bo.ws > bo.title, bw.ws, 0) + if(bo.media > bo.title, bw.media, 0) + if(bo.set > bo.title, bw.set, 0) + if(bo.sr > bo.title, bw.sr, 0) + if(bo.ctl > bo.title, bw.ctl, 0) + if(bo.clock > bo.title, bw.clock, 0) + if(bo.tray > bo.title, bw.tray, 0)
     let pre.tray = if(bo.ws < bo.tray, bw.ws, 0) + if(bo.media < bo.tray, bw.media, 0) + if(bo.set < bo.tray, bw.set, 0) + if(bo.sr < bo.tray, bw.sr, 0) + if(bo.ctl < bo.tray, bw.ctl, 0) + if(bo.clock < bo.tray, bw.clock, 0)
     let post.tray = if(bo.ws > bo.tray, bw.ws, 0) + if(bo.media > bo.tray, bw.media, 0) + if(bo.set > bo.tray, bw.set, 0) + if(bo.sr > bo.tray, bw.sr, 0) + if(bo.ctl > bo.tray, bw.ctl, 0) + if(bo.clock > bo.tray, bw.clock, 0)
+    //  The top frame in three pieces (Settings > Bar > Segments): a thin frame, and glass out of it at the left (the workspaces), in the middle (the title, the clock
+    //  and the tray: the clock on the middle of the screen, the title after it and the tray after that) and at the right (search, the gear and the controls, ending at the corner).
+    //  `sg.*` is where each piece goes then; the glass that holds them is further down (`sg.lr`, `sg.cl0`...). The title may not grow past `sg.tw`.
+    let sg.pad = 14 * u
+    let sg.in = 12 * u
+    let sg.tw = 150 * u
+    let sg.ws = sg.in + sg.pad + vw.ws / 2
+    let sg.ctl = screen.width - sg.in - sg.pad - vw.ctl / 2
+    let sg.set = screen.width - sg.in - sg.pad - bw.ctl - fw.set / 2
+    let sg.sr = screen.width - sg.in - sg.pad - bw.ctl - bw.set - vw.sr / 2
+    let sg.nw = (14 * u + sg.tw) * bs.title + bw.tray                // what the middle piece holds after the clock: the title (always `sg.tw` wide here, so the notch does not move as the title changes) and the tray
+    let sg.ck = cx - sg.nw / 2                                      // the clock's middle: the whole notch (clock, title, tray) is centred on the screen
+    let sg.cl = sg.ck - fw.clock / 2                               // the clock's left and right edges
+    let sg.cr = sg.ck + fw.clock / 2
+    let sg.mctl = 54 * u * mshow * bs.media * bs.title
+    let sg.hw = sg.tw                                              // the title's button
+    let sg.tl = sg.cr + 14 * u * bs.title                          // where it starts, right after the clock
+    let sg.te = sg.tl + sg.hw * bs.title                           // and ends
+    let sg.tr = sg.te + bar.gap * min(1, tn) + vw.tray / 2
     //  Each piece's middle: from the left edge before the title, from the right edge after it.
-    let at.ws = if(bo.ws < bo.title, bar.l + pre.ws + vw.ws / 2, bar.r - post.ws - vw.ws / 2)
+    let at.ws = mix(if(bo.ws < bo.title, bar.l + pre.ws + vw.ws / 2, bar.r - post.ws - vw.ws / 2), sg.ws, sg)
     let mc = if(bo.media < bo.title, bar.l + pre.media + vw.media / 2, bar.r - post.media - vw.media / 2)
-    let set.x = if(bo.set < bo.title, bar.l + pre.set + fw.set / 2, bar.r - post.set - fw.set / 2)
-    let sr.x = if(bo.sr < bo.title, bar.l + pre.sr + vw.sr / 2, bar.r - post.sr - vw.sr / 2)
-    let ctl.x = if(bo.ctl < bo.title, bar.l + pre.ctl + vw.ctl / 2, bar.r - post.ctl - vw.ctl / 2)
-    let tr.x = if(bo.tray < bo.title, bar.l + pre.tray + vw.tray / 2, bar.r - post.tray - vw.tray / 2)
-    let at.clock = if(bo.clock < bo.title, bar.l + pre.clock + vw.clock / 2, bar.r - post.clock - vw.clock / 2)
+    let set.x = mix(if(bo.set < bo.title, bar.l + pre.set + fw.set / 2, bar.r - post.set - fw.set / 2), sg.set, sg)
+    let sr.x = mix(if(bo.sr < bo.title, bar.l + pre.sr + vw.sr / 2, bar.r - post.sr - vw.sr / 2), sg.sr, sg)
+    let ctl.x = mix(if(bo.ctl < bo.title, bar.l + pre.ctl + vw.ctl / 2, bar.r - post.ctl - vw.ctl / 2), sg.ctl, sg)
+    let tr.x = mix(if(bo.tray < bo.title, bar.l + pre.tray + vw.tray / 2, bar.r - post.tray - vw.tray / 2), sg.tr, sg)
+    let at.clock = mix(if(bo.clock < bo.title, bar.l + pre.clock + vw.clock / 2, bar.r - post.clock - vw.clock / 2), sg.ck, sg)
     //  The clock's texts are set against its right edge: the day column, the minutes, the hour.
     let clock.r = at.clock + fw.clock / 2
     let clock.left = clock.r - clock.col - cmw.width - chw.width
     //  Where the window title starts, and how far it may reach: the stretch (the gaps are its neighbours').
     let win.x = bar.l + pre.title
-    let win.w = max(0, bar.r - post.title - win.x)
+    let win.w = mix(max(0, bar.r - post.title - win.x), sg.tw, sg)
     //  The window title's button. On the Island it hugs the left end of the stretch the other pieces leave; along the top or the bottom with a frame it is centred on
     //  the strip, as the panels are, as near the middle as the pieces beside it allow (`win.xs` is where its text starts, `win.cm` where an empty one's dots go).
     let mctl = 54 * u * mshow * bs.media * bs.title
-    let win.hw = clamp(max(clsw.width + mctl, titw.width) + 12 * u, 48 * u, win.w)
-    let win.xs = mix(win.x, clamp(cx - win.hw / 2 + 6 * u, win.x, max(win.x, win.x + win.w - win.hw + 6 * u)), tm)
-    let win.cm = mix(win.x + win.w / 2, clamp(cx, win.x + 24 * u, max(win.x + 24 * u, win.x + win.w - 24 * u)), tm)
+    let win.hw = mix(clamp(max(clsw.width + mctl, titw.width) + 12 * u, 48 * u, win.w), sg.tw, sg)
+    let win.xs = mix(mix(win.x, clamp(cx - win.hw / 2 + 6 * u, win.x, max(win.x, win.x + win.w - win.hw + 6 * u)), tm), sg.tl + 6 * u, sg)
+    let win.cm = mix(mix(win.x + win.w / 2, clamp(cx, win.x + 24 * u, max(win.x + 24 * u, win.x + win.w - 24 * u)), tm), sg.tl + win.hw / 2, sg)
+    //  The three pieces of glass, from the corners in (the outer ones reach `sg.r` off the screen so they are part of the edge): the left one holds the workspaces
+    //  (as long as the row is: `sg.lr`, below), the middle one the clock, the title and the tray, the right one search, the gear and the controls.
+    let sg.r = 12 * u
+    let sg.up = (bar.y + sg.r) * sg                                // a drawer that hangs from the top reaches up to the edge of the screen here, out of its piece (it starts at the strip's middle line elsewhere)
+    let sg.hc = 36 * u                                             // how far the two corner pieces reach down (the middle one too; only a drawer that hangs from it goes all of `th.t`)
+    let sg.fl = 12 * u                                             // room for the slope where a piece runs into the thin frame, so nothing sits on it
+    let sg.c0 = sg.cl - sg.pad - sg.fl
+    let sg.c1 = sg.te + bw.tray + sg.pad + sg.fl
+    let sg.rl = screen.width - sg.in - sg.pad - bw.ctl - bw.set - bw.sr + bar.gap - sg.pad - sg.fl
+    //  Where the panels hang from in this layout: the calendar, the window title's, the tray's and the player's from the middle of the screen, where the middle piece is; the controls
+    //  from the right end as along the other top frames. (`pcx0`, `rtop` are above; the panels are drawn about `pcx`.)
+    let pcx.o = mix(pcx0, screen.width - th.r - 6.5 * ku - pw_x * ku / 2, rtop)
+    let pcx = mix(pcx.o, if(lp_k == 4, cx, pcx.o), sg)              // (the calendar is centred on the screen like the title and the tray, which already are)
     let room = 14 * u
     let roomv = 14 * cu                    // and down the left, where the dots are larger
     //  Down the left, top to bottom: the workspaces (their middle one at `lv.ws`), the title, and from the foot up the clock (its
@@ -3801,10 +3837,12 @@ scene Vitreus {
     let ws.a4 = ws.o + ws.c4
     let ws.a5 = ws.o + ws.c5
     let ws.a6 = ws.o + ws.c6
+    let sg.we = max(max(max(max(max(ws.sv1, (ws.q1 + ws.sv2) * ws.vis.2), (ws.q2 + ws.sv3) * ws.vis.3), (ws.q3 + ws.sv4) * ws.vis.4), (ws.q4 + ws.sv5) * ws.vis.5), max((ws.q5 + ws.sv6) * ws.pv, 9 * ws.U * ws.sp))     // where the last mark ends (or the special workspace's star)
+    let sg.lr = ws.o + sg.we + sg.pad + sg.fl - 9 * ws.U                      // where the left piece of the top frame (Segments) ends: just after the last workspace mark
 
     //  The music only moves the bar: it fades out as the panel opens (gone by a third of
     //  the way), so an open panel sits still.
-    let pv = pulse * (1 - min(1, drop * 3)) * (1 - lm)
+    let pv = pulse * (1 - min(1, drop * 3)) * (1 - lm) * (1 - sg)
     let pop = pv * 6 * u           // how far the bar swells on the beat
     //  The bounce on `dc`/`dk` (below) is free to swing past 1 on the way open - that
     //  overshoot is the spring showing - but a size can't go negative, so anything
@@ -4154,6 +4192,20 @@ scene Vitreus {
     let dm.ew = mix(mix(dm.w, dm.gw, lm), dm.tew, tu)
     let dm.eh = mix(mix(dm.hh, dm.gh, lm), dm.teh, tu)
     let dm.ex = mix(mix(pcx, dm.gx, lm), dm.tex, tu)
+    //  The middle piece of the top frame in pieces, once a drawer hangs from it: it is at least as wide as the drawer, so that the two are one shape with the same flare on both sides
+    //  (otherwise the piece's own slope is on one side of the drawer and the drawer's wall on the other).
+    let sg.cen = if(lp_k == 4 or lp_k == 5 or lp_k == 6, 1, 0)      // the calendar, the tray and the player hang from the middle piece; the controls from the right one
+    let sg.x0 = min(min(if(dk0 > 0.004, dk.ex - dk.ew / 2, 99999), if(dc0 > 0.004, dc.ex - dc.ew / 2, 99999)), if(dm0 > 0.004, dm.ex - dm.ew / 2, 99999))
+    let sg.x1 = max(max(if(dk0 > 0.004, dk.ex + dk.ew / 2, -99999), if(dc0 > 0.004, dc.ex + dc.ew / 2, -99999)), if(dm0 > 0.004, dm.ex + dm.ew / 2, -99999))
+    //  The middle piece once a panel hangs from it: as wide as the panel (wider, or narrower: the piece has room for slopes that the panel's walls do not need), but never
+    //  narrower than what it holds, so that there is no ledge where the two meet. It changes over as the panel nears the piece's width.
+    let sg.pw = sg.c1 - sg.c0
+    let sg.dt = clamp(((if(sg.x0 > 90000, 0, sg.x1 - sg.x0)) - 0.6 * sg.pw) / (0.25 * sg.pw), 0, 1) * sg.cen
+    let sg.q0 = sg.c0                                              // the notch stays as wide as it is on its own: a wider panel carries the wings itself, with its full blend, as the desk does against the frame
+    let sg.q1 = sg.c1
+    let sg.rq = sg.rl                                               // and the right piece stays as wide as it is on its own: the controls carry their wing themselves
+    let sg.wd = clamp(((sg.q1 - sg.q0) - (sg.c1 - sg.c0)) / (30 * u), 0, 1)     // how far a panel has outgrown the middle piece, and the controls the right one: the melt into the thin frame
+    let sg.wr = clamp((sg.rl - sg.rq) / (30 * u), 0, 1)                         // is then only a small fillet (a panel's top corners are not a trumpet)
     let dm.ey = mix(mix(bar.y + dm.hh / 2, lp.cy, lm), dm.tey, tu)
     //  The desk's drawer: the volume's out of the right frame, with its own size (see `do.*`).
     //  The desk: out of the right frame, in the middle of it (the Frame layout); or, in the Island layout, hanging from the top right corner of the
@@ -4280,7 +4332,7 @@ scene Vitreus {
     //  that melts into the frame: `cdk.r` is how far it reaches into it (or off the screen, with no frame), so the two are one piece. Everything here is in the glass's
     //  own (unmirrored) drawing; the icons are drawn where the mirror image falls. `cdk_cx`, `cdk_cy` is where its middle is: carried to the pointer while it is
     //  pulled, to its corner otherwise.
-    let cdk.s = 20 * u
+    let cdk.s = 24 * u
     let cdk.p = cdk.s + 6 * u
     let cdk.t = cdk.s + 10 * u
     let cdk.r = 12 * u
@@ -4295,8 +4347,8 @@ scene Vitreus {
     let cdk.resty = mix(cdk.yt + cdk.t / 2, cdk.ye - cdk.t / 2, cdk.sb)
     let cdk.rcx = mix(cdk_cx, screen.width - cdk_cx, rt)           // where its middle is on the screen
     let cdk.rcy = mix(cdk_cy, yo + vb - cdk_cy, bt)
-    //  The corner nearer the pointer, when it is let go (in the glass's drawing: down the right edge the two are the top and the bottom, otherwise the left and the right).
-    let cdk.pick = if(lm > 0.5, if(mix(pointer.y, yo + vb - pointer.y, bt) > vc, 1, 0), if(mix(pointer.x, screen.width - pointer.x, rt) > screen.width / 2, 1, 0))
+    //  The corner nearer the pill's middle (not the pointer: it may have taken hold of the pill by one end), when it is let go (in the glass's drawing: down the right edge the two are the top and the bottom, otherwise the left and the right).
+    let cdk.pick = if(lm > 0.5, if(mix(cdk_py, yo + vb - cdk_py, bt) > vc, 1, 0), if(mix(cdk_px, screen.width - cdk_px, rt) > screen.width / 2, 1, 0))
     follow cdk_cx = if(cdk_drag > 0.5, mix(cdk_px, screen.width - cdk_px, rt), cdk.restx)
     follow cdk_cy = if(cdk_drag > 0.5, mix(cdk_py, yo + vb - cdk_py, bt), cdk.resty)
     follow cdk_ax = if(cdk_drag > 0.5, 0, cdk.sr * 2 - 1)
@@ -5395,7 +5447,7 @@ scene Vitreus {
         text bar_ap { at: floor(clock.r - clock.col / 2 + 0.5), floor(bar.y + 7 + 0.5); anchor: center; size: 14; weight: 600; measure: caw; color: faint; opacity: bs.clock * (1 - lm); shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
         text clock_mm { at: floor(clock.r - clock.col - 3 + 0.5), floor(bar.y + 3 + 0.5); anchor: right center; size: 26; weight: 700; measure: cmw; letter_move: 3 * ((letters - 1 - letter) - if(letter == 0, 1, 0)), 0; color: mint; opacity: bs.clock * (1 - lm); shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
         text clock_h { at: floor(clock.r - clock.col - cmw.width + 0.5), floor(bar.y + 0.5); anchor: right center; size: 40; weight: 700; measure: chw; color: ink; opacity: bs.clock * (1 - lm); shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
-        PBLine(clock.left + (chw.width + cmw.width) / 2, bar.y + 0.43 * bar.h, bar_hit.hover, chw.width + cmw.width, 0.5 * bs.clock * (1 - lm))
+        PBLine(clock.left + (chw.width + cmw.width) / 2, bar.y + mix(0.43, 0.286, sg) * bar.h, bar_hit.hover, chw.width + cmw.width, 0.5 * bs.clock * (1 - lm))
     }
     //  Down the left the clock is stacked in the strip: the hour, the minutes under it in the accent, and the am/pm.
     group {

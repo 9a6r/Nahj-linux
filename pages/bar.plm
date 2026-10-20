@@ -13,16 +13,16 @@ part Bar {
             //  All monitors: two small screens, each with the bar across its top.
             let bax = spx + 52 * pu
             let balit = if(bar_scr == -1, 1, 0)
-            box { at: bax, sby + 76 * pu; size: 76 * pu, 64 * pu; corner: 12 * pu; color: if(balit > 0, mint, ink); opacity: if(balit > 0, 24%, 6% + 10% * bar_all_hit.hover) }
-            box { at: bax, sby + 76 * pu; size: 76 * pu, 64 * pu; corner: 12 * pu; stroke: 1.5 * pu; color: mint; opacity: balit * 100% }
+            box { at: bax, sby + 76 * pu; size: 66 * pu, 64 * pu; corner: 12 * pu; color: if(balit > 0, mint, ink); opacity: if(balit > 0, 24%, 6% + 10% * bar_all_hit.hover) }
+            box { at: bax, sby + 76 * pu; size: 66 * pu, 64 * pu; corner: 12 * pu; stroke: 1.5 * pu; color: mint; opacity: balit * 100% }
             repeat k in 0..2 {
                 let bkx = bax + (k * 2 - 1) * 10 * pu
                 box { at: bkx, sby + 60 * pu; size: 16 * pu, 11 * pu; corner: 2 * pu; stroke: 1.2 * pu; color: mix(ink, mint, balit) }
                 box { at: bkx, sby + 56.6 * pu; size: 11 * pu, 1.8 * pu; corner: 0.9 * pu; color: mix(ink, mint, balit) }
             }
-            group { scale: rs; pivot: floor(bax + 0.5), floor(sby + 82 * pu + 0.5); text "All" { at: floor(bax + 0.5), floor(sby + 82 * pu + 0.5); anchor: center; align: center; size: 15; weight: 700; width: (70 * pu) / rs; lines: 1; color: mix(ink, mint, balit); family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(bax + 0.5), floor(sby + 82 * pu + 0.5); text "All" { at: floor(bax + 0.5), floor(sby + 82 * pu + 0.5); anchor: center; align: center; size: 15; weight: 700; width: (64 * pu) / rs; lines: 1; color: mix(ink, mint, balit); family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(bax + 0.5), floor(sby + 95 * pu + 0.5); text "every monitor" { at: floor(bax + 0.5), floor(sby + 95 * pu + 0.5); anchor: center; align: center; size: 12; width: (70 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
-            zone box bar_all_hit { at: bax, sby + 76 * pu; size: 76 * pu, 64 * pu; corner: 12 * pu; cursor: pointer }
+            zone box bar_all_hit { at: bax, sby + 76 * pu; size: 66 * pu, 64 * pu; corner: 12 * pu; cursor: pointer }
             on press bar_all_hit { emit bar_pick_scr(-1) }
 
             //  One tile per monitor that is plugged in: a screen with the bar across its top.
@@ -31,13 +31,13 @@ part Bar {
                 let bmlit = if(bar_scr == i, 1, 0)
                 group {
                     show: bar_m.$i.on
-                    box { at: bmx, sby + 76 * pu; size: 76 * pu, 64 * pu; corner: 12 * pu; color: if(bmlit > 0, mint, ink); opacity: if(bmlit > 0, 24%, 6% + 10% * bar_m_hit.$i.hover) }
-                    box { at: bmx, sby + 76 * pu; size: 76 * pu, 64 * pu; corner: 12 * pu; stroke: 1.5 * pu; color: mint; opacity: bmlit * 100% }
+                    box { at: bmx, sby + 76 * pu; size: 66 * pu, 64 * pu; corner: 12 * pu; color: if(bmlit > 0, mint, ink); opacity: if(bmlit > 0, 24%, 6% + 10% * bar_m_hit.$i.hover) }
+                    box { at: bmx, sby + 76 * pu; size: 66 * pu, 64 * pu; corner: 12 * pu; stroke: 1.5 * pu; color: mint; opacity: bmlit * 100% }
                     box { at: bmx, sby + 60 * pu; size: 18 * pu, 12 * pu; corner: 2 * pu; stroke: 1.2 * pu; color: mix(ink, mint, bmlit) }
                     box { at: bmx, sby + 56.2 * pu; size: 12 * pu, 1.8 * pu; corner: 0.9 * pu; color: mix(ink, mint, bmlit) }
-                    group { scale: rs; pivot: floor(bmx + 0.5), floor(sby + 82 * pu + 0.5); text bar_m.$i.name { at: floor(bmx + 0.5), floor(sby + 82 * pu + 0.5); anchor: center; align: center; size: 15; weight: 700; width: (70 * pu) / rs; lines: 1; color: mix(ink, mint, bmlit); family: "Space Grotesk" } }
+                    group { scale: rs; pivot: floor(bmx + 0.5), floor(sby + 82 * pu + 0.5); text bar_m.$i.name { at: floor(bmx + 0.5), floor(sby + 82 * pu + 0.5); anchor: center; align: center; size: 15; weight: 700; width: (64 * pu) / rs; lines: 1; color: mix(ink, mint, bmlit); family: "Space Grotesk" } }
                     group { scale: rs; pivot: floor(bmx + 0.5), floor(sby + 95 * pu + 0.5); text bar_m.$i.sub { at: floor(bmx + 0.5), floor(sby + 95 * pu + 0.5); anchor: center; align: center; size: 12; width: (70 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
-                    zone box bar_m_hit.$i { at: bmx, sby + 76 * pu; size: 76 * pu, 64 * pu; corner: 12 * pu; cursor: pointer }
+                    zone box bar_m_hit.$i { at: bmx, sby + 76 * pu; size: 66 * pu, 64 * pu; corner: 12 * pu; cursor: pointer }
                     on press bar_m_hit.$i { emit bar_pick_scr(i) }
                 }
             }
@@ -49,12 +49,12 @@ part Bar {
             body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 360 * pu; size: 438 * pu, 96 * pu; corner: 14 * pu } }
             box { at: spx + 219 * pu, sby + 360 * pu; size: 438 * pu, 96 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 322 * pu + 0.5); text "BAR POSITION" { at: floor(spx + 14 * pu + 0.5), floor(sby + 322 * pu + 0.5); anchor: left center; size: 12; weight: 700; color: faint; family: "Space Grotesk" } }
-            repeat k in 0..5 {
-                let bpx = spx + (52 + k * 83) * pu
+            repeat k in 0..6 {
+                let bpx = spx + (38 + k * 70) * pu
                 let bpy = sby + 369 * pu
-                let bplit = if((k == 0 and bar_anchor == top and not bar_frame) or (k == 1 and bar_anchor == left) or (k == 2 and bar_anchor == right) or (k == 3 and bar_anchor == top and bar_frame) or (k == 4 and bar_anchor == bottom), 1, 0)
-                box { at: bpx, bpy; size: 76 * pu, 64 * pu; corner: 12 * pu; color: if(bplit > 0, mint, ink); opacity: if(bplit > 0, 24%, 6% + 10% * bar_pos_hit.$k.hover) }
-                box { at: bpx, bpy; size: 76 * pu, 64 * pu; corner: 12 * pu; stroke: 1.5 * pu; color: mint; opacity: bplit * 100% }
+                let bplit = if((k == 0 and bar_anchor == top and not bar_frame) or (k == 1 and bar_anchor == left) or (k == 2 and bar_anchor == right) or (k == 3 and bar_anchor == top and bar_frame and not bar_seg) or (k == 4 and bar_anchor == bottom) or (k == 5 and bar_anchor == top and bar_frame and bar_seg), 1, 0)
+                box { at: bpx, bpy; size: 66 * pu, 64 * pu; corner: 12 * pu; color: if(bplit > 0, mint, ink); opacity: if(bplit > 0, 24%, 6% + 10% * bar_pos_hit.$k.hover) }
+                box { at: bpx, bpy; size: 66 * pu, 64 * pu; corner: 12 * pu; stroke: 1.5 * pu; color: mint; opacity: bplit * 100% }
                 //  A small screen. With the bar along the top: a bar across its top. Down the left: a strip, and the frame round the rest.
                 box { at: bpx, bpy - 12 * pu; size: 36 * pu, 24 * pu; corner: 3 * pu; stroke: 1.2 * pu; color: mix(ink, mint, bplit) }
                 box { at: bpx, bpy - 21 * pu; size: 28 * pu, 3.2 * pu; corner: 1.6 * pu; color: mix(ink, mint, bplit); show: k == 0 }
@@ -65,10 +65,18 @@ part Bar {
                 box { at: bpx, bpy - 21.6 * pu; size: 36 * pu, 3.6 * pu; corner: 1.8 * pu; color: mix(ink, mint, bplit); show: k == 3 }
                 box { at: bpx, bpy - 10.2 * pu; size: 28 * pu, 16 * pu; corner: 3 * pu; stroke: 0.9 * pu; color: mix(ink, mint, bplit); opacity: 60%; show: k == 3 }
                 box { at: bpx, bpy - 2.4 * pu; size: 36 * pu, 3.6 * pu; corner: 1.8 * pu; color: mix(ink, mint, bplit); show: k == 4 }
+                //  Notches: the thin frame along the top, and three glass notches hanging from it (a wider one in the middle, and a smaller one in each of the four corners, all inside the screen's outline), well clear of the window below.
+                box { at: bpx, bpy - 22.8 * pu; size: 36 * pu, 2.4 * pu; corner: 1.2 * pu; color: mix(ink, mint, bplit); show: k == 5 }
+                box { at: bpx - 14.4 * pu, bpy - 21 * pu; size: 6 * pu, 4.8 * pu; corner: 2.4 * pu; color: mix(ink, mint, bplit); show: k == 5 }
+                box { at: bpx, bpy - 19.8 * pu; size: 14 * pu, 7.2 * pu; corner: 2.4 * pu; color: mix(ink, mint, bplit); show: k == 5 }
+                box { at: bpx + 14.4 * pu, bpy - 21 * pu; size: 6 * pu, 4.8 * pu; corner: 2.4 * pu; color: mix(ink, mint, bplit); show: k == 5 }
+                box { at: bpx + 14.4 * pu, bpy - 3 * pu; size: 6 * pu, 4.8 * pu; corner: 2.4 * pu; color: mix(ink, mint, bplit); show: k == 5 }
+                box { at: bpx - 14.4 * pu, bpy - 3 * pu; size: 6 * pu, 4.8 * pu; corner: 2.4 * pu; color: mix(ink, mint, bplit); show: k == 5 }
+                box { at: bpx, bpy - 8.6 * pu; size: 22 * pu, 12 * pu; corner: 3 * pu; stroke: 0.9 * pu; color: mix(ink, mint, bplit); opacity: 60%; show: k == 5 }
                 box { at: bpx, bpy - 13.8 * pu; size: 28 * pu, 16 * pu; corner: 3 * pu; stroke: 0.9 * pu; color: mix(ink, mint, bplit); opacity: 60%; show: k == 4 }
-                group { scale: rs; pivot: floor(bpx + 0.5), floor(bpy + 13 * pu + 0.5); text pick(k, "Island", "Frame", "Frame", "Frame", "Frame") { at: floor(bpx + 0.5), floor(bpy + 13 * pu + 0.5); anchor: center; align: center; size: 15; weight: 700; width: (70 * pu) / rs; lines: 1; color: mix(ink, mint, bplit); family: "Space Grotesk" } }
-                group { scale: rs; pivot: floor(bpx + 0.5), floor(bpy + 26 * pu + 0.5); text pick(k, "along the top", "left edge", "right edge", "top edge", "bottom edge") { at: floor(bpx + 0.5), floor(bpy + 26 * pu + 0.5); anchor: center; align: center; size: 12; width: (70 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
-                zone box bar_pos_hit.$k { at: bpx, bpy; size: 76 * pu, 64 * pu; corner: 12 * pu; cursor: pointer }
+                group { scale: rs; pivot: floor(bpx + 0.5), floor(bpy + 13 * pu + 0.5); text pick(k, "Island", "Frame", "Frame", "Frame", "Frame", "Notches") { at: floor(bpx + 0.5), floor(bpy + 13 * pu + 0.5); anchor: center; align: center; size: 15; weight: 700; width: (64 * pu) / rs; lines: 1; color: mix(ink, mint, bplit); family: "Space Grotesk" } }
+                group { scale: rs; pivot: floor(bpx + 0.5), floor(bpy + 26 * pu + 0.5); text pick(k, "along the top", "left edge", "right edge", "top edge", "bottom edge", "top, split") { at: floor(bpx + 0.5), floor(bpy + 26 * pu + 0.5); anchor: center; align: center; size: 12; width: (70 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
+                zone box bar_pos_hit.$k { at: bpx, bpy; size: 66 * pu, 64 * pu; corner: 12 * pu; cursor: pointer }
                 on press bar_pos_hit.$k { emit bar_pick_pos(k) }
             }
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 418 * pu + 0.5); text "It moves at once; windows make room for the strip." { at: floor(spx + 14 * pu + 0.5), floor(sby + 418 * pu + 0.5); anchor: left center; size: 13.5; width: (410 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
