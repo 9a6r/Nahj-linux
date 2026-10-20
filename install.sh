@@ -9,6 +9,7 @@
 #   ./install.sh --no-autostart    don't touch ~/.config/pleamar/autostart
 #   ./install.sh --no-binds        don't touch ~/.config/hypr (the key binds, and what Settings saves there)
 #   ./install.sh --no-wm           don't set up pleamar-wm (its login-screen entry, keys, window scene and autostart lines)
+#   ./install.sh --no-login        don't install the login screen (the SDDM theme)
 #   ./install.sh --refresh         what Settings > About runs after it has pulled: no questions, no sudo, nothing downloaded; it
 #                                  links the new helpers, adds the new autostart lines and binds, and lists the packages that are missing
 #   ./install.sh --force           install even when another Quickshell desktop shell is in use
@@ -31,6 +32,8 @@
 #   6b. the daemons                   (awww, hypridle and the clipboard history: lines in ~/.config/pleamar/autostart, run on any compositor)
 #   7. pleamar-wm, as a session       (pleamar-wm/: its keys, window scene, hyprctl shim, and, with sudo,
 #                                      its entry in the login screen; only if pleamar-wm is installed)
+#   8. the login screen               (sddm/: the lock screen's look as an SDDM theme, with sudo, asked for; where SDDM already has a theme it asks
+#                                      before it is replaced. ./sddm/install.sh [IMAGE] does it again with another picture)
 #
 # It never installs a compositor: Vitreus is developed on Hyprland, and needs one that has layer-shell.
 set -eu
@@ -66,6 +69,7 @@ deps=true
 do_autostart=true
 do_binds=true
 do_wm=true
+do_login=true
 force=false
 refresh=false
 trial=false
@@ -78,12 +82,13 @@ for a in "$@"; do
         --no-autostart) do_autostart=false ;;
         --no-binds) do_binds=false ;;
         --no-wm) do_wm=false ;;
+        --no-login) do_login=false ;;
         --refresh) refresh=true ;;
         --force) force=true ;;
-        --test) trial=true; force=true; do_autostart=false; do_binds=false; do_wm=false ;;
+        --test) trial=true; force=true; do_autostart=false; do_binds=false; do_wm=false; do_login=false ;;
         --stop) action=stop ;;
         --uninstall) action=uninstall ;;
-        --help|-h) sed -n '2,29p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        --help|-h) sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) printf 'vitreus · I do not know "%s" (try --help)\n' "$a" >&2; exit 1 ;;
     esac
 done
@@ -200,6 +205,9 @@ if [ "$action" = uninstall ]; then
     done
     if [ -f /usr/share/wayland-sessions/pleamar-wm.desktop ]; then
         say "pleamar-wm's login-screen entry is left in place; to take it away: sudo sh $dest/pleamar-wm/install-session.sh --remove"
+    fi
+    if [ -d /usr/share/sddm/themes/vitreus ]; then
+        say "the Vitreus login screen is left in place; to take it away (and put the old theme back): sh $dest/sddm/install.sh --remove"
     fi
     if [ -L "$HOME/.local/bin/vitreus-clipimg" ]; then run rm -f "$HOME/.local/bin/vitreus-clipimg"; fi
     if [ -L "$HOME/.local/bin/vitreus-polkit-agent" ]; then run rm -f "$HOME/.local/bin/vitreus-polkit-agent"; fi
@@ -805,6 +813,18 @@ if $do_wm && [ -d "$wmdir" ] && { have pleamar-wm || [ -x "$HOME/.local/bin/plea
     fi
 elif $do_wm && [ -d "$wmdir" ]; then
     say "pleamar-wm is not installed, so no session for it (pleamar's installer has it: https://github.com/k4ditano/pleamar)"
+fi
+
+# ── the login screen ───────────────────────────────────────────────────────
+# An SDDM theme in the lock screen's look. It needs root (the theme goes in /usr/share/sddm/themes), so it is asked for, and --refresh leaves it alone. Where SDDM already has
+# a theme, its own installer asks before replacing it (--yes says yes); with no keyboard it only installs it.
+if $do_login && ! $refresh && [ -x "$dest/sddm/install.sh" ] && { have sddm || [ -d /usr/share/sddm/themes ]; }; then
+    if [ -d /usr/share/sddm/themes/vitreus ]; then
+        say "the Vitreus login screen is installed (sh $dest/sddm/install.sh [IMAGE] makes it again, with another picture)"
+    elif ask "install the Vitreus login screen, an SDDM theme (needs sudo)?"; then
+        if $assume_yes; then login_flags="--yes"; else login_flags=""; fi
+        run sh "$dest/sddm/install.sh" $login_flags || warn "could not: run  sh $dest/sddm/install.sh  yourself"
+    fi
 fi
 
 # ── services it talks to ───────────────────────────────────────────────────
