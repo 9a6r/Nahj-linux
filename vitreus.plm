@@ -251,6 +251,15 @@ scene Vitreus {
     fact tasks_watch = false       // the panel is open: keep the list fresh
     model trays max 16 { title: text; icon: image 30, 30; pinned: bool; menu: bool }
     model bartrays max 8 { icon: image 36, 36 }          // the tray apps that ride the bar
+    model cdk_pins max 8 { icon: image 32, 32 }          // the corner dock's pinned apps (logic/dock.luau)
+    fact cdk_on = true                                   // the corner dock is shown
+    fact cdk_corner = 0                                  // which of the two corners opposite the bar it is in (kept in dock-pins.json)
+    fact cdk_down = 0                                    // an icon or the pill is pressed
+    fact cdk_drag = 0                                    // ...and has been pulled far enough to be a drag, not a click
+    fact cdk_px = 0                                      // where the pill's middle is being taken to, on the screen
+    fact cdk_py = 0
+    fact cdk_hx = 0                                      // where in the pill it was taken hold of
+    fact cdk_hy = 0
     //  One entry of a tray app's menu, flattened: an open submenu is followed by its own entries, `depth` deeper.
     model tray_menu max 40 { label: text; enabled: bool; sep: bool; checked: bool; kids: bool; open: bool; depth: number }
     //  The tray menu panel (it hangs from the window title, like the player's) is about one app.
@@ -267,6 +276,9 @@ scene Vitreus {
     event tray_menu_open ->
     event bar_tray_click ->
     event bar_tray_menu ->
+    event cdk_go ->                 // a pinned app, by place: a click (let go without having been pulled) starts it,
+    event cdk_unpin ->              // and a right click lets it go
+    event launch_ctx ->             // a right click on an app's row: pin it to a corner dock, or let it go
     event tray_menu_pick ->
     event tm_pin ->
     event tm_open ->
@@ -513,7 +525,7 @@ scene Vitreus {
     text lp_imgpath = ""             // a small copy of the picture, at a fixed path with a version on the end
     fact lp_img_on = false
     image lp_img = from lp_imgpath, 480, 320
-    model lres max 6 { title: text; sub: text; desc: text; hasdesc: bool; glyph: text; sel: bool; hasicon: bool; deletable: bool; icon: image 35, 35 }
+    model lres max 6 { title: text; sub: text; desc: text; hasdesc: bool; glyph: text; sel: bool; hasicon: bool; deletable: bool; pinnable: bool; pin: bool; icon: image 35, 35 }
     event settings_toggle ->        // from a key bind (hypr_vitreus.lua): open or close Settings
     //  The pages of the settings panel, and how far the second is in (for the sidebar's highlight and the
     //  panel's height, which follows the page).
@@ -1287,6 +1299,12 @@ scene Vitreus {
     follow batt_on = if(bat_here, 1, 0)
     follow batt_low = if(bat_pct < 20 and not chg_now, 1, 0)
     prop rcn = 0 ~calm                // the recording dot's slot on the bar, 1 while a recording runs
+    spring cdk_sp = 380, 30
+    prop cdk_ga = 0 ~calm             // how far out the corner dock is (0 while it holds nothing)
+    prop cdk_cx = 0 ~cdk_sp           // where the middle of its icons is, in the glass's own drawing (see `cdk.*`)
+    prop cdk_cy = 0 ~cdk_sp
+    prop cdk_ax = 0 ~calm             // which way it reaches into the frame: -1 left, 1 right, 0 free (while it is pulled)
+    prop cdk_ay = 0 ~calm
     prop trn = 0 ~calm                // how many tray icons the bar holds, smoothly: the bar widens with it
     prop disp_auto_pill = 0 ~pop
     prop snd_pill = 0 ~pop
@@ -1328,6 +1346,7 @@ scene Vitreus {
     follow bs.clock = if(bv.clock, 1, 0)
     follow bs.tray = if(bv.tray, 1, 0)
     follow trn = bartrays.count
+    follow cdk_ga = if(cdk_on and cdk_pins.count > 0, 1, 0)
     follow rcn = if(rec_on, 1, 0)
     prop pvn = 0 ~calm                // the privacy lights' slots, the same way
     follow pvn = if(priv_mic, 1, 0) + if(priv_cam, 1, 0) + if(priv_scr and not rec_on, 1, 0)
@@ -3267,7 +3286,7 @@ scene Vitreus {
         }
     }
 
-    component LRow(t: record, pick: event, del: event) {
+    component LRow(t: record, pick: event, del: event, ctx: event) {
         size: lw, 40 * pu
         //  How much the remove button shows (see the end of the row).
         let rm = if(t.deletable, max(max(touch.hover, rm_z.hover), if(t.sel, 0.45, 0)), 0)
@@ -3290,6 +3309,17 @@ scene Vitreus {
         group { scale: rs; pivot: floor(48 * pu + 0.5), floor(29 * pu + 0.5); text t.desc { at: floor(48 * pu + 0.5), floor(29 * pu + 0.5); anchor: left center; size: 13.5; width: (lw - 62 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk"; show: t.hasdesc } }
         group { scale: rs; pivot: floor(lw - 10 * pu + 0.5), floor(20 * pu + 0.5); text t.sub { at: floor(lw - 10 * pu + 0.5), floor(20 * pu + 0.5); anchor: right center; align: right; size: 14; width: (90 * pu) / rs; lines: 1; color: faint; opacity: (1 - lpv) * (1 - rm); family: "Space Grotesk" } }
         on press touch { emit pick(t.index) }
+        on press right touch { emit ctx(t.index) }
+        //  A pin at the end of an app's row: solid and in the accent while the app is on the corner dock, an outline (clearer under the pointer) while it is not.
+        //  A right click on the row pins it or lets it go.
+        group {
+            move: lw - 20 * pu, 20 * pu
+            rotate: 35deg
+            show: t.pinnable
+            path { stroke: 1.4 * pu; color: ink; opacity: (30% + 50% * touch.hover) * (1 - t.pin); move -2.6 * pu, -6 * pu; line 2.6 * pu, -6 * pu; line 2.6 * pu, -1.6 * pu; line 4.6 * pu, 1 * pu; line -4.6 * pu, 1 * pu; line -2.6 * pu, -1.6 * pu; close }
+            path { color: mint; opacity: if(t.pin, 1, 0); move -2.6 * pu, -6 * pu; line 2.6 * pu, -6 * pu; line 2.6 * pu, -1.6 * pu; line 4.6 * pu, 1 * pu; line -4.6 * pu, 1 * pu; line -2.6 * pu, -1.6 * pu; close }
+            line { from: 0, 1 * pu; to: 0, 6.5 * pu; width: 1.4 * pu; color: if(t.pin, mint, ink); opacity: if(t.pin, 1, 30% + 50% * touch.hover) }
+        }
         //  The clipboard's rows can be removed: a small cross where the kind ("text", "image") is, while the row is under the pointer or chosen
         //  (Shift + Delete does the same for the chosen one). Declared last, so a press on it is its own and does not paste the row.
         ellipse { at: lw - 20 * pu, 20 * pu; radius: 11 * pu; color: if(rm_z.hover, alert, ink); opacity: (if(rm_z.hover, 90%, 10%)) * rm }
@@ -3362,6 +3392,24 @@ scene Vitreus {
         zone box touch { at: 9 * u, 9 * u; size: 24 * u, 30 * u; cursor: pointer; active: bs.tray > 0.5 }
         on press touch { emit click(t.index) }
         on press right touch { emit menu(t.index) }
+    }
+
+    //  A pinned app in the corner dock. Pressed and let go it starts; pressed and pulled (more than a few pixels) it takes the whole dock with it, which settles in
+    //  the nearer of the two corners when let go. A right click unpins it.
+    component CdkIcon(t: record) {
+        size: floor(20 * u + 0.5), floor(20 * u + 0.5)
+        box { at: 10 * u, 10 * u; size: 28 * u, 28 * u; corner: 9 * u * (1 - 0.5 * sq); color: ink; opacity: 16% * touch.hover * (1 - cdk_drag) }
+        group {
+            pivot: 10 * u, 10 * u
+            scale: 1 + 0.16 * touch.hover * (1 - cdk_drag)
+            image t.icon { at: 0, 0; size: floor(20 * u + 0.5), floor(20 * u + 0.5); opacity: 88% + 12% * touch.hover }
+        }
+        zone box touch { at: 10 * u, 10 * u; size: 26 * u, 28 * u; cursor: pointer; active: cdk_ga > 0.6 }
+        on press touch { cdk_down = 1; cdk_drag = 0; cdk_hx = pointer.x - cdk.rcx; cdk_hy = pointer.y - cdk.rcy }
+        on drag touch while cdk_down > 0.5 { cdk_px = clamp(pointer.x - cdk_hx, 0, screen.width); cdk_py = clamp(pointer.y - cdk_hy, 0, screen.height); cdk_drag = if(cdk_drag > 0.5 or abs(drag.dx) + abs(drag.dy) > 8, 1, 0) }
+        on release touch while cdk_down > 0.5 and cdk_drag < 0.5 { emit cdk_go(t.index) }
+        on release touch while cdk_down > 0.5 { cdk_corner = if(cdk_drag > 0.5, cdk.pick, cdk_corner); cdk_down = 0; cdk_drag = 0 }
+        on press right touch { emit cdk_unpin(t.index) }
     }
 
     //  While a screen recording runs, a red dot rides the tray. Under the pointer it squares off into a stop button.
@@ -4226,6 +4274,38 @@ scene Vitreus {
     follow nt_hold_b = if(max(ntz_b.hover, max(ntn_b.hover, if(bt > 0.5, ntp_t.hover, ntp_b.hover))) > 0.5, 1, 0)
     follow nt_vis_t = if(nt_hold_t > 0.3, 1, 0)
     follow nt_vis_b = if(nt_hold_b > 0.3, 1, 0)
+    //  The corner dock: the pinned apps in one row, in one of the two corners of the edge opposite the bar (the bottom for the Island and the top strip, the
+    //  right edge for the left strip; the right and the bottom are the same drawing mirrored, like everything else). Along the bottom the corners are the left
+    //  and the right; down the right edge they are the top and the bottom, and the row still lies along the screen's horizontal edge. It is a pill of the frame's glass
+    //  that melts into the frame: `cdk.r` is how far it reaches into it (or off the screen, with no frame), so the two are one piece. Everything here is in the glass's
+    //  own (unmirrored) drawing; the icons are drawn where the mirror image falls. `cdk_cx`, `cdk_cy` is where its middle is: carried to the pointer while it is
+    //  pulled, to its corner otherwise.
+    let cdk.s = 20 * u
+    let cdk.p = cdk.s + 6 * u
+    let cdk.t = cdk.s + 10 * u
+    let cdk.r = 12 * u
+    let cdk.L = cdk_pins.count * cdk.p + 8 * u
+    let cdk.ye = vb - th.b * fm
+    let cdk.yt = yo + th.t * fm
+    let cdk.xe = screen.width - th.r * fm
+    let cdk.xs = th.l * fm
+    let cdk.sr = if(lm > 0.5, 1, cdk_corner)                       // against the right edge (1) or the left (0)
+    let cdk.sb = if(lm > 0.5, cdk_corner, 1)                       // against the bottom (1) or the top (0)
+    let cdk.restx = mix(cdk.xs + cdk.L / 2, cdk.xe - cdk.L / 2, cdk.sr)
+    let cdk.resty = mix(cdk.yt + cdk.t / 2, cdk.ye - cdk.t / 2, cdk.sb)
+    let cdk.rcx = mix(cdk_cx, screen.width - cdk_cx, rt)           // where its middle is on the screen
+    let cdk.rcy = mix(cdk_cy, yo + vb - cdk_cy, bt)
+    //  The corner nearer the pointer, when it is let go (in the glass's drawing: down the right edge the two are the top and the bottom, otherwise the left and the right).
+    let cdk.pick = if(lm > 0.5, if(mix(pointer.y, yo + vb - pointer.y, bt) > vc, 1, 0), if(mix(pointer.x, screen.width - pointer.x, rt) > screen.width / 2, 1, 0))
+    follow cdk_cx = if(cdk_drag > 0.5, mix(cdk_px, screen.width - cdk_px, rt), cdk.restx)
+    follow cdk_cy = if(cdk_drag > 0.5, mix(cdk_py, yo + vb - cdk_py, bt), cdk.resty)
+    follow cdk_ax = if(cdk_drag > 0.5, 0, cdk.sr * 2 - 1)
+    follow cdk_ay = if(cdk_drag > 0.5, 0, cdk.sb * 2 - 1)
+    let cdk.bx = cdk_cx + cdk_ax * cdk.r / 2
+    let cdk.by = cdk_cy + cdk_ay * cdk.r / 2
+    let cdk.bw = cdk.L * cdk_ga + cdk.r * abs(cdk_ax)
+    let cdk.bh = cdk.t + cdk.r * abs(cdk_ay)
+    let cdk.cr = min(cdk.t / 2, rc)
     //  The right notch opens the desk: a panel out of the right frame with a few small tools, in tabs. It is not one of the values of `panel`, so it
     //  stays open while the calendar, the controls, the volume or a notification come and go. It is drawn like the volume's and the title panel's
     //  drawers (`dz.*`: the same springs and shape) but with its own geometry, which does not depend on whichever of those is out.
@@ -5363,6 +5443,7 @@ scene Vitreus {
     }
 
     }
+    include "pages/corner_dock.plm"
     include "pages/panel_frame.plm"
     include "pages/controls_drawer.plm"
     include "pages/player.plm"
@@ -5465,7 +5546,7 @@ scene Vitreus {
             at: floor(lx + 0.5), floor(lry + 0.5)     // on whole pixels, as each row's height and the gap are: an icon
             view: lw, lph                             // between two pixels picks up a sliver of its neighbour in the atlas
             gap: floor(4 * pu + 0.5)
-            for r in lres { LRow(r, pick: launch_pick, del: launch_del) }
+            for r in lres { LRow(r, pick: launch_pick, del: launch_del, ctx: launch_ctx) }
         }
         group { scale: rs; pivot: floor(lx + lw / 2 + 0.5), floor(lry + 20 * pu + 0.5); text lmsg { at: floor(lx + lw / 2 + 0.5), floor(lry + 20 * pu + 0.5); anchor: center; align: center; size: 16; color: faint; width: (lw - 16 * pu) / rs; lines: 2; family: "Space Grotesk"; show: lcount < 1 } }
 

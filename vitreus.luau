@@ -5430,6 +5430,7 @@ end
             rows[#rows + 1] = {
                 title = r.title, sub = r.sub or "", desc = r.desc or "", hasdesc = (r.desc or "") ~= "", glyph = r.glyph or (r.title or "?"):sub(1, 1):upper(),
                 sel = (S.start + i) == S.sel, hasicon = (r.icon or "") ~= "", icon = r.icon or "", deletable = r.del ~= nil,
+                pinnable = r.app ~= nil, pin = r.app ~= nil and cdk_pinned(r.app),
             }
         end
         model.lres = rows
@@ -6395,6 +6396,10 @@ end
     on("launch_delsel", function() remove_result(S.res[S.sel]) end)
     on("launch_pick", function(i) run_result(S.res[S.start + math.floor(i + 0.5)]) end)
     on("launch_run", function() run_result(S.res[S.sel]) end)
+    on("launch_ctx", function(i)
+        local r = S.res[S.start + math.floor(i + 0.5)]
+        if r and r.app and cdk_toggle(r.app) ~= nil then render(true) end
+    end)
     on("launch_hint", function(i)
         text.lq = ({ "#", ">", ":", "^", "~", "@", "?", "$", "=", "+" })[math.floor(i + 0.5) + 1] or ""
         focus("lq")
@@ -7927,6 +7932,9 @@ end
 
 -- privacy lights: see logic/privacy.luau
 require("logic/privacy")()
+
+-- corner docks: see logic/dock.luau
+require("logic/dock")()
 
 -- shelf: see logic/shelf.luau
 require("logic/shelf")(with_dirs)

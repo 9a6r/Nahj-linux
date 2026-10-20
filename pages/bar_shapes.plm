@@ -55,6 +55,8 @@ part BarShapes {
             ellipse { at: screen.width - th.r + dz.rpx, dz.fy + dz.ripx; radius: 9 * u; scale: max(dz.riph, 0.3) / (9 * u), 1; blend: (8 * u * clamp(dz.riph / (3 * u), 0, 1)) * bk }
             ellipse { at: screen.width - th.r - dz.stray * 0.7 + dz.px, dz.fy; radius: max(dz.stray, 0.3); blend: (7 * u * clamp(dz.stray / (3 * u), 0, 1)) * bk }
             box zdrawer { at: dz.fx + if(fm > 0.5, 0, 30000), dz.fcy; size: dz.fw * (1 + dz.stretch - 0.07 * dz.bell), dz.fh * (1 - dz.stretch * 0.5); corner: mix(min(dz.fw, dz.fh) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)); blend: ((26 + 20 * dz.bell) * u * min(1, dz0 * 4)) * bk; show: dz0 > 0.004 }
+            //  The corner dock's pill (see `cdk.*`), melted into the frame. Off the screen while empty or switched off: `show:` does not take a shape off the glass.
+            box { at: cdk.bx + if(cdk_ga > 0.02, 0, 30000), cdk.by; size: max(0.3, cdk.bw), max(0.3, cdk.bh); corner: cdk.cr; blend: (12 * u * min(1, cdk_ga * 4)) * bk }
             //  The floating media card's side of the frame (`mf.f*`): the same, melted into the frame where it is carried against it.
             box { at: mix(mf.fx, screen.width - mf.fx, rt) + if(fm > 0.5, 0, 30000), mix(mf.fcy, yo + vb - mf.fcy, bt); size: max(0.3, mf.fw * mf.g), max(0.3, mf.fh * mf.g); corner: mix(min(mf.fw, mf.fh) / 2, 26 * u * mf.k * (1 - 0.73 * sq), clamp(mf.g * 1.6 - 0.1, 0, 1)); blend: (26 * u * min(1, mf.g * 4)) * bk; show: mf.g > 0.004 }
 }
