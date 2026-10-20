@@ -200,6 +200,10 @@ if [ "$action" = uninstall ]; then
     if [ -f "$autostart" ] && grep -q '^# wm: swaybg' "$autostart"; then
         say "an older install commented out «wm: swaybg» in $autostart without a mark: uncomment it if you want it back"
     fi
+    if [ -f "$conf/pleamar/session.conf" ] && grep -q 'Vitreus Files floats' "$conf/pleamar/session.conf"; then
+        run sed -i '/^# Vitreus Files floats rather than tiling/,/^window app=vitreus\.files float$/d' "$conf/pleamar/session.conf"
+        say "pleamar-wm no longer floats Files by a rule of ours"
+    fi
     for l in "$conf/pleamar/keys.conf" "$conf/pleamar/wm" "$HOME/.local/bin/hyprctl"; do
         case "$(readlink -f "$l" 2> /dev/null)" in "$(readlink -f "$dest")"/*) run rm -f "$l"; say "removed the link $l" ;; esac
     done
@@ -799,6 +803,17 @@ if $do_wm && [ -d "$wmdir" ] && { have pleamar-wm || [ -x "$HOME/.local/bin/plea
         say "pleamar-wm's window scene is Vitreus's now ($wmscene)"
     else
         warn "$wmscene has a scene of yours: left alone (Vitreus's is in $wmdir/wm)"
+    fi
+    # Files floats rather than tiling (on Hyprland, hypr_vitreus.lua has the same rule).
+    wmconf="$conf/pleamar/session.conf"
+    if [ -f "$wmconf" ] && grep -q '^window app=vitreus\.files ' "$wmconf"; then
+        say "pleamar-wm already floats Files"
+    else
+        run mkdir -p "$conf/pleamar"
+        if $dry; then echo "    would add to $wmconf: window app=vitreus.files float"; else
+            printf '\n# Vitreus Files floats rather than tiling (added by its installer; ./install.sh --uninstall takes it out)\nwindow app=vitreus.files float\n' >> "$wmconf"
+            say "pleamar-wm floats Files now (a line in $wmconf)"
+        fi
     fi
     # hyprctl for a desktop that is not Hyprland (ahead of /usr/bin; on Hyprland it hands over to the real one).
     if [ ! -e "$HOME/.local/bin/hyprctl" ] || [ -L "$HOME/.local/bin/hyprctl" ]; then
