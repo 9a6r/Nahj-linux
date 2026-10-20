@@ -8,7 +8,7 @@ part CornerDock {
     group {
         glow: 2.4 * u, 110%, deep
         row cdk_row {
-            at: floor(mix(cdk_cx - cdk.L / 2 + 7 * u, screen.width - (cdk_cx - cdk.L / 2 + 7 * u) - (cdk.L - 14 * u), rt) + 0.5), floor(mix(cdk_cy - cdk.s / 2, yo + vb - cdk_cy - cdk.s / 2, bt) + 0.5)
+            at: floor(mix(pick(screen.index, cdk_cx.0, cdk_cx.1) - cdk.L / 2 + 7 * u, screen.width - (pick(screen.index, cdk_cx.0, cdk_cx.1) - cdk.L / 2 + 7 * u) - (cdk.L - 14 * u), rt) + 0.5), floor(mix(pick(screen.index, cdk_cy.0, cdk_cy.1) - cdk.s / 2, yo + vb - pick(screen.index, cdk_cy.0, cdk_cy.1) - cdk.s / 2, bt) + 0.5)
             gap: floor(6 * u + 0.5)
             show: cdk_ga > 0.02
             opacity: clamp(cdk_ga * 2 - 1, 0, 1)

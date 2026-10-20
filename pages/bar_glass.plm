@@ -1057,14 +1057,14 @@ part BarGlass {
         }
         //  The three dots on each tab (the volume card's hint), fading out as the panel they open comes out.
         group {
-            show: lm > 0.35 and max(nt_vis_t, nt_vis_b) > 0.05
+            show: lm > 0.35 and max(nt_vis_t.$screen, nt_vis_b.$screen) > 0.05
             repeat i in 0..3 {
-                ellipse { at: ccx + (i - 1) * 6.5 * cu, yo + lf.t + nt_d * nt_vis_t / 2; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_t.hover) * clamp(nt_vis_t * 1.6 - 0.4, 0, 1) * (1 - clamp(dl, 0, 1)) }
-                ellipse { at: ccx + (i - 1) * 6.5 * cu, vb - lf.t - nt_d * nt_vis_b / 2; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_b.hover) * clamp(nt_vis_b * 1.6 - 0.4, 0, 1) * (1 - clamp(ds, 0, 1)) }
+                ellipse { at: ccx + (i - 1) * 6.5 * cu, yo + lf.t + nt_d * nt_vis_t.$screen / 2; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_t.hover) * clamp(nt_vis_t.$screen * 1.6 - 0.4, 0, 1) * (1 - clamp(dl, 0, 1)) }
+                ellipse { at: ccx + (i - 1) * 6.5 * cu, vb - lf.t - nt_d * nt_vis_b.$screen / 2; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_b.hover) * clamp(nt_vis_b.$screen * 1.6 - 0.4, 0, 1) * (1 - clamp(ds, 0, 1)) }
             }
         }
         //  The battery gauge, inside the bar with a thick margin of empty glass round it (`bf.m`). It is only there
-        //  while `batt_open` (the pointer is on the bar, or the charge is under 20 %): it fades in and grows a little
+        //  while `batt_open.$screen` (the pointer is on the bar, or the charge is under 20 %): it fades in and grows a little
         //  from its middle line. It is a tint of the accent that brightens towards its front (a red one while it is
         //  draining below 20 %), and its own rim gives it an edge. It follows the bar's shape (which swells with the
         //  beat) and never moves by itself: an animation here would keep the scene painting, and most of all when
@@ -1076,7 +1076,7 @@ part BarGlass {
             let bf.nub = 6.6 * u                                    // how far the nub on its far end sticks out
             let bf.full = bar.w + pv * 10 * u - 2 * bf.m - bf.nub   // the gauge's length at 100 %: the nub has the same margin at its end as the gauge has at the other
             let bf.tall = bar.h + pop - 2 * bf.m                   // the pill's height
-            let bf.show = clamp(batt_open, 0, 1) * (1 - lm)
+            let bf.show = clamp(batt_open.$screen, 0, 1) * (1 - lm)
             let bf.hh = bf.tall * (0.7 + 0.3 * bf.show)
             let bf.len = max(0.1, bf.full * batt_fill)
             let bf.c = mix(mint, #e0655a, batt_low)
@@ -1109,7 +1109,7 @@ part BarGlass {
         //  the same rule for when it shows (the pointer on the strip, or a charge under 20 %).
         group {
             let bl.m = 7 * u
-            let bl.show = clamp(batt_open, 0, 1) * lm
+            let bl.show = clamp(batt_open.$screen, 0, 1) * lm
             let bl.w = lf.w - 2 * bl.m
             let bl.bot = vb - lf.t - bl.m
             let bl.nub = 6.6 * u                                    // how far the nub on its top end sticks out
@@ -1162,15 +1162,15 @@ part BarGlass {
             let wsz = (if(i == 1, ws.s1, if(i == 2, ws.s2, if(i == 3, ws.s3, if(i == 4, ws.s4, ws.s5)))) + ws.g) * ws.vis.$i
             zone box ws.hit.$i { at: mix(wa, lf.x, lm), mix(bar.y, wa, lm); size: mix(wsz, 40 * u, lm), mix(bar.h, wsz, lm); cursor: pointer; active: bs.ws > 0.5 and ws.vis.$i > 0.5 }
             on press ws.hit.$i { emit go(i) }
-            follow wsh.$i = ws.hit.$i.hover
-            follow wsp.$i = ws.hit.$i.hover
+            follow wsh.$i.$screen = ws.hit.$i.hover
+            follow wsp.$i.$screen = ws.hit.$i.hover
         }
         zone box ws_plus { at: mix(ws.a6, lf.x, lm), mix(bar.y, ws.a6, lm); size: mix(ws.sv6 + ws.g, 40 * u, lm), mix(bar.h, ws.sv6 + ws.g, lm); cursor: pointer; active: bs.ws > 0.5 and ws.pv > 0.5 }
         on press ws_plus { emit go(ws.new) }
-        follow wspl = ws_plus.hover
+        follow wspl.$screen = ws_plus.hover
         zone box ov_btn { at: ob.x, ob.y; size: ob.s + 8 * u, ob.s + 8 * u; cursor: pointer; active: bs.ws > 0.5 }
         on press ov_btn { emit ov_toggle }
-        follow ovp = ov_btn.hover
+        follow ovp.$screen = ov_btn.hover
 
         //  What is in front: the app in small type above, the title under it, cut
         //  with an ellipsis where the clock starts.
@@ -1196,7 +1196,7 @@ part BarGlass {
         let mcy = mix(bar.y, bar.y - 6.5 * u, win.have)
         zone box win_hit { at: win.zc, bar.y; size: win.zw, bar.h; cursor: pointer; active: bs.title > 0.5 }
         on press win_hit { pending = none; panel_scr = screen.index; panel = if(panel == player, none, player) }
-        follow ptab_hold = if((pl_btn_z.hover > 0.5 or (win_hit.hover > 0.5 and lm < 0.5)) and panel != player, 1, 0)       // the title's tab (see `ptab_*`): the frame's zone or this one
+        follow ptab_hold.$screen = if((pl_btn_z.hover > 0.5 or (win_hit.hover > 0.5 and lm < 0.5)) and panel != player, 1, 0)       // the title's tab (see `ptab_*`): the frame's zone or this one
 
         // ── the player, small, in the bar ────────────────────────────
         //  While there is a player, playing or paused; they fade in as the title gives them room.
@@ -1237,7 +1237,7 @@ part BarGlass {
         //  like "everything crashes." Claiming it here, once, disarms that for
         //  the whole scene.
         on press right bar_hit { panel = none }
-        //  How open the battery gauge is (see `batt_open`): it lives here, where the bar's zones are, to read their hover.
-        follow batt_open = if(max(max(max(max(max(max(max(max(max(max(max(max(max(max(bar_hover.hover, wsh.1), wsh.2), wsh.3), wsh.4), wsh.5), win_hit.hover), bp.prev.hover), bp.play.hover), bp.next.hover), set_hit.hover), sr_hit.hover), ctl_hit.hover), bar_hit.hover), lf_hover.hover) > 0.15 or (pwr.percent < 20 and pwr.present), 1, 0)
+        //  How open the battery gauge is (see `batt_open.$screen`): it lives here, where the bar's zones are, to read their hover.
+        follow batt_open.$screen = if(max(max(max(max(max(max(max(max(max(max(max(max(max(max(bar_hover.hover, wsh.1.$screen), wsh.2.$screen), wsh.3.$screen), wsh.4.$screen), wsh.5.$screen), win_hit.hover), bp.prev.hover), bp.play.hover), bp.next.hover), set_hit.hover), sr_hit.hover), ctl_hit.hover), bar_hit.hover), lf_hover.hover) > 0.15 or (pwr.percent < 20 and pwr.present), 1, 0)
     }
 }
