@@ -33,11 +33,11 @@ part BarShapes {
             box odrawer { at: do.ex + if(fm > 0.5, 0, 30000), do.ey; size: do.ew * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); blend: (do.bl) * bk; show: do0 > 0.004 }
             box mdrawer { at: dm.ex, dm.ey - sg.up / 2; size: dm.ew * (1 + dj.stretch - 0.07 * dm.bell + 0.003 * wobble), dm.eh * (1 - dj.stretch * 0.5 - 0.002 * wobble) + sg.up; corner: mix(min(dm.ew, dm.eh) / 2, rc, clamp(dm0 * 1.6 - 0.1, 0, 1)); blend: (mix((26 + 20 * dm.bell) * u * min(1, dm0 * 4), mix(dj.neck, (26 + 20 * dm.bell) * u * min(1, dm0 * 4), att), lm)) * bk; show: dm0 > 0.004 }
             //  The notches, melted into the frame like the drawers: as tall as the frame while they are in it, and they grow out of it by `nt_vis_*`.
-            //  (Moved off the screen outside the Frame layout: `show:` does not take a shape off the glass.)
+            //  (Moved off the screen outside the Frame layout, and on a monitor with only the frame (`sb`): `show:` does not take a shape off the glass.)
             box { at: (th.l + nt_d * nt_vis_l.$screen) / 2 + if(tm > 0.35, 0, 30000), vcc; size: th.l + nt_d * nt_vis_l.$screen, nt_w; corner: 9 * cu * (1 - 0.73 * sq); blend: (9 * u) * bk }
-            box { at: ccx + if(lm > 0.35, 0, 30000), yo + (lf.t + nt_d * nt_vis_t.$screen) / 2; size: nt_w, lf.t + nt_d * nt_vis_t.$screen; corner: 9 * cu * (1 - 0.73 * sq); blend: (9 * u) * bk }
-            box { at: ccx + if(fm > 0.35, 0, 30000), vb - (th.b + nt_d * nt_vis_b.$screen) / 2; size: nt_w, th.b + nt_d * nt_vis_b.$screen; corner: 9 * cu * (1 - 0.73 * sq); blend: (9 * u) * bk }
-            box { at: screen.width - (th.r + nt_d * nt_vis_r.$screen) / 2 + if(fm > 0.35, 0, 30000), vcc; size: th.r + nt_d * nt_vis_r.$screen, nt_w; corner: 9 * cu * (1 - 0.73 * sq); blend: (9 * u) * bk }
+            box { at: ccx + if(lm > 0.35 and sb > 0.5, 0, 30000), yo + (lf.t + nt_d * nt_vis_t.$screen) / 2; size: nt_w, lf.t + nt_d * nt_vis_t.$screen; corner: 9 * cu * (1 - 0.73 * sq); blend: (9 * u) * bk }
+            box { at: ccx + if(fm > 0.35 and sb > 0.5, 0, 30000), vb - (th.b + nt_d * nt_vis_b.$screen) / 2; size: nt_w, th.b + nt_d * nt_vis_b.$screen; corner: 9 * cu * (1 - 0.73 * sq); blend: (9 * u) * bk }
+            box { at: screen.width - (th.r + nt_d * nt_vis_r.$screen) / 2 + if(fm > 0.35 and sb > 0.5, 0, 30000), vcc; size: th.r + nt_d * nt_vis_r.$screen, nt_w; corner: 9 * cu * (1 - 0.73 * sq); blend: (9 * u) * bk }
             //  The title's small tab: `ptab_d` out of the strip's edge while the title is under the pointer. At rest it is off the screen,
             //  not tucked into the strip: the glass melts shapes that are near each other, and a tucked tab would still bulge the edge.
             box { at: lf.w - 6 * u + (6 * u + ptab_d * ptab_vis.$screen) / 2 + if(lm > 0.35 and sb > 0.5 and ptab_vis.$screen > 0.01, 0, 30000), lv.tm; size: 6 * u + ptab_d * ptab_vis.$screen, ptab_h; corner: 5 * u * (1 - 0.5 * sq); blend: (6 * u * ptab_vis.$screen) * bk }
