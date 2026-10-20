@@ -4,9 +4,10 @@
 -- them), so choosing takes effect at once. A vitreus.plm from before, whose `screens:` names one monitor, is moved over
 -- once: that line is rewritten and the bar started again, from a command left running on its own (`setsid`) that asks
 -- this one to quit and then opens the scene afresh. What was chosen is kept in bar.json; a chosen monitor that is not
--- plugged in puts the bar on all of them until it is back.
+-- plugged in puts the bar on all of them until it is back. With `others: "frame"` in bar.json (Settings > Bar, "Frame on the
+-- other monitors") the other copies stay open with the frame and its notches (launcher, Settings, desk) and no bar.
 return function(with_dirs)
-    local B = { pref = nil, file = nil, mons = {}, busy = false, awake = false }
+    local B = { pref = nil, file = nil, mons = {}, busy = false, awake = false, others = false }
     local RESTART = [[
 P="$1"; L="$2"
 export PATH="$HOME/.local/bin:$PATH"
@@ -50,15 +51,18 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
         for _, m in ipairs(B.mons) do names[#names + 1] = m.name end
         local on = bar_on()
         -- the scene closes the copies that are not the chosen monitor's: it is told that monitor's size
-        local m = B.file == "all" and on ~= "all" and B.mons[connected(on)] or nil
+        local one = B.file == "all" and on ~= "all"
+        local thin = one and B.others              -- the other monitors have the frame: their windows get its room
+        local m = one and B.mons[connected(on)] or nil
         local sw, sh = m and m.w or 0, m and m.h or 0
         if fact.bar_sw ~= sw then fact.bar_sw = sw end
         if fact.bar_sh ~= sh then fact.bar_sh = sh end
+        if fact.bar_others ~= B.others then fact.bar_others = B.others end
         if B.file == "all" then bar_mon.name = on end
-        local sig = on .. "|" .. table.concat(names, ",")
+        local sig = on .. "|" .. tostring(thin) .. "|" .. table.concat(names, ",")
         if sig == told then return end
         told = sig
-        bar_fx.on, bar_fx.mons = on, names
+        bar_fx.on, bar_fx.mons, bar_fx.thin = on, names, thin
         iris_fx.apply_hypr()
     end
 
@@ -158,14 +162,22 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
             pref = m.name
         end
         B.pref = pref
-        pcall(sys.call, "files.write", "bar.json", { screens = pref })
+        pcall(sys.call, "files.write", "bar.json", { screens = pref, others = B.others and "frame" or nil })
         show()
         local to = target()
         if B.file ~= nil and file_for(to) ~= B.file then restart(to) else publish() end
     end)
 
+    -- Settings > Bar's switch: the frame on the other monitors, or nothing there. The scene is on every monitor already, so it is at once.
+    on("bar_others_toggle", function()
+        B.others = not B.others
+        pcall(sys.call, "files.write", "bar.json", { screens = B.pref or "all", others = B.others and "frame" or nil })
+        publish()
+    end)
+
     local ok, saved = pcall(sys.ask, "files.read", "bar.json", "json")
     if ok and type(saved) == "table" and type(saved.screens) == "string" then B.pref = saved.screens end
+    if ok and type(saved) == "table" and saved.others == "frame" then B.others = true end
     -- What this bar was started with: the `screens:` of the scene's surface.
     with_dirs(function(d)
         run("grep", { "-o", "-m1", "-E", "screens: [^;]*;", d.conf .. "/vitreus.plm" }, function(out)

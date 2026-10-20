@@ -1151,6 +1151,9 @@ part BarGlass {
             }
         }
 
+        //  The strip's zones: none on a monitor that has only the frame (`sb`, vitreus.plm).
+        group {
+            show: sb > 0.5
         // ── the bar ──────────────────────────────────────────────────
         //  Under everything else on the bar (declared first, so the pieces win their presses): it only says that the
         //  pointer is over the bar, in the gaps between them.
@@ -1237,6 +1240,7 @@ part BarGlass {
         //  like "everything crashes." Claiming it here, once, disarms that for
         //  the whole scene.
         on press right bar_hit { panel = none }
+        }
         //  How open the battery gauge is (see `batt_open.$screen`): it lives here, where the bar's zones are, to read their hover.
         follow batt_open.$screen = if(max(max(max(max(max(max(max(max(max(max(max(max(max(max(bar_hover.hover, wsh.1.$screen), wsh.2.$screen), wsh.3.$screen), wsh.4.$screen), wsh.5.$screen), win_hit.hover), bp.prev.hover), bp.play.hover), bp.next.hover), set_hit.hover), sr_hit.hover), ctl_hit.hover), bar_hit.hover), lf_hover.hover) > 0.15 or (pwr.percent < 20 and pwr.present), 1, 0)
     }

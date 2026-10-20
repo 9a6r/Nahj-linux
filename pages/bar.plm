@@ -24,6 +24,15 @@ part Bar {
             group { scale: rs; pivot: floor(bax + 0.5), floor(sby + 95 * pu + 0.5); text "every monitor" { at: floor(bax + 0.5), floor(sby + 95 * pu + 0.5); anchor: center; align: center; size: 12; width: (70 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
             zone box bar_all_hit { at: bax, sby + 76 * pu; size: 66 * pu, 64 * pu; corner: 12 * pu; cursor: pointer }
             on press bar_all_hit { emit bar_pick_scr(-1) }
+            //  Beside the title, as the Island layout's Reset is: with the bar on one monitor, whether the others keep the frame and its notches
+            //  (launcher, Settings, desk) or show nothing. It changes at once, without restarting the bar. Faded while the bar is on all of them.
+            group {
+                opacity: 100% - 55% * balit
+                group { scale: rs; pivot: floor(spx + 380 * pu + 0.5), floor(sby + 13 * pu + 0.5); text "Frame on the other monitors" { at: floor(spx + 380 * pu + 0.5), floor(sby + 13 * pu + 0.5); anchor: right center; align: right; size: 13.5; width: (240 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
+                SettingsSwitch(spx + 424 * pu, sby + 13 * pu, bar_oth_pill, bar_oth_hit.pressed, mint)
+                zone box bar_oth_hit { at: spx + 405 * pu, sby + 13 * pu; size: 46 * pu, 26 * pu; cursor: pointer; active: bar_scr != -1 }
+                on press bar_oth_hit { emit bar_others_toggle }
+            }
 
             //  One tile per monitor that is plugged in: a screen with the bar across its top.
             repeat i in 0..4 {

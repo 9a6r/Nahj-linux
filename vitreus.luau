@@ -2736,7 +2736,7 @@ end
 -- What Hyprland is told: the window borders from the palette, and, with the bar down the left (bar_fx.left), the room the strip and the frame
 -- take round the windows (gaps_out: the layer's own reserved zone is not moved when the surface changes edge). It is sent at once and kept in
 -- vitreus_colors.lua, which hyprland.lua loads last (the installer adds the line). Up on the top, the gaps go back to what they were (bar_fx.orig, read once).
-bar_fx = { left = false, edge = "top", orig = nil, on = "all", mons = {} }   -- `left`: a strip and a frame are in use, on `edge` (left, right, top or bottom)
+bar_fx = { left = false, edge = "top", orig = nil, on = "all", mons = {}, thin = false }   -- `left`: a strip and a frame are in use, on `edge` (left, right, top or bottom)
 bar_fx.restart = [[
 P="$1"; L="$2"
 export PATH="$HOME/.local/bin:$PATH"
@@ -2776,7 +2776,8 @@ function iris_fx.gaps_code(left)
     for _, name in ipairs(bar_fx.mons or {}) do
         if name:match("^[%w%._%-]+$") then
             local has_bar = left and (everywhere or bar_fx.on == name)
-            parts[#parts + 1] = rule(name, has_bar and bar_gaps or o)
+            -- a monitor with only the frame (Settings > Bar, "Frame on the other monitors"; logic/bar_monitors.luau) gets the frame's room on every side
+            parts[#parts + 1] = rule(name, has_bar and bar_gaps or ((left and bar_fx.thin) and { px, px, px, px } or o))
         end
     end
     return table.concat(parts, " ")

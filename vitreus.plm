@@ -65,11 +65,12 @@ scene Vitreus {
     let wcol.mint = rgb(wcol_mint_r, wcol_mint_g, wcol_mint_b)
     let wcol.alert = rgb(wcol_alert_r, wcol_alert_g, wcol_alert_b)
     //  One copy per monitor always (`screens: each`): what each copy holds of its own (the notches, the bar's hovers, the dock's place) is named per
-    //  copy (`name.$screen`), which only a copy per monitor has. With the bar on one monitor, the other copies are closed (`open:`, see `sb`).
+    //  copy (`name.$screen`), which only a copy per monitor has. With the bar on one monitor, the other copies are closed (`open:`, see `sb`), or keep
+    //  the frame and its notches (Settings > Bar, "Frame on the other monitors": `bar_others`).
     //  The keyboard is `on_demand`, not `exclusive`: it is asked for every open copy at once (the `while` is not per copy), and Hyprland gave it, and the
     //  pointer with it, to a copy where nothing was open: the cursor seemed stuck until the panel closed. A field that takes the focus (the launcher's
     //  search, the desk's inputs) still has it lent exclusively, to the copy it is on only.
-    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 68 while bar_anchor == top and not bar_frame; screens: each max 2; open: sb > 0.5; keyboard: on_demand while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or dash_open }
+    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 68 while bar_anchor == top and not bar_frame; screens: each max 2; open: sb > 0.5 or bar_others; keyboard: on_demand while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or dash_open }
     permissions { services: "files", "files.write", "auth", "clock", "clock.seconds", "thumbnails", "thumbnails.*", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
                   run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "vitreus-themes", "claude", "ollama", "codex", "pacman", "paru", "yay", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "date", "udevadm" }
 
@@ -559,6 +560,7 @@ scene Vitreus {
     }
     text bar_msg = ""
     event bar_pick_scr ->
+    event bar_others_toggle ->       // Settings > Bar: the frame on the monitors without the bar, or nothing there (logic/bar_monitors.luau)
     //  The bar's layout (Settings > Bar): each piece's place in the row, 0 leftmost, and whether it is shown. The
     //  title is the stretch: what comes before it hugs the left, what comes after it the right.
     fact bo.ws = 0
@@ -1472,6 +1474,8 @@ scene Vitreus {
     follow rec_sys_pill = if(rec_sys, 1, 0)
     prop night_auto_pill = 0 ~pop
     follow night_pill = if(night_on, 1, 0)
+    prop bar_oth_pill = 0 ~pop
+    follow bar_oth_pill = if(bar_others, 1, 0)
     follow night_auto_pill = if(night_auto, 1, 0)
     //  Settings > Lock screen: what the lock screen scene holds. The logic asks it when the page opens (`lk_ok` is false if it did not
     //  answer) and tells it what is changed; the lock screen keeps them in its own lockscreen.json.
@@ -3421,7 +3425,7 @@ scene Vitreus {
             scale: 1 + 0.16 * touch.hover * (1 - cdk_drag)
             image t.icon { at: 0, 0; size: floor(24 * u + 0.5), floor(24 * u + 0.5); opacity: 88% + 12% * touch.hover }
         }
-        zone box touch { at: 12 * u, 12 * u; size: 31 * u, 33 * u; cursor: pointer; active: cdk_ga > 0.6 }
+        zone box touch { at: 12 * u, 12 * u; size: 31 * u, 33 * u; cursor: pointer; active: cdk.g > 0.6 }
         on press touch { cdk_down = 1; cdk_drag = 0; cdk_hx = pointer.x - cdk.rcx; cdk_hy = pointer.y - cdk.rcy }
         on drag touch while cdk_down > 0.5 { cdk_px = clamp(pointer.x - cdk_hx, 0, screen.width); cdk_py = clamp(pointer.y - cdk_hy, 0, screen.height); cdk_drag = if(cdk_drag > 0.5 or abs(drag.dx) + abs(drag.dy) > 8, 1, 0) }
         on release touch while cdk_down > 0.5 and cdk_drag < 0.5 { emit cdk_go(t.index) }
@@ -3614,23 +3618,25 @@ scene Vitreus {
     //  The bar down the left: a strip `lf.w` wide on the left and a frame `lf.t` thick round the other three edges, in the same glass. `lm` is how
     //  far over it is (the panels follow: `pcx` is where they are centred, with their left edge `lf.w` and a little in from the strip).
     //  Which copy is the bar's: the logic says how big the chosen monitor is (`bar_sw`, `bar_sh`; 0 while the bar is on every one, logic/bar_monitors.luau)
-    //  and each copy compares its own. The others are closed.
+    //  and each copy compares its own. The others are closed, or (`bar_others`) take the left layout's shapes with a strip as thin as the frame:
+    //  the launcher out of the top notch, Settings out of the bottom, the desk out of the right.
     fact bar_sw = 0
     fact bar_sh = 0
+    fact bar_others = false                  // the monitors without the bar keep the frame and its notches (logic/bar_monitors.luau)
     let sb = if(bar_sw < 1, 1, if(abs(screen.width - bar_sw) < 2 and abs(screen.height - bar_sh) < 2, 1, 0))
-    let lm = clamp(bar_lm, 0, 1)
+    let lm = mix(1, clamp(bar_lm, 0, 1), sb)
     //  The strip on the right is the left one in a mirror: the glass is drawn flipped about the middle of the screen (`rt` is 1 then), and every block of
     //  content that belongs to it (the strip's pieces, the panels that come out of it or out of a frame's notch) is drawn where its mirror image falls, upright.
-    let rt = if(bar_frame and bar_anchor == right, 1, 0)
+    let rt = if(bar_frame and bar_anchor == right, sb, 0)
     //  The frame on the top or the bottom is the same drawing with a horizontal strip: `tm` is how far over it is (`lm` is the vertical strip's share),
     //  `fm` the frame's (either), and `th.*` how thick each edge of it is, the strip's being `lf.w`.
-    let bt = if(bar_frame and bar_anchor == bottom, 1, 0)         // the strip along the bottom is the top one flipped about the middle of the screen; search and settings swap their notches
-    let tm = clamp(bar_tm, 0, 1)
+    let bt = if(bar_frame and bar_anchor == bottom, sb, 0)         // the strip along the bottom is the top one flipped about the middle of the screen; search and settings swap their notches
+    let tm = clamp(bar_tm, 0, 1) * sb
     let fm = min(1, lm + tm)
-    let sg = clamp(bar_sg, 0, 1)                                  // the top frame in three pieces (see `sg.*`)
+    let sg = clamp(bar_sg, 0, 1) * sb                             // the top frame in three pieces (see `sg.*`); not on a monitor with only the frame (`sb`)
     let tu = clamp(1 - lm, 0, 1)                                  // the drawers that come out of a horizontal edge: the Island's pill, and the top and bottom frames
     let lf.t = 8 * u
-    let lf.w = 46 * u
+    let lf.w = mix(lf.t, 46 * u, sb)
     let lf.x = lf.w / 2                                    // the strip's middle line, where its pieces sit
     let th.l = mix(lf.t, lf.w, lm)
     let th.t = mix(lf.t, lf.w, tm)
@@ -4356,6 +4362,7 @@ scene Vitreus {
     //  that melts into the frame: `cdk.r` is how far it reaches into it (or off the screen, with no frame), so the two are one piece. Everything here is in the glass's
     //  own (unmirrored) drawing; the icons are drawn where the mirror image falls. `cdk_cx.$screen`, `cdk_cy.$screen` is where its middle is: carried to the pointer while it is
     //  pulled, to its corner otherwise.
+    let cdk.g = cdk_ga * sb                                        // how far out it is on this monitor: only where the bar is (`sb`)
     let cdk.s = 24 * u
     let cdk.p = cdk.s + 6 * u
     let cdk.t = cdk.s + 10 * u
@@ -4379,7 +4386,7 @@ scene Vitreus {
     follow cdk_ay.$screen = if(cdk_drag > 0.5, 0, cdk.sb * 2 - 1)
     let cdk.bx = pick(screen.index, cdk_cx.0, cdk_cx.1) + pick(screen.index, cdk_ax.0, cdk_ax.1) * cdk.r / 2
     let cdk.by = pick(screen.index, cdk_cy.0, cdk_cy.1) + pick(screen.index, cdk_ay.0, cdk_ay.1) * cdk.r / 2
-    let cdk.bw = cdk.L * cdk_ga + cdk.r * abs(pick(screen.index, cdk_ax.0, cdk_ax.1))
+    let cdk.bw = cdk.L * cdk.g + cdk.r * abs(pick(screen.index, cdk_ax.0, cdk_ax.1))
     let cdk.bh = cdk.t + cdk.r * abs(pick(screen.index, cdk_ay.0, cdk_ay.1))
     let cdk.cr = min(cdk.t / 2, rc)
     //  The right notch opens the desk: a panel out of the right frame with a few small tools, in tabs. It is not one of the values of `panel`, so it
@@ -4640,6 +4647,7 @@ scene Vitreus {
     //  Declared here, before the bar and the panels, so that every zone of theirs drawn over them still takes its own presses.
     //  The control centre and the calendar open on a click, from the strip's icon and its clock; a click on either again, a click anywhere else or Esc closes them.
     group {
+        show: sb > 0.5
         move: rt * (screen.width - 2 * lf.x), 0
     zone box ctl_btn_z { at: lf.w / 2, lv.ctl; size: lf.w, 36 * u; cursor: pointer; active: lm > 0.5 }
     on press ctl_btn_z { panel_scr = screen.index; panel = if(panel == controls, none, controls) }
@@ -5455,6 +5463,7 @@ scene Vitreus {
     //  The strip's pieces (icons, clock, title) are laid out down the left; on the right they are slid across to the mirror image of their place, and along the bottom
     //  (the top strip flipped) they are slid down to the mirror image of theirs.
     group {
+        show: sb > 0.5                                     // not on a monitor that has only the frame (see `sb`)
         move: rt * (screen.width - 2 * lf.x), bt * (yo + vb - 2 * bar.y)
     include "pages/bar_icons.plm"
     //  The clock runs while something needs it. It is here, after the bar's zones, because it reads their hover: the bar's icons only boil under the pointer.
