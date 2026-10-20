@@ -6493,6 +6493,9 @@ end)()
 -- bar monitors: see logic/bar_monitors.luau
 require("logic/bar_monitors")(with_dirs)
 
+-- panels from a key, on the focused monitor: see logic/panel_monitor.luau
+require("logic/panel_monitor")()
+
 -- bar position: see logic/bar_position.luau
 require("logic/bar_position")()
 

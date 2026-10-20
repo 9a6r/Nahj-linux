@@ -2074,8 +2074,7 @@ scene Vitreus {
     follow dd = if(dd_open and panel == controls, 1, 0)
     follow vm = if(vm_open and panel == controls, 1, 0)
     follow mvis = if(mixer.count > 0 or vm_open, 1, 0)
-    on launch_toggle { panel = if(panel == launch, none, launch) }
-    on settings_toggle { panel = if(panel == settings, none, settings) }
+    //  launch_toggle and settings_toggle are handled by the logic (logic/panel_monitor.luau): it opens them on the focused monitor.
     on change panel { wpd_open = false; font_dd_open = false; dd_open = false; vm_open = false; panel_sub = none; disp_res_open = false; disp_scroll_to = 0; sm_scroll_to = 0; nt_scroll_to = 0; lk_scroll_to = 0; gl_scroll_to = 0; ck_scroll_to = 0; wm_scroll_to = 0; vpn_scroll_to = 0 }
     on change set_page { font_dd_open = false; disp_res_open = false; disp_scroll_to = 0; sm_scroll_to = 0; nt_scroll_to = 0; lk_scroll_to = 0; gl_scroll_to = 0; ck_scroll_to = 0; wm_scroll_to = 0; vpn_scroll_to = 0; vpn_arm = -1 }
     //  The Hyprland and Pleamar-WM pages read their settings from the system when they are shown, and only then: reading them on every page change
@@ -3393,8 +3392,10 @@ scene Vitreus {
             image t.icon { at: 0, 0; size: floor(18 * u + 0.5), floor(18 * u + 0.5); opacity: (78% + 22% * touch.hover) * bs.tray }
         }
         zone box touch { at: 9 * u, 9 * u; size: 24 * u, 30 * u; cursor: pointer; active: bs.tray > 0.5 }
-        on press touch { emit click(t.index) }
-        on press right touch { emit menu(t.index) }
+        //  `panel_scr`: the menu opens on this monitor's copy (the logic opens the panel without saying which, so with the bar on
+        //  more than one monitor it came out wherever the last panel had been). A left click opens it too, for an app that is only a menu.
+        on press touch { panel_scr = screen.index; emit click(t.index) }
+        on press right touch { panel_scr = screen.index; emit menu(t.index) }
     }
 
     //  A pinned app in the corner dock. Pressed and let go it starts; pressed and pulled (more than a few pixels) it takes the whole dock with it, which settles in
@@ -4363,7 +4364,7 @@ scene Vitreus {
     //  drawers (`dz.*`: the same springs and shape) but with its own geometry, which does not depend on whichever of those is out.
     fact desk_open = false
     event desk_toggle ->                                   // from a key bind (SUPER + D)
-    on desk_toggle { desk_open = not desk_open }
+    //  desk_toggle: in the logic (logic/panel_monitor.luau), which opens the desk on the focused monitor.
     fact desk_tab = 3                                      // 0 Pad, 1 Shelf, 2 Clip, 3 Focus, 4 Term, 5 Ask
     prop desk_sel = 3 ~slide                               // which tab the thumb is on
     //  Carrying the desk: `desk_gx`, `desk_gy` is where it is being taken to (an offset from its place in the frame), `desk_ox`, `desk_oy` where it
