@@ -5059,6 +5059,8 @@ scene Vitreus {
     let fwdy_46 = pick(fw_lay, fw.sy_b, (fw.sy_t) * sin(fwa_46), fw.sy_t, 0, 0)
     let fwx_46 = fwbx_46 + fwdx_46 * (fwh_46 - 3 * u) / 2
     let fwy_46 = fwby_46 + fwdy_46 * (fwh_46 - 3 * u) / 2
+    //  1 while any visualiser column is long enough to be seen: only then do the glass bodies that carry the columns (bar_waves.plm) exist; without it the glass is as cheap as it was before them.
+    let fw_act = if(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(fwh_0, fwh_1), fwh_2), fwh_3), fwh_4), fwh_5), fwh_6), fwh_7), fwh_8), fwh_9), fwh_10), fwh_11), fwh_12), fwh_13), fwh_14), fwh_15), fwh_16), fwh_17), fwh_18), fwh_19), fwh_20), fwh_21), fwh_22), fwh_23), fwh_24), fwh_25), fwh_26), fwh_27), fwh_28), fwh_29), fwh_30), fwh_31), fwh_32), fwh_33), fwh_34), fwh_35), fwh_36), fwh_37), fwh_38), fwh_39), fwh_40), fwh_41), fwh_42), fwh_43), fwh_44), fwh_45), fwh_46) > 1, 1, 0)
     group {
         pivot: screen.width / 2, screen.height / 2
         scale: 1 - 2 * rt, 1 - 2 * bt

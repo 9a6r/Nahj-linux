@@ -18,8 +18,23 @@ part BarGlass {
             rim: 10% * glass_rim + 14% * pv * glass_rim
             shine: pointer
             shadow: 0, 1 + 6 * drop + 3 * pv, 6 + 14 * drop + 8 * pv, 8% + 16% * drop + 8% * pv, deep
-            show: obs < 0.996 and not glass_auto
+            show: (obs < 0.996 and not glass_auto) and fw_act < 0.5
             include "bar_shapes.plm"
+        }
+        body {
+            color: mix(tint, #000000, cy_dark * cy_k)
+            glass: 100%
+            opacity: glass_op * (1 - obs)
+            lens: glass_bend
+            frost: glass_clear
+            refraction: glass_refr
+            dispersion: glass_disp
+            rim: 10% * glass_rim + 14% * pv * glass_rim
+            shine: pointer
+            shadow: 0, 1 + 6 * drop + 3 * pv, 6 + 14 * drop + 8 * pv, 8% + 16% * drop + 8% * pv, deep
+            show: (obs < 0.996 and not glass_auto) and fw_act > 0.5
+            include "bar_shapes.plm"
+            include "bar_waves.plm"
         }
         //  The same glass with `frost: auto` (frosted only where what is behind is busy): `frost:` cannot take `auto` from an expression, so it is a body of its own.
         body {
@@ -33,8 +48,23 @@ part BarGlass {
             rim: 10% * glass_rim + 14% * pv * glass_rim
             shine: pointer
             shadow: 0, 1 + 6 * drop + 3 * pv, 6 + 14 * drop + 8 * pv, 8% + 16% * drop + 8% * pv, deep
-            show: obs < 0.996 and glass_auto
+            show: (obs < 0.996 and glass_auto) and fw_act < 0.5
             include "bar_shapes.plm"
+        }
+        body {
+            color: mix(tint, #000000, cy_dark * cy_k)
+            glass: 100%
+            opacity: glass_op * (1 - obs)
+            lens: glass_bend
+            frost: auto
+            refraction: glass_refr
+            dispersion: glass_disp
+            rim: 10% * glass_rim + 14% * pv * glass_rim
+            shine: pointer
+            shadow: 0, 1 + 6 * drop + 3 * pv, 6 + 14 * drop + 8 * pv, 8% + 16% * drop + 8% * pv, deep
+            show: (obs < 0.996 and glass_auto) and fw_act > 0.5
+            include "bar_shapes.plm"
+            include "bar_waves.plm"
         }
         //  The same shapes again, as flat obsidian: a body with no rim (`rim: 0%`). (Before pleamar 0.4.14 a `rim` that was an expression
         //  was read as its first number, so `rim: 40% * cas_k` kept 40% of light on the edge with the Cassette off; now it is worked out.)
@@ -48,7 +78,28 @@ part BarGlass {
             dispersion: 0%
             shine: 9000, 9000
             opacity: obs * 0.34 * (1 - pk)
-            show: obs > 0.97
+            show: (obs > 0.97) and fw_act < 0.5
+            include "bar_shapes.plm"
+        }
+        body {
+            color: obsidian
+            glass: 100%
+            lens: false
+            rim: 0%
+            refraction: 0%
+            dispersion: 0%
+            shine: 9000, 9000
+            opacity: obs * 0.34 * (1 - pk)
+            show: (obs > 0.97) and fw_act > 0.5
+            include "bar_shapes.plm"
+            include "bar_waves.plm"
+        }
+        body {
+            color: obsidian
+            rim: 0%
+            opacity: obs * (1 - 0.4 * clamp(hy_blur, 0, 1))
+            shadow: 0, 3 + 6 * drop + 3 * pv, 14 + 14 * drop + 8 * pv, (30% + 16% * drop + 8% * pv) * (1 - pk), #000000
+            show: (obs > 0.004) and fw_act < 0.5
             include "bar_shapes.plm"
         }
         body {
@@ -56,8 +107,9 @@ part BarGlass {
             rim: 0%
             opacity: obs * (1 - 0.4 * clamp(hy_blur, 0, 1))
             shadow: 0, 3 + 6 * drop + 3 * pv, 14 + 14 * drop + 8 * pv, (30% + 16% * drop + 8% * pv) * (1 - pk), #000000
-            show: obs > 0.004
+            show: (obs > 0.004) and fw_act > 0.5
             include "bar_shapes.plm"
+            include "bar_waves.plm"
         }
         //  The Cassette's plastic over it (see `cas_k`): a lit lip, a dark outline, a hard shadow.
         body {
@@ -66,8 +118,18 @@ part BarGlass {
             border: 1.7 * u * cas_k, deep
             shadow: 4.5 * u * cas_k, 5.5 * u * cas_k, 0, 55% * cas_k, deep
             opacity: cas_k
-            show: cas_k > 0.004
+            show: (cas_k > 0.004) and fw_act < 0.5
             include "bar_shapes.plm"
+        }
+        body {
+            color: obsidian
+            rim: 40% * cas_k
+            border: 1.7 * u * cas_k, deep
+            shadow: 4.5 * u * cas_k, 5.5 * u * cas_k, 0, 55% * cas_k, deep
+            opacity: cas_k
+            show: (cas_k > 0.004) and fw_act > 0.5
+            include "bar_shapes.plm"
+            include "bar_waves.plm"
         }
         //  The UwU's candy plastic over it: a pastel gradient across the whole screen (pink, lilac, sky, mint), a thick grape outline, a lit lip and a hard pink shadow.
         body {
@@ -76,8 +138,18 @@ part BarGlass {
             border: 3 * u * uwu_k, deep
             shadow: 4 * u * uwu_k, 5 * u * uwu_k, 0, 90% * uwu_k, mix(deep, #ff6ec7, 0.75)
             opacity: uwu_k
-            show: uwu_k > 0.004
+            show: (uwu_k > 0.004) and fw_act < 0.5
             include "bar_shapes.plm"
+        }
+        body {
+            gradient: 0, 0 to screen.width, screen.height, #ffcfe8, #e6d6ff 38%, #cfeaff 68%, #d2fff0
+            rim: 55% * uwu_k
+            border: 3 * u * uwu_k, deep
+            shadow: 4 * u * uwu_k, 5 * u * uwu_k, 0, 90% * uwu_k, mix(deep, #ff6ec7, 0.75)
+            opacity: uwu_k
+            show: (uwu_k > 0.004) and fw_act > 0.5
+            include "bar_shapes.plm"
+            include "bar_waves.plm"
         }
         //  The Cassette's detail on each drawer, only while it is plastic and the drawer is out: an accent-coloured tab at the top left (opposite the grips) (a console's button), a row of straight vertical grip slots in the bottom right
         //  corner (like the vents of a handheld: dark, with a lit edge) that run a few pixels past the drawer's bottom edge as if they wrapped round the base, and a screw in the bottom left.
