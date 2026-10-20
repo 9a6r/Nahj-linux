@@ -156,11 +156,22 @@ def comp(name, doc, param, table, boil, share=0):
     head += "        group {\n            pivot: cx, cy\n" + ("            scale: 1 + 0.08 * a\n" if boil else "")
     return "    //  " + doc + "\n" + head + "\n".join(body) + "\n        }\n    }\n"
 
+FIXED = [7, 32, 33, 34, 35, 36, 39]            # the kinds `PGlyphS` is called with as a literal in files.plm; the others (a menu line's `m.ic`, a pick's `k.ic`) are chosen while it runs
 block = BEGIN + "\n"
 block += comp("PFile", "A file's or a folder's picture in pencil: a folder, a picture, a PDF, a sound, a video, code, an archive or any other file (`ik`, which the logic sets). `s` is its size (1 is 64 px); `hot` (hover) swells it and redraws it about five times a second. The folder takes the accent and the files the ink, so any palette is theirs.", "ik", FILES, True, share=2) + "\n"
 block += comp("PPlace", "A place's picture in pencil for the sidebar (`pk`): a folder, home, the trash, this computer, downloads, documents, pictures, music, videos, a drive. Still, and a little crooked.", "pk", PLACES, False) + "\n"
-block += comp("PGlyphS", "The same pictures, still (no trembling): for the menus, where a copy of the boiling one for every line would be a long scene to load.", "g", GLYPHS, False) + "\n"
-block += comp("PGlyph", "A toolbar or menu picture (`g`): back, forward, up, tiles, lines, hidden files, new folder, close, then the menu's own. `hot` swells it, turns it to the accent and redraws it, like the shell's own.", "g", GLYPHS, True)
+# (drawn so that the random numbers of the pictures after it stay what they were, but not written: every call site has a table of its own, below)
+_ = comp("PGlyphS", "The same pictures, still (no trembling): for the menus, where a copy of the boiling one for every line would be a long scene to load.", "g", GLYPHS, False)
+block += comp("PGlyph", "A toolbar or menu picture (`g`): back, forward, up, tiles, lines, hidden files, new folder, close, then the menu's own. `hot` swells it, turns it to the accent and redraws it, like the shell's own.", "g", {k: GLYPHS[k] for k in range(8)}, True)   # only the eight the toolbar draws (`repeat i in 0..8`): every copy carries all its kinds, so a longer table is a longer scene
+# The still pictures that are always the same one (`PGlyphS7(...)`, a literal kind at the call site) are a component each, so that the call carries one drawing and not all of them.
+# The pictures chosen while it runs carry only the kinds that can come up: a menu line's (`menu_row`, `add` in files.luau) and a pick's (`ic = ...` in the lists of apps and archive types).
+MENU = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36]
+PICK = [8, 22, 28, 30]
+block += "\n" + comp("PGlyphSM", "`PGlyphS` for a menu line's picture, which is chosen while it runs: only the kinds the menus use.", "g", {k: GLYPHS[k] for k in MENU}, False)
+block += "\n" + comp("PGlyphSP", "`PGlyphS` for a pick list's picture (apps, archive types): only the kinds those lists use.", "g", {k: GLYPHS[k] for k in PICK}, False)
+block += "\n" + comp("PFile0", "`PFile` for a folder alone (the sidebar's pinned-folder marker).", "ik", {0: FILES[0]}, True)
+for k in FIXED:
+    block += "\n" + comp(f"PGlyphS{k}", f"`PGlyphS` for kind {k} alone.", "g", {k: GLYPHS[k]}, False)
 block += END + "\n"
 
 path = os.path.join(here, "files.plm")
