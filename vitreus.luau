@@ -6513,6 +6513,10 @@ require("logic/nightmode")(with_dirs)
 
 -- the audio visualiser (the bottom edge rising into the music): see logic/visualizer.luau
 require("logic/visualizer")()
+
+-- how big a notification is (Settings > Notifications): see logic/notif_size.luau
+require("logic/notif_size")()
+
 -- Settings > Keybinds.
 require("logic/keybinds")()
 

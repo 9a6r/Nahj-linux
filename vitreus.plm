@@ -288,6 +288,8 @@ scene Vitreus {
     //  which one it draws; unlike `panel` it stays put while the drawer closes, so it fades out
     //  showing what it was showing.
     fact osd_kind: vol | note | shot = vol
+    fact nt_size = 1                 // how big a notification's drawer is (Settings > Notifications, "Size": 0.7, 0.85 or 1; logic/notif_size.luau)
+    event nt_size_set ->             // its chips: 0 small, 1 medium, 2 large
     fact osd_on = false                                     // the volume / notification drawer is out: set by the logic; it is not a value of `panel`, so it shows beside Settings, the search, the desk...
     //  The volume drawer holds up to two rows, one above the other: the volume and the brightness, each out for two seconds after it changes (the logic's
     //  timers). With both, the drawer is as tall as both, so neither covers the other.
@@ -4163,7 +4165,10 @@ scene Vitreus {
     let dl.ey = mix((dl.top + bar.y + dl.hh) / 2, lp.cy, fm)
     //  The volume's and the notifications' drawer has its own place, whatever else is open: out of the right frame, the volume low and the
     //  notification high (down the left); from the bar, as before (along the top). Its content hangs from `os.ck` and is centred on `os.px`.
-    let os.hd = (8 + osd_h + 16 + 13) * u
+    //  A notification's drawer at its size (`nt_size`), the volume's and a screenshot's always whole: the glass is made smaller here, from its top right corner (the
+    //  top stays 24 under the frame, the right edge in it), and what it holds is scaled about the same corner (pages/osd_drawer.plm), so the margins shrink with it.
+    let nk = if(osd_kind == note, clamp(nt_size, 0.5, 1), 1)
+    let os.hd = (8 + osd_h + 16 + 13) * u * nk
     let os.cy = if(if(osd_kind == vol or osd_kind == shot, 1, 0) + bt == 1, vb - th.b - 24 * u - os.hd / 2, yo + th.t + 24 * u + os.hd / 2)
     //  The same two places in both layouts (the left layout's): the volume low and the notification high, out of the right edge of the screen. Along the top there
     //  is no frame there, so they come out of the edge of the screen itself. Content hangs from `os.ck`, centred on `os.px`.
@@ -4171,7 +4176,7 @@ scene Vitreus {
     let os.px = screen.width - th.r - 176.5 * u
     let os.ck = os.cy - (8 + osd_h / 2) * u
     let do.lf = min(1, do0 * 1.6) + max(0, do0 - 1) * 0.6
-    let do.rt = th.r + 379 * u
+    let do.rt = th.r + (26 + 353 * nk) * u
     let do.gw = max(0.1, do.rt * do.lf)
     let do.gh = (os.hd + max(0, sag)) * do.lf
     let do.gx = screen.width + 26 * u * do.lf - do.gw / 2
@@ -4179,7 +4184,7 @@ scene Vitreus {
     let do.eh = do.gh
     let do.ex = do.gx
     let do.ey = os.cy
-    let do.iw = max(0.1, 352 * u * do.lf)                       // along the top the panel is wholly on screen (the right frame's 8 in from the edge), so its corners are all rounded
+    let do.iw = max(0.1, 352 * u * nk * do.lf)                       // along the top the panel is wholly on screen (the right frame's 8 in from the edge), so its corners are all rounded
     let do.ix = screen.width - th.r - do.iw / 2
     let do.bl = (26 + 20 * do.bell) * u * min(1, do0 * 4)         // how much the drawer melts into what it joins
     let do.stretch = clamp(vel(do) * 0.07, 0, 0.5)
