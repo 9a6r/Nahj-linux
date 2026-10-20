@@ -258,8 +258,8 @@ part Clock {
             }
             //  The audio visualiser (the bottom edge rising into the music): its switch, four sliders (how many columns, how sensitive, how tall, how blended) and its layout (along any of the four sides, or
             //  fanned out of the four corners). Vitreus keeps the settings (framewave.json, logic/visualizer.luau).
-            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 970 * pu; size: 438 * pu, 380 * pu; corner: 14 * pu } }
-            box { at: spx + 219 * pu, sby + 970 * pu; size: 438 * pu, 380 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
+            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 987 * pu; size: 438 * pu, 414 * pu; corner: 14 * pu } }
+            box { at: spx + 219 * pu, sby + 987 * pu; size: 438 * pu, 414 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 798 * pu + 0.5); text "Audio visualiser" { at: floor(spx + 14 * pu + 0.5), floor(sby + 798 * pu + 0.5); anchor: left center; size: 17; weight: 700; color: ink; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 818 * pu + 0.5); text "The bottom of the screen rises into the music" { at: floor(spx + 14 * pu + 0.5), floor(sby + 818 * pu + 0.5); anchor: left center; size: 12.5; color: faint; family: "Space Grotesk" } }
             SettingsSwitch(spx + 424 * pu, sby + 808 * pu, fw_pill, fw_hit.pressed, mint)
@@ -408,6 +408,19 @@ part Clock {
             on press fw_b_hit { emit fw_bl_set(clamp(((pointer.x - tx.pnl) - fws.x0) / fws.w, 0, 1)) }
             on drag fw_b_hit { emit fw_bl_set(clamp(((pointer.x - tx.pnl) - fws.x0) / fws.w, 0, 1)) }
             on scroll fw_b_hit { ck_scroll_to = clamp(ck_scroll_to - wheel * 44, 0, max(0, ck.h - set.h)) }
+            //  Which monitor shows it: all of them, or one (the chips are the system monitor's, `cv_m.*`). logic/visualizer.luau keeps it (framewave.json `mon`).
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 1180 * pu + 0.5); text "Show on" { at: floor(spx + 14 * pu + 0.5), floor(sby + 1180 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; family: "Space Grotesk" } }
+            box { at: spx + 156 * pu, sby + 1180 * pu; size: 50 * pu, 24 * pu; corner: 8 * pu; color: mix(ink, mint, if(fw_mon == 0, 1, 0)); opacity: 8% + 20% * if(fw_mon == 0, 1, 0) + 6% * fw_mn_all.hover }
+            group { scale: rs; pivot: floor(spx + 156 * pu + 0.5), floor(sby + 1180 * pu + 0.5); text "All" { at: floor(spx + 156 * pu + 0.5), floor(sby + 1180 * pu + 0.5); anchor: center; align: center; size: 12.5; weight: 700; width: (46 * pu) / rs; lines: 1; color: mix(ink, mint, if(fw_mon == 0, 1, 0)); family: "Space Grotesk" } }
+            zone box fw_mn_all { at: spx + 156 * pu, sby + 1180 * pu; size: 50 * pu, 24 * pu; corner: 8 * pu; cursor: pointer; label: "Audio visualiser: show on every monitor"; active: (sby + 1180 * pu) - ck.off > sby and (sby + 1180 * pu) - ck.off < sby + set.h * pu }
+            on press fw_mn_all { emit fw_mon_set(0) }
+            repeat k in 0..4 {
+                let fwmx = spx + (210 + k * 54) * pu
+                box { at: fwmx, sby + 1180 * pu; size: 50 * pu, 24 * pu; corner: 8 * pu; color: mix(ink, mint, if(fw_mon == k + 1, 1, 0)); opacity: if(cv_m.$k.on, 8% + 20% * if(fw_mon == k + 1, 1, 0) + 6% * fw_mn.$k.hover, 0%) }
+                group { scale: rs; pivot: floor(fwmx + 0.5), floor(sby + 1180 * pu + 0.5); text cv_m.$k.name { at: floor(fwmx + 0.5), floor(sby + 1180 * pu + 0.5); anchor: center; align: center; size: 12.5; weight: 700; width: (46 * pu) / rs; lines: 1; color: mix(ink, mint, if(fw_mon == k + 1, 1, 0)); show: cv_m.$k.on; family: "Space Grotesk" } }
+                zone box fw_mn.$k { at: fwmx, sby + 1180 * pu; size: 50 * pu, 24 * pu; corner: 8 * pu; cursor: pointer; label: "Audio visualiser: show on this monitor"; active: (cv_m.$k.on) and (sby + 1180 * pu) - ck.off > sby and (sby + 1180 * pu) - ck.off < sby + set.h * pu }
+                on press fw_mn.$k { emit fw_mon_set(k + 1) }
+            }
 
             }
 

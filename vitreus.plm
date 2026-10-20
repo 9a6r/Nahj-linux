@@ -1520,6 +1520,9 @@ scene Vitreus {
     fact fw_hgt = 150                  // how tall at most, in px at scale 1: 40 to 300
     fact fw_lay = 0                    // where it stands: 0 along the bottom, 1 in the four corners, 2 along the top, 3 down the left, 4 down the right
     fact fw_bl = 1                     // 0 apart, 1 liquid: how much each column melts into the next
+    fact fw_mon = 0                    // which monitor shows it (Settings > Widgets, "Show on"): 0 all of them, k + 1 the chip `cv_m.k`
+    fact fw_sw = 0                     // and that monitor's size, which each copy of the scene compares with its own (0: every copy draws it)
+    fact fw_sh = 0
     text fw_cols_text = "24"
     text fw_sens_text = "1.0x"
     text fw_hgt_text = "150"
@@ -1534,6 +1537,7 @@ scene Vitreus {
     event fw_hgt_set ->
     event fw_bl_set ->
     event fw_lay_set ->
+    event fw_mon_set ->                // "Show on": 0 all the monitors, k + 1 the chip `cv_m.k` (logic/visualizer.luau)
     //  The monitor chips' names (the clock's and the system monitor's use them too).
     repeat i in 0..4 {
         fact cv_m.$i.on = false
@@ -4000,7 +4004,7 @@ scene Vitreus {
     let vpn.ab = vpn.pb + vpn.pbh + 12
     let vpn.fh = if(vpn_mode == vpm_wg, 180, if(vpn_mode == vpm_ovpn, 144, 276))
     let wm.h = 946                     // the Pleamar-WM page: to the bottom of its last card
-    let ck.h = 1174                    // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
+    let ck.h = 1208                    // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
     let gl.h = 554                     // the Glass page: to the bottom of its last card
     let lk.h = 806                     // the Lock screen page: its cards, to the bottom of the last
     //  The Notifications page: the apps card has a row for each app (up to 14), and the rules card is there while one is open.
@@ -4703,7 +4707,9 @@ scene Vitreus {
     //  (along the edge) to 90 degrees with the bass at the middle angle. The drawing is flipped about the middle when the bar is at the bottom (`bt`) or the right (`rt`), which the bases allow for. Written by a script.
     let fw.n = clamp(floor(fw_cols + 0.5), 6, 47)
     let fw.m = clamp(floor(fw.n / 4), 2, 11)
-    let fw.nuse = if(fw_lay == 1, 4 * fw.m, fw.n)
+    //  On a monitor other than the one chosen in Settings > Widgets (`fw_sw`, `fw_sh`; 0: all) no column is in use, so that copy neither draws nor carries any.
+    let fw.here = if(fw_sw < 1, 1, if(abs(screen.width - fw_sw) < 2 and abs(screen.height - fw_sh) < 2, 1, 0))
+    let fw.nuse = if(fw_lay == 1, 4 * fw.m, fw.n) * fw.here
     let fw.sm = fw_sens
     let fw.hm = fw_hgt
     let fw.wf = mix(0.8, 1.9, fw_bl)
