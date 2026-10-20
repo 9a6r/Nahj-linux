@@ -673,6 +673,7 @@ fi
 
 # ── start with the desktop ─────────────────────────────────────────────────
 # Each scene runs under bin/vitreus-keep, which starts it again if it stops while the session lasts.
+$dry || mkdir -p "$data/pleamar/vitreus"
 line="vitreus-keep $dest/vitreus.plm \"\$HOME/.local/share/pleamar/vitreus/vitreus.log\""
 # PLEAMAR_SWAPCHAIN=1: pleamar 0.4's own frames let the lock commit its region before its first frame, and Hyprland kills a lock
 # surface for that ("Null buffer attached"): the lock screen died the moment it showed. Take it out once pleamar fixes it.

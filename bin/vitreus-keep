@@ -13,6 +13,8 @@
 set -u
 P="${1:?usage: vitreus-keep SCENE.plm [LOG]}"
 L="${2:-/dev/null}"
+# A fresh install has no log folder yet: without it the redirects below fail and the scene never starts, silently.
+mkdir -p "$(dirname "$L")" 2> /dev/null
 export PATH="$HOME/.local/bin:$PATH"
 name=$(basename "$P" .plm)
 run="${XDG_RUNTIME_DIR:-/tmp}"
