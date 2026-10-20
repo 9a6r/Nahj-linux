@@ -1388,9 +1388,12 @@ on("act", function(k)
     elseif k == 19 then
         toggle_hidden_file()
     elseif k == 50 then
-        -- close this window: Hyprland closes the one that has the pointer (the one just clicked); elsewhere the window has its own cross, and this asks the scene to quit
+        -- close this window: Hyprland closes the one that has the pointer (the one just clicked); elsewhere the window has its own cross, and this asks the scene to quit (by its own name)
         run("hyprctl", { "dispatch", "hl.dsp.window.close()" }, function(_, code)
-            if code ~= 0 then run("pleamar", { "--say", "files", "quit" }, function() end) end
+            if code ~= 0 then
+                -- "files" is only the first window to start: a second one answers to files-<its pid>, so each asks for the name that has its own pid ($PPID is this scene's)
+                run("sh", { "-c", 'p=$PPID; for n in files "files-$p"; do pleamar --say "$n" hello 2>/dev/null | grep -q "pid $p " && exec pleamar --say "$n" quit; done' }, function() end)
+            end
         end)
     elseif k == 41 then
         local p = s.menu_place
