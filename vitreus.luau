@@ -5143,8 +5143,10 @@ do
             local want, cmds = {}, {}
             for id = 0, 3 do
                 local has = framed and names[id] ~= nil and (bar_mon.name == "all" or bar_mon.name == names[id])
+                -- a monitor with only the frame (Settings > Bar, "Frame on the other monitors") gets the frame's room on every side
+                local thin = framed and not has and names[id] ~= nil and fact.bar_others == true
                 for _, e in ipairs(EDGES) do
-                    want[#want + 1] = has and math.max(0, room[e] - wm.gap) or 0
+                    want[#want + 1] = has and math.max(0, room[e] - wm.gap) or (thin and math.max(0, FRAME_ROOM.top - wm.gap) or 0)
                     cmds[#cmds + 1] = "get fr." .. id .. "." .. e
                 end
             end
@@ -5163,6 +5165,7 @@ do
     end
 
     on("fact:bar_seg", function() wm_frame_sync() end)
+    on("fact:bar_others", function() wm_frame_sync() end)
 
     local function wm_send()
         if not wm_names_ok then

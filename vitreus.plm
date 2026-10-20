@@ -3629,7 +3629,7 @@ scene Vitreus {
     //  the launcher out of the top notch, Settings out of the bottom, the desk out of the right.
     fact bar_sw = 0
     fact bar_sh = 0
-    fact bar_others = false                  // the monitors without the bar keep the frame and its notches (logic/bar_monitors.luau)
+    fact bar_others = false                  // the monitors without the bar keep the frame alone, with no notches (logic/bar_monitors.luau)
     let sb = if(bar_sw < 1, 1, if(abs(screen.width - bar_sw) < 2 and abs(screen.height - bar_sh) < 2, 1, 0))
     let lm = mix(1, clamp(bar_lm, 0, 1), sb)
     //  The strip on the right is the left one in a mirror: the glass is drawn flipped about the middle of the screen (`rt` is 1 then), and every block of
@@ -4342,11 +4342,11 @@ scene Vitreus {
     //  The zones are declared here, before the bar and the panels, so theirs still win.
     let nt_w = 52 * cu                                     // the tab's width
     let nt_d = 15 * cu                                     // how far it hangs out of the frame
-    zone box ntz_t { at: mix(ccx, screen.width - ccx, rt), yo + (lf.t + 6 * cu) / 2; size: nt_w + 24 * cu, lf.t + 6 * cu; active: lm > 0.5 }
-    zone box ntz_b { at: mix(ccx, screen.width - ccx, rt), mix(vb - (th.b + 6 * cu) / 2, yo + (th.b + 6 * cu) / 2, bt); size: nt_w + 24 * cu, th.b + 6 * cu; active: fm > 0.5 }
+    zone box ntz_t { at: mix(ccx, screen.width - ccx, rt), yo + (lf.t + 6 * cu) / 2; size: nt_w + 24 * cu, lf.t + 6 * cu; active: sb > 0.5 and lm > 0.5 }
+    zone box ntz_b { at: mix(ccx, screen.width - ccx, rt), mix(vb - (th.b + 6 * cu) / 2, yo + (th.b + 6 * cu) / 2, bt); size: nt_w + 24 * cu, th.b + 6 * cu; active: sb > 0.5 and fm > 0.5 }
     zone box ntn_t { at: mix(ccx, screen.width - ccx, rt), yo + (lf.t + nt_d) / 2; size: nt_w, lf.t + nt_d; cursor: pointer; active: lm > 0.5 and nt_vis_t.$screen > 0.5 }
     zone box ntn_b { at: mix(ccx, screen.width - ccx, rt), mix(vb - (th.b + nt_d) / 2, yo + (th.b + nt_d) / 2, bt); size: nt_w, th.b + nt_d; cursor: pointer; active: fm > 0.5 and nt_vis_b.$screen > 0.5 }
-    zone box ntz_l { at: (th.l + 6 * cu) / 2, mix(vcc, yo + vb - vcc, bt); size: th.l + 6 * cu, nt_w + 24 * cu; active: tm > 0.5 }
+    zone box ntz_l { at: (th.l + 6 * cu) / 2, mix(vcc, yo + vb - vcc, bt); size: th.l + 6 * cu, nt_w + 24 * cu; active: sb > 0.5 and tm > 0.5 }
     zone box ntn_l { at: (th.l + nt_d) / 2, mix(vcc, yo + vb - vcc, bt); size: th.l + nt_d, nt_w; cursor: pointer; active: tm > 0.5 and nt_vis_l.$screen > 0.5 }
     zone box ntp_t { at: mix(dl.ex, screen.width - dl.ex, rt), mix(dl.ey, yo + vb - dl.ey, bt); size: dl.ew + 8, dl.eh + 8; active: fm > 0.5 and panel == launch }
     zone box ntp_b { at: mix(ds.ex, screen.width - ds.ex, rt), mix(ds.ey, yo + vb - ds.ey, bt); size: ds.ew + 8, ds.eh + 8; active: fm > 0.5 and panel == settings }
@@ -4445,7 +4445,7 @@ scene Vitreus {
     on change dz.det < 0.05 while dz.det < 0.05 and desk_open { desk_ry = vcc + doy; impulse dbounce -200; impulse wobble -120; dprip: 0 ~16ms; dprip: 1 ~600ms after 30ms }
     on change dz0 < 0.06 while dz0 < 0.06 and not desk_open and fm > 0.5 { dprip: 0 ~16ms; dprip: 1 ~600ms after 30ms }
     follow desk_sel = desk_tab
-    zone box ntz_r { at: mix(screen.width - (th.r + 6 * cu) / 2, (th.r + 6 * cu) / 2, rt), mix(vcc, yo + vb - vcc, bt); size: th.r + 6 * cu, nt_w + 24 * cu; active: fm > 0.5 and not desk_open }
+    zone box ntz_r { at: mix(screen.width - (th.r + 6 * cu) / 2, (th.r + 6 * cu) / 2, rt), mix(vcc, yo + vb - vcc, bt); size: th.r + 6 * cu, nt_w + 24 * cu; active: sb > 0.5 and fm > 0.5 and not desk_open }
     zone box ntn_r { at: mix(screen.width - (th.r + nt_d) / 2, (th.r + nt_d) / 2, rt), mix(vcc, yo + vb - vcc, bt); size: th.r + nt_d, nt_w; cursor: pointer; active: fm > 0.5 and nt_vis_r.$screen > 0.5 and not desk_open }
     prop nt_vis_r.0 = 0 ~calm
     prop nt_vis_r.1 = 0 ~calm

@@ -24,7 +24,7 @@ part Bar {
             group { scale: rs; pivot: floor(bax + 0.5), floor(sby + 95 * pu + 0.5); text "every monitor" { at: floor(bax + 0.5), floor(sby + 95 * pu + 0.5); anchor: center; align: center; size: 12; width: (70 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
             zone box bar_all_hit { at: bax, sby + 76 * pu; size: 66 * pu, 64 * pu; corner: 12 * pu; cursor: pointer }
             on press bar_all_hit { emit bar_pick_scr(-1) }
-            //  Beside the title, as the Island layout's Reset is: with the bar on one monitor, whether the others keep the frame and its notches
+            //  Beside the title, as the Island layout's Reset is: with the bar on one monitor, whether the others keep the frame alone (the notches stay on the bar's monitor)
             //  (launcher, Settings, desk) or show nothing. It changes at once, without restarting the bar. Faded while the bar is on all of them.
             group {
                 opacity: 100% - 55% * balit
