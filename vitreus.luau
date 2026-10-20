@@ -6506,7 +6506,7 @@ require("logic/keybinds")()
 -- once. How big the hexagons are, and where each one goes, is worked out by the scene from how many there are (see
 -- the end of vitreus.plm).
 ;(function()
-    local RULE = 8                                      -- which version made the file: an older one is made again
+    local RULE = 10                                     -- which version made the file: an older one is made again (the two before only have their colours read again: `recolour`)
     local TW, TH = 120, 139                              -- the hexagon picture, in pixels (a pointy-top hexagon is 0.866 as wide as tall)
     local PAD = 2                                        -- the transparent margin round it (the file is TW + 2 PAD by TH + 2 PAD: see vitreus.plm)
     local HERO = 260                                     -- the square picture the hexagon is cut from
@@ -6534,6 +6534,42 @@ require("logic/keybinds")()
         return h % 360
     end
 
+    -- What a 32-colour histogram says of a wallpaper: its hue, its saturation and its brightness. The hue is the DOMINANT one, not an average of all of them: a snowy
+    -- blue village with orange roofs has two opposite hues, and their average cancels out to an angle that is in neither (it came out pink). Each colour counts by its
+    -- area, its saturation and its brightness (so a big pale-blue sky outweighs a few orange roofs, and a bright neon sign outweighs the dark it hangs in); the hue is the
+    -- middle of the 60-degree stretch of the wheel that holds the most, as the mean of what lies in it.
+    local function colours_of(f, res)
+        local total, sat_sum, val_sum = 0, 0, 0
+        local entries = {}
+        for count, r, g, b in res:gmatch("(%d+):%s*%(%s*([%d%.]+)%s*,%s*([%d%.]+)%s*,%s*([%d%.]+)") do
+            local n = tonumber(count)
+            local h, sa, v = hsv(tonumber(r), tonumber(g), tonumber(b))
+            total = total + n
+            val_sum = val_sum + n * v
+            if v > 0.12 then sat_sum = sat_sum + n * sa end
+            entries[#entries + 1] = { h = h, w = n * sa * math.max(v, 0.1) }
+        end
+        if total <= 0 then return nil end
+        local best, most = 0, -1
+        for c = 0, 350, 10 do
+            local sum = 0
+            for _, e in ipairs(entries) do
+                if math.abs((e.h - c + 180) % 360 - 180) <= 30 then sum = sum + e.w end
+            end
+            if sum > most then best, most = c, sum end
+        end
+        local x, y, wsum = 0, 0, 0
+        for _, e in ipairs(entries) do
+            if math.abs((e.h - best + 180) % 360 - 180) <= 30 then
+                x = x + e.w * math.cos(math.rad(e.h))
+                y = y + e.w * math.sin(math.rad(e.h))
+                wsum = wsum + e.w
+            end
+        end
+        local hue = (wsum > 1e-6 and (x * x + y * y) > 1e-9) and (math.deg(atan2(y, x)) % 360) or seed_hue(f)
+        return { h = hue, s = sat_sum / total, v = val_sum / total }
+    end
+
     local function hex_of(f) return G.dir .. "/" .. name_of(f) .. ".hex.png" end
 
     -- One wallpaper: its square picture and its colours (one ImageMagick pass), then its hexagon: that picture cut to the
@@ -6559,23 +6595,8 @@ require("logic/keybinds")()
                         "-thumbnail", "100x100", "-colors", "32", "-format", "%c", "histogram:info:" },
             function(res, code)
                 if code == 0 and res then
-                    local total, sat_sum, val_sum, x, y, wsum = 0, 0, 0, 0, 0, 0
-                    for count, r, g, b in res:gmatch("(%d+):%s*%(%s*([%d%.]+)%s*,%s*([%d%.]+)%s*,%s*([%d%.]+)") do
-                        local n = tonumber(count)
-                        local h, sa, v = hsv(tonumber(r), tonumber(g), tonumber(b))
-                        total = total + n
-                        val_sum = val_sum + n * v
-                        if v > 0.12 then sat_sum = sat_sum + n * sa end
-                        -- the hue that counts is the vivid one: a dark scene with a neon sign is that sign's colour
-                        local w = n * sa ^ 1.6 * (0.25 + v)
-                        x = x + w * math.cos(math.rad(h))
-                        y = y + w * math.sin(math.rad(h))
-                        wsum = wsum + w
-                    end
-                    if total > 0 then
-                        local hue = (wsum > 1e-6 and (x * x + y * y) > 1e-9) and (math.deg(atan2(y, x)) % 360) or seed_hue(f)
-                        G.data[f] = { h = hue, s = sat_sum / total, v = val_sum / total }
-                    end
+                    local d = colours_of(f, res)
+                    if d then G.data[f] = d end
                 end
                 done()
             end)
@@ -6629,10 +6650,46 @@ require("logic/keybinds")()
         model.wp_picker = rows
     end
 
+    -- Only a wallpaper's colours, again (its hexagon is already made): after the way the hue is worked out changed (the file's rule before this one), two at a time in the
+    -- background, and the tray is laid out once more when they are done.
+    local function recolour(f, done)
+        wpv.src(f, function(src)
+            if not src then done() return end
+            run("magick", { "-limit", "thread", "1", "-define", "jpeg:size=200x200", src .. "[0]", "-thumbnail", "100x100^", "-gravity", "center", "-extent", "100x100",
+                            "-colors", "32", "-format", "%c", "histogram:info:" }, function(res, code)
+                if code == 0 and res then
+                    local d = colours_of(f, res)
+                    if d then G.data[f] = d end
+                end
+                done()
+            end)
+        end)
+    end
+    local function recolour_all()
+        if not G.redo then return end
+        G.redo = false
+        local todo = {}
+        for _, f in ipairs(wp_files) do if G.data[f] and G.have[name_of(f)] then todo[#todo + 1] = f end end
+        local at, busy = 1, 0
+        local function step()
+            while busy < 2 and at <= #todo do
+                local f = todo[at]
+                at = at + 1
+                busy = busy + 1
+                recolour(f, function()
+                    busy = busy - 1
+                    if at > #todo and busy == 0 then save(); build() else step() end
+                end)
+            end
+        end
+        step()
+    end
+
     local function finish()
         save()
         G.laid = true
         build()
+        recolour_all()
     end
 
     local function pump()
@@ -6660,10 +6717,11 @@ require("logic/keybinds")()
                 run("find", { G.dir, "-maxdepth", "1", "-name", "*.hex.png", "-printf", "%f\n" }, function(out)
                     for line in (out or ""):gmatch("[^\n]+") do G.have[line:gsub("%.hex%.png$", "")] = true end
                     local ok, saved = pcall(sys.ask, "files.read", "wallpaper-picker.json", "json")
-                    if ok and type(saved) == "table" and saved.rule == RULE then
+                    if ok and type(saved) == "table" and (type(saved.rule) == "number" and saved.rule >= RULE - 2 and saved.rule <= RULE) then
                         for f, e in pairs(saved) do
                             if type(e) == "table" and e.h then G.data[f] = e end
                         end
+                        G.redo = saved.rule ~= RULE
                     end
                     local missing = 0
                     for _, f in ipairs(wp_files) do
@@ -6676,6 +6734,7 @@ require("logic/keybinds")()
                     if missing == 0 then
                         G.laid = true
                         build()
+                        recolour_all()
                     else
                         G.total = missing
                         text.wp_picker_status = string.format("Reading your wallpapers…  0 of %d", missing)

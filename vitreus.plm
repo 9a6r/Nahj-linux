@@ -5601,8 +5601,9 @@ scene Vitreus {
         opacity: wp_picker_show * wp_picker_veil
         //  No sheet over the screen, on either page (the cards change the wallpaper live under them, and it has to be seen): only a soft shade rises from the foot, for the
         //  words, the same on both.
-        repeat k in 0..8 {
-            box { from: 0, yo + vh - 420 + k * 52.5; size: screen.width, 53; color: #05070d; opacity: (k + 1) * 9% }
+        //  (Each box runs to the foot and lies over the one before, so the dark rises in even steps of 3%; boxes side by side showed a line at each edge.)
+        repeat k in 0..24 {
+            box { from: 0, yo + vh - 420 + k * 17.5; size: screen.width, 420 - k * 17.5; color: #05070d; opacity: 0.03 / (1 - 0.03 * k) }
         }
         //  Where the pointer is on the hovered tile, for its tilt: a grid of invisible zones laid over it, 7 across and 8 down, each of which
         //  notes the pointer as it comes in. The tile's shader cannot be told (a group's shader is not given the pointer), and reading `cursor`
@@ -5693,7 +5694,7 @@ scene Vitreus {
         let wc.step = wc.sw + wc.gap
         let wc.yb = yo + vh - 206                                    // the bottom of the focused card
         let wc.yc = wc.yb - wc.H / 2
-        let wc.ext = 74                                              // the panel under the focused card's picture
+        let wc.ext = 0                                               // (the focused card used to have a panel hanging under its picture; its words are now over the picture's foot, and this is 0)
         //  The slices are centred on the focused card as a whole, its panel too: `wc.ext / 2` lower than the picture's middle, which is where they come from (the focus moves up
         //  to its own middle as a card opens out).
         let wc.ar = wp_ar
@@ -5799,14 +5800,11 @@ scene Vitreus {
                     clip path { at: wb.l, wb.t; move wb.k + wb.r, 0; line wb.w - wb.r, 0; curve wb.w + wb.r * wb.nx, wb.r * wb.ny via wb.w, 0; curve wb.brx - wb.r * wb.nx, wb.H - wb.r * wb.ny via (wb.w + wb.brx) / 2 + 2 * wb.m, wb.H / 2; curve wb.brx - wb.r, wb.H via wb.brx, wb.H; line -wb.ske + wb.r, wb.H; curve -wb.ske - wb.r * wb.nx, wb.H - wb.r * wb.ny via -wb.ske, wb.H; curve wb.k + wb.r * wb.nx, wb.r * wb.ny via (wb.k - wb.ske) / 2 + 2 * wb.m, wb.H / 2; curve wb.k + wb.r, 0 via wb.k, 0; close }
                     image wp_big.$b.img { at: wb.l + wb.w / 2 - max(wb.w, wb.h * 1.7778) / 2, wb.t + wb.h / 2 - max(wb.h, wb.w * 0.5625) / 2; size: max(wb.w, wb.h * 1.7778), max(wb.h, wb.w * 0.5625); opacity: wb.a * clamp(wb.e * 4, 0, 1) }
                     box { at: wb.l + wb.w / 2, wb.t + wb.h / 2; size: wb.w, wb.h; color: #05070d; opacity: 42% * (1 - wb.e) * wb.a }
-                }
-                //  The panel: the shell's own glass (a body, frosted and blurred over what is behind it) in the card's shape from the foot of the picture down: flush
-                //  with it along the top, rounded at the bottom.
-                body {
-                    color: #05070d
-                    opacity: 58% * clamp(wb.e * 2 - 0.6, 0, 1) * wb.a
-                    rim: 14%
-                    path { at: wb.l, wb.t; move wb.k - (wb.k + wb.ske) * wb.h / wb.H, wb.h; line wb.w - (wb.k + wb.ske) * wb.h / wb.H, wb.h; curve wb.brx - wb.r * wb.nx, wb.H - wb.r * wb.ny via (wb.w + wb.brx) / 2 + 2 * wb.m, wb.H / 2; curve wb.brx - wb.r, wb.H via wb.brx, wb.H; line -wb.ske + wb.r, wb.H; curve -wb.ske - wb.r * wb.nx, wb.H - wb.r * wb.ny via -wb.ske, wb.H; curve wb.k - (wb.k + wb.ske) * wb.h / wb.H, wb.h via (wb.k - wb.ske) / 2 + 2 * wb.m, (wb.h + wb.H) / 2; close }
+                    //  The words' ground on the focused card: the foot of the picture, darkened more towards the bottom (the clip gives it the card's shape). Each box runs to the
+                    //  bottom and lies over the one before, so the dark builds up smoothly; bands side by side left a hairline between them.
+                    repeat k in 0..16 {
+                        box { from: wb.l - 30, wb.t + wb.h - 100 + k * 6.25; size: wb.w + 60, 110 - k * 6.25; color: #05070d; opacity: 3.2% * clamp(wb.e * 2 - 1, 0, 1) * wb.a }
+                    }
                 }
                 //  The ring: faint on the slices, the wallpaper's own accent on the one in focus.
                 path { at: wb.l, wb.t; stroke: 1; color: #ffffff; opacity: 22% * (1 - wb.e) * wb.a; move wb.k + wb.r, 0; line wb.w - wb.r, 0; curve wb.w + wb.r * wb.nx, wb.r * wb.ny via wb.w, 0; curve wb.brx - wb.r * wb.nx, wb.H - wb.r * wb.ny via (wb.w + wb.brx) / 2 + 2 * wb.m, wb.H / 2; curve wb.brx - wb.r, wb.H via wb.brx, wb.H; line -wb.ske + wb.r, wb.H; curve -wb.ske - wb.r * wb.nx, wb.H - wb.r * wb.ny via -wb.ske, wb.H; curve wb.k + wb.r * wb.nx, wb.r * wb.ny via (wb.k - wb.ske) / 2 + 2 * wb.m, wb.H / 2; curve wb.k + wb.r, 0 via wb.k, 0; close }
@@ -5815,14 +5813,14 @@ scene Vitreus {
                     show: wp_big.$b.cur and wb.e > 0.6
                     box { at: wb.l + wb.k + 52, wb.t + 26; size: 84, 24; corner: 12; color: #05070d; opacity: 62% * wb.e * wb.a }
                     box { at: wb.l + wb.k + 52, wb.t + 26; size: 84, 24; corner: 12; stroke: 1.5; color: wc.acc; opacity: 90% * wb.e * wb.a }
-                    text "IN USE" { at: floor(wb.l + wb.k + 52 + 0.5), floor(wb.t + 26 + 0.5); anchor: center; align: center; size: 12; weight: 700; color: wc.acc; opacity: wb.e * wb.a; family: "Space Grotesk" }
+                    text "IN USE" { at: floor(wb.l + wb.k + 52 + 0.5), floor(wb.t + 26 + 0.5); anchor: center; align: center; size: 12; weight: 700; color: wc.acc; outline: 1, #0a0a0a; opacity: wb.e * wb.a; family: "Space Grotesk" }
                 }
                 //  Its name in its own accent, and what it is. (Both are the focus's: while the old one shrinks back they fade out with its panel.)
                 group {
                     show: wb.e > 0.5
-                    let wb.px = wb.l + (wb.w + wb.k) / 2 - wb.k * (wb.h + 36) / wb.h
-                    text wp_card_name { at: floor(wb.px + 0.5), floor(wb.t + wb.h + 26 + 0.5); anchor: center; align: center; size: 24; weight: 700; width: wb.w - 2 * wb.k - 40; lines: 1; color: wc.acc; opacity: clamp(wb.e * 2 - 1, 0, 1) * wb.a; family: "Space Grotesk" }
-                    text wp_card_info { at: floor(wb.px + 0.5), floor(wb.t + wb.h + 54 + 0.5); anchor: center; align: center; size: 14; weight: 500; width: wb.w - 2 * wb.k - 40; lines: 1; color: #ffffff; opacity: 80% * clamp(wb.e * 2 - 1, 0, 1) * wb.a; family: "Space Grotesk" }
+                    let wb.px = wb.l + (wb.w + wb.k) / 2 - wb.k * (wb.h - 38) / wb.h
+                    text wp_card_name { at: floor(wb.px + 0.5), floor(wb.t + wb.h - 50 + 0.5); anchor: center; align: center; size: 24; weight: 700; width: wb.w - 2 * wb.k - 40; lines: 1; color: wc.acc; outline: 1.2, #0a0a0a; opacity: clamp(wb.e * 2 - 1, 0, 1) * wb.a; family: "Space Grotesk" }
+                    text wp_card_info { at: floor(wb.px + 0.5), floor(wb.t + wb.h - 22 + 0.5); anchor: center; align: center; size: 14; weight: 500; width: wb.w - 2 * wb.k - 40; lines: 1; color: #ffffff; outline: 1, #0a0a0a; opacity: 90% * clamp(wb.e * 2 - 1, 0, 1) * wb.a; family: "Space Grotesk" }
                 }
             }
         }
