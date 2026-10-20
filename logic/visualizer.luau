@@ -9,7 +9,7 @@
 --   lay   where it stands (`fw_lay`): 0 along the bottom, 1 fanned out of the four corners, 2 along the top, 3 down the left, 4 down the right
 -- The slider events (`fw_cols_set` …) carry where on the track it was pressed, 0 to 1. The facts can be set from outside too (`pleamar --say vitreus "fact fw_sens 2"`) and are kept.
 return function()
-    local cfg = { v = 2, on = true, cols = 47, sens = 1, hgt = 150, bl = 1, lay = 0 }
+    local cfg = { v = 2, on = true, cols = 24, sens = 1, hgt = 150, bl = 1, lay = 0 }
     local function clamp(v, lo, hi) return math.max(lo, math.min(hi, v)) end
     local function norm(k, v)
         v = tonumber(v) or cfg[k]
