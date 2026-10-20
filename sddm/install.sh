@@ -49,6 +49,19 @@ fi
 
 [ -d "$themes" ] || { echo "SDDM's themes are not in $themes: is SDDM installed?" >&2; exit 1; }
 [ -n "$image" ] || { [ -f "$HOME/Downloads/greeter.jpg" ] && image=$HOME/Downloads/greeter.jpg || image=$here/../assets/banner.jpeg; }
+# The installer downloads Space Grotesk as one variable font; build-assets.sh needs python-fonttools to cut the three weights the greeter uses from it (without it they all look the same).
+font=$(fc-match -f '%{file}' "Space Grotesk" 2> /dev/null)
+fdir=$(dirname "$font")
+if [ -f "$font" ] && [ ! -f "$fdir/static/SpaceGrotesk-Bold.ttf" ] && [ ! -f "$fdir/SpaceGrotesk-Bold.ttf" ] && ! python3 -c 'import fontTools' 2> /dev/null; then
+    if command -v pacman > /dev/null 2>&1; then
+        answer=n
+        printf 'The login screen needs python-fonttools to cut its font weights. Install it with sudo pacman? [Y/n] '
+        if [ -r /dev/tty ]; then read -r answer < /dev/tty || answer=n; else echo "(no keyboard to ask on: skipping)"; fi
+        case "$answer" in n|N|no|NO) ;; *) sudo pacman -S --needed --noconfirm python-fonttools || echo "could not install python-fonttools: the login screen will draw every weight the same" >&2 ;; esac
+    else
+        echo "python-fonttools is not installed: the login screen will draw every weight of its font the same" >&2
+    fi
+fi
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 "$here/build-assets.sh" "$tmp/vitreus" "$image"

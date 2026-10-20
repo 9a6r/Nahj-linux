@@ -18,7 +18,14 @@ fdir=$(dirname "$font")
 for w in Regular Medium Bold; do
     if [ -f "$fdir/static/SpaceGrotesk-$w.ttf" ]; then cp "$fdir/static/SpaceGrotesk-$w.ttf" "$out/fonts/"
     elif [ -f "$fdir/SpaceGrotesk-$w.ttf" ]; then cp "$fdir/SpaceGrotesk-$w.ttf" "$out/fonts/"
-    elif [ -f "$fdir/SpaceGrotesk[wght].ttf" ]; then cp "$fdir/SpaceGrotesk[wght].ttf" "$out/fonts/SpaceGrotesk-$w.ttf"   # the one file the installer downloads: every weight is in it
+    elif [ -f "$font" ]; then   # one file for every weight (SpaceGrotesk[wght].ttf from the installer, SpaceGrotesk.ttf from Google Fonts' zip)
+        # the one file the installer downloads holds every weight, but a greeter loading it three times would draw them all at its default weight: cut one static weight per file
+        case $w in Regular) wt=400 ;; Medium) wt=500 ;; *) wt=700 ;; esac
+        if python3 -m fontTools.varLib.instancer "$font" "wght=$wt" --update-name-table -o "$out/fonts/SpaceGrotesk-$w.ttf" > /dev/null 2>&1; then :
+        else
+            echo "Space Grotesk $w: cutting it from the variable font needs python-fonttools (pacman -S python-fonttools): the greeter will draw every weight the same" >&2
+            cp "$font" "$out/fonts/SpaceGrotesk-$w.ttf"
+        fi
     else echo "Space Grotesk $w was not found: the greeter will use another font for it" >&2; fi
 done
 # your face, if you have one (the greeter cannot read your home folder)

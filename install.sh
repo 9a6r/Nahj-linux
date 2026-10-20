@@ -201,7 +201,7 @@ if [ "$action" = uninstall ]; then
         say "an older install commented out «wm: swaybg» in $autostart without a mark: uncomment it if you want it back"
     fi
     if [ -f "$conf/pleamar/session.conf" ] && grep -q 'Vitreus Files floats' "$conf/pleamar/session.conf"; then
-        run sed -i '/^# Vitreus Files floats rather than tiling/,/^window app=vitreus\.files float$/d' "$conf/pleamar/session.conf"
+        run sed -i -e '/^# Vitreus Files floats rather than tiling/d' -e '/^window app=vitreus\.files float$/d' "$conf/pleamar/session.conf"
         say "pleamar-wm no longer floats Files by a rule of ours"
     fi
     for l in "$conf/pleamar/keys.conf" "$conf/pleamar/wm" "$HOME/.local/bin/hyprctl"; do

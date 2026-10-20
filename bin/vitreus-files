@@ -13,6 +13,7 @@ if [ "${1:-}" = --close ]; then
     for n in files "files-$PPID"; do
         pleamar --say "$n" hello 2> /dev/null | grep -q "pid $PPID " && exec pleamar --say "$n" quit
     done
+    echo "vitreus-files --close: no Files scene answers with pid $PPID" >&2
     exit 1
 fi
 folder=${1:-$HOME}
