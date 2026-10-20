@@ -1,7 +1,10 @@
--- The Bar page of the settings: which monitors the bar shows on. pleamar reads that (`screens:` on the scene's
--- surface) only when it starts, so choosing rewrites that line of vitreus.plm and starts the bar again, from a
--- command left running on its own (`setsid`) that asks this one to quit and then opens the scene afresh. What was
--- chosen is kept in bar.json; a chosen monitor that is not plugged in puts the bar on all of them until it is back.
+-- The Bar page of the settings: which monitors the bar shows on. The scene is always one copy per monitor (`screens: each`:
+-- what each copy holds of its own is named per copy, `name.$screen`, which only a copy per monitor has), and with the bar on
+-- one monitor the other copies are closed: the scene knows the chosen monitor by its size (`bar_sw`, `bar_sh`, 0 for all of
+-- them), so choosing takes effect at once. A vitreus.plm from before, whose `screens:` names one monitor, is moved over
+-- once: that line is rewritten and the bar started again, from a command left running on its own (`setsid`) that asks
+-- this one to quit and then opens the scene afresh. What was chosen is kept in bar.json; a chosen monitor that is not
+-- plugged in puts the bar on all of them until it is back.
 return function(with_dirs)
     local B = { pref = nil, file = nil, mons = {}, busy = false, awake = false }
     local RESTART = [[
@@ -29,6 +32,15 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
         if pref ~= "all" and not connected(pref) then return "all" end
         return pref
     end
+    -- What `screens:` has to say for the bar to be on `to`: always every monitor (a file from before says one name, and is moved over).
+    local function file_for(to)
+        return "all"
+    end
+    -- Where the bar is now: where the scene was started, or, the scene being on every monitor, the choice.
+    local function bar_on()
+        if B.file ~= "all" then return connected(B.file) and B.file or "all" end
+        return target()
+    end
 
     -- Tell the window gaps where the bar is (it is where the scene was started, not where it is about to go) and what is plugged in.
     local told = nil
@@ -36,7 +48,13 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
         if B.file == nil or #B.mons == 0 then return end
         local names = {}
         for _, m in ipairs(B.mons) do names[#names + 1] = m.name end
-        local on = (B.file ~= "all" and connected(B.file)) and B.file or "all"
+        local on = bar_on()
+        -- the scene closes the copies that are not the chosen monitor's: it is told that monitor's size
+        local m = B.file == "all" and on ~= "all" and B.mons[connected(on)] or nil
+        local sw, sh = m and m.w or 0, m and m.h or 0
+        if fact.bar_sw ~= sw then fact.bar_sw = sw end
+        if fact.bar_sh ~= sh then fact.bar_sh = sh end
+        if B.file == "all" then bar_mon.name = on end
         local sig = on .. "|" .. table.concat(names, ",")
         if sig == told then return end
         told = sig
@@ -72,7 +90,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
         show()
         with_dirs(function(d)
             local plm = d.conf .. "/vitreus.plm"
-            local value = to == "all" and "each max 2" or ('"' .. to .. '"')
+            local value = file_for(to) == "all" and "each max 2" or ('"' .. to .. '"')
             run("sed", { "-i", "-E", "/^    surface \\{/s/screens: [^;]*;/screens: " .. value .. ";/", plm }, function(_, code)
                 if code ~= 0 then
                     B.busy = false
@@ -80,7 +98,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                     text.bar_msg = "Couldn't change where the bar shows."
                     return
                 end
-                B.file = to
+                B.file = file_for(to)
                 bar_mon.name = to
                 run("setsid", { "-f", "sh", "-c", RESTART, "sh", plm, d.data .. "/vitreus.log" }, function() end)
             end)
@@ -93,7 +111,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
         if B.busy or B.file == nil or #B.mons == 0 then return end
         if not B.awake then return end
         local to = target()
-        if to ~= B.file then restart(to) end
+        if file_for(to) ~= B.file then restart(to) else publish() end
     end
 
     local function read_mons()
@@ -104,13 +122,17 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
             if ok and type(list) == "table" then
                 for _, j in ipairs(list) do
                     local t = j.transform or 0
-                    mons[#mons + 1] = { name = j.name, x = j.x or 0, y = j.y or 0, tall = t == 1 or t == 3 or t == 5 or t == 7 }
+                    local tall = t == 1 or t == 3 or t == 5 or t == 7
+                    local sc = (j.scale and j.scale > 0) and j.scale or 1
+                    local w, h = math.floor((j.width or 0) / sc + 0.5), math.floor((j.height or 0) / sc + 0.5)
+                    if tall then w, h = h, w end
+                    mons[#mons + 1] = { name = j.name, x = j.x or 0, y = j.y or 0, tall = tall, w = w, h = h }
                 end
             else
                 -- pleamar-wm's `hyprctl monitors` is text, even with -j: "Monitor <name> (ID 1):", "2560x1440@164.83 at 1440x733" (its sizes already turned by the rotation).
                 for name, body in (out .. "\n\n"):gmatch("Monitor (%S+) %(ID %d+%):\n(.-)\n\n") do
                     local w, h, x, y = body:match("(%d+)x(%d+)@[%d%.]+ at (%-?%d+)x(%-?%d+)")
-                    if w then mons[#mons + 1] = { name = name, x = tonumber(x), y = tonumber(y), tall = tonumber(h) > tonumber(w) } end
+                    if w then mons[#mons + 1] = { name = name, x = tonumber(x), y = tonumber(y), tall = tonumber(h) > tonumber(w), w = tonumber(w), h = tonumber(h) } end
                 end
             end
             if #mons == 0 then return end
@@ -139,7 +161,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
         pcall(sys.call, "files.write", "bar.json", { screens = pref })
         show()
         local to = target()
-        if B.file ~= nil and to ~= B.file then restart(to) end
+        if B.file ~= nil and file_for(to) ~= B.file then restart(to) else publish() end
     end)
 
     local ok, saved = pcall(sys.ask, "files.read", "bar.json", "json")

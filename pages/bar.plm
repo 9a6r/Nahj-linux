@@ -41,7 +41,7 @@ part Bar {
                     on press bar_m_hit.$i { emit bar_pick_scr(i) }
                 }
             }
-            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 121 * pu + 0.5); text "Changing this restarts the bar for a moment." { at: floor(spx + 14 * pu + 0.5), floor(sby + 121 * pu + 0.5); anchor: left center; size: 13.5; width: (410 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 121 * pu + 0.5); text "It moves at once." { at: floor(spx + 14 * pu + 0.5), floor(sby + 121 * pu + 0.5); anchor: left center; size: 13.5; width: (410 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 136 * pu + 0.5); text bar_msg { at: floor(spx + 14 * pu + 0.5), floor(sby + 136 * pu + 0.5); anchor: left center; size: 13.5; width: (410 * pu) / rs; lines: 1; color: mint; family: "Space Grotesk" } }
 
             //  ── Where the bar is: along the top (the default), or down the left edge with a frame round the screen ──

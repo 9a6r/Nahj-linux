@@ -64,7 +64,12 @@ scene Vitreus {
     let wcol.ink = rgb(wcol_ink_r, wcol_ink_g, wcol_ink_b)
     let wcol.mint = rgb(wcol_mint_r, wcol_mint_g, wcol_mint_b)
     let wcol.alert = rgb(wcol_alert_r, wcol_alert_g, wcol_alert_b)
-    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 68 while bar_anchor == top and not bar_frame; screens: each max 2; keyboard: exclusive while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or dash_open }
+    //  One copy per monitor always (`screens: each`): what each copy holds of its own (the notches, the bar's hovers, the dock's place) is named per
+    //  copy (`name.$screen`), which only a copy per monitor has. With the bar on one monitor, the other copies are closed (`open:`, see `sb`).
+    //  The keyboard is `on_demand`, not `exclusive`: it is asked for every open copy at once (the `while` is not per copy), and Hyprland gave it, and the
+    //  pointer with it, to a copy where nothing was open: the cursor seemed stuck until the panel closed. A field that takes the focus (the launcher's
+    //  search, the desk's inputs) still has it lent exclusively, to the copy it is on only.
+    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 68 while bar_anchor == top and not bar_frame; screens: each max 2; open: sb > 0.5; keyboard: on_demand while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or dash_open }
     permissions { services: "files", "files.write", "auth", "clock", "clock.seconds", "thumbnails", "thumbnails.*", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
                   run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "vitreus-themes", "claude", "ollama", "codex", "pacman", "paru", "yay", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "date", "udevadm" }
 
@@ -1143,7 +1148,8 @@ scene Vitreus {
     follow ws.spa = if(ws.special and ws.spk == 0, 1, 0)
     follow ws.spm = if(ws.special and ws.spk == 1, 1, 0)
     follow ws.spp = if(ws.special and ws.spk == 2, 1, 0)
-    prop wspl = 0 ~pop                                  // the plus's hover, on the spring that pops past
+    prop wspl.0 = 0 ~pop                                  // the plus's hover, on the spring that pops past
+    prop wspl.1 = 0 ~pop
     //  The mark of the workspace in view is one piece that travels: its head runs ahead to the new place and its tail follows, so it
     //  stretches across what lies between and gathers again.
     prop pl.head = 1 ~150ms
@@ -1288,7 +1294,8 @@ scene Vitreus {
     //  The gauge is not there at rest. It appears (grows a little and fades in) while the pointer is on the bar (any of
     //  its zones: a zone is only hovered while it is the topmost one under the pointer, so it is the most of them all),
     //  and stays while the charge is under 20 %, whatever the pointer does.
-    prop batt_open = 0 ~calm
+    prop batt_open.0 = 0 ~calm
+    prop batt_open.1 = 0 ~calm
     //  While the charger is filling the battery, a soft glint crosses the bar every 5 seconds (and once as soon as it
     //  is plugged in): `charge_sweep` goes from 0 to 1 over 0.9 s and then rests at 1. It is a timer that wakes the
     //  scene for that second and lets it sleep for the other four. A battery that says "charging" at 98 % or more is
@@ -1296,19 +1303,26 @@ scene Vitreus {
     prop charge_sweep = 1 ~calm
     every 5s while chg_now and bat_pct < 98 { charge_sweep: 0 ~0ms; charge_sweep: 1 ~600ms after 40ms }
     on change chg_now while chg_now and bat_pct < 98 { charge_sweep: 0 ~0ms; charge_sweep: 1 ~600ms after 40ms }
-    repeat i in 1..6 { prop wsh.$i = 0 ~quick }         // each workspace dot's hover, brought out of its `repeat`
-    prop ovp = 0 ~pop                                   // the overview button's hover, on the same spring: how much it swells
-    repeat i in 1..6 { prop wsp.$i = 0 ~pop }           // the same, on a spring that pops a little past: how much a hovered mark swells
+    repeat i in 1..6 { prop wsh.$i.0 = 0 ~quick }         // each workspace dot's hover, brought out of its `repeat`
+    repeat i in 1..6 { prop wsh.$i.1 = 0 ~quick }
+    prop ovp.0 = 0 ~pop                                   // the overview button's hover, on the same spring: how much it swells
+    prop ovp.1 = 0 ~pop
+    repeat i in 1..6 { prop wsp.$i.0 = 0 ~pop }           // the same, on a spring that pops a little past: how much a hovered mark swells
+    repeat i in 1..6 { prop wsp.$i.1 = 0 ~pop }
     follow batt_fill = clamp(bat_pct / 100, 0, 1)
     follow batt_on = if(bat_here, 1, 0)
     follow batt_low = if(bat_pct < 20 and not chg_now, 1, 0)
     prop rcn = 0 ~calm                // the recording dot's slot on the bar, 1 while a recording runs
     spring cdk_sp = 380, 30
     prop cdk_ga = 0 ~calm             // how far out the corner dock is (0 while it holds nothing)
-    prop cdk_cx = 0 ~cdk_sp           // where the middle of its icons is, in the glass's own drawing (see `cdk.*`)
-    prop cdk_cy = 0 ~cdk_sp
-    prop cdk_ax = 0 ~calm             // which way it reaches into the frame: -1 left, 1 right, 0 free (while it is pulled)
-    prop cdk_ay = 0 ~calm
+    prop cdk_cx.0 = 0 ~cdk_sp           // where the middle of its icons is, in the glass's own drawing (see `cdk.*`)
+    prop cdk_cx.1 = 0 ~cdk_sp
+    prop cdk_cy.0 = 0 ~cdk_sp
+    prop cdk_cy.1 = 0 ~cdk_sp
+    prop cdk_ax.0 = 0 ~calm             // which way it reaches into the frame: -1 left, 1 right, 0 free (while it is pulled)
+    prop cdk_ax.1 = 0 ~calm
+    prop cdk_ay.0 = 0 ~calm
+    prop cdk_ay.1 = 0 ~calm
     prop trn = 0 ~calm                // how many tray icons the bar holds, smoothly: the bar widens with it
     prop disp_auto_pill = 0 ~pop
     prop snd_pill = 0 ~pop
@@ -3606,6 +3620,11 @@ scene Vitreus {
     let cx = screen.width / 2
     //  The bar down the left: a strip `lf.w` wide on the left and a frame `lf.t` thick round the other three edges, in the same glass. `lm` is how
     //  far over it is (the panels follow: `pcx` is where they are centred, with their left edge `lf.w` and a little in from the strip).
+    //  Which copy is the bar's: the logic says how big the chosen monitor is (`bar_sw`, `bar_sh`; 0 while the bar is on every one, logic/bar_monitors.luau)
+    //  and each copy compares its own. The others are closed.
+    fact bar_sw = 0
+    fact bar_sh = 0
+    let sb = if(bar_sw < 1, 1, if(abs(screen.width - bar_sw) < 2 and abs(screen.height - bar_sh) < 2, 1, 0))
     let lm = clamp(bar_lm, 0, 1)
     //  The strip on the right is the left one in a mirror: the glass is drawn flipped about the middle of the screen (`rt` is 1 then), and every block of
     //  content that belongs to it (the strip's pieces, the panels that come out of it or out of a frame's notch) is drawn where its mirror image falls, upright.
@@ -3836,7 +3855,7 @@ scene Vitreus {
     let ob.x = mix(at.ws - vw.ws / 2 + 10 * u, lf.x, lm)
     let ob.y = mix(bar.y, yo + lf.t + 24 * cu, lm)
     let ob.s = 18 * ws.U
-    let ob.d = ob.s * (1 + 0.2 * ovp)       // as it is drawn
+    let ob.d = ob.s * (1 + 0.2 * pick(screen.index, ovp.0, ovp.1))       // as it is drawn
     let ws.o = mix(ob.x, ob.y, lm) + ob.s / 2 + 6.5 * ws.U
     let ws.a1 = ws.o + ws.c1
     let ws.a2 = ws.o + ws.c2
@@ -4319,28 +4338,33 @@ scene Vitreus {
     let nt_d = 15 * cu                                     // how far it hangs out of the frame
     zone box ntz_t { at: mix(ccx, screen.width - ccx, rt), yo + (lf.t + 6 * cu) / 2; size: nt_w + 24 * cu, lf.t + 6 * cu; active: lm > 0.5 }
     zone box ntz_b { at: mix(ccx, screen.width - ccx, rt), mix(vb - (th.b + 6 * cu) / 2, yo + (th.b + 6 * cu) / 2, bt); size: nt_w + 24 * cu, th.b + 6 * cu; active: fm > 0.5 }
-    zone box ntn_t { at: mix(ccx, screen.width - ccx, rt), yo + (lf.t + nt_d) / 2; size: nt_w, lf.t + nt_d; cursor: pointer; active: lm > 0.5 and nt_vis_t > 0.5 }
-    zone box ntn_b { at: mix(ccx, screen.width - ccx, rt), mix(vb - (th.b + nt_d) / 2, yo + (th.b + nt_d) / 2, bt); size: nt_w, th.b + nt_d; cursor: pointer; active: fm > 0.5 and nt_vis_b > 0.5 }
+    zone box ntn_t { at: mix(ccx, screen.width - ccx, rt), yo + (lf.t + nt_d) / 2; size: nt_w, lf.t + nt_d; cursor: pointer; active: lm > 0.5 and nt_vis_t.$screen > 0.5 }
+    zone box ntn_b { at: mix(ccx, screen.width - ccx, rt), mix(vb - (th.b + nt_d) / 2, yo + (th.b + nt_d) / 2, bt); size: nt_w, th.b + nt_d; cursor: pointer; active: fm > 0.5 and nt_vis_b.$screen > 0.5 }
     zone box ntz_l { at: (th.l + 6 * cu) / 2, mix(vcc, yo + vb - vcc, bt); size: th.l + 6 * cu, nt_w + 24 * cu; active: tm > 0.5 }
-    zone box ntn_l { at: (th.l + nt_d) / 2, mix(vcc, yo + vb - vcc, bt); size: th.l + nt_d, nt_w; cursor: pointer; active: tm > 0.5 and nt_vis_l > 0.5 }
+    zone box ntn_l { at: (th.l + nt_d) / 2, mix(vcc, yo + vb - vcc, bt); size: th.l + nt_d, nt_w; cursor: pointer; active: tm > 0.5 and nt_vis_l.$screen > 0.5 }
     zone box ntp_t { at: mix(dl.ex, screen.width - dl.ex, rt), mix(dl.ey, yo + vb - dl.ey, bt); size: dl.ew + 8, dl.eh + 8; active: fm > 0.5 and panel == launch }
     zone box ntp_b { at: mix(ds.ex, screen.width - ds.ex, rt), mix(ds.ey, yo + vb - ds.ey, bt); size: ds.ew + 8, ds.eh + 8; active: fm > 0.5 and panel == settings }
-    prop nt_vis_t = 0 ~calm                                // how far the tab is out
-    prop nt_vis_b = 0 ~calm
-    prop nt_hold_l = 0 ~280ms
-    prop nt_hold_t = 0 ~280ms                              // on the edge, the tab or the panel: until the tab goes back and the panel closes
-    prop nt_hold_b = 0 ~280ms
-    follow nt_hold_t = if(max(ntz_t.hover, max(ntn_t.hover, ntp_t.hover)) > 0.5, 1, 0)
-    follow nt_hold_l = if(max(ntz_l.hover, max(ntn_l.hover, if(bt > 0.5, ntp_b.hover, ntp_t.hover))) > 0.5, 1, 0)
-    follow nt_vis_l = if(nt_hold_l > 0.3, 1, 0)
-    follow nt_hold_b = if(max(ntz_b.hover, max(ntn_b.hover, if(bt > 0.5, ntp_t.hover, ntp_b.hover))) > 0.5, 1, 0)
-    follow nt_vis_t = if(nt_hold_t > 0.3, 1, 0)
-    follow nt_vis_b = if(nt_hold_b > 0.3, 1, 0)
+    prop nt_vis_t.0 = 0 ~calm                                // how far the tab is out
+    prop nt_vis_t.1 = 0 ~calm
+    prop nt_vis_b.0 = 0 ~calm
+    prop nt_vis_b.1 = 0 ~calm
+    prop nt_hold_l.0 = 0 ~280ms
+    prop nt_hold_l.1 = 0 ~280ms
+    prop nt_hold_t.0 = 0 ~280ms                              // on the edge, the tab or the panel: until the tab goes back and the panel closes
+    prop nt_hold_t.1 = 0 ~280ms
+    prop nt_hold_b.0 = 0 ~280ms
+    prop nt_hold_b.1 = 0 ~280ms
+    follow nt_hold_t.$screen = if(max(ntz_t.hover, max(ntn_t.hover, ntp_t.hover)) > 0.5, 1, 0)
+    follow nt_hold_l.$screen = if(max(ntz_l.hover, max(ntn_l.hover, if(bt > 0.5, ntp_b.hover, ntp_t.hover))) > 0.5, 1, 0)
+    follow nt_vis_l.$screen = if(nt_hold_l.$screen > 0.3, 1, 0)
+    follow nt_hold_b.$screen = if(max(ntz_b.hover, max(ntn_b.hover, if(bt > 0.5, ntp_t.hover, ntp_b.hover))) > 0.5, 1, 0)
+    follow nt_vis_t.$screen = if(nt_hold_t.$screen > 0.3, 1, 0)
+    follow nt_vis_b.$screen = if(nt_hold_b.$screen > 0.3, 1, 0)
     //  The corner dock: the pinned apps in one row, in one of the two corners of the edge opposite the bar (the bottom for the Island and the top strip, the
     //  right edge for the left strip; the right and the bottom are the same drawing mirrored, like everything else). Along the bottom the corners are the left
     //  and the right; down the right edge they are the top and the bottom, and the row still lies along the screen's horizontal edge. It is a pill of the frame's glass
     //  that melts into the frame: `cdk.r` is how far it reaches into it (or off the screen, with no frame), so the two are one piece. Everything here is in the glass's
-    //  own (unmirrored) drawing; the icons are drawn where the mirror image falls. `cdk_cx`, `cdk_cy` is where its middle is: carried to the pointer while it is
+    //  own (unmirrored) drawing; the icons are drawn where the mirror image falls. `cdk_cx.$screen`, `cdk_cy.$screen` is where its middle is: carried to the pointer while it is
     //  pulled, to its corner otherwise.
     let cdk.s = 24 * u
     let cdk.p = cdk.s + 6 * u
@@ -4355,18 +4379,18 @@ scene Vitreus {
     let cdk.sb = if(lm > 0.5, cdk_corner, 1)                       // against the bottom (1) or the top (0)
     let cdk.restx = mix(cdk.xs + cdk.L / 2, cdk.xe - cdk.L / 2, cdk.sr)
     let cdk.resty = mix(cdk.yt + cdk.t / 2, cdk.ye - cdk.t / 2, cdk.sb)
-    let cdk.rcx = mix(cdk_cx, screen.width - cdk_cx, rt)           // where its middle is on the screen
-    let cdk.rcy = mix(cdk_cy, yo + vb - cdk_cy, bt)
+    let cdk.rcx = mix(pick(screen.index, cdk_cx.0, cdk_cx.1), screen.width - pick(screen.index, cdk_cx.0, cdk_cx.1), rt)           // where its middle is on the screen
+    let cdk.rcy = mix(pick(screen.index, cdk_cy.0, cdk_cy.1), yo + vb - pick(screen.index, cdk_cy.0, cdk_cy.1), bt)
     //  The corner nearer the pill's middle (not the pointer: it may have taken hold of the pill by one end), when it is let go (in the glass's drawing: down the right edge the two are the top and the bottom, otherwise the left and the right).
     let cdk.pick = if(lm > 0.5, if(mix(cdk_py, yo + vb - cdk_py, bt) > vc, 1, 0), if(mix(cdk_px, screen.width - cdk_px, rt) > screen.width / 2, 1, 0))
-    follow cdk_cx = if(cdk_drag > 0.5, mix(cdk_px, screen.width - cdk_px, rt), cdk.restx)
-    follow cdk_cy = if(cdk_drag > 0.5, mix(cdk_py, yo + vb - cdk_py, bt), cdk.resty)
-    follow cdk_ax = if(cdk_drag > 0.5, 0, cdk.sr * 2 - 1)
-    follow cdk_ay = if(cdk_drag > 0.5, 0, cdk.sb * 2 - 1)
-    let cdk.bx = cdk_cx + cdk_ax * cdk.r / 2
-    let cdk.by = cdk_cy + cdk_ay * cdk.r / 2
-    let cdk.bw = cdk.L * cdk_ga + cdk.r * abs(cdk_ax)
-    let cdk.bh = cdk.t + cdk.r * abs(cdk_ay)
+    follow cdk_cx.$screen = if(cdk_drag > 0.5, mix(cdk_px, screen.width - cdk_px, rt), cdk.restx)
+    follow cdk_cy.$screen = if(cdk_drag > 0.5, mix(cdk_py, yo + vb - cdk_py, bt), cdk.resty)
+    follow cdk_ax.$screen = if(cdk_drag > 0.5, 0, cdk.sr * 2 - 1)
+    follow cdk_ay.$screen = if(cdk_drag > 0.5, 0, cdk.sb * 2 - 1)
+    let cdk.bx = pick(screen.index, cdk_cx.0, cdk_cx.1) + pick(screen.index, cdk_ax.0, cdk_ax.1) * cdk.r / 2
+    let cdk.by = pick(screen.index, cdk_cy.0, cdk_cy.1) + pick(screen.index, cdk_ay.0, cdk_ay.1) * cdk.r / 2
+    let cdk.bw = cdk.L * cdk_ga + cdk.r * abs(pick(screen.index, cdk_ax.0, cdk_ax.1))
+    let cdk.bh = cdk.t + cdk.r * abs(pick(screen.index, cdk_ay.0, cdk_ay.1))
     let cdk.cr = min(cdk.t / 2, rc)
     //  The right notch opens the desk: a panel out of the right frame with a few small tools, in tabs. It is not one of the values of `panel`, so it
     //  stays open while the calendar, the controls, the volume or a notification come and go. It is drawn like the volume's and the title panel's
@@ -4415,12 +4439,15 @@ scene Vitreus {
     on change dz0 < 0.06 while dz0 < 0.06 and not desk_open and fm > 0.5 { dprip: 0 ~16ms; dprip: 1 ~600ms after 30ms }
     follow desk_sel = desk_tab
     zone box ntz_r { at: mix(screen.width - (th.r + 6 * cu) / 2, (th.r + 6 * cu) / 2, rt), mix(vcc, yo + vb - vcc, bt); size: th.r + 6 * cu, nt_w + 24 * cu; active: fm > 0.5 and not desk_open }
-    zone box ntn_r { at: mix(screen.width - (th.r + nt_d) / 2, (th.r + nt_d) / 2, rt), mix(vcc, yo + vb - vcc, bt); size: th.r + nt_d, nt_w; cursor: pointer; active: fm > 0.5 and nt_vis_r > 0.5 and not desk_open }
-    prop nt_vis_r = 0 ~calm
-    prop nt_vis_l = 0 ~calm                                // the left notch (with the strip along the top: it opens the launcher)
-    prop nt_hold_r = 0 ~280ms
-    follow nt_hold_r = if(max(ntz_r.hover, ntn_r.hover) > 0.5, 1, 0)
-    follow nt_vis_r = if(nt_hold_r > 0.3 and not desk_open, 1, 0)
+    zone box ntn_r { at: mix(screen.width - (th.r + nt_d) / 2, (th.r + nt_d) / 2, rt), mix(vcc, yo + vb - vcc, bt); size: th.r + nt_d, nt_w; cursor: pointer; active: fm > 0.5 and nt_vis_r.$screen > 0.5 and not desk_open }
+    prop nt_vis_r.0 = 0 ~calm
+    prop nt_vis_r.1 = 0 ~calm
+    prop nt_vis_l.0 = 0 ~calm                                // the left notch (with the strip along the top: it opens the launcher)
+    prop nt_vis_l.1 = 0 ~calm
+    prop nt_hold_r.0 = 0 ~280ms
+    prop nt_hold_r.1 = 0 ~280ms
+    follow nt_hold_r.$screen = if(max(ntz_r.hover, ntn_r.hover) > 0.5, 1, 0)
+    follow nt_vis_r.$screen = if(nt_hold_r.$screen > 0.3 and not desk_open, 1, 0)
     on press ntn_r { desk_open = true }
     //  The focus timer (see the Focus section of vitreus.luau).
     event ft_toggle ->                                      // start, pause or resume; carries the minutes
@@ -4640,9 +4667,11 @@ scene Vitreus {
     //  Along the top the same tab hangs from the pill's bottom edge, under the title button (`win_hit`): as wide as the title, or a short stub when there is none.
     let ptab_iw = clamp(max(clsw.width, titw.width) + 12 * u, 52 * u, max(52 * u, win.w - 12 * u))
     let ptab_ix = mix(win.cm, win.xs - 6 * u + ptab_iw / 2, clamp(max(clsw.width, titw.width) / (6 * u), 0, 1))
-    prop ptab_vis = 0 ~calm                        // the same spring as the edge notches (`nt_vis_*`)
-    prop ptab_hold = 0 ~280ms                      // the notches' short wait before coming out, and grace before going back
-    follow ptab_vis = if(ptab_hold > 0.3, 1, 0)
+    prop ptab_vis.0 = 0 ~calm                        // the same spring as the edge notches (`nt_vis_*`)
+    prop ptab_vis.1 = 0 ~calm
+    prop ptab_hold.0 = 0 ~280ms                      // the notches' short wait before coming out, and grace before going back
+    prop ptab_hold.1 = 0 ~280ms
+    follow ptab_vis.$screen = if(ptab_hold.$screen > 0.3, 1, 0)
     //  The calendar's and the control center's panels, being joined to the strip too, have the same ripple (opening and closing).
     //  The title's panel (the player, the tray's menu) is joined to the strip, so the drop's ripple (`prip`, scaled by `1 - att`) skips it. It has its own, the same
     //  crests (size, speed, time) as the Settings' and the launcher's: when it has come out and when it has gone back in. Frame layouts only, like theirs.
@@ -5408,16 +5437,16 @@ scene Vitreus {
     //  The desk's contents (and its tab and opener): drawn after the island's glass above, so the glass is under them and not over them.
         //  The left tab's three dots (with the strip along the top).
         group {
-            show: tm > 0.35 and nt_vis_l > 0.05
+            show: tm > 0.35 and nt_vis_l.$screen > 0.05
             repeat i in 0..3 {
-                ellipse { at: th.l + nt_d * nt_vis_l / 2, mix(vcc, yo + vb - vcc, bt) + (i - 1) * 6.5 * cu; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_l.hover) * clamp(nt_vis_l * 1.6 - 0.4, 0, 1) * (1 - clamp(dl, 0, 1)) }
+                ellipse { at: th.l + nt_d * nt_vis_l.$screen / 2, mix(vcc, yo + vb - vcc, bt) + (i - 1) * 6.5 * cu; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_l.hover) * clamp(nt_vis_l.$screen * 1.6 - 0.4, 0, 1) * (1 - clamp(dl, 0, 1)) }
             }
         }
         //  The right tab's three dots (stacked, since the tab is on the side).
         group {
-            show: fm > 0.35 and nt_vis_r > 0.05
+            show: fm > 0.35 and nt_vis_r.$screen > 0.05
             repeat i in 0..3 {
-                ellipse { at: mix(screen.width - th.r - nt_d * nt_vis_r / 2, th.r + nt_d * nt_vis_r / 2, rt), mix(vcc, yo + vb - vcc, bt) + (i - 1) * 6.5 * cu; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_r.hover) * clamp(nt_vis_r * 1.6 - 0.4, 0, 1) }
+                ellipse { at: mix(screen.width - th.r - nt_d * nt_vis_r.$screen / 2, th.r + nt_d * nt_vis_r.$screen / 2, rt), mix(vcc, yo + vb - vcc, bt) + (i - 1) * 6.5 * cu; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_r.hover) * clamp(nt_vis_r.$screen * 1.6 - 0.4, 0, 1) }
             }
         }
         //  The Island layout's way in to the desk: a small side-panel icon in the top right corner, level with the bar. It stays while the desk is open, lit,
@@ -5441,7 +5470,7 @@ scene Vitreus {
         move: rt * (screen.width - 2 * lf.x), bt * (yo + vb - 2 * bar.y)
     include "pages/bar_icons.plm"
     //  The clock runs while something needs it. It is here, after the bar's zones, because it reads their hover: the bar's icons only boil under the pointer.
-    let need_clock = (cy_on > 0.01) or bar_hit.hover > 0.01 or wsh.1 > 0.01 or wsh.2 > 0.01 or wsh.3 > 0.01 or wsh.4 > 0.01 or wsh.5 > 0.01 or ws.sp > 0.01 or set_hit.hover > 0.01 or sr_hit.hover > 0.01 or ctl_hit.hover > 0.01 or ov_btn.hover > 0.01 or bp.prev.hover > 0.01 or bp.play.hover > 0.01 or bp.next.hover > 0.01 or vm_prev.hover > 0.01 or vm_play.hover > 0.01 or vm_next.hover > 0.01 or ds > 0.01 or dl > 0.01 or dk > 0.01 or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or osd_kind == note or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
+    let need_clock = (cy_on > 0.01) or bar_hit.hover > 0.01 or wsh.1.$screen > 0.01 or wsh.2.$screen > 0.01 or wsh.3.$screen > 0.01 or wsh.4.$screen > 0.01 or wsh.5.$screen > 0.01 or ws.sp > 0.01 or set_hit.hover > 0.01 or sr_hit.hover > 0.01 or ctl_hit.hover > 0.01 or ov_btn.hover > 0.01 or bp.prev.hover > 0.01 or bp.play.hover > 0.01 or bp.next.hover > 0.01 or vm_prev.hover > 0.01 or vm_play.hover > 0.01 or vm_next.hover > 0.01 or ds > 0.01 or dl > 0.01 or dk > 0.01 or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or osd_kind == note or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
     spin time by if(need_clock, 1, 0)
 
 

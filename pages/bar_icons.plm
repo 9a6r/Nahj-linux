@@ -31,63 +31,63 @@ part BarIcons {
         let cx1 = mix(ws.a1, lf.x, lm)
         let cy1 = mix(bar.y, ws.a1, lm)
         let wg1 = ws.urg.1 * (1 - ws.act.1)
-        let bw1 = (8 + 4.5 * ws.tall.1) * ws.U * (1 + 0.35 * wsp.1) * ws.vis.1
-        let bh1 = (8 + 4.5 * ws.tall.1) * ws.U * (1 + 0.35 * wsp.1) * ws.vis.1
+        let bw1 = (8 + 4.5 * ws.tall.1) * ws.U * (1 + 0.35 * wsp.1.$screen) * ws.vis.1
+        let bh1 = (8 + 4.5 * ws.tall.1) * ws.U * (1 + 0.35 * wsp.1.$screen) * ws.vis.1
         let cx2 = mix(ws.a2, lf.x, lm)
         let cy2 = mix(bar.y, ws.a2, lm)
         let wg2 = ws.urg.2 * (1 - ws.act.2)
-        let bw2 = (8 + 4.5 * ws.tall.2) * ws.U * (1 + 0.35 * wsp.2) * ws.vis.2
-        let bh2 = (8 + 4.5 * ws.tall.2) * ws.U * (1 + 0.35 * wsp.2) * ws.vis.2
+        let bw2 = (8 + 4.5 * ws.tall.2) * ws.U * (1 + 0.35 * wsp.2.$screen) * ws.vis.2
+        let bh2 = (8 + 4.5 * ws.tall.2) * ws.U * (1 + 0.35 * wsp.2.$screen) * ws.vis.2
         let cx3 = mix(ws.a3, lf.x, lm)
         let cy3 = mix(bar.y, ws.a3, lm)
         let wg3 = ws.urg.3 * (1 - ws.act.3)
-        let bw3 = (8 + 4.5 * ws.tall.3) * ws.U * (1 + 0.35 * wsp.3) * ws.vis.3
-        let bh3 = (8 + 4.5 * ws.tall.3) * ws.U * (1 + 0.35 * wsp.3) * ws.vis.3
+        let bw3 = (8 + 4.5 * ws.tall.3) * ws.U * (1 + 0.35 * wsp.3.$screen) * ws.vis.3
+        let bh3 = (8 + 4.5 * ws.tall.3) * ws.U * (1 + 0.35 * wsp.3.$screen) * ws.vis.3
         let cx4 = mix(ws.a4, lf.x, lm)
         let cy4 = mix(bar.y, ws.a4, lm)
         let wg4 = ws.urg.4 * (1 - ws.act.4)
-        let bw4 = (8 + 4.5 * ws.tall.4) * ws.U * (1 + 0.35 * wsp.4) * ws.vis.4
-        let bh4 = (8 + 4.5 * ws.tall.4) * ws.U * (1 + 0.35 * wsp.4) * ws.vis.4
+        let bw4 = (8 + 4.5 * ws.tall.4) * ws.U * (1 + 0.35 * wsp.4.$screen) * ws.vis.4
+        let bh4 = (8 + 4.5 * ws.tall.4) * ws.U * (1 + 0.35 * wsp.4.$screen) * ws.vis.4
         let cx5 = mix(ws.a5, lf.x, lm)
         let cy5 = mix(bar.y, ws.a5, lm)
         let wg5 = ws.urg.5 * (1 - ws.act.5)
-        let bw5 = (8 + 4.5 * ws.tall.5) * ws.U * (1 + 0.35 * wsp.5) * ws.vis.5
-        let bh5 = (8 + 4.5 * ws.tall.5) * ws.U * (1 + 0.35 * wsp.5) * ws.vis.5
+        let bw5 = (8 + 4.5 * ws.tall.5) * ws.U * (1 + 0.35 * wsp.5.$screen) * ws.vis.5
+        let bh5 = (8 + 4.5 * ws.tall.5) * ws.U * (1 + 0.35 * wsp.5.$screen) * ws.vis.5
         body ws.sq1 {
             color: mix(ink, warm, wg1)
-            opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.1, 100%, wg1) + 35% * wsh.1) * (1 - ws.act.1) * ws.vis.1 * bs.ws)
+            opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.1, 100%, wg1) + 35% * wsh.1.$screen) * (1 - ws.act.1) * ws.vis.1 * bs.ws)
             rim: 40%
             box { at: cx1, cy1; size: bw1, bh1; corner: 0.3 * min(bw1, bh1) }
         }
-        PWsOutline(cx1, cy1, bw1, bh1, min(100%, mix(30% + 55% * ws.tall.1, 100%, wg1) + 35% * wsh.1) * (1 - ws.act.1) * ws.vis.1 * bs.ws, wg1, 0, wsh.1)
+        PWsOutline(cx1, cy1, bw1, bh1, min(100%, mix(30% + 55% * ws.tall.1, 100%, wg1) + 35% * wsh.1.$screen) * (1 - ws.act.1) * ws.vis.1 * bs.ws, wg1, 0, wsh.1.$screen)
         body ws.sq2 {
             color: mix(ink, warm, wg2)
-            opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.2, 100%, wg2) + 35% * wsh.2) * (1 - ws.act.2) * ws.vis.2 * bs.ws)
+            opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.2, 100%, wg2) + 35% * wsh.2.$screen) * (1 - ws.act.2) * ws.vis.2 * bs.ws)
             rim: 40%
             box { at: cx2, cy2; size: bw2, bh2; corner: 0.3 * min(bw2, bh2) }
         }
-        PWsOutline(cx2, cy2, bw2, bh2, min(100%, mix(30% + 55% * ws.tall.2, 100%, wg2) + 35% * wsh.2) * (1 - ws.act.2) * ws.vis.2 * bs.ws, wg2, 0, wsh.2)
+        PWsOutline(cx2, cy2, bw2, bh2, min(100%, mix(30% + 55% * ws.tall.2, 100%, wg2) + 35% * wsh.2.$screen) * (1 - ws.act.2) * ws.vis.2 * bs.ws, wg2, 0, wsh.2.$screen)
         body ws.sq3 {
             color: mix(ink, warm, wg3)
-            opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.3, 100%, wg3) + 35% * wsh.3) * (1 - ws.act.3) * ws.vis.3 * bs.ws)
+            opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.3, 100%, wg3) + 35% * wsh.3.$screen) * (1 - ws.act.3) * ws.vis.3 * bs.ws)
             rim: 40%
             box { at: cx3, cy3; size: bw3, bh3; corner: 0.3 * min(bw3, bh3) }
         }
-        PWsOutline(cx3, cy3, bw3, bh3, min(100%, mix(30% + 55% * ws.tall.3, 100%, wg3) + 35% * wsh.3) * (1 - ws.act.3) * ws.vis.3 * bs.ws, wg3, 0, wsh.3)
+        PWsOutline(cx3, cy3, bw3, bh3, min(100%, mix(30% + 55% * ws.tall.3, 100%, wg3) + 35% * wsh.3.$screen) * (1 - ws.act.3) * ws.vis.3 * bs.ws, wg3, 0, wsh.3.$screen)
         body ws.sq4 {
             color: mix(ink, warm, wg4)
-            opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.4, 100%, wg4) + 35% * wsh.4) * (1 - ws.act.4) * ws.vis.4 * bs.ws)
+            opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.4, 100%, wg4) + 35% * wsh.4.$screen) * (1 - ws.act.4) * ws.vis.4 * bs.ws)
             rim: 40%
             box { at: cx4, cy4; size: bw4, bh4; corner: 0.3 * min(bw4, bh4) }
         }
-        PWsOutline(cx4, cy4, bw4, bh4, min(100%, mix(30% + 55% * ws.tall.4, 100%, wg4) + 35% * wsh.4) * (1 - ws.act.4) * ws.vis.4 * bs.ws, wg4, 0, wsh.4)
+        PWsOutline(cx4, cy4, bw4, bh4, min(100%, mix(30% + 55% * ws.tall.4, 100%, wg4) + 35% * wsh.4.$screen) * (1 - ws.act.4) * ws.vis.4 * bs.ws, wg4, 0, wsh.4.$screen)
         body ws.sq5 {
             color: mix(ink, warm, wg5)
-            opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.5, 100%, wg5) + 35% * wsh.5) * (1 - ws.act.5) * ws.vis.5 * bs.ws)
+            opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.5, 100%, wg5) + 35% * wsh.5.$screen) * (1 - ws.act.5) * ws.vis.5 * bs.ws)
             rim: 40%
             box { at: cx5, cy5; size: bw5, bh5; corner: 0.3 * min(bw5, bh5) }
         }
-        PWsOutline(cx5, cy5, bw5, bh5, min(100%, mix(30% + 55% * ws.tall.5, 100%, wg5) + 35% * wsh.5) * (1 - ws.act.5) * ws.vis.5 * bs.ws, wg5, 0, wsh.5)
+        PWsOutline(cx5, cy5, bw5, bh5, min(100%, mix(30% + 55% * ws.tall.5, 100%, wg5) + 35% * wsh.5.$screen) * (1 - ws.act.5) * ws.vis.5 * bs.ws, wg5, 0, wsh.5.$screen)
         let pl.h1 = ws.c1 + clamp(pl.head - 1, 0, 1) * (ws.c2 - ws.c1) + clamp(pl.head - 2, 0, 1) * (ws.c3 - ws.c2) + clamp(pl.head - 3, 0, 1) * (ws.c4 - ws.c3) + clamp(pl.head - 4, 0, 1) * (ws.c5 - ws.c4)
         let pl.h2 = ws.c1 + clamp(pl.tail - 1, 0, 1) * (ws.c2 - ws.c1) + clamp(pl.tail - 2, 0, 1) * (ws.c3 - ws.c2) + clamp(pl.tail - 3, 0, 1) * (ws.c4 - ws.c3) + clamp(pl.tail - 4, 0, 1) * (ws.c5 - ws.c4)
         let pl.s = min(1, abs(pl.head - pl.tail))
@@ -104,7 +104,7 @@ part BarIcons {
                 opacity: 0.55 * bs.ws * (1 - ws.sp)
                 box { at: mix(pl.m, lf.x, lm), mix(bar.y, pl.m, lm); size: pl.w, pl.h; corner: 0.3 * min(pl.w, pl.h) }
             }
-            PWsOutline(mix(pl.m, lf.x, lm), mix(bar.y, pl.m, lm), pl.w, pl.h, bs.ws * (1 - ws.sp), 0, 1, max(max(max(wsh.1, wsh.2), max(wsh.3, wsh.4)), wsh.5))
+            PWsOutline(mix(pl.m, lf.x, lm), mix(bar.y, pl.m, lm), pl.w, pl.h, bs.ws * (1 - ws.sp), 0, 1, max(max(max(wsh.1.$screen, wsh.2.$screen), max(wsh.3.$screen, wsh.4.$screen)), wsh.5.$screen))
         }
         //  A special workspace in view: a pencil mark where the marks were, coming up from nothing: the sparkle (magic, and any other), a pair of notes (music) or an eye
         //  crossed out (private). Their lines are redrawn about five times a second the whole time they are there, the way a workspace mark's are under the pointer.
@@ -116,10 +116,10 @@ part BarIcons {
         //  The plus: two strokes, there while the workspace in view has a window.
         let wpl.x = mix(ws.a6, lf.x, lm)
         let wpl.y = mix(bar.y, ws.a6, lm)
-        let wpl.d = ws.ps * 0.62 * (1 + 0.3 * wspl)
+        let wpl.d = ws.ps * 0.62 * (1 + 0.3 * wspl.$screen)
         body ws_plus_icon {
             color: ink
-            opacity: (55% + 40% * wspl) * ws.pv * bs.ws
+            opacity: (55% + 40% * wspl.$screen) * ws.pv * bs.ws
             rim: 30%
             box { at: wpl.x, wpl.y; size: max(0.3, wpl.d * ws.pv), 1.6 * ws.U; corner: 0.8 * ws.U }
             box { at: wpl.x, wpl.y; size: 1.6 * ws.U, max(0.3, wpl.d * ws.pv); corner: 0.8 * ws.U }
