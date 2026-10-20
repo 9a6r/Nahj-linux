@@ -5454,7 +5454,7 @@ scene Vitreus {
             box { at: hc2, hy2; size: 82 * pu, 18 * pu; corner: 9 * pu; color: ink; opacity: 8% * lhint2_hit.$j.hover }
             group { scale: rs; pivot: hx2, floor(hy2 + 0.5); text pick(j, "@", "?", "$", "=", "+") { at: hx2, floor(hy2 + 0.5); anchor: left center; size: 15; weight: 700; color: mint; family: "Space Grotesk" } }
             group { scale: rs; pivot: hx2 + floor(12 * pu + 0.5), floor(hy2 + 0.5); text pick(j, "windows", "web", "snippets", "calc", "packages") { at: hx2 + floor(12 * pu + 0.5), floor(hy2 + 0.5); anchor: left center; size: 13; color: ink; opacity: 70%; family: "Space Grotesk" } }
-            line { from: lx + j * 86 * pu, hy2 - 5 * pu; to: lx + j * 107.5 * pu, hy2 + 5 * pu; width: 1 * pu; color: ink; opacity: 18%; show: j > 0 }
+            line { from: lx + j * 86 * pu, hy2 - 5 * pu; to: lx + j * 86 * pu, hy2 + 5 * pu; width: 1 * pu; color: ink; opacity: 18%; show: j > 0 }
             zone box lhint2_hit.$j { at: hc2, hy2; size: 84 * pu, 18 * pu; corner: 9 * pu; cursor: pointer }
             on press lhint2_hit.$j { emit launch_hint(j + 5) }
         }
