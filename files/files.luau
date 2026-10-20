@@ -1391,8 +1391,8 @@ on("act", function(k)
         -- close this window: Hyprland closes the one that has the pointer (the one just clicked); elsewhere the window has its own cross, and this asks the scene to quit (by its own name)
         run("hyprctl", { "dispatch", "hl.dsp.window.close()" }, function(_, code)
             if code ~= 0 then
-                -- "files" is only the first window to start: a second one answers to files-<its pid>, so each asks for the name that has its own pid ($PPID is this scene's)
-                run("sh", { "-c", 'p=$PPID; for n in files "files-$p"; do pleamar --say "$n" hello 2>/dev/null | grep -q "pid $p " && exec pleamar --say "$n" quit; done' }, function() end)
+                -- bin/vitreus-files --close: the window that runs it asks for the name that is its own (a second window is not "files")
+                run("vitreus-files", { "--close" }, function() end)
             end
         end)
     elseif k == 41 then

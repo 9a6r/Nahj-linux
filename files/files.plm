@@ -15,7 +15,7 @@ scene Files {
 
     permissions {
         services: "files", "files.write"
-        run: "find", "magick", "ffmpeg", "stat", "du", "file", "rm", "hyprctl", "xdg-open", "gio", "cp", "mv", "mkdir", "df", "xdg-user-dir", "printenv", "pleamar", "wl-copy", "wl-paste", "fc-match"
+        run: "find", "magick", "ffmpeg", "stat", "du", "file", "rm", "hyprctl", "xdg-open", "gio", "cp", "mv", "mkdir", "df", "xdg-user-dir", "printenv", "pleamar", "wl-copy", "wl-paste", "fc-match", "vitreus-files"
     }
 
     // ── what the logic says ──

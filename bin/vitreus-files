@@ -7,6 +7,14 @@
 here=$(dirname "$(readlink -f "$0")")
 scene="$here/../files/files.plm"
 export PATH="$HOME/.local/bin:$PATH"
+# `vitreus-files --close`, run by a Files window: closes that window and no other. The first window to start is the scene `files`, a second one `files-<its pid>`, and the program that
+# runs this is the window itself ($PPID), so the name that answers with that pid is the window's.
+if [ "${1:-}" = --close ]; then
+    for n in files "files-$PPID"; do
+        pleamar --say "$n" hello 2> /dev/null | grep -q "pid $PPID " && exec pleamar --say "$n" quit
+    done
+    exit 1
+fi
 folder=${1:-$HOME}
 if [ -f "$scene" ] && command -v pleamar > /dev/null 2>&1; then
     FILES_START="$folder" setsid pleamar --scene "$scene" --no-hud > /dev/null 2>&1 &
