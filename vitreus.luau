@@ -5128,6 +5128,7 @@ do
         top = { top = 76, right = 24, bottom = 24, left = 24 },
         bottom = { top = 24, right = 24, bottom = 76, left = 24 },
     }
+    local FRAME_SEG = { top = 59, right = 24, bottom = 24, left = 24 }
     local EDGES = { "top", "right", "bottom", "left" }
     function wm_frame_sync()
         if on_hyprland then return end
@@ -5137,6 +5138,7 @@ do
             for name, id in mons:gmatch("Monitor (%S+) %(ID (%d+)%)") do names[tonumber(id)] = name end
             local framed = fact.bar_frame == true and bar_mon.name ~= nil
             local room = FRAME_ROOMS[fact.bar_anchor] or FRAME_ROOM
+            if fact.bar_seg == true and fact.bar_anchor == "top" then room = FRAME_SEG end   -- the top frame in pieces: windows start below the pieces, as on Hyprland (`iris_fx.gaps_code`)
             local want, cmds = {}, {}
             for id = 0, 3 do
                 local has = framed and names[id] ~= nil and (bar_mon.name == "all" or bar_mon.name == names[id])
@@ -5158,6 +5160,8 @@ do
             end)
         end)
     end
+
+    on("fact:bar_seg", function() wm_frame_sync() end)
 
     local function wm_send()
         if not wm_names_ok then

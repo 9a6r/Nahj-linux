@@ -1071,11 +1071,13 @@ part BarGlass {
         //  the battery is low.
         group {
             let bf.m = 7 * u                                        // the margin between the gauge and the bar's edge
-            let bf.x = cx - (bar.w + pv * 10 * u) / 2 + bf.m
-            let bf.mid = bar.y - bar.h / 2 + (bar.h + pop) / 2      // the pill's middle line
+            //  In the Notches layout the pill is the middle notch (`sg.q0`..`sg.q1`, `sg.hc` deep from the top of the screen), not the whole strip.
+            let bf.pw = mix(bar.w + pv * 10 * u, sg.q1 - sg.q0, sg)   // the pill's width
+            let bf.x = mix(cx - (bar.w + pv * 10 * u) / 2, sg.q0, sg) + bf.m
+            let bf.mid = mix(bar.y - bar.h / 2 + (bar.h + pop) / 2, yo + sg.hc / 2, sg)      // the pill's middle line
             let bf.nub = 6.6 * u                                    // how far the nub on its far end sticks out
-            let bf.full = bar.w + pv * 10 * u - 2 * bf.m - bf.nub   // the gauge's length at 100 %: the nub has the same margin at its end as the gauge has at the other
-            let bf.tall = bar.h + pop - 2 * bf.m                   // the pill's height
+            let bf.full = bf.pw - 2 * bf.m - bf.nub   // the gauge's length at 100 %: the nub has the same margin at its end as the gauge has at the other
+            let bf.tall = mix(bar.h + pop, sg.hc, sg) - 2 * bf.m   // the pill's height
             let bf.show = clamp(batt_open, 0, 1) * (1 - lm)
             let bf.hh = bf.tall * (0.7 + 0.3 * bf.show)
             let bf.len = max(0.1, bf.full * batt_fill)
@@ -1142,12 +1144,16 @@ part BarGlass {
         //  of thin slices whose strength follows a bell, so it has no hard edge; it is strongest in the middle of the
         //  crossing and gone (opacity 0) whenever `charge_sweep` rests at 1.
         group {
-            clip inset 0 box { at: cx, bar.y - bar.h / 2 + (bar.h + pop) / 2; size: bar.w + pv * 10 * u, bar.h + pop; corner: bar.rad }
+            let cg.l = mix(cx - (bar.w + pv * 10 * u) / 2, sg.q0, sg)             // the pill's edges: the bar's, or the middle notch's in the Notches layout
+            let cg.r = mix(cx + (bar.w + pv * 10 * u) / 2, sg.q1, sg)
+            let cg.y = mix(bar.y - bar.h / 2 + (bar.h + pop) / 2, yo + sg.hc / 2, sg)
+            let cg.h = mix(bar.h + pop, sg.hc, sg)
+            clip inset 0 box { at: (cg.l + cg.r) / 2, cg.y; size: cg.r - cg.l, cg.h; corner: bar.rad }
             let cg.w = 130 * u                                                   // the band's width
-            let cg.x = mix(cx - bar.w / 2 - cg.w / 2, cx + bar.w / 2 + cg.w / 2, clamp(charge_sweep, 0, 1))
+            let cg.x = mix(cg.l - cg.w / 2, cg.r + cg.w / 2, clamp(charge_sweep, 0, 1))
             let cg.a = sin(clamp(charge_sweep, 0, 1) * 180) * batt_on * (1 - lm)           // fades in and out over the crossing
             repeat k in 0..14 {
-                box { at: cg.x + (k - 6.5) * cg.w / 14, bar.y; size: cg.w / 14 + 1, bar.h + pop; color: mint; opacity: 15% * cg.a * sin((k + 0.5) / 14 * 180) }
+                box { at: cg.x + (k - 6.5) * cg.w / 14, cg.y; size: cg.w / 14 + 1, cg.h; color: mint; opacity: 15% * cg.a * sin((k + 0.5) / 14 * 180) }
             }
         }
 
