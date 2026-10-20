@@ -90,16 +90,24 @@ return function()
         hypr_monitors(4, function(out, code)
             if code ~= 0 or not out then return end
             local okj, list = pcall(json.decode, out)
-            if not okj or type(list) ~= "table" then return end      -- (pleamar-wm's text: the visualiser stays on all of them)
-            table.sort(list, function(a, b) return (a.id or 0) < (b.id or 0) end)
             local l = {}
-            for _, j in ipairs(list) do
-                local t = j.transform or 0
-                local sc = (j.scale and j.scale > 0) and j.scale or 1
-                local w, h = math.floor((j.width or 0) / sc + 0.5), math.floor((j.height or 0) / sc + 0.5)
-                if t == 1 or t == 3 or t == 5 or t == 7 then w, h = h, w end
-                l[#l + 1] = { name = tostring(j.name), w = w, h = h }
+            if okj and type(list) == "table" then
+                table.sort(list, function(a, b) return (a.id or 0) < (b.id or 0) end)
+                for _, j in ipairs(list) do
+                    local t = j.transform or 0
+                    local sc = (j.scale and j.scale > 0) and j.scale or 1
+                    local w, h = math.floor((j.width or 0) / sc + 0.5), math.floor((j.height or 0) / sc + 0.5)
+                    if t == 1 or t == 3 or t == 5 or t == 7 then w, h = h, w end
+                    l[#l + 1] = { name = tostring(j.name), w = w, h = h }
+                end
+            else
+                -- pleamar-wm's `hyprctl monitors` is text, even with -j: "Monitor <name> (ID 1):", "2560x1440@164.83 at 1440x733" (its sizes already turned by the rotation).
+                for name, body in (out .. "\n\n"):gmatch("Monitor (%S+) %(ID %d+%):\n(.-)\n\n") do
+                    local w, h = body:match("(%d+)x(%d+)@[%d%.]+ at")
+                    if w then l[#l + 1] = { name = name, w = tonumber(w), h = tonumber(h) } end
+                end
             end
+            if #l == 0 then return end
             mons = l
             show_mon()
         end)
