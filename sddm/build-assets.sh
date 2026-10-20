@@ -1,10 +1,10 @@
 #!/bin/sh
 # build-assets.sh OUTDIR [IMAGE]: makes everything the theme needs that is not in the repository, in OUTDIR (a copy of vitreus/ with the pictures, the font, your face and the colours).
-# IMAGE is the login screen's picture (default ~/Downloads/greeter.jpg). Needs ImageMagick. Does not touch the system.
+# IMAGE is the login screen's picture (default assets/greeter.jpeg in the repository). Needs ImageMagick. Does not touch the system.
 set -e
 here=$(cd "$(dirname "$0")" && pwd)
 out=${1:?usage: build-assets.sh OUTDIR [IMAGE]}
-img=${2:-$HOME/Downloads/greeter.jpg}
+img=${2:-$here/../assets/greeter.jpeg}
 [ -f "$img" ] || { echo "no picture at $img" >&2; exit 1; }
 rm -rf "$out"
 mkdir -p "$out/fonts"

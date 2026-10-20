@@ -838,7 +838,7 @@ if $do_login && ! $refresh && [ -x "$dest/sddm/install.sh" ] && { have sddm || [
     if [ -d /usr/share/sddm/themes/vitreus ] && cmp -s "$dest/sddm/vitreus/Main.qml" /usr/share/sddm/themes/vitreus/Main.qml; then
         say "the Vitreus login screen is installed (sh $dest/sddm/install.sh [IMAGE] makes it again, with another picture)"
     elif [ -d /usr/share/sddm/themes/vitreus ]; then
-        # An older copy: install it again (the picture is made again too: pass your own to sddm/install.sh, or keep ~/Downloads/greeter.jpg)
+        # An older copy: install it again (the picture is made again too: the repository's assets/greeter.jpeg, or pass your own to sddm/install.sh)
         if ask "update the Vitreus login screen, the SDDM theme (needs sudo)?"; then
             run sh "$dest/sddm/install.sh" --yes || warn "could not: run  sh $dest/sddm/install.sh  yourself"
         fi

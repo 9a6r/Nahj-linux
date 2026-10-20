@@ -1,6 +1,6 @@
 #!/bin/sh
 # install.sh [IMAGE] [--set | --no-set] [--yes]: installs the Vitreus login screen, a theme for SDDM, and (asking, when there already is one) makes it the one in use.
-#   IMAGE     the login screen's picture: ~/Downloads/greeter.jpg if there is one, else the banner in assets/
+#   IMAGE     the login screen's picture: assets/greeter.jpeg, in this repository
 #   --set     make it the theme in use without asking          --no-set   only install it: leave the theme in use as it is
 #   --yes     answer yes to the question (the same as --set)    --remove   take it away and put the theme that was in use back
 # It uses sudo for /usr/share/sddm/themes and for SDDM's configuration. Try it first, with nothing installed:  ./build-assets.sh /tmp/vitreus-greeter  and
@@ -48,7 +48,7 @@ if [ "$action" = remove ]; then
 fi
 
 [ -d "$themes" ] || { echo "SDDM's themes are not in $themes: is SDDM installed?" >&2; exit 1; }
-[ -n "$image" ] || { [ -f "$HOME/Downloads/greeter.jpg" ] && image=$HOME/Downloads/greeter.jpg || image=$here/../assets/banner.jpeg; }
+[ -n "$image" ] || image=$here/../assets/greeter.jpeg
 # The installer downloads Space Grotesk as one variable font; build-assets.sh needs python-fonttools to cut the three weights the greeter uses from it (without it they all look the same).
 font=$(fc-match -f '%{file}' "Space Grotesk" 2> /dev/null)
 fdir=$(dirname "$font")

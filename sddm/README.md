@@ -20,12 +20,12 @@ It opens the login screen in a window (`QT_QPA_PLATFORM=xcb` runs it through XWa
 Vitreus's own `install.sh` offers this (it asks, since it needs sudo; `--no-login` skips it), or run it yourself (the main installer also offers to update an older copy):
 
 ```sh
-./sddm/install.sh                       # the picture is ~/Downloads/greeter.jpg
+./sddm/install.sh                       # the picture is assets/greeter.jpeg, in the repository
 ./sddm/install.sh ~/Pictures/other.jpg  # or another
 ```
 
 It makes the pictures (sharp and blurred, 1920 x 1080) with ImageMagick, copies the theme to `/usr/share/sddm/themes/vitreus` with Space Grotesk, your `~/.face` and the colours of
-Vitreus's palette, and makes it the theme in use. If SDDM has no theme set, that is done at once; **if it already has one it asks first** (`--set` or `--yes` says yes, `--no-set` only installs it, and with no keyboard to answer on it leaves the old one). The file that said which theme is in use is kept as `<file>.before-vitreus` in `/usr/local/share/vitreus-greeter/` (never in `/etc/sddm.conf.d/`: SDDM reads every file there, whatever its name). It asks for your password, as it uses `sudo`. Without a picture of yours (`~/Downloads/greeter.jpg`) it uses the banner in `assets/`.
+Vitreus's palette, and makes it the theme in use. If SDDM has no theme set, that is done at once; **if it already has one it asks first** (`--set` or `--yes` says yes, `--no-set` only installs it, and with no keyboard to answer on it leaves the old one). The file that said which theme is in use is kept as `<file>.before-vitreus` in `/usr/local/share/vitreus-greeter/` (never in `/etc/sddm.conf.d/`: SDDM reads every file there, whatever its name). It asks for your password, as it uses `sudo`. The picture is `assets/greeter.jpeg` in the repository, always installed with the theme unless you give another.
 SDDM reads its settings only when it starts, so the new login screen shows after a reboot (or `sudo systemctl restart sddm` from a TTY, which ends your session); logging out is not enough. To see the installed one without logging out: `QT_QPA_PLATFORM=xcb sddm-greeter-qt6 --test-mode --theme /usr/share/sddm/themes/vitreus`.
 
 (In test mode there is no user list, no session list and no power buttons, so the name, the corners and the power pill are left out.)
