@@ -102,31 +102,48 @@ GLYPHS = {
 }
 COL = {'ink': 'ink', 'mint': 'mint', 'alert': 'alert', 'fold': 'mix(mint, ink, 0.25)', 'btn': 'mix(ink, mint, a)'}
 
-def jt():
-    return (f"j * sin(fr * {rng.randint(40, 76)} + {rng.randint(100, 5000)})", f"j * sin(fr * {rng.randint(40, 76)} + {rng.randint(100, 5000)})")
+import math
+trng = random.Random(99)       # the tremble of a hovered drawing has numbers of its own, so the ones above (what is drawn at rest) stay what they were
 
-def strokes(items):
+def jt(x, y):
+    """A point at rest: the hand-drawn wobble is a fixed number (what `j * sin(fr * f + p)` is with `fr` 0, as it is at rest), written into the point, so the scene does not work out two sines for every
+    point of every drawing in every copy of it. `j` is 0.3 * (0.5 + s): so x * s + j * sin(p) is (x + 0.3 sin(p)) * s + 0.15 sin(p)."""
+    f1, p1, f2, p2 = rng.randint(40, 76), rng.randint(100, 5000), rng.randint(40, 76), rng.randint(100, 5000)
+    sx, sy = math.sin(p1), math.sin(p2)
+    return f"{x + 0.3 * sx:.2f} * s + {0.15 * sx:.2f}", f"{y + 0.3 * sy:.2f} * s + {0.15 * sy:.2f}"
+
+def tremble(boil):
+    """While the pointer is on it a drawing's strokes shake and are redrawn about five times a second (`fr`): each stroke as a whole, by a different amount (`jb`), not every point of it."""
+    if not boil:
+        return "", ""
+    return (f" + jb * sin(fr * {trng.randint(40, 76)} + {trng.randint(100, 5000)})", f" + jb * sin(fr * {trng.randint(40, 76)} + {trng.randint(100, 5000)})")
+
+def strokes(items, boil):
     out = []
     for pts, col, how in items:
         c = COL[col]
         if how == 'o':
             x, y, r = pts
-            jx, jy = jt()
-            out.append(f"            ellipse {{ at: cx + {x} * s + {jx}, cy + {y} * s + {jy}; radius: {r} * s * (1 + 0.05 * sin(fr * 47 + {rng.randint(1000, 2000)})); stroke: w1; color: {c}; opacity: (o) }}")
-            jx, jy = jt()
-            out.append(f"            ellipse {{ at: cx + {x} * s + {jx} + off, cy + {y} * s + {jy} + off; radius: {r} * s; stroke: w2; color: {c}; opacity: (o) * 0.28 }}")
+            jx, jy = jt(x, y)
+            rr = r * (1 + 0.05 * math.sin(rng.randint(1000, 2000)))
+            tx, ty = tremble(boil)
+            out.append(f"            ellipse {{ at: cx + {jx}{tx}, cy + {jy}{ty}; radius: {rr:.2f} * s; stroke: w1; color: {c}; opacity: (o) }}")
+            jx, jy = jt(x, y)
+            tx, ty = tremble(boil)
+            out.append(f"            ellipse {{ at: cx + {jx} + off{tx}, cy + {jy} + off{ty}; radius: {r} * s; stroke: w2; color: {c}; opacity: (o) * 0.28 }}")
             continue
         for second in ([False] if how == 'f' else [False, True]):
             steps = []
             for k, (x, y) in enumerate(pts):
-                jx, jy = jt()
-                steps.append(("move " if k == 0 else "line ") + f"{x} * s + {jx}, {y} * s + {jy}")
+                jx, jy = jt(x, y)
+                steps.append(("move " if k == 0 else "line ") + f"{jx}, {jy}")
+            tx, ty = tremble(boil)
             if how == 'f':
-                out.append(f"            path {{ at: cx, cy; stroke: w2; color: {c}; opacity: (o) * 0.24; " + "; ".join(steps) + " }")
+                out.append(f"            path {{ at: cx{tx}, cy{ty}; stroke: w2; color: {c}; opacity: (o) * 0.24; " + "; ".join(steps) + " }")
             elif not second:
-                out.append(f"            path {{ at: cx, cy; stroke: w1; color: {c}; opacity: (o); " + "; ".join(steps) + " }")
+                out.append(f"            path {{ at: cx{tx}, cy{ty}; stroke: w1; color: {c}; opacity: (o); " + "; ".join(steps) + " }")
             else:
-                out.append(f"            path {{ at: cx + off, cy + off; stroke: w2; color: {c}; opacity: (o) * 0.28; " + "; ".join(steps) + " }")
+                out.append(f"            path {{ at: cx + off{tx}, cy + off{ty}; stroke: w2; color: {c}; opacity: (o) * 0.28; " + "; ".join(steps) + " }")
     return out
 
 def comp(name, doc, param, table, boil, share=0):
@@ -135,7 +152,7 @@ def comp(name, doc, param, table, boil, share=0):
     body = []
     shared = None
     for k, items in table.items():
-        lines = strokes(items)
+        lines = strokes(items, boil)
         if share and k >= 1:
             n = 2 * share                      # a drawing is two lines (the stroke and its fainter copy)
             if shared is None:
@@ -149,9 +166,9 @@ def comp(name, doc, param, table, boil, share=0):
     head = f"    component {name}(cx: number, cy: number, s: number, {param}: number, " + ("hot: number, " if boil else "") + "o: number) {\n"
     if boil:
         head += "        prop a = 0 ~calm\n        follow a = hot\n        let fr = if(a > 0.02, floor(time * 5), 0)\n"
-        head += "        let j = (0.3 + 0.4 * a) * (0.5 + s)\n"
+        head += "        let jb = 0.7 * a * (0.5 + s)\n"
     else:
-        head += "        let a = 0\n        let fr = 0\n        let j = 0.3 * (0.5 + s)\n"
+        head += "        let a = 0\n"        # the pictures' colour (`mix(ink, mint, a)`): how far it is turned to the accent
     head += "        let w1 = 1.3 + 1.1 * s\n        let w2 = 0.9 + 0.6 * s\n        let off = 0.35 * (0.5 + s)\n"
     head += "        group {\n            pivot: cx, cy\n" + ("            scale: 1 + 0.08 * a\n" if boil else "")
     return "    //  " + doc + "\n" + head + "\n".join(body) + "\n        }\n    }\n"

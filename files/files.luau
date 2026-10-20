@@ -7,10 +7,10 @@
 -- This file is put together from lparts/*.luau by build.sh; the pieces are in the order they are needed. Functions live in the table F (and the state in `s`) because a chunk of Luau can only
 -- have so many locals.
 
-local GRID_ROWS = 14        -- rows of tiles sent to the scene at once (it declares 14)
-local LINES_PER_ROW = 12    -- in the lines view a row of the scene is a block of this many lines, one under the other: a window full of them is a few blocks, and the scene stays small
+local GRID_ROWS = 12        -- rows of tiles sent to the scene at once (it declares 12: every record it declares is worked out when it starts, so the fewer the quicker Files opens)
+local LINES_PER_ROW = 10    -- in the lines view a row of the scene is a block of this many lines, one under the other: a window full of them is a few blocks, and the scene stays small
 local LINES_ROWS = 5        -- ... and this many blocks are sent at once
-local MAX_COLS = 12
+local MAX_COLS = 10
 local LINES_H = 38
 local MENU_ROW = 32         -- how tall a line of the menu is (the scene says the same, `mrh`)
 local ZOOMS = { 96, 112, 128, 160, 208 }
