@@ -18,6 +18,7 @@ fdir=$(dirname "$font")
 for w in Regular Medium Bold; do
     if [ -f "$fdir/static/SpaceGrotesk-$w.ttf" ]; then cp "$fdir/static/SpaceGrotesk-$w.ttf" "$out/fonts/"
     elif [ -f "$fdir/SpaceGrotesk-$w.ttf" ]; then cp "$fdir/SpaceGrotesk-$w.ttf" "$out/fonts/"
+    elif [ -f "$fdir/SpaceGrotesk[wght].ttf" ]; then cp "$fdir/SpaceGrotesk[wght].ttf" "$out/fonts/SpaceGrotesk-$w.ttf"   # the one file the installer downloads: every weight is in it
     else echo "Space Grotesk $w was not found: the greeter will use another font for it" >&2; fi
 done
 # your face, if you have one (the greeter cannot read your home folder)
