@@ -819,8 +819,13 @@ fi
 # An SDDM theme in the lock screen's look. It needs root (the theme goes in /usr/share/sddm/themes), so it is asked for, and --refresh leaves it alone. Where SDDM already has
 # a theme, its own installer asks before replacing it (--yes says yes); with no keyboard it only installs it.
 if $do_login && ! $refresh && [ -x "$dest/sddm/install.sh" ] && { have sddm || [ -d /usr/share/sddm/themes ]; }; then
-    if [ -d /usr/share/sddm/themes/vitreus ]; then
+    if [ -d /usr/share/sddm/themes/vitreus ] && cmp -s "$dest/sddm/vitreus/Main.qml" /usr/share/sddm/themes/vitreus/Main.qml; then
         say "the Vitreus login screen is installed (sh $dest/sddm/install.sh [IMAGE] makes it again, with another picture)"
+    elif [ -d /usr/share/sddm/themes/vitreus ]; then
+        # An older copy: install it again (the picture is made again too: pass your own to sddm/install.sh, or keep ~/Downloads/greeter.jpg)
+        if ask "update the Vitreus login screen, the SDDM theme (needs sudo)?"; then
+            run sh "$dest/sddm/install.sh" --yes || warn "could not: run  sh $dest/sddm/install.sh  yourself"
+        fi
     elif ask "install the Vitreus login screen, an SDDM theme (needs sudo)?"; then
         if $assume_yes; then login_flags="--yes"; else login_flags=""; fi
         run sh "$dest/sddm/install.sh" $login_flags || warn "could not: run  sh $dest/sddm/install.sh  yourself"
@@ -872,7 +877,7 @@ echo "                         hyprland.lua:   hl.on(\"hyprland.start\", functio
 echo "                         hyprland.conf:  exec-once = ~/.local/bin/pleamar --autostart   (Hyprland's PATH may lack ~/.local/bin)"
 echo "  Keys (with the binds): SUPER + Space launcher, SUPER + SHIFT + Space settings, SUPER + B wallpaper picker, SUPER + L lock (see lockscreen/README.md)"
 echo "  Daemons:               awww, hypridle and the clipboard history start from $autostart (nothing to add to hyprland.lua)"
-echo "  pleamar-wm:            log out and choose «pleamar-wm» in the login screen (SDDM: click the session name at the bottom right)"
+echo "  pleamar-wm:            log out and choose «pleamar-wm» in the login screen (SDDM: click the session name under the password field)"
 echo "  Update later:          run this script again"
 echo "  Its settings:          $data/pleamar/vitreus  (iris.json, weather-config.json, ...)"
 echo

@@ -8,6 +8,8 @@
 set -e
 here=$(cd "$(dirname "$0")" && pwd)
 themes=/usr/share/sddm/themes
+# Your face and the old theme setting are kept here. The old setting must not stay in /etc/sddm.conf.d: SDDM reads every file in it, whatever its name, and a later name wins.
+shared=/usr/local/share/vitreus-greeter
 setmode=ask
 action=install
 image=""
@@ -34,8 +36,9 @@ theme_file() {
 
 if [ "$action" = remove ]; then
     f=$(theme_file)
-    if [ -f "$f.before-vitreus" ]; then
-        sudo mv -f "$f.before-vitreus" "$f"
+    bak=$shared/$(basename "$f").before-vitreus
+    if [ -f "$bak" ]; then
+        sudo cp -f "$bak" "$f"; rm -f "$bak"
     elif [ "$(current_theme)" = vitreus ]; then
         sudo rm -f "$f"
     fi
@@ -54,7 +57,6 @@ sudo cp -r "$tmp/vitreus" "$themes/vitreus"
 sudo chmod -R a+rX "$themes/vitreus"
 echo "installed in $themes/vitreus"
 # Your face is kept in a folder that is yours (the greeter cannot read your home folder), so that changing your picture needs no sudo: Vitreus's Settings copy it there.
-shared=/usr/local/share/vitreus-greeter
 sudo install -d -o "$(id -un)" -m 755 "$shared"
 [ -f "$HOME/.face" ] && "$here/refresh-avatar.sh" || true
 
@@ -73,7 +75,9 @@ elif [ "$setmode" = ask ]; then
 fi
 if $use; then
     f=$(theme_file)
-    [ -f "$f" ] && [ ! -f "$f.before-vitreus" ] && sudo cp "$f" "$f.before-vitreus"
+    bak=$shared/$(basename "$f").before-vitreus
+    sudo install -d -o "$(id -un)" -m 755 "$shared"
+    [ -f "$f" ] && [ ! -f "$bak" ] && cp "$f" "$bak"
     if [ -f "$f" ] && grep -q '^Current=' "$f"; then
         sudo sed -i 's|^Current=.*|Current=vitreus|' "$f"
     elif [ -f "$f" ] && grep -q '^\[Theme\]' "$f"; then
@@ -81,7 +85,7 @@ if $use; then
     else
         printf '\n[Theme]\nCurrent=vitreus\n' | sudo tee -a "$f" > /dev/null
     fi
-    echo "it is the login screen now (SDDM reads it the next time it shows one). To see it without logging out:"
+    echo "it is the login screen now (SDDM reads its settings only when it starts: reboot, or restart it from a TTY with  sudo systemctl restart sddm  to see it). To see it without that:"
 else
     echo "the login screen is still \"$now\". To use this one: $0 --set. To see it first:"
 fi

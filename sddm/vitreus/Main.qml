@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Shapes
 import QtQuick.Effects
 
-// Vitreus's lock screen as a login screen: the picture arrives sharp and blurs into place, then the clock, the date, the avatar and the password bar rise in one after another.
+// Vitreus's lock screen as a login screen: the picture stays sharp, then the clock, the date, the avatar and the password bar rise in one after another.
 // A typed character is a random shape (the password itself is never drawn). Sleep, restart and power off are held for a second, since none of them can be undone.
 Item {
     id: root
@@ -56,6 +56,7 @@ Item {
     ListView {
         id: userList
         visible: false
+        width: 100; height: 100      // a list with no size makes no delegates, and currentItem stays null
         model: userModel
         currentIndex: root.userIndex
         delegate: Item { property string uname: model.name; property string real: model.realName }
@@ -63,6 +64,7 @@ Item {
     ListView {
         id: sessionList
         visible: false
+        width: 100; height: 100      // a list with no size makes no delegates, and currentItem stays null
         model: sessionModel
         currentIndex: root.sessionIndex
         delegate: Item { property string sname: model.name }
@@ -83,14 +85,6 @@ Item {
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
     }
-    Image {
-        anchors.fill: parent
-        source: config.blur
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
-        opacity: root.stage >= 1 ? 1 : 0
-        Behavior on opacity { NumberAnimation { duration: 1600; easing.type: Easing.InOutQuad } }
-    }
     Rectangle { anchors.fill: parent; color: "#0b0e11"; opacity: root.stage >= 1 ? 0.30 : 0.10; Behavior on opacity { NumberAnimation { duration: 1600 } } }
     Rectangle { anchors.fill: parent; color: "black"; opacity: root.leaving ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 500 } } z: 50 }
 
@@ -102,7 +96,7 @@ Item {
         width: clockText.width + 70 * root.u
         height: clockText.height
         anchors.horizontalCenter: parent.horizontalCenter
-        y: root.height * 0.07 + (root.stage >= 2 ? 0 : 26 * root.u)
+        y: root.height * 0.142 + (root.stage >= 2 ? 0 : 26 * root.u)
         opacity: root.stage >= 2 ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: 700; easing.type: Easing.OutCubic } }
         Behavior on y { NumberAnimation { duration: 800; easing.type: Easing.OutBack } }
@@ -393,18 +387,18 @@ Item {
     }
     Rectangle {
         id: sessionChip
-        anchors.right: parent.right
-        anchors.rightMargin: 34 * root.u
-        y: 30 * root.u
-        height: 34 * root.u
-        width: sessionLabel.width + 40 * root.u
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: bar.bottom
+        anchors.topMargin: 20 * root.u
+        height: 52 * root.u
+        width: sessionLabel.width + 64 * root.u
         radius: height / 2
         color: Qt.rgba(root.glass.r, root.glass.g, root.glass.b, sessionMouse.containsMouse ? 0.7 : 0.45)
         border.color: root.edge
-        opacity: root.stage >= 5 ? 1 : 0
+        opacity: root.stage >= 4 ? 1 : 0
         visible: sessionModel.count > 0 && root.sessionName !== ""
         Behavior on opacity { NumberAnimation { duration: 600 } }
-        Text { id: sessionLabel; anchors.centerIn: parent; text: root.sessionName; color: root.ink; opacity: 0.9; font.family: root.fontName; font.pixelSize: 14 * root.u; font.weight: Font.Medium }
+        Text { id: sessionLabel; anchors.centerIn: parent; text: root.sessionName; color: root.ink; opacity: 0.9; font.family: root.fontName; font.pixelSize: 21 * root.u; font.weight: Font.Medium }
         MouseArea {
             id: sessionMouse
             anchors.fill: parent
