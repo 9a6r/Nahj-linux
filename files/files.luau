@@ -12,6 +12,7 @@ local GRID_H, LINES_H = 132, 38
 local s = {
     home = "", data = "", path = "", items = {}, back = {}, fwd = {}, picked = {}, anchor = nil,
     cols = 6, first = 0, scroll = 0, view = "grid", hidden = false, sort = "name",
+    qtext = "", mode = nil, results = nil,      -- the search: what is typed; `filter` (this folder, as you type) or `deep` (the folders under it too, `results`)
     clip = nil, places = {}, pins = {}, crumbw = 300, crumbs = {}, ask = nil, tick = 0, last_i = nil, last_tick = -100, menu = nil, free = "",
 }
 
@@ -133,8 +134,9 @@ end
 
 local function sorted(items)
     local out = {}
+    local q = s.mode == "filter" and s.qtext ~= "" and s.qtext:lower() or nil
     for _, e in ipairs(items) do
-        if s.hidden or not e.hidden then out[#out + 1] = e end
+        if (s.hidden or not e.hidden) and (not q or e.name:lower():find(q, 1, true)) then out[#out + 1] = e end
     end
     table.sort(out, function(a, b)
         if a.dir ~= b.dir then return a.dir end
@@ -145,6 +147,11 @@ local function sorted(items)
         return a.name < b.name
     end)
     return out
+end
+
+-- what is shown: this folder (narrowed by what is typed in the search), or what a search of the folders under it found
+local function visible()
+    return sorted((s.mode == "deep" and s.results) or s.all or {})
 end
 
 -- ── what the scene shows ──
@@ -160,10 +167,16 @@ local function set_status()
     local n = #s.items
     local list = picked_list()
     if #list == 0 then
-        text.status = n == 1 and "1 item" or string.format("%d items", n)
+        if s.mode == "deep" then
+            text.status = string.format("%d %s for \"%s\"%s", n, n == 1 and "result" or "results", s.qtext, n >= 500 and " (the first 500)" or "")
+        elseif s.mode == "filter" and s.qtext ~= "" then
+            text.status = string.format("%d of %d", n, #(s.all or {}))
+        else
+            text.status = n == 1 and "1 item" or string.format("%d items", n)
+        end
     elseif #list == 1 then
         local e = list[1]
-        text.status = e.dir and e.name or (e.name .. " · " .. size_text(e.size))
+        text.status = (e.dir and e.name or (e.name .. " · " .. size_text(e.size))) .. (s.mode == "deep" and (" · " .. dirname(e.path)) or "")
     else
         local total = 0
         for _, e in ipairs(list) do if not e.dir then total = total + e.size end end
@@ -473,8 +486,9 @@ local function go(path, how, then_pick, on_fail)
         end
         s.path = path
         fact["in.trash"] = path == s.data .. "/Trash/files"
+        if s.mode then s.mode, s.results, s.qtext = nil, nil, ""; text.sq = ""; fact.searching = false end       -- (a search belongs to the folder it was made in)
         s.all = items
-        s.items = sorted(items)
+        s.items = visible()
         s.picked = {}
         s.anchor = nil
         if then_pick then
@@ -494,6 +508,7 @@ local function go(path, how, then_pick, on_fail)
     end)
 end
 
+local run_search
 local function refresh(then_pick, cb)
     local here = s.path
     list_dir(here, function(items)
@@ -501,7 +516,8 @@ local function refresh(then_pick, cb)
         local old = {}
         for p in pairs(s.picked) do old[p] = true end
         s.all = items
-        s.items = sorted(items)
+        if s.mode == "deep" then run_search(true) return end       -- what was found is looked for again
+        s.items = visible()
         s.picked = {}
         for i, e in ipairs(s.items) do
             if then_pick then
@@ -1212,6 +1228,80 @@ local function move_choice(d)
     ensure_visible(idx)
 end
 
+-- ── search ──
+-- The magnifier (or Ctrl+F) opens a field where the path was. What is typed narrows this folder as it is typed (`filter`); Enter looks in the folders under it as well (`deep`: up to 500
+-- finds, eight folders down, leaving out version control, caches and, unless hidden files are shown, the hidden folders) and shows them as the folder's own list, so they open,
+-- copy, cut and go to the Trash like anything else. Escape, the magnifier again or going to another folder puts the folder back.
+local search_seq = 0
+function run_search(again)
+    local q = trim(s.qtext)
+    if q == "" then return end
+    local here = s.path
+    local glob = q:gsub("[%*%?%[%]\\]", "\\%0")
+    local args = { here, "-mindepth", "1", "-maxdepth", "8", "(", "-name", ".git", "-o", "-name", "node_modules", "-o", "-name", ".cache" }
+    if not s.hidden then for _, a in ipairs({ "-o", "-name", ".*" }) do args[#args + 1] = a end end
+    for _, a in ipairs({ ")", "-prune", "-o", "-iname", "*" .. glob .. "*", "-printf", "%y\t%s\t%T@\t%p\n" }) do args[#args + 1] = a end
+    search_seq = search_seq + 1
+    local mine = search_seq
+    text.status = "Searching…"
+    run("find", args, function(out)
+        if mine ~= search_seq or here ~= s.path or not s.mode then return end
+        local items = {}
+        for line in (out or ""):gmatch("[^\n]+") do
+            local ty, sz, mt, path = line:match("^(%a)\t(%d+)\t([%d%.]+)\t(.*)$")
+            if path then
+                local name = basename(path)
+                local dir = ty == "d"
+                items[#items + 1] = { name = name, path = path, dir = dir, size = tonumber(sz) or 0, mtime = tonumber(mt) or 0, hidden = name:sub(1, 1) == ".", ik = ik_of(name, dir) }
+                if #items >= 500 then break end
+            end
+        end
+        s.mode, s.results = "deep", items
+        s.items = visible()
+        s.picked = {}
+        if not again then
+            s.first = 0
+            fact.gen = (tonumber(fact.gen) or 0) + 1
+        end
+        show_rows()
+    end)
+end
+local function open_search()
+    s.menu = nil
+    fact["menu.on"] = false
+    if not s.mode then
+        s.mode, s.qtext = "filter", ""
+        text.sq = ""
+        fact.searching = true
+    end
+    after(60, function() focus("sq") end)
+end
+local function close_search()
+    if not s.mode then return end
+    search_seq = search_seq + 1
+    s.mode, s.results, s.qtext = nil, nil, ""
+    text.sq = ""
+    fact.searching = false
+    focus()
+    s.items = visible()
+    s.picked = {}
+    s.first = 0
+    fact.gen = (tonumber(fact.gen) or 0) + 1
+    show_rows()
+end
+on("text:sq", function(v)
+    s.qtext = v or ""
+    if not s.mode then return end
+    search_seq = search_seq + 1
+    s.mode, s.results = "filter", nil
+    s.items = visible()
+    s.picked = {}
+    s.first = 0
+    fact.gen = (tonumber(fact.gen) or 0) + 1
+    show_rows()
+end)
+on("search_go", function() run_search() end)
+
 on("act", function(k)
     k = math.floor(tonumber(k) or 0)
     if k ~= 6 and k ~= 10 then close_menu() end
@@ -1250,6 +1340,7 @@ on("act", function(k)
         if s.props then close_props()
         elseif s.ask then close_ask()
         elseif s.menu then close_menu()
+        elseif s.mode then close_search()
         elseif next(s.picked) then s.picked = {}; show_rows() end
     elseif k == 11 then
         if s.path ~= "/" then go(dirname(s.path), nil, basename(s.path)) end
@@ -1269,7 +1360,7 @@ on("act", function(k)
         s.hidden = not s.hidden
         fact.hidden = s.hidden
         save()
-        s.items = sorted(s.all or {})
+        s.items = visible()
         s.picked = {}
         show_rows()
     elseif k == 15 then
@@ -1278,7 +1369,7 @@ on("act", function(k)
         fact.sort = s.sort
         text.sortname = "Sort: " .. SORT_NAMES[s.sort]
         save()
-        s.items = sorted(s.all or {})
+        s.items = visible()
         show_rows()
     elseif k == 20 then
         if s.view == "grid" then move_choice(-1) end
@@ -1288,6 +1379,10 @@ on("act", function(k)
         move_choice(-down_by())
     elseif k == 23 then
         move_choice(down_by())
+    elseif k == 30 then
+        open_search()
+    elseif k == 33 then
+        if s.mode then close_search() else open_search() end       -- (the magnifier: open, or shut)
     elseif k == 16 then
         show_props()
     elseif k == 19 then

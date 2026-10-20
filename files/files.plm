@@ -58,6 +58,9 @@ scene Files {
     text ask.ok = "OK"
     text ask.msg = ""
     text askin = ""
+    text sq = ""                      // what is typed in the search field
+    fact searching = false           // the search field is open (it takes the place of the path)
+    event search_go ->               // Enter in it: look in the folders under this one too
 
     model crumbs max 8 { at: number; name: text; path: text; x: number; w: number; last: bool }
     model places max 16 { at: number; name: text; path: text; pk: number; here: bool; pinned: bool }
@@ -530,7 +533,7 @@ scene Files {
     let cols.now = if(view == grid, max(floor(mw / tile.w), 1), 1)
     on change cols.now { emit set_cols(cols.now) }
     on change view { emit set_cols(cols.now) }
-    let pill.w = W - side - 126 - 214
+    let pill.w = W - side - 126 - 254
     on change ready { emit set_cols(cols.now); vh = mh; crumbw = pill.w - 40 }
     on change mh { vh = mh }
     on change pill.w { crumbw = pill.w - 40 }
@@ -621,9 +624,27 @@ scene Files {
         on hover bz.$i for 80ms { pen = 1 }
     }
     //  Where you are: each folder on the way, to be clicked.
-    box { from: side + 126, 16; size: W - side - 126 - 214, 36; corner: 18 * rr; color: ink; opacity: 7% }
+    box { from: side + 126, 16; size: pill.w, 36; corner: 18 * rr; color: ink; opacity: 7% }
+    //  The search: a magnifier before the buttons on the right; open, the field takes the place of the path (it filters this folder as you type; Enter looks in the folders under it too).
+    prop srh = 0 ~quick
+    follow srh = sbz.hover
+    box { at: W - 234, 34; size: 34, 34; corner: 10 * rr; color: mix(ink, mint, if(searching, 1, 0)); opacity: 12% * srh + 22% * if(searching, 1, 0) }
+    ellipse { at: W - 235, 33; radius: 6.5; stroke: 1.8; color: ink; opacity: 85% + 15% * srh }
+    path { at: W - 235, 33; stroke: 1.8; color: ink; opacity: 85% + 15% * sbh; move 4.7, 4.7; line 9, 9 }
+    zone box sbz { at: W - 234, 34; size: 34, 34; corner: 10 * rr; cursor: pointer; label: "Search" }
+    on press sbz { emit act(33) }
+    group {
+        show: searching
+        box { from: side + 126, 16; size: pill.w, 36; corner: 18 * rr; stroke: 1.2; color: mint; opacity: 60% }
+        ellipse { at: side + 150, 33; radius: 5.5; stroke: 1.6; color: mint; opacity: 90% }
+        path { at: side + 150, 33; stroke: 1.6; color: mint; opacity: 90%; move 4, 4; line 7.5, 7.5 }
+        input sq { at: side + 170, 26; width: pill.w - 60 - if(slim, 0, 190); size: 14; weight: 500; color: ink; placeholder: "Search this folder"; show: searching; family: "Space Grotesk" }
+        text "Enter: and the folders under it" { at: side + 126 + pill.w - 18, 34; anchor: right center; size: 11.5; weight: 500; color: faint; opacity: 80%; show: not slim; family: "Space Grotesk" }
+        on submit sq { emit search_go }
+    }
     for c in crumbs {
         group {
+            show: not searching
             let cx = side + 144 + c.x
             prop hv = 0 ~quick
             follow hv = cz.hover
@@ -946,26 +967,28 @@ scene Files {
     }
 
     // ── the keys ──
-    on key Return while not ask.on { emit act(7) }
-    on key F2 while not ask.on { emit act(2) }
-    on key Delete while not ask.on { emit act(3) }
-    on key Shift+Delete while not ask.on { emit act(17) }
+    on key Return while not ask.on and not searching { emit act(7) }
+    on key F2 while not ask.on and not searching { emit act(2) }
+    on key Delete while not ask.on and not searching { emit act(3) }
+    on key Shift+Delete while not ask.on and not searching { emit act(17) }
     on key Return while ask.on and not ask.input { emit ask_ok }
-    on key Ctrl+c while not ask.on { emit act(4) }
-    on key Ctrl+x while not ask.on { emit act(5) }
-    on key Ctrl+v while not ask.on { emit act(6) }
-    on key Ctrl+a while not ask.on { emit act(8) }
+    on key Ctrl+c while not ask.on and not searching { emit act(4) }
+    on key Ctrl+x while not ask.on and not searching { emit act(5) }
+    on key Ctrl+v while not ask.on and not searching { emit act(6) }
+    on key Ctrl+a while not ask.on and not searching { emit act(8) }
     on key F5 { emit act(9) }
     on key Alt+Return { emit act(16) }
     on key Escape { emit act(10) }
-    on key BackSpace while not ask.on { emit act(11) }
+    on key BackSpace while not ask.on and not searching { emit act(11) }
     on key Alt+Up { emit act(11) }
     on key Alt+Left { emit act(12) }
     on key Alt+Right { emit act(13) }
-    on key Ctrl+h while not ask.on { emit act(14) }
+    on key Ctrl+h while not ask.on and not searching { emit act(14) }
     on key Ctrl+Shift+n { emit act(1) }
-    on key Left while not ask.on { emit act(20) }
-    on key Right while not ask.on { emit act(21) }
-    on key Up while not ask.on { emit act(22) }
-    on key Down while not ask.on { emit act(23) }
+    on key Ctrl+f { emit act(30) }
+    on key Ctrl+Shift+f { emit act(30) }
+    on key Left while not ask.on and not searching { emit act(20) }
+    on key Right while not ask.on and not searching { emit act(21) }
+    on key Up while not ask.on and not searching { emit act(22) }
+    on key Down while not ask.on and not searching { emit act(23) }
 }
