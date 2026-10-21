@@ -4124,10 +4124,10 @@ scene Vitreus {
     //  Those four shapes are never zero-size (a floor of 0.3 keeps them valid), so left in place they are a sliver on the strip's edge at the height of
     //  the panel last opened. They are only in play while a panel that drips is on its way or just after it (its ripples and stray drop), and
     //  off the screen the rest of the time (`show:` does not take a shape off the glass).
-    let dj.act = if(cas_k < 0.5 and lmk > 0.5 and att < 0.5 and lside < 0.5 and ssd < 0.5 and (dtrav > 0.02 or prip < 0.98 or pstray > 0.01 or abs(pbounce) > 0.2), 1, 0)
+    let dj.act = if(cas_k < 0.5 and lmk > 0.5 and att < 0.5 and lside < 0.5 and ssd < 0.5 and pown > 0.5 and (dtrav > 0.02 or prip < 0.98 or pstray > 0.01 or abs(pbounce) > 0.2), 1, 0)
     let dj.px = if(dj.act > 0.5, 0, 30000)
     //  A drawer out of a left notch (search with the strip along the top, Settings along the bottom) drips sideways: the same four shapes, turned a quarter, along the left frame.
-    let dj.sideact = if(cas_k < 0.5 and lmk > 0.5 and lside + ssd > 0.5 and (dtrav > 0.02 or prip < 0.98 or pstray > 0.01 or abs(pbounce) > 0.2), 1, 0)
+    let dj.sideact = if(cas_k < 0.5 and lmk > 0.5 and lside + ssd > 0.5 and pown > 0.5 and (dtrav > 0.02 or prip < 0.98 or pstray > 0.01 or abs(pbounce) > 0.2), 1, 0)
     let dj.spx = if(dj.sideact > 0.5, 0, 30000)
     //  Each drawer's shape as it is drawn (`*.ex`, `*.ey` its middle, `*.ew`, `*.eh` its size). From the top bar it is the drawer above: it falls,
     //  widening on the way. Down the left it comes out sideways from the strip instead: it starts small and grows in both ways (`*.lf`, the same quick

@@ -23,7 +23,17 @@ return function()
         hypr_monitors(0, function(out, code)
             if code ~= 0 or not out then return done(nil) end
             local ok, list = pcall(json.decode, out)
-            if not ok or type(list) ~= "table" then return done(nil) end
+            if not ok or type(list) ~= "table" then
+                -- Under pleamar-wm `hyprctl monitors` is its own text, one block a monitor ("Monitor DP-2 (ID 1):", "2560x1440@165 at 1440x730",
+                -- "scale: 1.00", "focused: yes"), the size already turned for a rotated monitor: read that, and the copy is matched by size as below.
+                list = {}
+                for name, id, body in (out .. "\n\n"):gmatch("Monitor (%S+) %(ID (%d+)%):(.-)\n\n") do
+                    local w, h = body:match("(%d+)x(%d+)@")
+                    list[#list + 1] = { name = name, id = tonumber(id), width = tonumber(w), height = tonumber(h), transform = 0, scale = 1,
+                                        focused = body:match("focused: yes") ~= nil }
+                end
+                if #list == 0 then return done(nil) end
+            end
             local names, foc = {}, nil
             for _, j in ipairs(list) do
                 names[#names + 1] = tostring(j.name)
