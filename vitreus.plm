@@ -374,6 +374,8 @@ scene Vitreus {
     fact glass_rim = 1
     fact glass_refr = 1
     fact glass_disp = 1
+    fact glass_dome = 0              // pleamar's `dome:` (magnifies what is behind, towards the middle), 0 to 150 %: a test knob
+    fact glass_milk = 0              // pleamar's `milk:` (a milky veil inside the glass), 0 to 100 %: a test knob
     fact glass_bend = false
     fact glass_clear = 1             // pleamar's `frost:` (0.2.35): 0 clear glass, 1 frosted inside the bevel; only the glass that bends has it
     fact glass_auto = false          // `frost: auto`: frosted only where what is behind is busy
@@ -412,10 +414,14 @@ scene Vitreus {
     text glass_rim_text = "100%"
     text glass_refr_text = "100%"
     text glass_disp_text = "100%"
+    text glass_dome_text = "0%"
+    text glass_milk_text = "0%"
     text hy_blur_text = "3"
     event glass_rim_set ->
     event glass_refr_set ->
     event glass_disp_set ->
+    event glass_dome_set ->
+    event glass_milk_set ->
     event glass_bend_toggle ->
     event glass_blur_set ->
     event glass_op_set ->           // the Opacity slider: 0..1 along its track
@@ -4069,7 +4075,7 @@ scene Vitreus {
     let vpn.fh = if(vpn_mode == vpm_wg, 180, if(vpn_mode == vpm_ovpn, 144, 276))
     let wm.h = 946                     // the Pleamar-WM page: to the bottom of its last card
     let ck.h = 1208                    // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
-    let gl.h = 554                     // the Glass page: to the bottom of its last card
+    let gl.h = 682                     // the Glass page: to the bottom of its last card
     let lk.h = 806                     // the Lock screen page: its cards, to the bottom of the last
     //  The Notifications page: the apps card has a row for each app (up to 14), and the rules card is there while one is open.
     let nt.ds = (14 - clamp(nta_count, 1, 14)) * 36
@@ -5315,6 +5321,8 @@ scene Vitreus {
             frost: glass_clear
             refraction: glass_refr
             dispersion: glass_disp
+            dome: glass_dome
+            milk: glass_milk
             rim: 10% * glass_rim
             shine: pointer
             shadow: 0, 7, 20, 24%, deep
@@ -5332,6 +5340,8 @@ scene Vitreus {
             frost: auto
             refraction: glass_refr
             dispersion: glass_disp
+            dome: glass_dome
+            milk: glass_milk
             rim: 10% * glass_rim
             shine: pointer
             shadow: 0, 7, 20, 24%, deep
@@ -6101,6 +6111,8 @@ scene Vitreus {
             frost: glass_clear
             refraction: glass_refr
             dispersion: glass_disp
+            dome: glass_dome
+            milk: glass_milk
             rim: 14% * glass_rim
             shadow: 0, 18 * u, 50 * u, 45%, deep
             show: obs < 0.996 and not glass_auto
@@ -6115,6 +6127,8 @@ scene Vitreus {
             frost: auto
             refraction: glass_refr
             dispersion: glass_disp
+            dome: glass_dome
+            milk: glass_milk
             rim: 14% * glass_rim
             shadow: 0, 18 * u, 50 * u, 45%, deep
             show: obs < 0.996 and glass_auto

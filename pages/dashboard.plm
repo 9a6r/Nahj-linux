@@ -44,6 +44,8 @@ part Dashboard {
                 frost: glass_clear
                 refraction: glass_refr
                 dispersion: glass_disp
+                dome: glass_dome
+                milk: glass_milk
                 rim: 14% * glass_rim
                 shine: pointer
                 shadow: 0, 14 * (1 - dsh_under), 36, 34% * (1 - dsh_under), deep

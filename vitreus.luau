@@ -3916,7 +3916,7 @@ wp_load()
 -- lives in the Hyprland section below (it puts its setter in `glass.set_blur`).
 -- `clear` (0 clear glass .. 1 frosted, pleamar's `frost:`) and `auto` (frost only where what is behind is busy) are the glass that bends's own
 -- frost, and only show with `bend`. (There was once a "glass amount" slider, the scene's `glass:`: it overlapped Opacity and the Glass switch, and is always 100 % now.)
-local glass = { opacity = 1, rim = 1, refr = 1, disp = 1, bend = false, obsidian = false, clear = 1, auto = false }
+local glass = { opacity = 1, rim = 1, refr = 1, disp = 1, dome = 0, milk = 0, bend = false, obsidian = false, clear = 1, auto = false }
 local GLASS_OP_MIN = 0.3
 local glass_save_waiting = false
 
@@ -3926,6 +3926,8 @@ local function glass_refresh()
     fact.glass_rim = glass.rim
     fact.glass_refr = glass.refr
     fact.glass_disp = glass.disp
+    fact.glass_dome = glass.dome
+    fact.glass_milk = glass.milk
     fact.glass_bend = glass.bend
     fact.glass_clear = glass.clear
     fact.glass_auto = glass.auto
@@ -3934,6 +3936,8 @@ local function glass_refresh()
     text.glass_rim_text = string.format("%d%%", math.floor(glass.rim * 100 + 0.5))
     text.glass_refr_text = string.format("%d%%", math.floor(glass.refr * 100 + 0.5))
     text.glass_disp_text = string.format("%d%%", math.floor(glass.disp * 100 + 0.5))
+    text.glass_dome_text = string.format("%d%%", math.floor(glass.dome * 100 + 0.5))
+    text.glass_milk_text = string.format("%d%%", math.floor(glass.milk * 100 + 0.5))
 end
 -- The desktop clock and system monitor are scenes of their own: they are told when the glass goes off or on (they ask for it themselves when they start).
 function glass.push_obs()
@@ -3950,7 +3954,7 @@ local function glass_save_soon()
     glass_save_waiting = true
     after(500, function()
         glass_save_waiting = false
-        pcall(sys.call, "files.write", "glass.json", { opacity = glass.opacity, rim = glass.rim, refr = glass.refr, disp = glass.disp, bend = glass.bend, obsidian = glass.obsidian, clear = glass.clear, auto = glass.auto })
+        pcall(sys.call, "files.write", "glass.json", { opacity = glass.opacity, rim = glass.rim, refr = glass.refr, disp = glass.disp, dome = glass.dome, milk = glass.milk, bend = glass.bend, obsidian = glass.obsidian, clear = glass.clear, auto = glass.auto })
     end)
 end
 
@@ -3961,6 +3965,8 @@ do
         if type(saved.rim) == "number" then glass.rim = math.max(0, math.min(2, saved.rim)) end
         if type(saved.refr) == "number" then glass.refr = math.max(0, math.min(2, saved.refr)) end
         if type(saved.disp) == "number" then glass.disp = math.max(0, math.min(2.5, saved.disp)) end
+        if type(saved.dome) == "number" then glass.dome = math.max(0, math.min(1.5, saved.dome)) end
+        if type(saved.milk) == "number" then glass.milk = math.max(0, math.min(1, saved.milk)) end
         if type(saved.bend) == "boolean" then glass.bend = saved.bend end
         if type(saved.obsidian) == "boolean" then glass.obsidian = saved.obsidian end
         if type(saved.clear) == "number" then glass.clear = math.max(0, math.min(1, saved.clear)) end
@@ -3981,6 +3987,8 @@ function glass.step(t, top) return math.floor(math.max(0, math.min(1, t)) * top 
 on("glass_rim_set", function(t) glass.rim = glass.step(t, 2); glass_refresh(); glass_save_soon() end)
 on("glass_refr_set", function(t) glass.refr = glass.step(t, 2); glass_refresh(); glass_save_soon() end)
 on("glass_disp_set", function(t) glass.disp = glass.step(t, 2.5); glass_refresh(); glass_save_soon() end)
+on("glass_dome_set", function(t) glass.dome = glass.step(t, 1.5); glass_refresh(); glass_save_soon() end)
+on("glass_milk_set", function(t) glass.milk = glass.step(t, 1); glass_refresh(); glass_save_soon() end)
 on("glass_obs_toggle", function() glass.obsidian = not glass.obsidian; glass_refresh(); glass_save_soon() end)
 on("glass_bend_toggle", function() glass.bend = not glass.bend; glass_refresh(); glass_save_soon() end)
 on("glass_clear_set", function(t) glass.clear = glass.step(t, 1); glass_refresh(); glass_save_soon() end)

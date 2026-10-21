@@ -15,6 +15,8 @@ part BarGlass {
             frost: glass_clear
             refraction: glass_refr
             dispersion: glass_disp
+            dome: glass_dome
+            milk: glass_milk
             rim: 10% * glass_rim + 14% * pv * glass_rim
             shine: pointer
             shadow: 0, 1 + 6 * drop + 3 * pv, 6 + 14 * drop + 8 * pv, 8% + 16% * drop + 8% * pv, deep
@@ -29,6 +31,8 @@ part BarGlass {
             frost: glass_clear
             refraction: glass_refr
             dispersion: glass_disp
+            dome: glass_dome
+            milk: glass_milk
             rim: 10% * glass_rim + 14% * pv * glass_rim
             shine: pointer
             shadow: 0, 1 + 6 * drop + 3 * pv, 6 + 14 * drop + 8 * pv, 8% + 16% * drop + 8% * pv, deep
@@ -44,6 +48,8 @@ part BarGlass {
             frost: glass_clear
             refraction: glass_refr
             dispersion: glass_disp
+            dome: glass_dome
+            milk: glass_milk
             rim: 10% * glass_rim + 14% * pv * glass_rim
             shine: pointer
             shadow: 0, 1 + 6 * drop + 3 * pv, 6 + 14 * drop + 8 * pv, 8% + 16% * drop + 8% * pv, deep
@@ -59,6 +65,8 @@ part BarGlass {
             frost: glass_clear
             refraction: glass_refr
             dispersion: glass_disp
+            dome: glass_dome
+            milk: glass_milk
             rim: 10% * glass_rim + 14% * pv * glass_rim
             shine: pointer
             shadow: 0, 1 + 6 * drop + 3 * pv, 6 + 14 * drop + 8 * pv, 8% + 16% * drop + 8% * pv, deep
@@ -75,6 +83,8 @@ part BarGlass {
             frost: auto
             refraction: glass_refr
             dispersion: glass_disp
+            dome: glass_dome
+            milk: glass_milk
             rim: 10% * glass_rim + 14% * pv * glass_rim
             shine: pointer
             shadow: 0, 1 + 6 * drop + 3 * pv, 6 + 14 * drop + 8 * pv, 8% + 16% * drop + 8% * pv, deep
@@ -89,6 +99,8 @@ part BarGlass {
             frost: auto
             refraction: glass_refr
             dispersion: glass_disp
+            dome: glass_dome
+            milk: glass_milk
             rim: 10% * glass_rim + 14% * pv * glass_rim
             shine: pointer
             shadow: 0, 1 + 6 * drop + 3 * pv, 6 + 14 * drop + 8 * pv, 8% + 16% * drop + 8% * pv, deep
@@ -104,6 +116,8 @@ part BarGlass {
             frost: auto
             refraction: glass_refr
             dispersion: glass_disp
+            dome: glass_dome
+            milk: glass_milk
             rim: 10% * glass_rim + 14% * pv * glass_rim
             shine: pointer
             shadow: 0, 1 + 6 * drop + 3 * pv, 6 + 14 * drop + 8 * pv, 8% + 16% * drop + 8% * pv, deep
@@ -119,6 +133,8 @@ part BarGlass {
             frost: auto
             refraction: glass_refr
             dispersion: glass_disp
+            dome: glass_dome
+            milk: glass_milk
             rim: 10% * glass_rim + 14% * pv * glass_rim
             shine: pointer
             shadow: 0, 1 + 6 * drop + 3 * pv, 6 + 14 * drop + 8 * pv, 8% + 16% * drop + 8% * pv, deep
