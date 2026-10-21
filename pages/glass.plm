@@ -198,6 +198,29 @@ part Glass {
             on scroll glass_hit8 { gl_scroll_to = clamp(gl_scroll_to - wheel * 44, 0, max(0, gl.h - set.h)) }
             on drag glass_hit8 { emit glass_milk_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
 
+            //  Bend on: which monitors the bend is on. A lit tile is the only monitor that bends; none lit is all of them. The tiles are the Bar page's.
+            //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
+            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 730 * pu; size: 438 * pu, 98 * pu; corner: 14 * pu } }
+            box { at: spx + 219 * pu, sby + 730 * pu; size: 438 * pu, 98 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 697 * pu + 0.5); text "Bend on" { at: floor(spx + 14 * pu + 0.5), floor(sby + 697 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 712 * pu + 0.5); text "Pick one monitor to bend only there; none picked is all" { at: floor(spx + 14 * pu + 0.5), floor(sby + 712 * pu + 0.5); anchor: left center; size: 12.5; color: faint; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
+            repeat i in 0..4 {
+                let gbx = spx + (52 + i * 83) * pu
+                let gby = sby + 770 * pu
+                let gblit = if(glass_bm.$i, 1, 0)
+                group {
+                    show: bar_m.$i.on
+                    opacity: 100% * (0.35 + 0.65 * glass_bend_k)
+                    box { at: gbx, gby; size: 66 * pu, 56 * pu; corner: 12 * pu; color: if(gblit > 0, mint, ink); opacity: if(gblit > 0, 24%, 6% + 10% * glass_bm_hit.$i.hover) }
+                    box { at: gbx, gby; size: 66 * pu, 56 * pu; corner: 12 * pu; stroke: 1.5 * pu; color: mint; opacity: gblit * 100% }
+                    box { at: gbx, gby - 10 * pu; size: 30 * pu, 18 * pu; corner: 3 * pu; stroke: 1.2 * pu; color: mix(ink, mint, gblit) }
+                    group { scale: rs; pivot: floor(gbx + 0.5), floor(gby + 14 * pu + 0.5); text bar_m.$i.name { at: floor(gbx + 0.5), floor(gby + 14 * pu + 0.5); anchor: center; align: center; size: 14; weight: 700; width: (64 * pu) / rs; lines: 1; color: mix(ink, mint, gblit); family: "Space Grotesk" } }
+                    zone box glass_bm_hit.$i { at: gbx, gby; size: 66 * pu, 56 * pu; corner: 12 * pu; cursor: pointer; active: (obs < 0.5 and glass_bend and bar_m.$i.on) and gby - gl.off > sby and gby - gl.off < sby + set.h * pu }
+                    on press glass_bm_hit.$i { emit glass_bend_mon(i) }
+                    on scroll glass_bm_hit.$i { gl_scroll_to = clamp(gl_scroll_to - wheel * 44, 0, max(0, gl.h - set.h)) }
+                }
+            }
+
 
 
             }

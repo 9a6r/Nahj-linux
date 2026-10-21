@@ -3916,11 +3916,23 @@ wp_load()
 -- lives in the Hyprland section below (it puts its setter in `glass.set_blur`).
 -- `clear` (0 clear glass .. 1 frosted, pleamar's `frost:`) and `auto` (frost only where what is behind is busy) are the glass that bends's own
 -- frost, and only show with `bend`. (There was once a "glass amount" slider, the scene's `glass:`: it overlapped Opacity and the Glass switch, and is always 100 % now.)
-local glass = { opacity = 1, rim = 1, refr = 1, disp = 1, dome = 0, milk = 0, bend = false, obsidian = false, clear = 1, auto = false }
+local glass = { opacity = 1, rim = 1, refr = 1, disp = 1, dome = 0, milk = 0, bend = false, bend_mon = nil, obsidian = false, clear = 1, auto = false }
 local GLASS_OP_MIN = 0.3
 local glass_save_waiting = false
 
+-- "Bend on": the glass bends on every monitor, or only on the one named in `glass.bend_mon`. Each copy of the bar knows its monitor by `screen.K.name`
+-- (empty until it knows: it bends then), the page's tiles are the Bar page's (`bar_m.i.name`). Only sets what changed.
+local function glass_mons()
+    for k = 0, 3 do
+        local name = text["screen." .. k .. ".name"]
+        local on = glass.bend_mon == nil or name == nil or name == "" or name == glass.bend_mon
+        if fact["glass_b" .. k] ~= on then fact["glass_b" .. k] = on end
+        local lit = glass.bend_mon ~= nil and text["bar_m." .. k .. ".name"] == glass.bend_mon
+        if fact["glass_bm." .. k] ~= lit then fact["glass_bm." .. k] = lit end
+    end
+end
 local function glass_refresh()
+    glass_mons()
     fact.glass_op = glass.opacity
     text.glass_op_text = string.format("%d%%", math.floor(glass.opacity * 100 + 0.5))
     fact.glass_rim = glass.rim
@@ -3954,7 +3966,7 @@ local function glass_save_soon()
     glass_save_waiting = true
     after(500, function()
         glass_save_waiting = false
-        pcall(sys.call, "files.write", "glass.json", { opacity = glass.opacity, rim = glass.rim, refr = glass.refr, disp = glass.disp, dome = glass.dome, milk = glass.milk, bend = glass.bend, obsidian = glass.obsidian, clear = glass.clear, auto = glass.auto })
+        pcall(sys.call, "files.write", "glass.json", { opacity = glass.opacity, rim = glass.rim, refr = glass.refr, disp = glass.disp, dome = glass.dome, milk = glass.milk, bend = glass.bend, bend_mon = glass.bend_mon, obsidian = glass.obsidian, clear = glass.clear, auto = glass.auto })
     end)
 end
 
@@ -3968,6 +3980,7 @@ do
         if type(saved.dome) == "number" then glass.dome = math.max(0, math.min(1.5, saved.dome)) end
         if type(saved.milk) == "number" then glass.milk = math.max(0, math.min(1, saved.milk)) end
         if type(saved.bend) == "boolean" then glass.bend = saved.bend end
+        if type(saved.bend_mon) == "string" and saved.bend_mon ~= "" then glass.bend_mon = saved.bend_mon end
         if type(saved.obsidian) == "boolean" then glass.obsidian = saved.obsidian end
         if type(saved.clear) == "number" then glass.clear = math.max(0, math.min(1, saved.clear)) end
         if type(saved.auto) == "boolean" then glass.auto = saved.auto end
@@ -3990,6 +4003,14 @@ on("glass_disp_set", function(t) glass.disp = glass.step(t, 2.5); glass_refresh(
 on("glass_dome_set", function(t) glass.dome = glass.step(t, 1.5); glass_refresh(); glass_save_soon() end)
 on("glass_milk_set", function(t) glass.milk = glass.step(t, 1); glass_refresh(); glass_save_soon() end)
 on("glass_obs_toggle", function() glass.obsidian = not glass.obsidian; glass_refresh(); glass_save_soon() end)
+on("glass_bend_mon", function(i)
+    local name = text["bar_m." .. math.floor(i) .. ".name"]
+    if name == nil or name == "" then return end
+    glass.bend_mon = (glass.bend_mon ~= name) and name or nil
+    glass_refresh(); glass_save_soon()
+end)
+-- the monitors' names arrive after the shell starts, and change when one is plugged in
+every(2000, glass_mons)
 on("glass_bend_toggle", function() glass.bend = not glass.bend; glass_refresh(); glass_save_soon() end)
 on("glass_clear_set", function(t) glass.clear = glass.step(t, 1); glass_refresh(); glass_save_soon() end)
 on("glass_auto_toggle", function() glass.auto = not glass.auto; glass_refresh(); glass_save_soon() end)

@@ -377,6 +377,15 @@ scene Vitreus {
     fact glass_dome = 0              // pleamar's `dome:` (magnifies what is behind, towards the middle), 0 to 150 %: a test knob
     fact glass_milk = 0              // pleamar's `milk:` (a milky veil inside the glass), 0 to 100 %: a test knob
     fact glass_bend = false
+    //  Which monitors bend (the Glass page's "Bend on"): `glass_b0` to `glass_b3` by copy number, all true while no monitor is picked (vitreus.luau). `glass_bm.i` lights the page's tile i.
+    fact glass_b0 = true
+    fact glass_b1 = true
+    fact glass_b2 = true
+    fact glass_b3 = true
+    repeat i in 0..4 {
+        fact glass_bm.$i = false
+    }
+    event glass_bend_mon ->
     fact glass_clear = 1             // pleamar's `frost:` (0.2.35): 0 clear glass, 1 frosted inside the bevel; only the glass that bends has it
     fact glass_auto = false          // `frost: auto`: frosted only where what is behind is busy
     text glass_clear_text = "100%"
@@ -3670,6 +3679,7 @@ scene Vitreus {
     fact bar_others = false                  // the monitors without the bar keep the frame alone, with no notches (logic/bar_monitors.luau)
     let sb = if(screen.index == 0, if(bar_c0, 1, 0), if(screen.index == 1, if(bar_c1, 1, 0), if(screen.index == 2, if(bar_c2, 1, 0), if(bar_c3, 1, 0))))
     let lm = mix(1, clamp(bar_lm, 0, 1), sb)
+    let gbm = if(screen.index == 0, if(glass_b0, 1, 0), if(screen.index == 1, if(glass_b1, 1, 0), if(screen.index == 2, if(glass_b2, 1, 0), if(glass_b3, 1, 0))))
     //  The strip on the right is the left one in a mirror: the glass is drawn flipped about the middle of the screen (`rt` is 1 then), and every block of
     //  content that belongs to it (the strip's pieces, the panels that come out of it or out of a frame's notch) is drawn where its mirror image falls, upright.
     let rt = if(bar_frame and bar_anchor == right, sb, 0)
@@ -4075,7 +4085,7 @@ scene Vitreus {
     let vpn.fh = if(vpn_mode == vpm_wg, 180, if(vpn_mode == vpm_ovpn, 144, 276))
     let wm.h = 946                     // the Pleamar-WM page: to the bottom of its last card
     let ck.h = 1208                    // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
-    let gl.h = 682                     // the Glass page: to the bottom of its last card
+    let gl.h = 792                     // the Glass page: to the bottom of its last card
     let lk.h = 806                     // the Lock screen page: its cards, to the bottom of the last
     //  The Notifications page: the apps card has a row for each app (up to 14), and the rules card is there while one is open.
     let nt.ds = (14 - clamp(nta_count, 1, 14)) * 36
@@ -5317,7 +5327,7 @@ scene Vitreus {
             color: mix(tint, #000000, cy_dark * cy_k)
             glass: 100%
             opacity: glass_op * (1 - obs)
-            lens: glass_bend
+            lens: glass_bend and gbm > 0.5
             frost: glass_clear
             refraction: glass_refr
             dispersion: glass_disp
@@ -5336,7 +5346,7 @@ scene Vitreus {
             color: mix(tint, #000000, cy_dark * cy_k)
             glass: 100%
             opacity: glass_op * (1 - obs)
-            lens: glass_bend
+            lens: glass_bend and gbm > 0.5
             frost: auto
             refraction: glass_refr
             dispersion: glass_disp
@@ -6107,7 +6117,7 @@ scene Vitreus {
             color: mix(tint, #000000, cy_dark * cy_k)
             glass: 100%
             opacity: glass_op * (1 - obs)
-            lens: glass_bend
+            lens: glass_bend and gbm > 0.5
             frost: glass_clear
             refraction: glass_refr
             dispersion: glass_disp
@@ -6123,7 +6133,7 @@ scene Vitreus {
             color: mix(tint, #000000, cy_dark * cy_k)
             glass: 100%
             opacity: glass_op * (1 - obs)
-            lens: glass_bend
+            lens: glass_bend and gbm > 0.5
             frost: auto
             refraction: glass_refr
             dispersion: glass_disp
