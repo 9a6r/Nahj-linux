@@ -70,7 +70,7 @@ scene Vitreus {
     //  The keyboard is `on_demand`, not `exclusive`: it is asked for every open copy at once (the `while` is not per copy), and Hyprland gave it, and the
     //  pointer with it, to a copy where nothing was open: the cursor seemed stuck until the panel closed. A field that takes the focus (the launcher's
     //  search, the desk's inputs) still has it lent exclusively, to the copy it is on only.
-    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 68 while bar_anchor == top and not bar_frame and bar_size > 0.995; screens: each max 2; open: sb > 0.5 or bar_others; keyboard: on_demand while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or dash_open }
+    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 62 while bar_anchor == top and not bar_frame and bar_size > 0.995; screens: each max 4; open: sb > 0.5 or bar_others; keyboard: on_demand while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or dash_open }
     permissions { services: "files", "files.write", "auth", "clock", "clock.seconds", "thumbnails", "thumbnails.*", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
                   run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "vitreus-themes", "claude", "ollama", "codex", "pacman", "paru", "yay", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "date", "udevadm", "test", "wl-paste", "ffprobe" }
 
@@ -538,9 +538,9 @@ scene Vitreus {
     //  The pages of the settings panel, and how far the second is in (for the sidebar's highlight and the
     //  panel's height, which follows the page).
     fact set_page: pg_wall | pg_glass | pg_disp | pg_bar | pg_night | pg_hypr | pg_about | pg_sys | pg_nt | pg_lock | pg_wm | pg_vpn | pg_clock | pg_theme | pg_keys = pg_wall
-    //  The Bar page: which monitors the bar is on (see the Bar section of vitreus.luau). `bar_scr` is -1 for all
-    //  of them, or which monitor tile is chosen.
-    fact bar_scr = -1
+    //  The Bar page: which monitors the bar is on, one or two (logic/bar_monitors.luau). `bar_sel.i` is whether monitor tile i is chosen, and `bar_rest`
+    //  whether some plugged-in monitor is not (the ones that can keep the frame alone).
+    fact bar_rest = false
     //  The bar's position (Settings > Bar): along the top, or down the left edge with a frame round the screen (see the Bar section of
     //  vitreus.luau). The surface's anchor follows it; `bar_lm` is how far over to the left it has got, and the panels still hang from the top
     //  edge, `lp_w` wide (the one last opened), their left edge by the strip.
@@ -560,6 +560,7 @@ scene Vitreus {
     fact lp_k = 0                   // which panel was opened last: 1 settings, 2 launcher, 3 controls, 4 calendar, 5 tray, 6 player, 7 volume, 8 notification
     repeat i in 0..4 {
         fact bar_m.$i.on = false
+        fact bar_sel.$i = false
         text bar_m.$i.name = ""
         text bar_m.$i.sub = ""
     }
@@ -1155,6 +1156,8 @@ scene Vitreus {
     follow ws.spp = if(ws.special and ws.spk == 2, 1, 0)
     prop wspl.0 = 0 ~pop                                  // the plus's hover, on the spring that pops past
     prop wspl.1 = 0 ~pop
+    prop wspl.2 = 0 ~pop
+    prop wspl.3 = 0 ~pop
     //  The mark of the workspace in view is one piece that travels: its head runs ahead to the new place and its tail follows, so it
     //  stretches across what lies between and gathers again.
     prop pl.head = 1 ~150ms
@@ -1301,6 +1304,8 @@ scene Vitreus {
     //  and stays while the charge is under 20 %, whatever the pointer does.
     prop batt_open.0 = 0 ~calm
     prop batt_open.1 = 0 ~calm
+    prop batt_open.2 = 0 ~calm
+    prop batt_open.3 = 0 ~calm
     //  While the charger is filling the battery, a soft glint crosses the bar every 5 seconds (and once as soon as it
     //  is plugged in): `charge_sweep` goes from 0 to 1 over 0.9 s and then rests at 1. It is a timer that wakes the
     //  scene for that second and lets it sleep for the other four. A battery that says "charging" at 98 % or more is
@@ -1310,10 +1315,16 @@ scene Vitreus {
     on change chg_now while chg_now and bat_pct < 98 { charge_sweep: 0 ~0ms; charge_sweep: 1 ~600ms after 40ms }
     repeat i in 1..6 { prop wsh.$i.0 = 0 ~quick }         // each workspace dot's hover, brought out of its `repeat`
     repeat i in 1..6 { prop wsh.$i.1 = 0 ~quick }
+    repeat i in 1..6 { prop wsh.$i.2 = 0 ~quick }
+    repeat i in 1..6 { prop wsh.$i.3 = 0 ~quick }
     prop ovp.0 = 0 ~pop                                   // the overview button's hover, on the same spring: how much it swells
     prop ovp.1 = 0 ~pop
+    prop ovp.2 = 0 ~pop
+    prop ovp.3 = 0 ~pop
     repeat i in 1..6 { prop wsp.$i.0 = 0 ~pop }           // the same, on a spring that pops a little past: how much a hovered mark swells
     repeat i in 1..6 { prop wsp.$i.1 = 0 ~pop }
+    repeat i in 1..6 { prop wsp.$i.2 = 0 ~pop }
+    repeat i in 1..6 { prop wsp.$i.3 = 0 ~pop }
     follow batt_fill = clamp(bat_pct / 100, 0, 1)
     follow batt_on = if(bat_here, 1, 0)
     follow batt_low = if(bat_pct < 20 and not chg_now, 1, 0)
@@ -1322,12 +1333,20 @@ scene Vitreus {
     prop cdk_ga = 0 ~calm             // how far out the corner dock is (0 while it holds nothing)
     prop cdk_cx.0 = 0 ~cdk_sp           // where the middle of its icons is, in the glass's own drawing (see `cdk.*`)
     prop cdk_cx.1 = 0 ~cdk_sp
+    prop cdk_cx.2 = 0 ~cdk_sp
+    prop cdk_cx.3 = 0 ~cdk_sp
     prop cdk_cy.0 = 0 ~cdk_sp
     prop cdk_cy.1 = 0 ~cdk_sp
+    prop cdk_cy.2 = 0 ~cdk_sp
+    prop cdk_cy.3 = 0 ~cdk_sp
     prop cdk_ax.0 = 0 ~calm             // which way it reaches into the frame: -1 left, 1 right, 0 free (while it is pulled)
     prop cdk_ax.1 = 0 ~calm
+    prop cdk_ax.2 = 0 ~calm
+    prop cdk_ax.3 = 0 ~calm
     prop cdk_ay.0 = 0 ~calm
     prop cdk_ay.1 = 0 ~calm
+    prop cdk_ay.2 = 0 ~calm
+    prop cdk_ay.3 = 0 ~calm
     prop trn = 0 ~calm                // how many tray icons the bar holds, smoothly: the bar widens with it
     prop disp_auto_pill = 0 ~pop
     prop snd_pill = 0 ~pop
@@ -2128,7 +2147,7 @@ scene Vitreus {
     }
 
     //  One number scales the whole shell. The exclusive zone (`reserve` above) is
-    //  the bar and a little air: 8 + bar.h + 6 (68). Below 100 % the Island reserves nothing (a reserve is a plain number): the room is kept by `fr.*` under pleamar-wm, by `gaps_out` on Hyprland (vitreus.luau). Only along the top: down the left, the room is the windows' gaps
+    //  the bar: 8 + bar.h (62). Below 100 % the Island reserves nothing (a reserve is a plain number): the room is kept by `fr.*` under pleamar-wm, by `gaps_out` on Hyprland (vitreus.luau). Only along the top: down the left, the room is the windows' gaps
     //  (vitreus_colors.lua), and a reserve there as well would leave an empty strip beside the bar.
     let u = 1.35                    // (the icon models are declared at their size times this: 20 → 27, 22 → 30, 26 → 35)
     //  The Settings, the launcher and the Desk follow the monitor's height: they are drawn to fit a 1350 px high screen, and a lower one shrinks them (a 1080 p one to 80 %),
@@ -3634,13 +3653,15 @@ scene Vitreus {
     let cx = screen.width / 2
     //  The bar down the left: a strip `lf.w` wide on the left and a frame `lf.t` thick round the other three edges, in the same glass. `lm` is how
     //  far over it is (the panels follow: `pcx` is where they are centred, with their left edge `lf.w` and a little in from the strip).
-    //  Which copy is the bar's: the logic says how big the chosen monitor is (`bar_sw`, `bar_sh`; 0 while the bar is on every one, logic/bar_monitors.luau)
-    //  and each copy compares its own. The others are closed, or (`bar_others`) take the left layout's shapes with a strip as thin as the frame:
+    //  Which copies are the bar's: the logic says which monitors are chosen (`bar_c0` to `bar_c3`, by copy number; two at the most, logic/bar_monitors.luau).
+    //  The others are closed, or (`bar_others`) take the left layout's shapes with a strip as thin as the frame:
     //  the launcher out of the top notch, Settings out of the bottom, the desk out of the right.
-    fact bar_sw = 0
-    fact bar_sh = 0
+    fact bar_c0 = true
+    fact bar_c1 = true
+    fact bar_c2 = false
+    fact bar_c3 = false
     fact bar_others = false                  // the monitors without the bar keep the frame alone, with no notches (logic/bar_monitors.luau)
-    let sb = if(bar_sw < 1, 1, if(abs(screen.width - bar_sw) < 2 and abs(screen.height - bar_sh) < 2, 1, 0))
+    let sb = if(screen.index == 0, if(bar_c0, 1, 0), if(screen.index == 1, if(bar_c1, 1, 0), if(screen.index == 2, if(bar_c2, 1, 0), if(bar_c3, 1, 0))))
     let lm = mix(1, clamp(bar_lm, 0, 1), sb)
     //  The strip on the right is the left one in a mirror: the glass is drawn flipped about the middle of the screen (`rt` is 1 then), and every block of
     //  content that belongs to it (the strip's pieces, the panels that come out of it or out of a frame's notch) is drawn where its mirror image falls, upright.
@@ -3705,6 +3726,37 @@ scene Vitreus {
     zone box away_z { at: screen.width / 2, screen.height / 2; size: screen.width, screen.height; active: (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or dash_open }
     on press away_z { panel = none; wp_picker_open = false; ov_open = false; dash_open = false }
     on press right away_z { panel = none; wp_picker_open = false; ov_open = false; dash_open = false }
+    //  The marks are laid out along one line with the SAME empty space between every neighbouring pair, whatever their sizes: each one has a slot as long
+    //  as itself (a dot, a larger square if it has windows, or the pill while it is the active one, and in between while it morphs), and the slots follow
+    //  each other `ws.g` apart, the whole row centred on its place. `ws.cN` is where slot N's middle is, from the row's middle.
+    let ws.U = mix(bu, bcu, lm)
+    let ws.g = 9 * ws.U
+    let ws.pb = 15 * ws.U                 // the pill's thickness, the same wherever it is
+    let ws.pl = ws.pb + 14 * ws.U         // and its length, resting on one workspace
+    let ws.s1 = mix((8 + 4.5 * ws.tall.1) * ws.U, ws.pl, ws.act.1)
+    let ws.s2 = mix((8 + 4.5 * ws.tall.2) * ws.U, ws.pl, ws.act.2)
+    let ws.s3 = mix((8 + 4.5 * ws.tall.3) * ws.U, ws.pl, ws.act.3)
+    let ws.s4 = mix((8 + 4.5 * ws.tall.4) * ws.U, ws.pl, ws.act.4)
+    let ws.s5 = mix((8 + 4.5 * ws.tall.5) * ws.U, ws.pl, ws.act.5)
+    let ws.ps = 14 * ws.U                 // the plus's slot
+    let ws.sv1 = ws.s1 * ws.vis.1
+    let ws.sv2 = ws.s2 * ws.vis.2
+    let ws.sv3 = ws.s3 * ws.vis.3
+    let ws.sv4 = ws.s4 * ws.vis.4
+    let ws.sv5 = ws.s5 * ws.vis.5
+    let ws.sv6 = ws.ps * ws.pv
+    //  The row starts against the overview button and runs on (left to right, or down), so a mark opening or shutting moves only what comes after it.
+    //  `ws.qN` is how far the row has gone once slot N is in: its mark and the gap after it, each as open as the mark is.
+    let ws.q1 = (ws.s1 + ws.g) * ws.vis.1
+    let ws.q2 = ws.q1 + (ws.s2 + ws.g) * ws.vis.2
+    let ws.q3 = ws.q2 + (ws.s3 + ws.g) * ws.vis.3
+    let ws.q4 = ws.q3 + (ws.s4 + ws.g) * ws.vis.4
+    let ws.q5 = ws.q4 + (ws.s5 + ws.g) * ws.vis.5
+    let sg.we = max(max(max(max(max(ws.sv1, (ws.q1 + ws.sv2) * ws.vis.2), (ws.q2 + ws.sv3) * ws.vis.3), (ws.q3 + ws.sv4) * ws.vis.4), (ws.q4 + ws.sv5) * ws.vis.5), max((ws.q5 + ws.sv6) * ws.pv, 9 * ws.U * ws.sp))     // where the last mark ends (or the special workspace's star)
+    //  The workspace marks decide how wide their piece is: the row (overview button, marks, plus) is measured here, and the bar widens by what it needs beyond the
+    //  128 * bu it was made for (`ws.more`), so the marks never run into the title. Down the left (`lm`) the strip is the same length whatever is in it.
+    let ws.row = (10 * bu + 15.5 * ws.U + sg.we) * (1 - lm)
+    let ws.more = max(0, ws.row - 128 * bu)
     //  The tray's icons (the pinned apps, or all of them) are a piece of the bar like the others; the bar widens for them.
     let bar.gap = 12 * bu
     let tn = trn * bs.tray + rcn + pvn                // what the tray piece holds: the icons (as far as the piece is shown), the recording dot and the privacy lights
@@ -3712,7 +3764,7 @@ scene Vitreus {
     let vw.tray = fw.tray
     let bw.tray = fw.tray + bar.gap * min(1, tn)
     //  Along the top with a frame the bar is the strip: as long as the screen, as thick as the left one is wide, its pieces spread along it.
-    let bar.w = mix(450 * bu + bw.tray, screen.width - 24 * bu, tm)
+    let bar.w = mix(450 * bu + bw.tray + ws.more * bs.ws, screen.width - 24 * bu, tm)
     let bar.h = mix(40 * bu, lf.w + 10 * bu * sg, tm)               // (the top frame in pieces: the pieces are 36 * bu deep, so the middle line is 5 higher and the strip 10 taller, which leaves where the panels start where it was)
     let bar.y0 = mix(8 + 20 * bu, th.t / 2 - 5 * bu * sg, tm)
     //  Down the left the panels come out of the strip at the height of their button: `pw_y` is where the open panel's top is (see `lp.top`), and
@@ -3729,7 +3781,7 @@ scene Vitreus {
     let clock.col = max(caw.width, cdw.width)
     let bar.l = cx - bar.w / 2 + 16 * bu
     let bar.r = cx + bar.w / 2 - 16 * bu
-    let fw.ws = 128 * bu                  // five squares 18 apart, one of them stretched out, and the overview button before them (20 more)
+    let fw.ws = 128 * bu + ws.more     // five squares 18 apart, one of them stretched out, and the overview button before them (20 more); more than that when the marks need it (`ws.more`)
     let fw.media = 0                     // previous, play, next have no slot of their own: they sit inside the window title's button, top right
     let fw.set = 15 * bu                  // the gear with its teeth
     let fw.sr = 12 * bu                   // the magnifier, glass and handle
@@ -3835,32 +3887,6 @@ scene Vitreus {
     let lv.y0 = clamp(vc - (lv.span + lv.mc) / 2, lv.tt, max(lv.tt, lv.bot - lv.span - lv.mc))     // the top of buttons and text together, centred as one on the middle of the screen, as near as the pieces above and below let it
     let lv.mid = lv.y0 + 31 * bcu                       // the buttons' middle (previous nearest the text, 17 apart)
     let lv.tm = lv.y0 + lv.mc + lv.span / 2           // the text's middle
-    //  The marks are laid out along one line with the SAME empty space between every neighbouring pair, whatever their sizes: each one has a slot as long
-    //  as itself (a dot, a larger square if it has windows, or the pill while it is the active one, and in between while it morphs), and the slots follow
-    //  each other `ws.g` apart, the whole row centred on its place. `ws.cN` is where slot N's middle is, from the row's middle.
-    let ws.U = mix(bu, bcu, lm)
-    let ws.g = 9 * ws.U
-    let ws.pb = 15 * ws.U                 // the pill's thickness, the same wherever it is
-    let ws.pl = ws.pb + 14 * ws.U         // and its length, resting on one workspace
-    let ws.s1 = mix((8 + 4.5 * ws.tall.1) * ws.U, ws.pl, ws.act.1)
-    let ws.s2 = mix((8 + 4.5 * ws.tall.2) * ws.U, ws.pl, ws.act.2)
-    let ws.s3 = mix((8 + 4.5 * ws.tall.3) * ws.U, ws.pl, ws.act.3)
-    let ws.s4 = mix((8 + 4.5 * ws.tall.4) * ws.U, ws.pl, ws.act.4)
-    let ws.s5 = mix((8 + 4.5 * ws.tall.5) * ws.U, ws.pl, ws.act.5)
-    let ws.ps = 14 * ws.U                 // the plus's slot
-    let ws.sv1 = ws.s1 * ws.vis.1
-    let ws.sv2 = ws.s2 * ws.vis.2
-    let ws.sv3 = ws.s3 * ws.vis.3
-    let ws.sv4 = ws.s4 * ws.vis.4
-    let ws.sv5 = ws.s5 * ws.vis.5
-    let ws.sv6 = ws.ps * ws.pv
-    //  The row starts against the overview button and runs on (left to right, or down), so a mark opening or shutting moves only what comes after it.
-    //  `ws.qN` is how far the row has gone once slot N is in: its mark and the gap after it, each as open as the mark is.
-    let ws.q1 = (ws.s1 + ws.g) * ws.vis.1
-    let ws.q2 = ws.q1 + (ws.s2 + ws.g) * ws.vis.2
-    let ws.q3 = ws.q2 + (ws.s3 + ws.g) * ws.vis.3
-    let ws.q4 = ws.q3 + (ws.s4 + ws.g) * ws.vis.4
-    let ws.q5 = ws.q4 + (ws.s5 + ws.g) * ws.vis.5
     let ws.c1 = ws.sv1 / 2
     let ws.c2 = ws.q1 + ws.sv2 / 2
     let ws.c3 = ws.q2 + ws.sv3 / 2
@@ -3879,7 +3905,6 @@ scene Vitreus {
     let ws.a4 = ws.o + ws.c4
     let ws.a5 = ws.o + ws.c5
     let ws.a6 = ws.o + ws.c6
-    let sg.we = max(max(max(max(max(ws.sv1, (ws.q1 + ws.sv2) * ws.vis.2), (ws.q2 + ws.sv3) * ws.vis.3), (ws.q3 + ws.sv4) * ws.vis.4), (ws.q4 + ws.sv5) * ws.vis.5), max((ws.q5 + ws.sv6) * ws.pv, 9 * ws.U * ws.sp))     // where the last mark ends (or the special workspace's star)
     let sg.lr = ws.o + sg.we + sg.pad + sg.fl - 9 * ws.U                      // where the left piece of the top frame (Segments) ends: just after the last workspace mark
 
     //  The music only moves the bar: it fades out as the panel opens (gone by a third of
@@ -3913,6 +3938,7 @@ scene Vitreus {
     //  thickest halfway; the drawer is a little narrower there, as a falling drop is, and it is round at first
     //  and squares up as it grows (and rounds again as it goes). `*.bell` is 0 shut, 1 halfway, 0 open.
     let dk.bell = 4 * min(1, dk0) * (1 - min(1, dk0))
+    let dk.tail = mix(1, clamp(dk0 * 16 - 0.1, 0, 1), sg)       // the three pieces: the controls' drawer shrinks away over its last few percent, instead of lingering as a nub under its piece
     let ds.bell = 4 * min(1, ds0) * (1 - min(1, ds0))
     let dl.bell = 4 * min(1, dl0) * (1 - min(1, dl0))
     let dc.bell = 4 * min(1, dc0) * (1 - min(1, dc0))
@@ -3996,7 +4022,7 @@ scene Vitreus {
     //  lands, with the liquid neck of the other drawers while it is narrower (see `dc.bell`). It starts at the bar's
     //  middle, as they do, so the blend has the bar to melt into; as tall as the bar's lower half plus its content.
     let dc.w = (120 + 330 * (min(1, dc0 * 1.6) + max(0, dc0 - 1) * 0.6)) * cu
-    let dc.neck = 0.5                  // how much of the others' liquid neck the calendar's join to the bar has: 0 is a sharp angle, 1 the same as Settings (it sticks out less, so all of it is too soft)
+    let dc.neck = 0.5 + 0.5 * sg                // how much of the others' liquid neck the calendar's join to the bar has: 0 is a sharp angle, 1 the same as Settings (it sticks out less, so all of it is too soft; in the top frame in pieces it hangs from the middle piece like the title panel, and has all of it)
     let dc.hh = bar.h / 2 + card.h + 6 * cu * tm * dc0 + max(0, sag)
     //  Once it is as wide as the bar (`f` 1) it must be a straight continuation of the bar's sides, so it moves its top up to
     //  the bar's top edge and stops blending: a blend there would puff the join out at the bar's corners.
@@ -4362,14 +4388,24 @@ scene Vitreus {
     zone box ntp_b { at: mix(ds.ex, screen.width - ds.ex, rt), mix(ds.ey, yo + vb - ds.ey, bt); size: ds.ew + 8, ds.eh + 8; active: fm > 0.5 and panel == settings }
     prop nt_vis_t.0 = 0 ~calm                                // how far the tab is out
     prop nt_vis_t.1 = 0 ~calm
+    prop nt_vis_t.2 = 0 ~calm
+    prop nt_vis_t.3 = 0 ~calm
     prop nt_vis_b.0 = 0 ~calm
     prop nt_vis_b.1 = 0 ~calm
+    prop nt_vis_b.2 = 0 ~calm
+    prop nt_vis_b.3 = 0 ~calm
     prop nt_hold_l.0 = 0 ~280ms
     prop nt_hold_l.1 = 0 ~280ms
+    prop nt_hold_l.2 = 0 ~280ms
+    prop nt_hold_l.3 = 0 ~280ms
     prop nt_hold_t.0 = 0 ~280ms                              // on the edge, the tab or the panel: until the tab goes back and the panel closes
     prop nt_hold_t.1 = 0 ~280ms
+    prop nt_hold_t.2 = 0 ~280ms
+    prop nt_hold_t.3 = 0 ~280ms
     prop nt_hold_b.0 = 0 ~280ms
     prop nt_hold_b.1 = 0 ~280ms
+    prop nt_hold_b.2 = 0 ~280ms
+    prop nt_hold_b.3 = 0 ~280ms
     follow nt_hold_t.$screen = if(max(ntz_t.hover, max(ntn_t.hover, ntp_t.hover)) > 0.5, 1, 0)
     follow nt_hold_l.$screen = if(max(ntz_l.hover, max(ntn_l.hover, if(bt > 0.5, ntp_b.hover, ntp_t.hover))) > 0.5, 1, 0)
     follow nt_vis_l.$screen = if(nt_hold_l.$screen > 0.3, 1, 0)
@@ -4459,10 +4495,16 @@ scene Vitreus {
     zone box ntn_r { at: mix(screen.width - (th.r + nt_d) / 2, (th.r + nt_d) / 2, rt), mix(vcc, yo + vb - vcc, bt); size: th.r + nt_d, nt_w; cursor: pointer; active: fm > 0.5 and nt_vis_r.$screen > 0.5 and not desk_open }
     prop nt_vis_r.0 = 0 ~calm
     prop nt_vis_r.1 = 0 ~calm
+    prop nt_vis_r.2 = 0 ~calm
+    prop nt_vis_r.3 = 0 ~calm
     prop nt_vis_l.0 = 0 ~calm                                // the left notch (with the strip along the top: it opens the launcher)
     prop nt_vis_l.1 = 0 ~calm
+    prop nt_vis_l.2 = 0 ~calm
+    prop nt_vis_l.3 = 0 ~calm
     prop nt_hold_r.0 = 0 ~280ms
     prop nt_hold_r.1 = 0 ~280ms
+    prop nt_hold_r.2 = 0 ~280ms
+    prop nt_hold_r.3 = 0 ~280ms
     follow nt_hold_r.$screen = if(max(ntz_r.hover, ntn_r.hover) > 0.5, 1, 0)
     follow nt_vis_r.$screen = if(nt_hold_r.$screen > 0.3 and not desk_open, 1, 0)
     on press ntn_r { desk_open = true }
@@ -4687,8 +4729,12 @@ scene Vitreus {
     let ptab_ix = mix(win.cm, win.xs - 6 * u + ptab_iw / 2, clamp(max(clsw.width, titw.width) / (6 * u), 0, 1))
     prop ptab_vis.0 = 0 ~calm                        // the same spring as the edge notches (`nt_vis_*`)
     prop ptab_vis.1 = 0 ~calm
+    prop ptab_vis.2 = 0 ~calm
+    prop ptab_vis.3 = 0 ~calm
     prop ptab_hold.0 = 0 ~280ms                      // the notches' short wait before coming out, and grace before going back
     prop ptab_hold.1 = 0 ~280ms
+    prop ptab_hold.2 = 0 ~280ms
+    prop ptab_hold.3 = 0 ~280ms
     follow ptab_vis.$screen = if(ptab_hold.$screen > 0.3, 1, 0)
     //  The calendar's and the control center's panels, being joined to the strip too, have the same ripple (opening and closing).
     //  The title's panel (the player, the tray's menu) is joined to the strip, so the drop's ripple (`prip`, scaled by `1 - att`) skips it. It has its own, the same
@@ -4698,12 +4744,12 @@ scene Vitreus {
     on change dm < 0.06 while dm < 0.06 and fm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~600ms after 30ms }
     on change dc > 0.84 while dc > 0.84 and fm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~1100ms after 30ms }
     on change dc < 0.06 while dc < 0.06 and fm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~600ms after 30ms }
-    on change dk > 0.84 while dk > 0.84 and fm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~1100ms after 30ms }
-    on change dk < 0.06 while dk < 0.06 and fm > 0.5 { tprip: 0 ~16ms; tprip: 1 ~600ms after 30ms }
+    on change dk > 0.84 while dk > 0.84 and fm > 0.5 and bar_sg < 0.5 { tprip: 0 ~16ms; tprip: 1 ~1100ms after 30ms }
+    on change dk < 0.06 while dk < 0.06 and fm > 0.5 and bar_sg < 0.5 { tprip: 0 ~16ms; tprip: 1 ~600ms after 30ms }
     let tq.x = (12 + 90 * tprip) * u
     let tq.h = max(20 * u * (1 - tprip) * clamp(tprip * 6, 0, 1) * fm * (1 - uwu_k), 0.3)
-    let tq.act = if(cas_k < 0.5 and lm > 0.5 and tprip < 0.98 and pown > 0.5, 1, 0)
-    let tq.actt = if(cas_k < 0.5 and tm > 0.5 and tprip < 0.98 and pown > 0.5, 1, 0)       // along the top or bottom: the same two crests, turned a quarter
+    let tq.act = if(cas_k < 0.5 and lm > 0.5 and tprip < 0.98 and pown > 0.5 and sg < 0.5, 1, 0)
+    let tq.actt = if(cas_k < 0.5 and tm > 0.5 and tprip < 0.98 and pown > 0.5 and sg < 0.5, 1, 0)       // along the top or bottom: the same two crests, turned a quarter
     on change dm > 0.5 while dm > 0.5 and panel == player { lp_k = 6; lp_w = 312 }
     //  Where the contents hang from: the panel's old middle, so they keep their
     //  place when the panel grows to make room for the player.

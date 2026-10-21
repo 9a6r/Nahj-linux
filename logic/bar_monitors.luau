@@ -1,12 +1,14 @@
--- The Bar page of the settings: which monitors the bar shows on. The scene is always one copy per monitor (`screens: each`:
--- what each copy holds of its own is named per copy, `name.$screen`, which only a copy per monitor has), and with the bar on
--- one monitor the other copies are closed: the scene knows the chosen monitor by its size (`bar_sw`, `bar_sh`, 0 for all of
--- them), so choosing takes effect at once. A vitreus.plm from before, whose `screens:` names one monitor, is moved over
--- once: that line is rewritten and the bar started again, from a command left running on its own (`setsid`) that asks
--- this one to quit and then opens the scene afresh. What was chosen is kept in bar.json; a chosen monitor that is not
--- plugged in puts the bar on all of them until it is back. With `others: "frame"` in bar.json (Settings > Bar, "Frame on the
--- other monitors") the other copies stay open with the frame and its notches (launcher, Settings, desk) and no bar.
+-- The Bar page of the settings: which monitors the bar shows on, one or two of them (never more: `MAX`). The scene is always one copy per
+-- monitor (`screens: each max 4`: what each copy holds of its own is named per copy, `name.$screen`, which only a copy per monitor has),
+-- and the copies of the monitors that are not chosen are closed: each copy knows its monitor by name (`screen.K.name`), and this says
+-- which of them are chosen (`bar_c0` to `bar_c3`), so choosing takes effect at once. A vitreus.plm from before, whose `screens:` names
+-- one monitor, is moved over once: that line is rewritten and the bar started again, from a command left running on its own (`setsid`)
+-- that asks this one to quit and then opens the scene afresh. What was chosen is kept in bar.json (a list of names; from before, one
+-- name or "all", which is the first two monitors); a chosen monitor that is not plugged in is left out until it is back, and with none
+-- of them plugged in the bar is on the first two. With `others: "frame"` in bar.json (Settings > Bar, "Frame on the other monitors")
+-- the copies of the other monitors stay open with the frame and its notches (launcher, Settings, desk) and no bar.
 return function(with_dirs)
+    local MAX = 2                    -- the bar is on two monitors at the most
     local B = { pref = nil, file = nil, mons = {}, busy = false, awake = false, others = false }
     local RESTART = [[
 P="$1"; L="$2"
@@ -27,74 +29,89 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
         for i, m in ipairs(B.mons) do if m.name == name then return i end end
         return nil
     end
-    -- Where the bar should be now: the choice, or all of them while the chosen one is away.
-    local function target()
-        local pref = B.pref or "all"
-        if pref ~= "all" and not connected(pref) then return "all" end
-        return pref
+    -- Where the bar should be now: the chosen monitors that are plugged in (MAX at the most), or the first MAX of them when none is.
+    local function chosen()
+        local out, seen = {}, {}
+        for _, n in ipairs(B.pref or {}) do
+            if connected(n) and not seen[n] and #out < MAX then out[#out + 1] = n; seen[n] = true end
+        end
+        if #out == 0 then
+            for i = 1, math.min(MAX, #B.mons) do out[#out + 1] = B.mons[i].name end
+        end
+        return out
     end
-    -- What `screens:` has to say for the bar to be on `to`: always every monitor (a file from before says one name, and is moved over).
-    local function file_for(to)
+    -- What `screens:` has to say: always every monitor (a file from before says one name, and is moved over).
+    local function file_for()
         return "all"
     end
-    -- Where the bar is now: where the scene was started, or, the scene being on every monitor, the choice.
-    local function bar_on()
-        if B.file ~= "all" then return connected(B.file) and B.file or "all" end
-        return target()
+
+    -- Open the copies of the chosen monitors and close the others. Each copy says which monitor it is (`screen.K.name`, empty until it knows).
+    local function copies()
+        if #B.mons == 0 then return end
+        local set = {}
+        for _, n in ipairs(chosen()) do set[n] = true end
+        for k = 0, 3 do
+            local name = text["screen." .. k .. ".name"]
+            local on
+            if name == nil or name == "" then on = k < MAX else on = set[name] == true end
+            if fact["bar_c" .. k] ~= on then fact["bar_c" .. k] = on end
+        end
     end
 
-    -- Tell the window gaps where the bar is (it is where the scene was started, not where it is about to go) and what is plugged in.
+    -- Tell the window gaps where the bar is and what is plugged in.
     local told = nil
     local function publish()
-        if B.file == nil or #B.mons == 0 then return end
+        if B.file ~= "all" or #B.mons == 0 then return end
         local names = {}
         for _, m in ipairs(B.mons) do names[#names + 1] = m.name end
-        local on = bar_on()
-        -- the scene closes the copies that are not the chosen monitor's: it is told that monitor's size
-        local one = B.file == "all" and on ~= "all"
-        local thin = one and B.others              -- the other monitors have the frame: their windows get its room
-        local m = one and B.mons[connected(on)] or nil
-        local sw, sh = m and m.w or 0, m and m.h or 0
-        if fact.bar_sw ~= sw then fact.bar_sw = sw end
-        if fact.bar_sh ~= sh then fact.bar_sh = sh end
+        local sel = chosen()
+        local set = {}
+        for _, n in ipairs(sel) do set[n] = true end
+        local all = #sel >= #B.mons
+        local thin = (not all) and B.others        -- the other monitors have the frame: their windows get its room
         if fact.bar_others ~= B.others then fact.bar_others = B.others end
-        if B.file == "all" then bar_mon.name = on end
-        local sig = on .. "|" .. tostring(thin) .. "|" .. table.concat(names, ",")
+        bar_mon.set = set
+        bar_mon.name = #sel == 1 and sel[1] or "all"
+        copies()
+        local sig = table.concat(sel, ",") .. "|" .. tostring(thin) .. "|" .. table.concat(names, ",")
         if sig == told then return end
         told = sig
-        bar_fx.on, bar_fx.mons, bar_fx.thin = on, names, thin
+        bar_fx.on, bar_fx.sel, bar_fx.mons, bar_fx.thin = all and "all" or sel[1], set, names, thin
         iris_fx.apply_hypr()
     end
 
     local function show()
-        local pref = B.pref or "all"
-        local at = pref ~= "all" and connected(pref) or nil
-        fact.bar_scr = at and (at - 1) or -1
+        local sel = chosen()
+        local set = {}
+        for _, n in ipairs(sel) do set[n] = true end
         for i = 0, 3 do
             local m = B.mons[i + 1]
             fact["bar_m." .. i .. ".on"] = m ~= nil
+            fact["bar_sel." .. i] = m ~= nil and set[m.name] == true
             if m then
                 text["bar_m." .. i .. ".name"] = m.name
                 text["bar_m." .. i .. ".sub"] = m.sub
             end
         end
+        fact.bar_rest = #sel < #B.mons
         if B.busy then
             text.bar_msg = "Moving the bar…"
-        elseif pref ~= "all" and not at and #B.mons > 0 then
-            text.bar_msg = pref .. " isn't plugged in, so the bar is on every monitor until it's back."
+        elseif B.note then
+            text.bar_msg = B.note
         else
-            text.bar_msg = ""
+            local gone = {}
+            for _, n in ipairs(B.pref or {}) do if #B.mons > 0 and not connected(n) then gone[#gone + 1] = n end end
+            text.bar_msg = #gone > 0 and (table.concat(gone, ", ") .. (#gone > 1 and " aren't" or " isn't") .. " plugged in: the bar waits for " .. (#gone > 1 and "them" or "it") .. ".") or ""
         end
     end
 
-    local function restart(to)
+    local function restart()
         if B.busy then return end
-        if to ~= "all" and not to:match("^[%w%._%-]+$") then return end
         B.busy = true
         show()
         with_dirs(function(d)
             local plm = d.conf .. "/vitreus.plm"
-            local value = file_for(to) == "all" and "each max 2" or ('"' .. to .. '"')
+            local value = "each max 4"
             run("sed", { "-i", "-E", "/^    surface \\{/s/screens: [^;]*;/screens: " .. value .. ";/", plm }, function(_, code)
                 if code ~= 0 then
                     B.busy = false
@@ -102,8 +119,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                     text.bar_msg = "Couldn't change where the bar shows."
                     return
                 end
-                B.file = file_for(to)
-                bar_mon.name = to
+                B.file = file_for()
                 run("setsid", { "-f", "sh", "-c", RESTART, "sh", plm, d.data .. "/vitreus.log" }, function() end)
             end)
         end)
@@ -114,8 +130,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
     local function settle()
         if B.busy or B.file == nil or #B.mons == 0 then return end
         if not B.awake then return end
-        local to = target()
-        if file_for(to) ~= B.file then restart(to) else publish() end
+        if file_for() ~= B.file then restart() else publish() end
     end
 
     local function read_mons()
@@ -153,30 +168,43 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
         end)
     end
 
+    -- A tile of the Bar page: it joins the bar's monitors, or leaves them. One stays, and no more than MAX.
     on("bar_pick_scr", function(i)
         if B.busy then return end
-        local pref = "all"
-        if i >= 0 then
-            local m = B.mons[math.floor(i + 0.5) + 1]
-            if not m then return end
-            pref = m.name
+        local m = B.mons[math.floor(i + 0.5) + 1]
+        if not m then return end
+        local sel, now = chosen(), {}
+        local chosen_now = false
+        for _, n in ipairs(sel) do
+            if n == m.name then chosen_now = true else now[#now + 1] = n end
         end
-        B.pref = pref
-        pcall(sys.call, "files.write", "bar.json", { screens = pref, others = B.others and "frame" or nil })
+        B.note = nil
+        if chosen_now then
+            if #now == 0 then B.note = "The bar needs a monitor." else sel = now end
+        elseif #sel >= MAX then
+            B.note = "The bar is on two monitors at the most: let one go first."
+        else
+            sel[#sel + 1] = m.name
+        end
+        B.pref = sel
+        pcall(sys.call, "files.write", "bar.json", { screens = B.pref, others = B.others and "frame" or nil })
         show()
-        local to = target()
-        if B.file ~= nil and file_for(to) ~= B.file then restart(to) else publish() end
+        if B.file ~= nil and file_for() ~= B.file then restart() else publish() end
     end)
 
     -- Settings > Bar's switch: the frame on the other monitors, or nothing there. The scene is on every monitor already, so it is at once.
     on("bar_others_toggle", function()
         B.others = not B.others
-        pcall(sys.call, "files.write", "bar.json", { screens = B.pref or "all", others = B.others and "frame" or nil })
+        pcall(sys.call, "files.write", "bar.json", { screens = chosen(), others = B.others and "frame" or nil })
         publish()
     end)
 
     local ok, saved = pcall(sys.ask, "files.read", "bar.json", "json")
-    if ok and type(saved) == "table" and type(saved.screens) == "string" then B.pref = saved.screens end
+    if ok and type(saved) == "table" then
+        -- a list of names; from before, one name (or "all": the first two monitors, as nothing chosen)
+        if type(saved.screens) == "table" then B.pref = saved.screens
+        elseif type(saved.screens) == "string" and saved.screens ~= "all" then B.pref = { saved.screens } end
+    end
     if ok and type(saved) == "table" and saved.others == "frame" then B.others = true end
     -- What this bar was started with: the `screens:` of the scene's surface.
     with_dirs(function(d)
@@ -184,8 +212,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
             local v = (out or ""):match("screens:%s*(.-)%s*;")
             if v == nil then return end
             B.file = v:match('^"([^"]+)"') or "all"
-            bar_mon.name = B.file
-            if B.pref == nil then B.pref = B.file end
+            if B.pref == nil and B.file ~= "all" then B.pref = { B.file } end
             show()
             publish()
             settle()
@@ -193,5 +220,6 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
     end)
     read_mons()
     every(5000, read_mons)
+    every(2000, copies)
     after(8000, function() B.awake = true; settle() end)
 end

@@ -26,14 +26,19 @@ return function()
     end
     show()
     -- What the gaps round the windows were, to give back up on the top: read once, before anything of ours changes them (if it already
-    -- says what the left needs, it was us, and the usual 20 does).
+    -- says what a strip needs, it was us, and the usual 20 does).
     run("hyprctl", { "getoption", "general:gaps_out", "-j" }, function(out, code)
         local g = { 20, 20, 20, 20 }
         if code == 0 and out then
             local css = out:match('"css":%s*"([^"]*)"')
             local n = {}
             for v in (css or ""):gmatch("%d+") do n[#n + 1] = tonumber(v) end
-            if #n == 4 and n[4] < 60 then g = n end
+            -- Not ours: what the strips write is a wide gap on the strip's edge (60 or more on the left; the top and bottom ones a little less) and the frame's
+            -- 24 (`px`, in `iris_fx.gaps_code`) on the others. Taken for the original, they stayed in the Island as a big margin on top and 24 all round.
+            local mixed = false
+            for _, v in ipairs(n) do if v == 24 then mixed = true end end
+            local same = n[1] == n[2] and n[2] == n[3] and n[3] == n[4]
+            if #n == 4 and n[4] < 60 and not (mixed and not same) then g = n end
         end
         bar_fx.orig = g
         iris_fx.apply_hypr()

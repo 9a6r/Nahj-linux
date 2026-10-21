@@ -100,7 +100,7 @@ end
 -- it over its socket: which one is shown, and which one each window is on.
 function wm_get(name, done) run("pleamar", { "--say", "wm", "get " .. name }, function(out) done(tonumber((out or ""):match("%-?[%d.]+")) or ((out or ""):match("true") and 1) or ((out or ""):match("false") and 0) or nil) end) end
 desk_seen = nil                          -- the last count of right presses on the bare desktop that was looked at
-bar_mon = { name = nil }                 -- the monitor the bar is on ("all" for every one), set by logic/bar_monitors.luau
+bar_mon = { name = nil, set = nil }      -- the monitor the bar is on ("all" for two), and the set of the names of the ones it is on; set by logic/bar_monitors.luau
 function wm_workspaces()
     -- One connection for every question (`say_many`): a `pleamar --say` process for each one, ten times a second, was what made the shell stutter.
     -- The workspace shown is per monitor: the bar's own, which is the one named in its `screens:` (the order of pleamar-wm's monitors is
@@ -2756,7 +2756,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
 -- own gaps are, and the global gaps are what a monitor without a rule gets, so a monitor plugged in later does not borrow the bar's room.
 -- `left` says where the bar is for this code (false: the gaps as they were before us); left out, it is where the bar is now.
 function iris_fx.island_min() return (bar_fx.size or 1) < 0.995 and not bar_fx.left and bar_fx.edge == "top" end   -- the Island below 100 %: no reserved strip (a reserve is a plain number)
-function iris_fx.island_room() return math.floor(14 + 1.35 * 40 * (bar_fx.size or 1) + 0.5) end                  -- what it keeps above the windows instead: 8, the bar, 6 (68 at 100 %)
+function iris_fx.island_room() return math.floor(8 + 1.35 * 40 * (bar_fx.size or 1) + 0.5) end                  -- what it keeps above the windows instead: 8 and the bar (62 at 100 %): the window gap does the rest
 function iris_fx.gaps_code(left)
     local isl = left == nil and iris_fx.island_min()     -- (asked for the gaps as they were: `left` false, then none of this)
     if left == nil then left = bar_fx.left or isl end
@@ -2776,11 +2776,11 @@ function iris_fx.gaps_code(left)
     local bar_gaps = WIDE[bar_fx.edge] or WIDE.left
     if bar_fx.seg then bar_gaps = { math.floor(1.35 * 36 * bz + 0.5) + 10, px, px, px } end       -- the top frame in pieces: thin, but the windows start below the pieces (36 * u) and a gap
     if isl then bar_gaps = { o[1] + iris_fx.island_room(), o[2], o[3], o[4] } end
-    local everywhere = (bar_fx.on or "all") == "all"
+    local everywhere = (bar_fx.on or "all") == "all"      -- the bar is on every monitor there is
     local parts = { cfg((left and everywhere) and bar_gaps or o) }
     for _, name in ipairs(bar_fx.mons or {}) do
         if name:match("^[%w%._%-]+$") then
-            local has_bar = left and (everywhere or bar_fx.on == name)
+            local has_bar = left and (everywhere or (bar_fx.sel ~= nil and bar_fx.sel[name] == true))
             -- a monitor with only the frame (Settings > Bar, "Frame on the other monitors"; logic/bar_monitors.luau) gets the frame's room on every side
             parts[#parts + 1] = rule(name, has_bar and bar_gaps or ((left and bar_fx.thin and not isl) and { px, px, px, px } or o))
         end
@@ -5148,12 +5148,12 @@ do
             local island_min = not framed and bar_mon.name ~= nil and iris_fx.island_min() and fact.bar_anchor == "top"   -- the Island below 100 % reserves nothing: its room is kept here
             local want, cmds = {}, {}
             for id = 0, 3 do
-                local has = framed and names[id] ~= nil and (bar_mon.name == "all" or bar_mon.name == names[id])
+                local has = framed and names[id] ~= nil and (bar_mon.set ~= nil and bar_mon.set[names[id]] == true)
                 -- a monitor with only the frame (Settings > Bar, "Frame on the other monitors") gets the frame's room on every side
                 local thin = framed and not has and names[id] ~= nil and fact.bar_others == true
                 for _, e in ipairs(EDGES) do
                     want[#want + 1] = has and math.max(0, room[e] - wm.gap) or (thin and math.max(0, FRAME_ROOM.top - wm.gap) or 0)
-                    if island_min and e == "top" and names[id] ~= nil and (bar_mon.name == "all" or bar_mon.name == names[id]) then want[#want] = iris_fx.island_room() end
+                    if island_min and e == "top" and names[id] ~= nil and (bar_mon.set ~= nil and bar_mon.set[names[id]] == true) then want[#want] = iris_fx.island_room() end
                     cmds[#cmds + 1] = "get fr." .. id .. "." .. e
                 end
             end
