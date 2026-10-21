@@ -24,13 +24,13 @@ part Nightmode {
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 73 * pu + 0.5); text "COLOR" { at: floor(spx + 14 * pu + 0.5), floor(sby + 73 * pu + 0.5); anchor: left center; size: 12; weight: 700; color: faint; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 94 * pu + 0.5); text "Warmth" { at: floor(spx + 14 * pu + 0.5), floor(sby + 94 * pu + 0.5); anchor: left center; size: 15; color: faint; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 94 * pu + 0.5); text night_temp_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 94 * pu + 0.5); anchor: right center; size: 17.5; weight: 600; color: ink; family: "Space Grotesk" } }
+            //  The control center's pencil slider (PSlider). Under it the track keeps the warmth it picks, faintly (white to orange), so the pencil's level is read against it.
             body {
                 gradient: ntx0, 0 to ntx0 + ntw, 0, #f4f7ff, #ffd9ad 45%, #ff9a45
-                rim: 12%
+                opacity: 45%
                 box { at: ntx0 + ntw / 2, sby + 116 * pu; size: ntw, 12 * pu; corner: 6 * pu }
             }
-            ellipse { at: ntx0 + ntw * night_t, sby + 116 * pu; radius: 10 * pu; color: ink }
-            ellipse { at: ntx0 + ntw * night_t, sby + 116 * pu; radius: 10 * pu; stroke: 1 * pu; color: #000000; opacity: 30% }
+            PSlider(ntx0, sby + 116 * pu, ntw, clamp(night_t, 0, 1), night_t_hit.hover, cu, 12 * pu, 0)
             group { scale: rs; pivot: floor(ntx0 + 0.5), floor(sby + 137 * pu + 0.5); text "6500 K" { at: floor(ntx0 + 0.5), floor(sby + 137 * pu + 0.5); anchor: left center; size: 12; color: faint; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(ntx0 + ntw + 0.5), floor(sby + 137 * pu + 0.5); text "2500 K" { at: floor(ntx0 + ntw + 0.5), floor(sby + 137 * pu + 0.5); anchor: right center; size: 12; color: faint; family: "Space Grotesk" } }
             zone box night_t_hit { at: ntx0 + ntw / 2, sby + 116 * pu; size: ntw + 24 * pu, 30 * pu; cursor: pointer }
