@@ -3355,7 +3355,7 @@ do
     end)
     on("font_scroll", function(w)
         w = tonumber(w) or 0
-        top = math.max(0, math.min(math.max(0, #view - ROWS), top - math.floor(w * 3 + (w > 0 and 0.5 or -0.5))))
+        top = math.max(0, math.min(math.max(0, #view - ROWS), top - math.floor(w * 3 + 0.5)))
         rows()
     end)
     -- The scrollbar as a handle: `frac` is where the pointer is along the track (0 top, 1 bottom); the thumb's middle goes there.
@@ -3371,7 +3371,7 @@ do
         d = tonumber(d) or 0
         if #view == 0 then return end
         local i = index_of(chosen) or (d > 0 and 0 or #view + 1)
-        i = math.max(1, math.min(#view, i + math.floor(d + (d > 0 and 0.5 or -0.5))))
+        i = math.max(1, math.min(#view, i + math.floor(d + 0.5)))
         chosen = view[i].value
         keep_in_view()
         show()
@@ -3386,6 +3386,9 @@ do
     end)
     on("font_apply", function()
         if (chosen or default_font()) == inuse and chosen == saved[theme()] then return end
+        if fact.font_applying then return end
+        fact.font_applying = true
+        after(10000, function() fact.font_applying = false end)      -- if nothing started the shell again, the button is not left stuck
         saved[theme()] = chosen
         pcall(sys.call, "files.write", "fonts.json", saved)
         show()

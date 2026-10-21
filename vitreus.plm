@@ -705,6 +705,7 @@ scene Vitreus {
     fact font_none = false             // nothing matches it
     image font_prev = from font_prevurl, 692, 214
     fact font_dirty = false
+    fact font_applying = false             // Apply was pressed: the shell is about to start again with the font (the button says so meanwhile)
     fact font_dd_open = false
     prop font_dd = 0 ~calm
     follow font_dd = if(font_dd_open, 1, 0)
