@@ -217,6 +217,7 @@ if [ "$action" = uninstall ]; then
     if [ -L "$HOME/.local/bin/vitreus-polkit-agent" ]; then run rm -f "$HOME/.local/bin/vitreus-polkit-agent"; fi
     if [ -L "$HOME/.local/bin/vitreus-sysmon" ]; then run rm -f "$HOME/.local/bin/vitreus-sysmon"; fi
     if [ -L "$HOME/.local/bin/vitreus-term" ]; then run rm -f "$HOME/.local/bin/vitreus-term"; fi
+    if [ -L "$HOME/.local/bin/vitreus-files" ]; then run rm -f "$HOME/.local/bin/vitreus-files"; fi
     if [ -L "$HOME/.local/bin/vitreus-keep" ]; then run rm -f "$HOME/.local/bin/vitreus-keep"; fi
     if [ -L "$HOME/.local/bin/vitreus-themes" ]; then run rm -f "$HOME/.local/bin/vitreus-themes"; fi
     if [ -L "$HOME/.local/bin/vitreus-report" ]; then run rm -f "$HOME/.local/bin/vitreus-report"; fi
@@ -543,7 +544,6 @@ elif [ -d "$dest/.git" ]; then
             if [ -n "$1" ] && [ -f "$dest/vitreus.plm" ]; then sed -i -E "/^    surface \{/s/screens: [^;]*;/screens: $1;/" "$dest/vitreus.plm"; fi
             if [ -n "$2" ] && [ -f "$dest/lockscreen/lockscreen.plm" ]; then sed -i -E "/^        screens: /s/screens: .*/screens: $2/" "$dest/lockscreen/lockscreen.plm"; fi
         }
-        bar_s=$(sed -n -E "$bar_sed" "$dest/vitreus.plm" 2> /dev/null || true)
         lock_s=$(sed -n -E "$lock_sed" "$dest/lockscreen/lockscreen.plm" 2> /dev/null || true)
         set_screens "$(g show HEAD:vitreus.plm 2> /dev/null | sed -n -E "$bar_sed")" "$(g show HEAD:lockscreen/lockscreen.plm 2> /dev/null | sed -n -E "$lock_sed")"
         # wm-palette.plm was tracked once and is git-ignored now (Vitreus writes it): kept aside, so the pull that takes it out of git
@@ -568,7 +568,9 @@ elif [ -d "$dest/.git" ]; then
             g reset --quiet --hard "$before"
             g stash pop --quiet || warn "your changes are kept in git's stash: git -C $dest stash list"
         fi
-        set_screens "$bar_s" "$lock_s"
+        # (Not the bar's: it runs one copy per monitor, `screens: each`, and the chosen monitor is in bar.json. A line from before that names
+        # one monitor, written into the new file, leaves out the per-monitor `$screen` and the scene does not load.)
+        set_screens "" "$lock_s"
         if [ -n "$wmpal" ]; then
             cp "$wmpal" "$dest/wm-palette.plm"
             rm -f "$wmpal"

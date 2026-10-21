@@ -1,6 +1,6 @@
 -- The About page of the settings (System): the build this shell runs from, and how to update it. Vitreus is a git
 -- checkout in its config folder, so its build is that commit plus pleamar's version. Checking is a `git fetch`,
--- updating is `git pull --ff-only` (it will not merge over changes of yours), and after it the shell is started again
+-- updating is `git reset --hard` to the remote's tip (edits to tracked files are first saved as a patch in .git), and after it the shell is started again
 -- the way the Bar page does it: a command left running on its own (`setsid`) that asks this one to quit and opens the
 -- scene afresh (after the pull, `install.sh --refresh` sets up what the new version needs). ssh is told not to ask for anything, so a fetch that needs a passphrase fails instead of hanging.
 return function(key, with_dirs)
@@ -255,7 +255,9 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                     git({ "show", "HEAD:lockscreen/lockscreen.plm" }, function(lock_head)
                         local bar_mine, lock_mine = screens_in(bar_now, "bar"), screens_in(lock_now, "lock")
                         local bar_stock, lock_stock = screens_in(bar_head, "bar"), screens_in(lock_head, "lock")
-                        local bar_changed = bar_mine ~= nil and bar_stock ~= nil and bar_mine ~= bar_stock
+                        -- The bar's line is not kept: the scene is always one copy per monitor (`screens: each`, the choice is in bar.json), and an old line
+                        -- that names one monitor, put into the new file, leaves out `$screen` and the scene does not load.
+                        local bar_changed = false
                         local lock_changed = lock_mine ~= nil and lock_stock ~= nil and lock_mine ~= lock_stock
                         write_screens(bar_changed and bar_stock or nil, lock_changed and lock_stock or nil, function()
                             -- Update means the folder becomes exactly what main is: whatever was changed or committed here is
@@ -267,6 +269,8 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                             local keep = [[
 cd "$1" || exit 1
 g=$(git rev-parse --git-dir) || exit 1
+# The reset below throws away edits to tracked files: keep them as a patch first (git apply it to get them back).
+git diff --quiet HEAD 2> /dev/null || git diff HEAD > "$g/vitreus-local-changes-$(date +%Y%m%d-%H%M%S).patch" 2> /dev/null
 if [ -n "$2" ]; then git show @{u}:vitreus.plm | sed -E "/^    surface \{/s/screens: [^;]*;/screens: $2;/" > "$g/keep-bar" || exit 1; fi
 if [ -n "$3" ]; then git show @{u}:lockscreen/lockscreen.plm | sed -E "/^        screens: /s/screens: .*/screens: $3/" > "$g/keep-lock" || exit 1; fi
 git reset --hard --quiet @{u} || exit 1
