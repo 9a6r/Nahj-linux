@@ -7228,8 +7228,9 @@ end)()
         want_gen = want_gen + 1
         local g = want_gen
         read_clients(function()
+            if g ~= want_gen or open then return end                     -- a newer ask came while this one read: that one decides
             match()
-            if #front_ids == 0 then return end
+            if #front_ids == 0 then return sys.call("thumbnails.want") end   -- nothing here to copy: let go of the last workspace's windows
             THUMB_UNTIL = os.time() + math.ceil(ms / 1000) + 4           -- these captures are ours: the screen-sharing light ignores them
             sys.call("thumbnails.want", front_ids)
             after(ms,function() if g == want_gen and not open then sys.call("thumbnails.want") end end)
