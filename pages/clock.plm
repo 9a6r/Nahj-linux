@@ -335,17 +335,7 @@ part Clock {
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 970 * pu + 0.5); text "Columns" { at: floor(spx + 14 * pu + 0.5), floor(sby + 970 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 970 * pu + 0.5); text fw_cols_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 970 * pu + 0.5); anchor: right center; size: 15; weight: 600; color: ink; family: "Space Grotesk" } }
             group {
-                body {
-                    color: deep
-                    rim: 9%
-                    box { at: fws.x0 + fws.w / 2, sby + 994 * pu; size: fws.w, fws.h; corner: fws.h / 2 }
-                }
-                body {
-                    shadow: 0, 0, 6 * pu, 50%, mint
-                    gradient: fws.x0, 0 to fws.x0 + fws.w, 0, mintlo, mint 55%, minthi
-                    rim: 22%
-                    box { from: fws.x0, sby + 994 * pu - fws.h / 2; size: max(0.1, fws.w * clamp((fw_cols - 6) / 41, 0, 1)), fws.h; corner: fws.h / 2 }
-                }
+                PSlider(fws.x0, sby + 994 * pu, fws.w, clamp(clamp((fw_cols - 6) / 41, 0, 1), 0, 1), fw_c_hit.hover, cu, fws.h, 0)
             }
             zone box fw_c_hit { at: fws.x0 + fws.w / 2, sby + 994 * pu; size: fws.w + 28 * pu, 26 * pu; cursor: pointer; active: (sby + 994 * pu) - ck.off > sby and (sby + 994 * pu) - ck.off < sby + set.h * pu; label: "Columns" }
             on press fw_c_hit { emit fw_cols_set(clamp(((pointer.x - tx.pnl) - fws.x0) / fws.w, 0, 1)) }
@@ -354,17 +344,7 @@ part Clock {
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 1020 * pu + 0.5); text "Sensitivity" { at: floor(spx + 14 * pu + 0.5), floor(sby + 1020 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 1020 * pu + 0.5); text fw_sens_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 1020 * pu + 0.5); anchor: right center; size: 15; weight: 600; color: ink; family: "Space Grotesk" } }
             group {
-                body {
-                    color: deep
-                    rim: 9%
-                    box { at: fws.x0 + fws.w / 2, sby + 1044 * pu; size: fws.w, fws.h; corner: fws.h / 2 }
-                }
-                body {
-                    shadow: 0, 0, 6 * pu, 50%, mint
-                    gradient: fws.x0, 0 to fws.x0 + fws.w, 0, mintlo, mint 55%, minthi
-                    rim: 22%
-                    box { from: fws.x0, sby + 1044 * pu - fws.h / 2; size: max(0.1, fws.w * clamp(clamp(log(fw_sens / 0.3) / 2.302585, 0, 1), 0, 1)), fws.h; corner: fws.h / 2 }
-                }
+                PSlider(fws.x0, sby + 1044 * pu, fws.w, clamp(clamp(clamp(log(fw_sens / 0.3) / 2.302585, 0, 1), 0, 1), 0, 1), fw_s_hit.hover, cu, fws.h, 0)
             }
             zone box fw_s_hit { at: fws.x0 + fws.w / 2, sby + 1044 * pu; size: fws.w + 28 * pu, 26 * pu; cursor: pointer; active: (sby + 1044 * pu) - ck.off > sby and (sby + 1044 * pu) - ck.off < sby + set.h * pu; label: "Sensitivity" }
             on press fw_s_hit { emit fw_sens_set(clamp(((pointer.x - tx.pnl) - fws.x0) / fws.w, 0, 1)) }
@@ -373,17 +353,7 @@ part Clock {
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 1070 * pu + 0.5); text "Height" { at: floor(spx + 14 * pu + 0.5), floor(sby + 1070 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 1070 * pu + 0.5); text fw_hgt_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 1070 * pu + 0.5); anchor: right center; size: 15; weight: 600; color: ink; family: "Space Grotesk" } }
             group {
-                body {
-                    color: deep
-                    rim: 9%
-                    box { at: fws.x0 + fws.w / 2, sby + 1094 * pu; size: fws.w, fws.h; corner: fws.h / 2 }
-                }
-                body {
-                    shadow: 0, 0, 6 * pu, 50%, mint
-                    gradient: fws.x0, 0 to fws.x0 + fws.w, 0, mintlo, mint 55%, minthi
-                    rim: 22%
-                    box { from: fws.x0, sby + 1094 * pu - fws.h / 2; size: max(0.1, fws.w * clamp((fw_hgt - 40) / 260, 0, 1)), fws.h; corner: fws.h / 2 }
-                }
+                PSlider(fws.x0, sby + 1094 * pu, fws.w, clamp(clamp((fw_hgt - 40) / 260, 0, 1), 0, 1), fw_h_hit.hover, cu, fws.h, 0)
             }
             zone box fw_h_hit { at: fws.x0 + fws.w / 2, sby + 1094 * pu; size: fws.w + 28 * pu, 26 * pu; cursor: pointer; active: (sby + 1094 * pu) - ck.off > sby and (sby + 1094 * pu) - ck.off < sby + set.h * pu; label: "Height" }
             on press fw_h_hit { emit fw_hgt_set(clamp(((pointer.x - tx.pnl) - fws.x0) / fws.w, 0, 1)) }
@@ -392,17 +362,7 @@ part Clock {
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 1120 * pu + 0.5); text "Blend" { at: floor(spx + 14 * pu + 0.5), floor(sby + 1120 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 1120 * pu + 0.5); text fw_bl_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 1120 * pu + 0.5); anchor: right center; size: 15; weight: 600; color: ink; family: "Space Grotesk" } }
             group {
-                body {
-                    color: deep
-                    rim: 9%
-                    box { at: fws.x0 + fws.w / 2, sby + 1144 * pu; size: fws.w, fws.h; corner: fws.h / 2 }
-                }
-                body {
-                    shadow: 0, 0, 6 * pu, 50%, mint
-                    gradient: fws.x0, 0 to fws.x0 + fws.w, 0, mintlo, mint 55%, minthi
-                    rim: 22%
-                    box { from: fws.x0, sby + 1144 * pu - fws.h / 2; size: max(0.1, fws.w * clamp(fw_bl, 0, 1)), fws.h; corner: fws.h / 2 }
-                }
+                PSlider(fws.x0, sby + 1144 * pu, fws.w, clamp(clamp(fw_bl, 0, 1), 0, 1), fw_b_hit.hover, cu, fws.h, 0)
             }
             zone box fw_b_hit { at: fws.x0 + fws.w / 2, sby + 1144 * pu; size: fws.w + 28 * pu, 26 * pu; cursor: pointer; active: (sby + 1144 * pu) - ck.off > sby and (sby + 1144 * pu) - ck.off < sby + set.h * pu; label: "Blend" }
             on press fw_b_hit { emit fw_bl_set(clamp(((pointer.x - tx.pnl) - fws.x0) / fws.w, 0, 1)) }

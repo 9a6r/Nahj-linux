@@ -67,13 +67,7 @@ part PleamarWm {
 
             //  The leader's share of the width, 30 to 80 %.
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 166 * pu + 0.5); text "Leader width" { at: floor(spx + 14 * pu + 0.5), floor(sby + 166 * pu + 0.5); anchor: left center; size: 15; color: faint; family: "Space Grotesk" } }
-            body { color: deep; rim: 9%; box { at: wsl.x0 + wsl.w / 2, sby + 166 * pu; size: wsl.w, wh; corner: wh / 2 } }
-            body {
-                shadow: 0, 0, 6 * pu, 50%, mint
-                gradient: wsl.x0, 0 to wsl.x0 + wsl.w, 0, mintlo, mint 55%, minthi
-                rim: 22%
-                box { from: wsl.x0, sby + 166 * pu - wh / 2; size: max(0.1, wsl.w * (wm_share - 0.3) / 0.5), wh; corner: wh / 2 }
-            }
+            PSlider(wsl.x0, sby + 166 * pu, wsl.w, clamp((wm_share - 0.3) / 0.5, 0, 1), wm_share_hit.hover, cu, wh, 0)
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 166 * pu + 0.5); text wm_share_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 166 * pu + 0.5); anchor: right center; size: 17.5; weight: 600; color: ink; family: "Space Grotesk" } }
             zone box wm_share_hit { at: wsl.x0 + wsl.w / 2, sby + 166 * pu; size: wsl.w + 24 * pu, 30 * pu; cursor: pointer; active: (sby + 166 * pu) - sby - wm.off > 0 and (sby + 166 * pu) - sby - wm.off < set.h * pu }
             on press wm_share_hit { emit wm_share_set(clamp(((pointer.x - tx.pnl) - wsl.x0) / wsl.w, 0, 1)) }
@@ -81,13 +75,7 @@ part PleamarWm {
 
             //  Gaps between windows, 0 to 32 px.
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 198 * pu + 0.5); text "Gaps" { at: floor(spx + 14 * pu + 0.5), floor(sby + 198 * pu + 0.5); anchor: left center; size: 15; color: faint; family: "Space Grotesk" } }
-            body { color: deep; rim: 9%; box { at: wsl.x0 + wsl.w / 2, sby + 198 * pu; size: wsl.w, wh; corner: wh / 2 } }
-            body {
-                shadow: 0, 0, 6 * pu, 50%, mint
-                gradient: wsl.x0, 0 to wsl.x0 + wsl.w, 0, mintlo, mint 55%, minthi
-                rim: 22%
-                box { from: wsl.x0, sby + 198 * pu - wh / 2; size: max(0.1, wsl.w * wm_gap / 32), wh; corner: wh / 2 }
-            }
+            PSlider(wsl.x0, sby + 198 * pu, wsl.w, clamp(wm_gap / 32, 0, 1), wm_gap_hit.hover, cu, wh, 0)
             group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 198 * pu + 0.5); text wm_gap_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 198 * pu + 0.5); anchor: right center; size: 17.5; weight: 600; color: ink; family: "Space Grotesk" } }
             zone box wm_gap_hit { at: wsl.x0 + wsl.w / 2, sby + 198 * pu; size: wsl.w + 24 * pu, 30 * pu; cursor: pointer; active: (sby + 198 * pu) - sby - wm.off > 0 and (sby + 198 * pu) - sby - wm.off < set.h * pu }
             on press wm_gap_hit { emit wm_gap_set(clamp(((pointer.x - tx.pnl) - wsl.x0) / wsl.w, 0, 1)) }
@@ -114,13 +102,7 @@ part PleamarWm {
                 let sy = sby + (382 + i * 30) * pu
                 let sv = pick(i, (wm_ms + 1) / 2, (wm_ts + 1) / 2, (wm_idle - 1) / 29)
                 group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sy + 0.5); text pick(i, "Mouse speed", "Touchpad speed", "Screen off after") { at: floor(spx + 14 * pu + 0.5), floor(sy + 0.5); anchor: left center; size: 15; color: faint; family: "Space Grotesk" } }
-                body { color: deep; rim: 9%; box { at: wsl.x0 + wsl.w / 2, sy; size: wsl.w, wh; corner: wh / 2 } }
-                body {
-                    shadow: 0, 0, 6 * pu, 50%, mint
-                    gradient: wsl.x0, 0 to wsl.x0 + wsl.w, 0, mintlo, mint 55%, minthi
-                    rim: 22%
-                    box { from: wsl.x0, sy - wh / 2; size: max(0.1, wsl.w * sv), wh; corner: wh / 2 }
-                }
+                PSlider(wsl.x0, sy, wsl.w, clamp(sv, 0, 1), wm_in_hit.$i.hover, cu, wh, 0)
                 group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sy + 0.5); text pick(i, wm_ms_text, wm_ts_text, wm_idle_text) { at: floor(spx + 424 * pu + 0.5), floor(sy + 0.5); anchor: right center; size: 17.5; weight: 600; color: ink; family: "Space Grotesk" } }
                 zone box wm_in_hit.$i { at: wsl.x0 + wsl.w / 2, sy; size: wsl.w + 24 * pu, 30 * pu; cursor: pointer; active: (sy) - sby - wm.off > 0 and (sy) - sby - wm.off < set.h * pu }
                 on press wm_in_hit.$i { emit wm_input_set(i * 10 + clamp(((pointer.x - tx.pnl) - wsl.x0) / wsl.w, 0, 1)) }
@@ -163,13 +145,7 @@ part PleamarWm {
                 let sy = sby + (674 + i * 30) * pu
                 let sv = pick(i, wm_bw / 6, (wm_ba - 20) / 80, wm_rad / 24, wm_shd / 200, (wm_tb - 16) / 18, (wm_tbo - 40) / 60, (wm_wa - 40) / 60, (wm_wi - 40) / 60, wm_fr / 100)
                 group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sy + 0.5); text pick(i, "Border width", "Border strength", "Corner radius", "Shadow", "Title bar height", "Title bar glass", "Window opacity", "Unfocused opacity", "Frosted backing") { at: floor(spx + 14 * pu + 0.5), floor(sy + 0.5); anchor: left center; size: 15; color: faint; family: "Space Grotesk" } }
-                body { color: deep; rim: 9%; box { at: wsl.x0 + wsl.w / 2, sy; size: wsl.w, wh; corner: wh / 2 } }
-                body {
-                    shadow: 0, 0, 6 * pu, 50%, mint
-                    gradient: wsl.x0, 0 to wsl.x0 + wsl.w, 0, mintlo, mint 55%, minthi
-                    rim: 22%
-                    box { from: wsl.x0, sy - wh / 2; size: max(0.1, wsl.w * sv), wh; corner: wh / 2 }
-                }
+                PSlider(wsl.x0, sy, wsl.w, clamp(sv, 0, 1), wm_st_hit.$i.hover, cu, wh, 0)
                 group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sy + 0.5); text pick(i, wm_bw_text, wm_ba_text, wm_rad_text, wm_shd_text, wm_tb_text, wm_tbo_text, wm_wa_text, wm_wi_text, wm_fr_text) { at: floor(spx + 424 * pu + 0.5), floor(sy + 0.5); anchor: right center; size: 17.5; weight: 600; color: ink; family: "Space Grotesk" } }
                 zone box wm_st_hit.$i { at: wsl.x0 + wsl.w / 2, sy; size: wsl.w + 24 * pu, 30 * pu; cursor: pointer; active: sy - sby - wm.off > 0 and sy - sby - wm.off < set.h * pu }
                 on press wm_st_hit.$i { emit wm_style_set(i * 10 + clamp(((pointer.x - tx.pnl) - wsl.x0) / wsl.w, 0, 1)) }
