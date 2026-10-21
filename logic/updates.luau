@@ -188,7 +188,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
         fact.about_restarting = true
         restart()
     end)
-    on("about_update", function()
+    local function do_update()
         if A.busy or (fact.about_behind or 0) <= 0 then return end
         -- pleamar first, then Vitreus (`pleamar-update` pulls its source and builds it, which takes minutes): the newest
         -- Vitreus files may need the newest pleamar, so they are only pulled once it is in place, and the shell is
@@ -197,6 +197,9 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
         local function pleamar_first()
             if A.pl_behind <= 0 then return update_shell() end
             busy(true, "Updating pleamar: building it, this takes a few minutes…", 1800000)
+            -- Installing the new pleamar makes the running one start again by itself (it watches its own binary), which ends this
+            -- logic before the Vitreus step below. So the step is left written down, and the shell that starts again carries it out.
+            pcall(sys.call, "files.write", "update-pending.json", { pending = true })
             -- Every build of pleamar-wm rewrites its Cargo.lock (it records pleamar's version, which upstream commits only now
             -- and then). `pleamar-update` takes a repo with changes as "yours" and does not pull it, so the same updates
             -- would be offered for ever. That file is a build artifact: put it back first.
@@ -204,6 +207,7 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
                 local r = ({ "pleamar", "pleamar-wm" })[i]
                 if not r then
                     return run("pleamar-update", {}, function(_, code)
+                        pcall(sys.call, "files.write", "update-pending.json", { pending = false })
                         if code ~= 0 then
                             return busy(false, "Couldn't update pleamar. Try `pleamar-update` in a terminal to see why.")
                         end
@@ -305,7 +309,8 @@ exit 0]]
         end)
         end
         pleamar_first()
-    end)
+    end
+    on("about_update", do_update)
 
     -- A quiet check in the background (a minute and a half after the shell starts, then every six hours): when the remote has commits this
     -- checkout does not, ONE critical notification says so and lists what is new (the commits' subjects, newest first). It is sent once
@@ -349,5 +354,11 @@ exit 0]]
         A.dir = d.conf
         A.src = (d.data:gsub("/vitreus$", "/src"))
         read_build()
+        -- An update that was cut short by pleamar starting again (see do_update): the Vitreus half is done now, then the restart.
+        local ok, saved = pcall(sys.ask, "files.read", "update-pending.json", "json")
+        if ok and type(saved) == "table" and saved.pending == true then
+            pcall(sys.call, "files.write", "update-pending.json", { pending = false })
+            check(do_update)
+        end
     end)
 end
