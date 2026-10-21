@@ -66,6 +66,14 @@ return function()
     local function refresh_cv() read_cv_mons() end
     read_cv_mons()
     on("fact:set_page", function(v) if v == "pg_clock" then refresh(); refresh_sy(); refresh_cv() end end)
+    -- The settings open again on the page they were left on, and the desktop editor can switch the widgets while it is showing: the page
+    -- asks again when the panel opens, and while it is in view it asks (only whether they are on) every couple of seconds.
+    on("fact:panel", function(v) if v == "settings" and fact.set_page == "pg_clock" then refresh(); refresh_sy() end end)
+    local function refresh_shown()
+        run("pleamar", { "--say", "desktopclock", "get shown" }, function(out, code) if code == 0 then fact.ck_on = (out or ""):match("true") ~= nil end end)
+        run("pleamar", { "--say", "desktopsysmon", "get shown" }, function(out, code) if code == 0 then fact.sy_on = (out or ""):match("true") ~= nil end end)
+    end
+    every(2000, function() if fact.panel == "settings" and fact.set_page == "pg_clock" then refresh_shown() end end)
 
     on("ck_toggle", function()
         local b = not fact.ck_on
