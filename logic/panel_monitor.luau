@@ -7,13 +7,28 @@
 return function()
     local copies = nil       -- { { i = copy index, w = , h = } }: the open copies, from `describe`
 
+    -- `describe` makes the renderer drop its composed frame and walk every zone of the scene, a stall of tens of milliseconds at each key press. What it says
+    -- changes only when a copy opens or closes or a monitor changes, so it is asked again only when one of those facts has.
+    local seen_sig = nil
+    local function signature()
+        local t = {}
+        for k = 0, 3 do
+            t[#t + 1] = tostring(fact["bar_c" .. k]) .. ":" .. tostring(text["screen." .. k .. ".name"]) .. ":" .. tostring(fact["screen." .. k .. ".width"]) .. "x" .. tostring(fact["screen." .. k .. ".height"])
+        end
+        t[#t + 1] = tostring(fact.bar_others)
+        return table.concat(t, ",")
+    end
+
     local function learn(done)
+        local sig = signature()
+        if copies ~= nil and seen_sig == sig then return done() end
         run("pleamar", { "--say", "vitreus", "describe" }, function(out)
             local list = {}
             for i, w, h in (out or ""):gmatch("main %(screen (%d+)%) · %S+ (%d+)×(%d+)") do
                 list[#list + 1] = { i = tonumber(i), w = tonumber(w), h = tonumber(h) }
             end
             copies = list                -- empty with one copy: its header has no "(screen N)"
+            seen_sig = sig
             done()
         end)
     end
