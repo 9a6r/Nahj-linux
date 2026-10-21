@@ -4,10 +4,10 @@ part BarIcons {
     //  does. An effect cannot sit inside another effect's group, hence outside. The click areas and rules
     //  stay in the bar group above.
     group {
-        glow: 2.4 * u, 110%, deep
+        glow: 2.4 * bu, 110%, deep
         row tray_bar_row {
-            at: floor(tr.x - ((if(bs.tray > 0.02, bartrays.count, 0) + if(rec_on, 1, 0) + if(priv_mic, 1, 0) + if(priv_cam, 1, 0) + if(priv_scr and not rec_on, 1, 0)) * 24 - 6) * u / 2 + 0.5), floor(bar.y - 9 * u + 0.5)
-            gap: floor(6 * u + 0.5)
+            at: floor(tr.x - ((if(bs.tray > 0.02, bartrays.count, 0) + if(rec_on, 1, 0) + if(priv_mic, 1, 0) + if(priv_cam, 1, 0) + if(priv_scr and not rec_on, 1, 0)) * 24 - 6) * bu / 2 + 0.5), floor(bar.y - 9 * bu + 0.5)
+            gap: floor(6 * bu + 0.5)
             show: lm < 0.5
             BarPriv(0) { show: priv_mic }
             BarPriv(1) { show: priv_cam }
@@ -16,8 +16,8 @@ part BarIcons {
             for t in bartrays { BarTray(t, click: bar_tray_click, menu: bar_tray_menu) { show: bs.tray > 0.02 } }
         }
         column tray_bar_col {
-            at: floor(lf.x - 9 * u + 0.5), floor(lv.tray + 0.5)
-            gap: floor(6 * u + 0.5)
+            at: floor(lf.x - 9 * bu + 0.5), floor(lv.tray + 0.5)
+            gap: floor(6 * bu + 0.5)
             show: lm >= 0.5
             BarPriv(0) { show: priv_mic }
             BarPriv(1) { show: priv_cam }
@@ -100,7 +100,7 @@ part BarIcons {
             body ws.pill {
                 gradient: 0, mix(bar.y, pl.m, lm) - pl.h / 2 to 0, mix(bar.y, pl.m, lm) + pl.h / 2, minthi, mintlo
                 rim: 55%
-                shadow: 0, 0, 7 * u, 30%, mint
+                shadow: 0, 0, 7 * bu, 30%, mint
                 opacity: 0.55 * bs.ws * (1 - ws.sp)
                 box { at: mix(pl.m, lf.x, lm), mix(bar.y, pl.m, lm); size: pl.w, pl.h; corner: 0.3 * min(pl.w, pl.h) }
             }
@@ -132,20 +132,20 @@ part BarIcons {
         group {
             opacity: mshow * bs.media * bs.title
             group {
-                pivot: mcx - 18.5 * u, mcy
+                pivot: mcx - 18.5 * bu, mcy
                 scale: 1 + 0.14 * bp.prev.hover
-                PBPrev(mcx - 18.5 * u, mcy, bp.prev.hover, u, 65% + 35% * bp.prev.hover)
+                PBPrev(mcx - 18.5 * bu, mcy, bp.prev.hover, bu, 65% + 35% * bp.prev.hover)
             }
             //  Pause while it plays, play while it is paused.
             group {
                 pivot: mcx, mcy
                 scale: 1 + 0.14 * bp.play.hover
-                PBPlay(mcx, mcy, bp.play.hover, u, 85% + 15% * bp.play.hover, if(media.playing, 1, 0))
+                PBPlay(mcx, mcy, bp.play.hover, bu, 85% + 15% * bp.play.hover, if(media.playing, 1, 0))
             }
             group {
-                pivot: mcx + 18.5 * u, mcy
+                pivot: mcx + 18.5 * bu, mcy
                 scale: 1 + 0.14 * bp.next.hover
-                PBNext(mcx + 18.5 * u, mcy, bp.next.hover, u, 65% + 35% * bp.next.hover)
+                PBNext(mcx + 18.5 * bu, mcy, bp.next.hover, bu, 65% + 35% * bp.next.hover)
             }
         }
         //  Down the left the player's buttons are the top bar's own, turned with the title (a quarter anticlockwise, so they read from the foot up:
@@ -155,19 +155,19 @@ part BarIcons {
             pivot: lf.x, lv.mid
             rotate: -90deg
             group {
-                pivot: lf.x - 18.5 * cu, lv.mid
+                pivot: lf.x - 18.5 * bcu, lv.mid
                 scale: 1 + 0.14 * vm_prev.hover
-                PBPrev(lf.x - 18.5 * cu, lv.mid, vm_prev.hover, cu, 65% + 35% * vm_prev.hover)
+                PBPrev(lf.x - 18.5 * bcu, lv.mid, vm_prev.hover, bcu, 65% + 35% * vm_prev.hover)
             }
             group {
                 pivot: lf.x, lv.mid
                 scale: 1 + 0.14 * vm_play.hover
-                PBPlay(lf.x, lv.mid, vm_play.hover, cu, 85% + 15% * vm_play.hover, if(media.playing, 1, 0))
+                PBPlay(lf.x, lv.mid, vm_play.hover, bcu, 85% + 15% * vm_play.hover, if(media.playing, 1, 0))
             }
             group {
-                pivot: lf.x + 18.5 * cu, lv.mid
+                pivot: lf.x + 18.5 * bcu, lv.mid
                 scale: 1 + 0.14 * vm_next.hover
-                PBNext(lf.x + 18.5 * cu, lv.mid, vm_next.hover, cu, 65% + 35% * vm_next.hover)
+                PBNext(lf.x + 18.5 * bcu, lv.mid, vm_next.hover, bcu, 65% + 35% * vm_next.hover)
             }
         }
         //  The settings button: a gear, between the player's buttons and the controls button.
@@ -177,7 +177,7 @@ part BarIcons {
             group {
                 pivot: set.x, bar.y
                 scale: 1 + 0.14 * set_hit.hover
-                PBGear(set.x, bar.y, set_hit.hover, u, clamp(ds, 0, 1))
+                PBGear(set.x, bar.y, set_hit.hover, bu, clamp(ds, 0, 1))
             }
         }
         //  The launcher's button, between the settings button and the controls button: a magnifying glass.
@@ -185,9 +185,9 @@ part BarIcons {
             opacity: (65% + 35% * max(sr_hit.hover, clamp(dl, 0, 1))) * bs.sr
             move: (lf.x - sr.x) * lm, (lv.sr - bar.y) * lm
             group {
-                pivot: sr.x + 2 * u, bar.y + 2 * u
+                pivot: sr.x + 2 * bu, bar.y + 2 * bu
                 scale: 1 + 0.14 * sr_hit.hover
-                PBSearch(sr.x, bar.y, sr_hit.hover, u, clamp(dl, 0, 1))
+                PBSearch(sr.x, bar.y, sr_hit.hover, bu, clamp(dl, 0, 1))
             }
         }
         //  The controls button, between the settings button and the clock: two sliders.
@@ -197,7 +197,7 @@ part BarIcons {
             group {
                 pivot: ctl.x, bar.y
                 scale: 1 + 0.14 * ctl_hit.hover
-                PBCtl(ctl.x, bar.y, ctl_hit.hover, u, clamp(dk, 0, 1))
+                PBCtl(ctl.x, bar.y, ctl_hit.hover, bu, clamp(dk, 0, 1))
             }
         }
     }

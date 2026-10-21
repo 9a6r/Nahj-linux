@@ -70,7 +70,7 @@ scene Vitreus {
     //  The keyboard is `on_demand`, not `exclusive`: it is asked for every open copy at once (the `while` is not per copy), and Hyprland gave it, and the
     //  pointer with it, to a copy where nothing was open: the cursor seemed stuck until the panel closed. A field that takes the focus (the launcher's
     //  search, the desk's inputs) still has it lent exclusively, to the copy it is on only.
-    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 68 while bar_anchor == top and not bar_frame; screens: each max 2; open: sb > 0.5 or bar_others; keyboard: on_demand while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or dash_open }
+    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 68 while bar_anchor == top and not bar_frame and bar_size > 0.995; screens: each max 2; open: sb > 0.5 or bar_others; keyboard: on_demand while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or dash_open }
     permissions { services: "files", "files.write", "auth", "clock", "clock.seconds", "thumbnails", "thumbnails.*", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
                   run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "vitreus-themes", "claude", "ollama", "codex", "pacman", "paru", "yay", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "date", "udevadm" }
 
@@ -546,6 +546,9 @@ scene Vitreus {
     //  edge, `lp_w` wide (the one last opened), their left edge by the strip.
     fact bar_anchor: top | left | right | bottom = top
     fact bar_frame = false                   // the frame round the screen is on (the Island is the bar without it)
+    fact bar_size = 1                        // Settings > Bar > Size: how big the bar is, 0.7 to 1, on every layout; the logic sets it (logic/bar_size.luau)
+    event bar_pick_size ->                   // the slider: 0 to 1 along it, 70 to 100 %
+    text bar_size_text = "100%"
     fact bar_seg = false                     // along the top with a frame: a thin frame, and the bar in three pieces of glass (workspaces, clock, controls) out of it
     //  Down the left a panel never turns into another: asking for one while another is open closes the open one first, and the new one
     //  opens when it has gone (see the rule after `lp.top`). `pcur` is the panel as the rule last saw it, `pending` the one that is waiting.
@@ -1338,6 +1341,8 @@ scene Vitreus {
     follow pow_th = if(pow_prof < 0, 1, pow_prof)
     follow wp_show_pill = if(wp_show, 1, 0)
     follow iris_pill = if(iris_on, 1, 0)
+    prop bar_zs = 1 ~120ms
+    follow bar_zs = bar_size
     follow bar_lm = if(bar_frame and (bar_anchor == left or bar_anchor == right), 1, 0)
     follow bar_tm = if(bar_frame and (bar_anchor == top or bar_anchor == bottom), 1, 0)
     follow bar_sg = if(bar_frame and bar_seg and bar_anchor == top, 1, 0)
@@ -2123,7 +2128,7 @@ scene Vitreus {
     }
 
     //  One number scales the whole shell. The exclusive zone (`reserve` above) is
-    //  the bar and a little air: 8 + bar.h + 6. Only along the top: down the left, the room is the windows' gaps
+    //  the bar and a little air: 8 + bar.h + 6 (68). Below 100 % the Island reserves nothing (a reserve is a plain number): the room is kept by `fr.*` under pleamar-wm, by `gaps_out` on Hyprland (vitreus.luau). Only along the top: down the left, the room is the windows' gaps
     //  (vitreus_colors.lua), and a reserve there as well would leave an empty strip beside the bar.
     let u = 1.35                    // (the icon models are declared at their size times this: 20 → 27, 22 → 30, 26 → 35)
     //  The Settings, the launcher and the Desk follow the monitor's height: they are drawn to fit a 1350 px high screen, and a lower one shrinks them (a 1080 p one to 80 %),
@@ -2137,6 +2142,11 @@ scene Vitreus {
     let bk = 1 - 0.85 * sq                   // how much of a melt (a neck) is left
     let du = 1.5525 * rs             // the Desk's own unit: cu (u * 1.15) at the scale of the screen
     let pu = 1.6875 * rs             // u * 1.25: the Settings and the launcher are laid out 25% larger than the rest, at real size (not zoomed)
+    //  The bar has its own unit: `bu` and `bcu` are `u` and `cu` at the bar's size (`bz`, 1 to 0.7 with Settings > Bar > Size), used for what the bar itself is made of: its strip, its
+    //  pieces, icons, texts and click areas. The panels and the frame keep `u`, so only the bar gets smaller.
+    let bz = bar_zs
+    let bu = u * bz
+    let bcu = cu * bz
     //  One reminder of the chosen day: a circle to tick it off, its time, its words, a cross.
     component CalRow(e: record, tick: event, gone: event) {
         //  30 px tall at least, and as tall as its title needs: a reminder wraps onto more lines rather
@@ -2927,10 +2937,10 @@ scene Vitreus {
         follow a = hot
         let fr = if(a > 0.02, floor(time * 5), 0)
         let c = 0.3 * min(w, h)
-        let je = (0.25 + 0.3 * a) * u
-        let jm = (0.75 + 0.6 * a) * u
-        path { at: 0, 0; stroke: 1.3 * u; color: mix(mix(ink, warm, wg), mint, act); opacity: (1) * o; move cx + -w / 2 + c + je * sin(fr * 55 + 37100), cy + -h / 2 + je * sin(fr * 60 + 37160); curve cx + w / 2 - c + je * sin(fr * 62 + 37197), cy + -h / 2 + je * sin(fr * 67 + 37257) via cx + 0 + jm * sin(fr * 55 + 40107), cy + -h / 2 + jm * sin(fr * 60 + 40167); curve cx + w / 2 + je * sin(fr * 69 + 37294), cy + -h / 2 + c + je * sin(fr * 74 + 37354) via cx + w / 2 + jm * sin(fr * 62 + 40204), cy + -h / 2 + jm * sin(fr * 67 + 40264); curve cx + w / 2 + je * sin(fr * 45 + 37391), cy + h / 2 - c + je * sin(fr * 50 + 37451) via cx + w / 2 + jm * sin(fr * 69 + 40301), cy + 0 + jm * sin(fr * 74 + 40361); curve cx + w / 2 - c + je * sin(fr * 52 + 37488), cy + h / 2 + je * sin(fr * 57 + 37548) via cx + w / 2 + jm * sin(fr * 45 + 40398), cy + h / 2 + jm * sin(fr * 50 + 40458); curve cx + -w / 2 + c + je * sin(fr * 59 + 37585), cy + h / 2 + je * sin(fr * 64 + 37645) via cx + 0 + jm * sin(fr * 52 + 40495), cy + h / 2 + jm * sin(fr * 57 + 40555); curve cx + -w / 2 + je * sin(fr * 66 + 37682), cy + h / 2 - c + je * sin(fr * 71 + 37742) via cx + -w / 2 + jm * sin(fr * 59 + 40592), cy + h / 2 + jm * sin(fr * 64 + 40652); curve cx + -w / 2 + je * sin(fr * 73 + 37779), cy + -h / 2 + c + je * sin(fr * 78 + 37839) via cx + -w / 2 + jm * sin(fr * 66 + 40689), cy + 0 + jm * sin(fr * 71 + 40749); curve cx + -w / 2 + c + je * sin(fr * 49 + 37876), cy + -h / 2 + je * sin(fr * 54 + 37936) via cx + -w / 2 + jm * sin(fr * 73 + 40786), cy + -h / 2 + jm * sin(fr * 78 + 40846); close }
-        path { at: 0 + 0.35 * u, 0 + 0.3 * u; stroke: 0.9 * u; color: mix(mix(ink, warm, wg), mint, act); opacity: (0.4) * o; move cx + -w / 2 + c + je * sin(fr * 61 + 37577), cy + -h / 2 + je * sin(fr * 66 + 37637); curve cx + w / 2 - c + je * sin(fr * 68 + 37674), cy + -h / 2 + je * sin(fr * 73 + 37734) via cx + 0 + jm * sin(fr * 61 + 40584), cy + -h / 2 + jm * sin(fr * 66 + 40644); curve cx + w / 2 + je * sin(fr * 44 + 37771), cy + -h / 2 + c + je * sin(fr * 49 + 37831) via cx + w / 2 + jm * sin(fr * 68 + 40681), cy + -h / 2 + jm * sin(fr * 73 + 40741); curve cx + w / 2 + je * sin(fr * 51 + 37868), cy + h / 2 - c + je * sin(fr * 56 + 37928) via cx + w / 2 + jm * sin(fr * 44 + 40778), cy + 0 + jm * sin(fr * 49 + 40838); curve cx + w / 2 - c + je * sin(fr * 58 + 37965), cy + h / 2 + je * sin(fr * 63 + 38025) via cx + w / 2 + jm * sin(fr * 51 + 40875), cy + h / 2 + jm * sin(fr * 56 + 40935); curve cx + -w / 2 + c + je * sin(fr * 65 + 38062), cy + h / 2 + je * sin(fr * 70 + 38122) via cx + 0 + jm * sin(fr * 58 + 40972), cy + h / 2 + jm * sin(fr * 63 + 41032); curve cx + -w / 2 + je * sin(fr * 72 + 38159), cy + h / 2 - c + je * sin(fr * 77 + 38219) via cx + -w / 2 + jm * sin(fr * 65 + 41069), cy + h / 2 + jm * sin(fr * 70 + 41129); curve cx + -w / 2 + je * sin(fr * 48 + 38256), cy + -h / 2 + c + je * sin(fr * 53 + 38316) via cx + -w / 2 + jm * sin(fr * 72 + 41166), cy + 0 + jm * sin(fr * 77 + 41226); curve cx + -w / 2 + c + je * sin(fr * 55 + 38353), cy + -h / 2 + je * sin(fr * 60 + 38413) via cx + -w / 2 + jm * sin(fr * 48 + 41263), cy + -h / 2 + jm * sin(fr * 53 + 41323); close }
+        let je = (0.25 + 0.3 * a) * bu
+        let jm = (0.75 + 0.6 * a) * bu
+        path { at: 0, 0; stroke: 1.3 * bu; color: mix(mix(ink, warm, wg), mint, act); opacity: (1) * o; move cx + -w / 2 + c + je * sin(fr * 55 + 37100), cy + -h / 2 + je * sin(fr * 60 + 37160); curve cx + w / 2 - c + je * sin(fr * 62 + 37197), cy + -h / 2 + je * sin(fr * 67 + 37257) via cx + 0 + jm * sin(fr * 55 + 40107), cy + -h / 2 + jm * sin(fr * 60 + 40167); curve cx + w / 2 + je * sin(fr * 69 + 37294), cy + -h / 2 + c + je * sin(fr * 74 + 37354) via cx + w / 2 + jm * sin(fr * 62 + 40204), cy + -h / 2 + jm * sin(fr * 67 + 40264); curve cx + w / 2 + je * sin(fr * 45 + 37391), cy + h / 2 - c + je * sin(fr * 50 + 37451) via cx + w / 2 + jm * sin(fr * 69 + 40301), cy + 0 + jm * sin(fr * 74 + 40361); curve cx + w / 2 - c + je * sin(fr * 52 + 37488), cy + h / 2 + je * sin(fr * 57 + 37548) via cx + w / 2 + jm * sin(fr * 45 + 40398), cy + h / 2 + jm * sin(fr * 50 + 40458); curve cx + -w / 2 + c + je * sin(fr * 59 + 37585), cy + h / 2 + je * sin(fr * 64 + 37645) via cx + 0 + jm * sin(fr * 52 + 40495), cy + h / 2 + jm * sin(fr * 57 + 40555); curve cx + -w / 2 + je * sin(fr * 66 + 37682), cy + h / 2 - c + je * sin(fr * 71 + 37742) via cx + -w / 2 + jm * sin(fr * 59 + 40592), cy + h / 2 + jm * sin(fr * 64 + 40652); curve cx + -w / 2 + je * sin(fr * 73 + 37779), cy + -h / 2 + c + je * sin(fr * 78 + 37839) via cx + -w / 2 + jm * sin(fr * 66 + 40689), cy + 0 + jm * sin(fr * 71 + 40749); curve cx + -w / 2 + c + je * sin(fr * 49 + 37876), cy + -h / 2 + je * sin(fr * 54 + 37936) via cx + -w / 2 + jm * sin(fr * 73 + 40786), cy + -h / 2 + jm * sin(fr * 78 + 40846); close }
+        path { at: 0 + 0.35 * bu, 0 + 0.3 * bu; stroke: 0.9 * bu; color: mix(mix(ink, warm, wg), mint, act); opacity: (0.4) * o; move cx + -w / 2 + c + je * sin(fr * 61 + 37577), cy + -h / 2 + je * sin(fr * 66 + 37637); curve cx + w / 2 - c + je * sin(fr * 68 + 37674), cy + -h / 2 + je * sin(fr * 73 + 37734) via cx + 0 + jm * sin(fr * 61 + 40584), cy + -h / 2 + jm * sin(fr * 66 + 40644); curve cx + w / 2 + je * sin(fr * 44 + 37771), cy + -h / 2 + c + je * sin(fr * 49 + 37831) via cx + w / 2 + jm * sin(fr * 68 + 40681), cy + -h / 2 + jm * sin(fr * 73 + 40741); curve cx + w / 2 + je * sin(fr * 51 + 37868), cy + h / 2 - c + je * sin(fr * 56 + 37928) via cx + w / 2 + jm * sin(fr * 44 + 40778), cy + 0 + jm * sin(fr * 49 + 40838); curve cx + w / 2 - c + je * sin(fr * 58 + 37965), cy + h / 2 + je * sin(fr * 63 + 38025) via cx + w / 2 + jm * sin(fr * 51 + 40875), cy + h / 2 + jm * sin(fr * 56 + 40935); curve cx + -w / 2 + c + je * sin(fr * 65 + 38062), cy + h / 2 + je * sin(fr * 70 + 38122) via cx + 0 + jm * sin(fr * 58 + 40972), cy + h / 2 + jm * sin(fr * 63 + 41032); curve cx + -w / 2 + je * sin(fr * 72 + 38159), cy + h / 2 - c + je * sin(fr * 77 + 38219) via cx + -w / 2 + jm * sin(fr * 65 + 41069), cy + h / 2 + jm * sin(fr * 70 + 41129); curve cx + -w / 2 + je * sin(fr * 48 + 38256), cy + -h / 2 + c + je * sin(fr * 53 + 38316) via cx + -w / 2 + jm * sin(fr * 72 + 41166), cy + 0 + jm * sin(fr * 77 + 41226); curve cx + -w / 2 + c + je * sin(fr * 55 + 38353), cy + -h / 2 + je * sin(fr * 60 + 38413) via cx + -w / 2 + jm * sin(fr * 48 + 41263), cy + -h / 2 + jm * sin(fr * 53 + 41323); close }
     }
 
     //  A hand-drawn pencil line (the bar clock's underline, and the rule under the hour down the strip): one long wavy stroke, and a thinner fainter pass a hair off. `len` its length, `o` its
@@ -2939,10 +2949,10 @@ scene Vitreus {
         prop a = 0 ~calm
         follow a = hot
         let fr = if(a > 0.02, floor(time * 5), 0)
-        let je = (0.15 + 0.25 * a) * u
-        let jm = (0.5 + 0.5 * a) * u
-        path { at: 0, 0; stroke: 1.5 * u; color: mint; opacity: (1) * o; move cx + -len / 2 + je * sin(fr * 70 + 42400), cy + 0 + je * sin(fr * 75 + 42460); curve cx + 0 + je * sin(fr * 46 + 42497), cy + 0 + je * sin(fr * 51 + 42557) via cx + -len / 4 + jm * sin(fr * 70 + 45407), cy + -0.8 * u + jm * sin(fr * 75 + 45467); curve cx + len / 2 + je * sin(fr * 53 + 42594), cy + 0 + je * sin(fr * 58 + 42654) via cx + len / 4 + jm * sin(fr * 46 + 45504), cy + 0.8 * u + jm * sin(fr * 51 + 45564); }
-        path { at: 0 + 0.4 * u, 0 + 0.5 * u; stroke: 1 * u; color: mint; opacity: (0.4) * o; move cx + -len / 2 + je * sin(fr * 45 + 42877), cy + 0 + je * sin(fr * 50 + 42937); curve cx + 0 + je * sin(fr * 52 + 42974), cy + 0 + je * sin(fr * 57 + 43034) via cx + -len / 4 + jm * sin(fr * 45 + 45884), cy + -0.8 * u + jm * sin(fr * 50 + 45944); curve cx + len / 2 + je * sin(fr * 59 + 43071), cy + 0 + je * sin(fr * 64 + 43131) via cx + len / 4 + jm * sin(fr * 52 + 45981), cy + 0.8 * u + jm * sin(fr * 57 + 46041); }
+        let je = (0.15 + 0.25 * a) * bu
+        let jm = (0.5 + 0.5 * a) * bu
+        path { at: 0, 0; stroke: 1.5 * bu; color: mint; opacity: (1) * o; move cx + -len / 2 + je * sin(fr * 70 + 42400), cy + 0 + je * sin(fr * 75 + 42460); curve cx + 0 + je * sin(fr * 46 + 42497), cy + 0 + je * sin(fr * 51 + 42557) via cx + -len / 4 + jm * sin(fr * 70 + 45407), cy + -0.8 * bu + jm * sin(fr * 75 + 45467); curve cx + len / 2 + je * sin(fr * 53 + 42594), cy + 0 + je * sin(fr * 58 + 42654) via cx + len / 4 + jm * sin(fr * 46 + 45504), cy + 0.8 * bu + jm * sin(fr * 51 + 45564); }
+        path { at: 0 + 0.4 * bu, 0 + 0.5 * bu; stroke: 1 * bu; color: mint; opacity: (0.4) * o; move cx + -len / 2 + je * sin(fr * 45 + 42877), cy + 0 + je * sin(fr * 50 + 42937); curve cx + 0 + je * sin(fr * 52 + 42974), cy + 0 + je * sin(fr * 57 + 43034) via cx + -len / 4 + jm * sin(fr * 45 + 45884), cy + -0.8 * bu + jm * sin(fr * 50 + 45944); curve cx + len / 2 + je * sin(fr * 59 + 43071), cy + 0 + je * sin(fr * 64 + 43131) via cx + len / 4 + jm * sin(fr * 52 + 45981), cy + 0.8 * bu + jm * sin(fr * 57 + 46041); }
     }
 
     //  The bar's icons in pencil, like the control center's (see PWifi and the rest): crooked doubled lines at rest, and still (`fr` is 0: no clock); they only redraw about five times a
@@ -3408,14 +3418,14 @@ scene Vitreus {
 
     //  A tray app's icon on the bar: a left click is what clicking it would do, a right click opens its menu.
     component BarTray(t: record, click: event, menu: event) {
-        size: floor(18 * u + 0.5), floor(18 * u + 0.5)
-        box { at: 9 * u, 9 * u; size: 26 * u, 26 * u; corner: 8 * u; color: ink; opacity: 14% * touch.hover * bs.tray }
+        size: floor(18 * bu + 0.5), floor(18 * bu + 0.5)
+        box { at: 9 * bu, 9 * bu; size: 26 * bu, 26 * bu; corner: 8 * bu; color: ink; opacity: 14% * touch.hover * bs.tray }
         group {
-            pivot: 9 * u, 9 * u
+            pivot: 9 * bu, 9 * bu
             scale: 1 + 0.14 * touch.hover
-            image t.icon { at: 0, 0; size: floor(18 * u + 0.5), floor(18 * u + 0.5); opacity: (78% + 22% * touch.hover) * bs.tray }
+            image t.icon { at: 0, 0; size: floor(18 * bu + 0.5), floor(18 * bu + 0.5); opacity: (78% + 22% * touch.hover) * bs.tray }
         }
-        zone box touch { at: 9 * u, 9 * u; size: 24 * u, 30 * u; cursor: pointer; active: bs.tray > 0.5 }
+        zone box touch { at: 9 * bu, 9 * bu; size: 24 * bu, 30 * bu; cursor: pointer; active: bs.tray > 0.5 }
         //  `panel_scr`: the menu opens on this monitor's copy (the logic opens the panel without saying which, so with the bar on
         //  more than one monitor it came out wherever the last panel had been). A left click opens it too, for an app that is only a menu.
         on press touch { panel_scr = screen.index; emit click(t.index) }
@@ -3425,14 +3435,14 @@ scene Vitreus {
     //  A pinned app in the corner dock. Pressed and let go it starts; pressed and pulled (more than a few pixels) it takes the whole dock with it, which settles in
     //  the nearer of the two corners when let go. A right click unpins it.
     component CdkIcon(t: record) {
-        size: floor(24 * u + 0.5), floor(24 * u + 0.5)
-        box { at: 12 * u, 12 * u; size: 33 * u, 33 * u; corner: 10 * u * (1 - 0.5 * sq); color: ink; opacity: 16% * touch.hover * (1 - cdk_drag) }
+        size: floor(24 * bu + 0.5), floor(24 * bu + 0.5)
+        box { at: 12 * bu, 12 * bu; size: 33 * bu, 33 * bu; corner: 10 * bu * (1 - 0.5 * sq); color: ink; opacity: 16% * touch.hover * (1 - cdk_drag) }
         group {
-            pivot: 12 * u, 12 * u
+            pivot: 12 * bu, 12 * bu
             scale: 1 + 0.16 * touch.hover * (1 - cdk_drag)
-            image t.icon { at: 0, 0; size: floor(24 * u + 0.5), floor(24 * u + 0.5); opacity: 88% + 12% * touch.hover }
+            image t.icon { at: 0, 0; size: floor(24 * bu + 0.5), floor(24 * bu + 0.5); opacity: 88% + 12% * touch.hover }
         }
-        zone box touch { at: 12 * u, 12 * u; size: 31 * u, 33 * u; cursor: pointer; active: cdk.g > 0.6 }
+        zone box touch { at: 12 * bu, 12 * bu; size: 31 * bu, 33 * bu; cursor: pointer; active: cdk.g > 0.6 }
         on press touch { cdk_down = 1; cdk_drag = 0; cdk_hx = pointer.x - cdk.rcx; cdk_hy = pointer.y - cdk.rcy }
         on drag touch while cdk_down > 0.5 { cdk_px = clamp(pointer.x - cdk_hx, 0, screen.width); cdk_py = clamp(pointer.y - cdk_hy, 0, screen.height); cdk_drag = if(cdk_drag > 0.5 or abs(drag.dx) + abs(drag.dy) > 8, 1, 0) }
         on release touch while cdk_down > 0.5 and cdk_drag < 0.5 { emit cdk_go(t.index) }
@@ -3444,55 +3454,55 @@ scene Vitreus {
     //  A privacy light on the bar, while something uses the microphone (kind 0, amber), the camera (1, green) or shares the screen (2, blue):
     //  its icon on a soft glowing disc. Under the pointer, the apps doing it are named below it.
     component BarPriv(kind: number) {
-        size: floor(18 * u + 0.5), floor(18 * u + 0.5)
+        size: floor(18 * bu + 0.5), floor(18 * bu + 0.5)
         let beat = 0.5 + 0.5 * sin(time * 160)
         body {
             color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa))
             opacity: 22% + 10% * beat
-            shadow: 0, 0, (3 + 3 * beat) * u, 60%, if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa))
-            ellipse { at: 9 * u, 9 * u; radius: 9 * u }
+            shadow: 0, 0, (3 + 3 * beat) * bu, 60%, if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa))
+            ellipse { at: 9 * bu, 9 * bu; radius: 9 * bu }
         }
         //  microphone
         group {
             show: kind == 0
-            box { at: 9 * u, 7 * u; size: 5 * u, 8.5 * u; corner: 2.5 * u; color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa)) }
-            path { at: 9 * u, 7 * u; stroke: 1.3 * u; color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa)); move -4 * u, 0.5 * u; curve 0, 5.5 * u via -4 * u, 5.5 * u; curve 4 * u, 0.5 * u via 4 * u, 5.5 * u }
-            box { at: 9 * u, 13.8 * u; size: 1.3 * u, 2.2 * u; corner: 0.6 * u; color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa)) }
+            box { at: 9 * bu, 7 * bu; size: 5 * bu, 8.5 * bu; corner: 2.5 * bu; color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa)) }
+            path { at: 9 * bu, 7 * bu; stroke: 1.3 * bu; color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa)); move -4 * bu, 0.5 * bu; curve 0, 5.5 * bu via -4 * bu, 5.5 * bu; curve 4 * bu, 0.5 * bu via 4 * bu, 5.5 * bu }
+            box { at: 9 * bu, 13.8 * bu; size: 1.3 * bu, 2.2 * bu; corner: 0.6 * bu; color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa)) }
         }
         //  camera
         group {
             show: kind == 1
-            box { at: 7.6 * u, 9 * u; size: 9 * u, 7 * u; corner: 2 * u; color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa)) }
-            path { at: 12.5 * u, 9 * u; color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa)); move 0, -1.2 * u; line 3.2 * u, -3 * u; line 3.2 * u, 3 * u; line 0, 1.2 * u; close }
+            box { at: 7.6 * bu, 9 * bu; size: 9 * bu, 7 * bu; corner: 2 * bu; color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa)) }
+            path { at: 12.5 * bu, 9 * bu; color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa)); move 0, -1.2 * bu; line 3.2 * bu, -3 * bu; line 3.2 * bu, 3 * bu; line 0, 1.2 * bu; close }
         }
         //  screen
         group {
             show: kind == 2
-            box { at: 9 * u, 7.8 * u; size: 11 * u, 7.6 * u; corner: 1.6 * u; stroke: 1.4 * u; color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa)) }
-            box { at: 9 * u, 13.6 * u; size: 6 * u, 1.4 * u; corner: 0.7 * u; color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa)) }
+            box { at: 9 * bu, 7.8 * bu; size: 11 * bu, 7.6 * bu; corner: 1.6 * bu; stroke: 1.4 * bu; color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa)) }
+            box { at: 9 * bu, 13.6 * bu; size: 6 * bu, 1.4 * bu; corner: 0.7 * bu; color: if(kind == 0, #f59e0b, if(kind == 1, #22c55e, #60a5fa)) }
         }
-        zone box touch { at: 9 * u, 9 * u; size: 22 * u, 26 * u }
-        text priv_mic_who { at: floor(9 * u + 0.5), floor(30 * u + 0.5); anchor: center; align: center; size: 12; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm < 0.5 and kind == 0 }
-        text priv_mic_who { at: floor(26 * u + 0.5), floor(9 * u + 0.5); anchor: left center; size: 12; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm >= 0.5 and kind == 0 }
-        text priv_cam_who { at: floor(9 * u + 0.5), floor(30 * u + 0.5); anchor: center; align: center; size: 12; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm < 0.5 and kind == 1 }
-        text priv_cam_who { at: floor(26 * u + 0.5), floor(9 * u + 0.5); anchor: left center; size: 12; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm >= 0.5 and kind == 1 }
-        text priv_scr_who { at: floor(9 * u + 0.5), floor(30 * u + 0.5); anchor: center; align: center; size: 12; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm < 0.5 and kind == 2 }
-        text priv_scr_who { at: floor(26 * u + 0.5), floor(9 * u + 0.5); anchor: left center; size: 12; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm >= 0.5 and kind == 2 }
+        zone box touch { at: 9 * bu, 9 * bu; size: 22 * bu, 26 * bu }
+        text priv_mic_who { at: floor(9 * bu + 0.5), floor(30 * bu + 0.5); anchor: center; align: center; size: 12 * bz; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm < 0.5 and kind == 0 }
+        text priv_mic_who { at: floor(26 * bu + 0.5), floor(9 * bu + 0.5); anchor: left center; size: 12 * bz; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm >= 0.5 and kind == 0 }
+        text priv_cam_who { at: floor(9 * bu + 0.5), floor(30 * bu + 0.5); anchor: center; align: center; size: 12 * bz; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm < 0.5 and kind == 1 }
+        text priv_cam_who { at: floor(26 * bu + 0.5), floor(9 * bu + 0.5); anchor: left center; size: 12 * bz; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm >= 0.5 and kind == 1 }
+        text priv_scr_who { at: floor(9 * bu + 0.5), floor(30 * bu + 0.5); anchor: center; align: center; size: 12 * bz; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm < 0.5 and kind == 2 }
+        text priv_scr_who { at: floor(26 * bu + 0.5), floor(9 * bu + 0.5); anchor: left center; size: 12 * bz; weight: 600; color: ink; family: "Space Grotesk"; opacity: touch.hover; show: lm >= 0.5 and kind == 2 }
     }
 
     component BarRec(stop: event) {
-        size: floor(18 * u + 0.5), floor(18 * u + 0.5)
-        box { at: 9 * u, 9 * u; size: 26 * u, 26 * u; corner: 8 * u; color: ink; opacity: 14% * touch.hover }
+        size: floor(18 * bu + 0.5), floor(18 * bu + 0.5)
+        box { at: 9 * bu, 9 * bu; size: 26 * bu, 26 * bu; corner: 8 * bu; color: ink; opacity: 14% * touch.hover }
         let beat = 0.5 + 0.5 * sin(time * 300)
         let wave = fract(time * 0.83)
-        ellipse { at: 9 * u, 9 * u; radius: (6 + 7 * wave) * u; stroke: 1.3 * u; color: #ef4444; opacity: 55% * (1 - wave) * (1 - touch.hover) }
+        ellipse { at: 9 * bu, 9 * bu; radius: (6 + 7 * wave) * bu; stroke: 1.3 * bu; color: #ef4444; opacity: 55% * (1 - wave) * (1 - touch.hover) }
         body {
             color: #ef4444
             opacity: 88% + 12% * touch.hover - (1 - touch.hover) * 0.25 * (1 - beat)
-            shadow: 0, 0, (4 + 5 * beat * (1 - touch.hover)) * u, 70%, #ef4444
-            box { at: 9 * u, 9 * u; size: (12 + 1.5 * beat * (1 - touch.hover) - 1.5 * touch.hover) * u, (12 + 1.5 * beat * (1 - touch.hover) - 1.5 * touch.hover) * u; corner: (6 - 4 * touch.hover) * u }
+            shadow: 0, 0, (4 + 5 * beat * (1 - touch.hover)) * bu, 70%, #ef4444
+            box { at: 9 * bu, 9 * bu; size: (12 + 1.5 * beat * (1 - touch.hover) - 1.5 * touch.hover) * bu, (12 + 1.5 * beat * (1 - touch.hover) - 1.5 * touch.hover) * bu; corner: (6 - 4 * touch.hover) * bu }
         }
-        zone box touch { at: 9 * u, 9 * u; size: 24 * u, 30 * u; cursor: pointer; label: "Stop recording" }
+        zone box touch { at: 9 * bu, 9 * bu; size: 24 * bu, 30 * bu; cursor: pointer; label: "Stop recording" }
         on press touch { emit stop }
     }
 
@@ -3643,7 +3653,7 @@ scene Vitreus {
     let sg = clamp(bar_sg, 0, 1) * sb                             // the top frame in three pieces (see `sg.*`); not on a monitor with only the frame (`sb`)
     let tu = clamp(1 - lm, 0, 1)                                  // the drawers that come out of a horizontal edge: the Island's pill, and the top and bottom frames
     let lf.t = 8 * u
-    let lf.w = mix(lf.t, 46 * u, sb)
+    let lf.w = mix(lf.t, 46 * bu, sb)
     let lf.x = lf.w / 2                                    // the strip's middle line, where its pieces sit
     let th.l = mix(lf.t, lf.w, lm)
     let th.t = mix(lf.t, lf.w, tm)
@@ -3696,19 +3706,19 @@ scene Vitreus {
     on press away_z { panel = none; wp_picker_open = false; ov_open = false; dash_open = false }
     on press right away_z { panel = none; wp_picker_open = false; ov_open = false; dash_open = false }
     //  The tray's icons (the pinned apps, or all of them) are a piece of the bar like the others; the bar widens for them.
-    let bar.gap = 12 * u
+    let bar.gap = 12 * bu
     let tn = trn * bs.tray + rcn + pvn                // what the tray piece holds: the icons (as far as the piece is shown), the recording dot and the privacy lights
-    let fw.tray = max(0, tn * 24 - 6) * u               // icons 18 wide, 6 apart
+    let fw.tray = max(0, tn * 24 - 6) * bu               // icons 18 wide, 6 apart
     let vw.tray = fw.tray
     let bw.tray = fw.tray + bar.gap * min(1, tn)
     //  Along the top with a frame the bar is the strip: as long as the screen, as thick as the left one is wide, its pieces spread along it.
-    let bar.w = mix(450 * u + bw.tray, screen.width - 24 * u, tm)
-    let bar.h = mix(40 * u, lf.w + 10 * u * sg, tm)               // (the top frame in pieces: the pieces are 36 * u deep, so the middle line is 5 higher and the strip 10 taller, which leaves where the panels start where it was)
-    let bar.y0 = mix(8 + 20 * u, th.t / 2 - 5 * u * sg, tm)
+    let bar.w = mix(450 * bu + bw.tray, screen.width - 24 * bu, tm)
+    let bar.h = mix(40 * bu, lf.w + 10 * bu * sg, tm)               // (the top frame in pieces: the pieces are 36 * bu deep, so the middle line is 5 higher and the strip 10 taller, which leaves where the panels start where it was)
+    let bar.y0 = mix(8 + 20 * bu, th.t / 2 - 5 * bu * sg, tm)
     //  Down the left the panels come out of the strip at the height of their button: `pw_y` is where the open panel's top is (see `lp.top`), and
     //  the bar's "middle line" is half a bar above it, so that the first plate keeps the 12 it has under a panel's top (`bar.y` + 32).
     let bar.y = bar.y0
-    let bar.rad = 14 * u * (1 - 0.5 * sq)                 // the bar's corner when shut: the same as the plates', not a full pill
+    let bar.rad = 14 * bu * (1 - 0.5 * sq)                 // the bar's corner when shut: the same as the plates', not a full pill
     //  The bar's pieces sit in a row in the order Settings > Bar gives them (`bo.*`), 16 in from each end and
     //  `bar.gap` apart. Each one is as wide as what it draws (`fw.*`) and takes that and a gap (`bw.*`: less while
     //  it is being hidden, and the player's only while there is something playing); the title takes none, it is
@@ -3717,13 +3727,13 @@ scene Vitreus {
     //  The clock's width is measured: the hour, the minutes and, at the edge, the day over the am/pm (both about
     //  the same width, so the column is as wide as the wider).
     let clock.col = max(caw.width, cdw.width)
-    let bar.l = cx - bar.w / 2 + 16 * u
-    let bar.r = cx + bar.w / 2 - 16 * u
-    let fw.ws = 128 * u                  // five squares 18 apart, one of them stretched out, and the overview button before them (20 more)
+    let bar.l = cx - bar.w / 2 + 16 * bu
+    let bar.r = cx + bar.w / 2 - 16 * bu
+    let fw.ws = 128 * bu                  // five squares 18 apart, one of them stretched out, and the overview button before them (20 more)
     let fw.media = 0                     // previous, play, next have no slot of their own: they sit inside the window title's button, top right
-    let fw.set = 15 * u                  // the gear with its teeth
-    let fw.sr = 12 * u                   // the magnifier, glass and handle
-    let fw.ctl = 13 * u                  // the two sliders
+    let fw.set = 15 * bu                  // the gear with its teeth
+    let fw.sr = 12 * bu                   // the magnifier, glass and handle
+    let fw.ctl = 13 * bu                  // the two sliders
     let fw.clock = chw.width + cmw.width + clock.col
     let vw.ws = fw.ws * bs.ws            // what each one draws, now
     let vw.media = fw.media * mshow * bs.media
@@ -3756,20 +3766,20 @@ scene Vitreus {
     //  The top frame in three pieces (Settings > Bar > Segments): a thin frame, and glass out of it at the left (the workspaces), in the middle (the title, the clock
     //  and the tray: the clock on the middle of the screen, the title after it and the tray after that) and at the right (search, the gear and the controls, ending at the corner).
     //  `sg.*` is where each piece goes then; the glass that holds them is further down (`sg.lr`, `sg.cl0`...). The title may not grow past `sg.tw`.
-    let sg.pad = 14 * u
-    let sg.in = 12 * u
-    let sg.tw = 150 * u
+    let sg.pad = 14 * bu
+    let sg.in = 12 * bu
+    let sg.tw = 150 * bu
     let sg.ws = sg.in + sg.pad + vw.ws / 2
     let sg.ctl = screen.width - sg.in - sg.pad - vw.ctl / 2
     let sg.set = screen.width - sg.in - sg.pad - bw.ctl - fw.set / 2
     let sg.sr = screen.width - sg.in - sg.pad - bw.ctl - bw.set - vw.sr / 2
-    let sg.nw = (14 * u + sg.tw) * bs.title + bw.tray                // what the middle piece holds after the clock: the title (always `sg.tw` wide here, so the notch does not move as the title changes) and the tray
+    let sg.nw = (14 * bu + sg.tw) * bs.title + bw.tray                // what the middle piece holds after the clock: the title (always `sg.tw` wide here, so the notch does not move as the title changes) and the tray
     let sg.ck = cx - sg.nw / 2                                      // the clock's middle: the whole notch (clock, title, tray) is centred on the screen
     let sg.cl = sg.ck - fw.clock / 2                               // the clock's left and right edges
     let sg.cr = sg.ck + fw.clock / 2
-    let sg.mctl = 54 * u * mshow * bs.media * bs.title
+    let sg.mctl = 54 * bu * mshow * bs.media * bs.title
     let sg.hw = sg.tw                                              // the title's button
-    let sg.tl = sg.cr + 14 * u * bs.title                          // where it starts, right after the clock
+    let sg.tl = sg.cr + 14 * bu * bs.title                          // where it starts, right after the clock
     let sg.te = sg.tl + sg.hw * bs.title                           // and ends
     let sg.tr = sg.te + bar.gap * min(1, tn) + vw.tray / 2
     //  Each piece's middle: from the left edge before the title, from the right edge after it.
@@ -3788,16 +3798,16 @@ scene Vitreus {
     let win.w = mix(max(0, bar.r - post.title - win.x), sg.tw, sg)
     //  The window title's button. On the Island it hugs the left end of the stretch the other pieces leave; along the top or the bottom with a frame it is centred on
     //  the strip, as the panels are, as near the middle as the pieces beside it allow (`win.xs` is where its text starts, `win.cm` where an empty one's dots go).
-    let mctl = 54 * u * mshow * bs.media * bs.title
-    let win.hw = mix(clamp(max(clsw.width + mctl, titw.width) + 12 * u, 48 * u, win.w), sg.tw, sg)
-    let win.xs = mix(mix(win.x, clamp(cx - win.hw / 2 + 6 * u, win.x, max(win.x, win.x + win.w - win.hw + 6 * u)), tm), sg.tl + 6 * u, sg)
-    let win.cm = mix(mix(win.x + win.w / 2, clamp(cx, win.x + 24 * u, max(win.x + 24 * u, win.x + win.w - 24 * u)), tm), sg.tl + win.hw / 2, sg)
+    let mctl = 54 * bu * mshow * bs.media * bs.title
+    let win.hw = mix(clamp(max(clsw.width + mctl, titw.width) + 12 * bu, 48 * bu, win.w), sg.tw, sg)
+    let win.xs = mix(mix(win.x, clamp(cx - win.hw / 2 + 6 * bu, win.x, max(win.x, win.x + win.w - win.hw + 6 * bu)), tm), sg.tl + 6 * bu, sg)
+    let win.cm = mix(mix(win.x + win.w / 2, clamp(cx, win.x + 24 * bu, max(win.x + 24 * bu, win.x + win.w - 24 * bu)), tm), sg.tl + win.hw / 2, sg)
     //  The three pieces of glass, from the corners in (the outer ones reach `sg.r` off the screen so they are part of the edge): the left one holds the workspaces
     //  (as long as the row is: `sg.lr`, below), the middle one the clock, the title and the tray, the right one search, the gear and the controls.
-    let sg.r = 12 * u
+    let sg.r = 12 * bu
     let sg.up = (bar.y + sg.r) * sg                                // a drawer that hangs from the top reaches up to the edge of the screen here, out of its piece (it starts at the strip's middle line elsewhere)
-    let sg.hc = 36 * u                                             // how far the two corner pieces reach down (the middle one too; only a drawer that hangs from it goes all of `th.t`)
-    let sg.fl = 12 * u                                             // room for the slope where a piece runs into the thin frame, so nothing sits on it
+    let sg.hc = 36 * bu                                             // how far the two corner pieces reach down (the middle one too; only a drawer that hangs from it goes all of `th.t`)
+    let sg.fl = 12 * bu                                             // room for the slope where a piece runs into the thin frame, so nothing sits on it
     let sg.c0 = sg.cl - sg.pad - sg.fl
     let sg.c1 = sg.te + bw.tray + sg.pad + sg.fl
     let sg.rl = screen.width - sg.in - sg.pad - bw.ctl - bw.set - bw.sr + bar.gap - sg.pad - sg.fl
@@ -3805,30 +3815,30 @@ scene Vitreus {
     //  from the right end as along the other top frames. (`pcx0`, `rtop` are above; the panels are drawn about `pcx`.)
     let pcx.o = mix(pcx0, screen.width - th.r - 6.5 * ku - pw_x * ku / 2, rtop)
     let pcx = mix(pcx.o, if(lp_k == 4, cx, pcx.o), sg)              // (the calendar is centred on the screen like the title and the tray, which already are)
-    let room = 14 * u
-    let roomv = 14 * cu                    // and down the left, where the dots are larger
+    let room = 14 * bu
+    let roomv = 14 * bcu                    // and down the left, where the dots are larger
     //  Down the left, top to bottom: the workspaces (their middle one at `lv.ws`), the title, and from the foot up the clock (its
     //  hour at `lv.clk`, the minutes, am/pm, the weekday and the date under it), the controls, search and the gear, 32 apart. Whole pixels, for the texts.
-    let lv.ws = yo + lf.t + 88 * cu
-    let lv.clk = vb - lf.t - 73 * u
-    let lv.ctl = lv.clk - 34 * u
-    let lv.set = lv.ctl - 32 * u
-    let lv.sr = lv.set - 32 * u
-    let lv.tray = lv.sr - 22 * u - max(0, tn * 24 - 6) * u      // the tray apps sit just above the search, under the title
+    let lv.ws = yo + lf.t + 88 * bcu
+    let lv.clk = vb - lf.t - 73 * bu
+    let lv.ctl = lv.clk - 34 * bu
+    let lv.set = lv.ctl - 32 * bu
+    let lv.sr = lv.set - 32 * bu
+    let lv.tray = lv.sr - 22 * bu - max(0, tn * 24 - 6) * bu      // the tray apps sit just above the search, under the title
     //  The window title down the left, as in Synoptik's ActiveWindowCard: the app and its title turned a quarter anticlockwise (read from the foot
     //  up), centred in what the other pieces leave (`lv.tt` to `lv.bot`), with the player's buttons stacked at its top end while there is a player.
-    let lv.tt = lv.ws + 52 * cu + 14 * u
-    let lv.bot = lv.tray - 14 * u * min(1, tn)
-    let lv.mc = 62 * cu * mshow * bs.media0            // what the player's buttons take, along the title
+    let lv.tt = lv.ws + 52 * bcu + 14 * bu
+    let lv.bot = lv.tray - 14 * bu * min(1, tn)
+    let lv.mc = 62 * bcu * mshow * bs.media0            // what the player's buttons take, along the title
     let lv.none = if(max(vclw.width, vtiw.width) < 1, 1, 0)       // nothing is focused (an empty workspace): three dots take the title's place, so there is something to click
-    let lv.span = clamp(max(max(vclw.width, vtiw.width), lv.none * 44 * cu), 0, max(1, lv.bot - lv.tt - lv.mc))     // how long the text is (cut where the stretch ends)
+    let lv.span = clamp(max(max(vclw.width, vtiw.width), lv.none * 44 * bcu), 0, max(1, lv.bot - lv.tt - lv.mc))     // how long the text is (cut where the stretch ends)
     let lv.y0 = clamp(vc - (lv.span + lv.mc) / 2, lv.tt, max(lv.tt, lv.bot - lv.span - lv.mc))     // the top of buttons and text together, centred as one on the middle of the screen, as near as the pieces above and below let it
-    let lv.mid = lv.y0 + 31 * cu                       // the buttons' middle (previous nearest the text, 17 apart)
+    let lv.mid = lv.y0 + 31 * bcu                       // the buttons' middle (previous nearest the text, 17 apart)
     let lv.tm = lv.y0 + lv.mc + lv.span / 2           // the text's middle
     //  The marks are laid out along one line with the SAME empty space between every neighbouring pair, whatever their sizes: each one has a slot as long
     //  as itself (a dot, a larger square if it has windows, or the pill while it is the active one, and in between while it morphs), and the slots follow
     //  each other `ws.g` apart, the whole row centred on its place. `ws.cN` is where slot N's middle is, from the row's middle.
-    let ws.U = mix(u, cu, lm)
+    let ws.U = mix(bu, bcu, lm)
     let ws.g = 9 * ws.U
     let ws.pb = 15 * ws.U                 // the pill's thickness, the same wherever it is
     let ws.pl = ws.pb + 14 * ws.U         // and its length, resting on one workspace
@@ -3858,8 +3868,8 @@ scene Vitreus {
     let ws.c5 = ws.q4 + ws.sv5 / 2
     let ws.c6 = ws.q5 + ws.sv6 / 2
     //  The overview button, before the first mark (at the top of them down the left): its middle and its size.
-    let ob.x = mix(at.ws - vw.ws / 2 + 10 * u, lf.x, lm)
-    let ob.y = mix(bar.y, yo + lf.t + 24 * cu, lm)
+    let ob.x = mix(at.ws - vw.ws / 2 + 10 * bu, lf.x, lm)
+    let ob.y = mix(bar.y, yo + lf.t + 24 * bcu, lm)
     let ob.s = 18 * ws.U
     let ob.d = ob.s * (1 + 0.2 * pick(screen.index, ovp.0, ovp.1))       // as it is drawn
     let ws.o = mix(ob.x, ob.y, lm) + ob.s / 2 + 6.5 * ws.U
@@ -4373,11 +4383,11 @@ scene Vitreus {
     //  own (unmirrored) drawing; the icons are drawn where the mirror image falls. `cdk_cx.$screen`, `cdk_cy.$screen` is where its middle is: carried to the pointer while it is
     //  pulled, to its corner otherwise.
     let cdk.g = cdk_ga * sb                                        // how far out it is on this monitor: only where the bar is (`sb`)
-    let cdk.s = 24 * u
-    let cdk.p = cdk.s + 6 * u
-    let cdk.t = cdk.s + 10 * u
-    let cdk.r = 12 * u
-    let cdk.L = cdk_pins.count * cdk.p + 8 * u
+    let cdk.s = 24 * bu
+    let cdk.p = cdk.s + 6 * bu
+    let cdk.t = cdk.s + 10 * bu
+    let cdk.r = 12 * bu
+    let cdk.L = cdk_pins.count * cdk.p + 8 * bu
     let cdk.ye = vb - th.b * fm
     let cdk.yt = yo + th.t * fm
     let cdk.xe = screen.width - th.r * fm
@@ -5493,56 +5503,56 @@ scene Vitreus {
     group {
         pivot: at.clock, bar.y
         scale: 1 + 0.08 * bar_hit.hover
-        text bar_date { at: floor(clock.r - clock.col / 2 + 0.5), floor(bar.y - 8 + 0.5); anchor: center; size: 11; weight: 700; measure: cdw; color: faint; opacity: bs.clock * (1 - lm); shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
-        text bar_ap { at: floor(clock.r - clock.col / 2 + 0.5), floor(bar.y + 7 + 0.5); anchor: center; size: 14; weight: 600; measure: caw; color: faint; opacity: bs.clock * (1 - lm); shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
-        text clock_mm { at: floor(clock.r - clock.col - 3 + 0.5), floor(bar.y + 3 + 0.5); anchor: right center; size: 26; weight: 700; measure: cmw; letter_move: 3 * ((letters - 1 - letter) - if(letter == 0, 1, 0)), 0; color: mint; opacity: bs.clock * (1 - lm); shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
-        text clock_h { at: floor(clock.r - clock.col - cmw.width + 0.5), floor(bar.y + 0.5); anchor: right center; size: 40; weight: 700; measure: chw; color: ink; opacity: bs.clock * (1 - lm); shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
+        text bar_date { at: floor(clock.r - clock.col / 2 + 0.5), floor(bar.y - 8 * bz + 0.5); anchor: center; size: 11 * bz; weight: 700; measure: cdw; color: faint; opacity: bs.clock * (1 - lm); shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
+        text bar_ap { at: floor(clock.r - clock.col / 2 + 0.5), floor(bar.y + 7 * bz + 0.5); anchor: center; size: 14 * bz; weight: 600; measure: caw; color: faint; opacity: bs.clock * (1 - lm); shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
+        text clock_mm { at: floor(clock.r - clock.col - 3 * bz + 0.5), floor(bar.y + 3 * bz + 0.5); anchor: right center; size: 26 * bz; weight: 700; measure: cmw; letter_move: 3 * bz * ((letters - 1 - letter) - if(letter == 0, 1, 0)), 0; color: mint; opacity: bs.clock * (1 - lm); shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
+        text clock_h { at: floor(clock.r - clock.col - cmw.width + 0.5), floor(bar.y + 0.5); anchor: right center; size: 40 * bz; weight: 700; measure: chw; color: ink; opacity: bs.clock * (1 - lm); shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
         PBLine(clock.left + (chw.width + cmw.width) / 2, bar.y + mix(0.43, 0.286, sg) * bar.h, bar_hit.hover, chw.width + cmw.width, 0.5 * bs.clock * (1 - lm) * (1 - sg))
         //  In the Notches layout the line under the clock is gone, and a smaller one sits between the day and the am/pm instead.
         PBLine(clock.r - clock.col / 2, bar.y - 0.5, bar_hit.hover, clock.col * 0.6, 0.5 * bs.clock * (1 - lm) * sg)
     }
     //  Down the left the clock is stacked in the strip: the hour, the minutes under it in the accent, and the am/pm.
     group {
-        pivot: lf.x, lv.clk + 28 * u
+        pivot: lf.x, lv.clk + 28 * bu
         scale: 1 + 0.08 * bar_hit.hover
-        text clock_h { at: floor(lf.x - 5 * u + 0.5), floor(lv.clk + 0.5); anchor: center; align: center; size: 30; weight: 700; gradient: 0, lv.clk - 18 * u to 0, lv.clk + 33 * u, minthi, mint 55%, mintlo; opacity: bs.clock * lm; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
-        text clock_mn { at: floor(lf.x - 5 * u + 0.5), floor(lv.clk + 28 * u + 0.5); anchor: center; align: center; size: 17; weight: 700; gradient: 0, lv.clk - 18 * u to 0, lv.clk + 33 * u, minthi, mint 55%, mintlo; opacity: bs.clock * lm; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
-        PBLine(lf.x - 5 * u, lv.clk + 16.5 * u, bar_hit.hover, 18 * u, 0.85 * bs.clock * lm)   // the rule under the hour, in pencil
+        text clock_h { at: floor(lf.x - 5 * bu + 0.5), floor(lv.clk + 0.5); anchor: center; align: center; size: 30 * bz; weight: 700; gradient: 0, lv.clk - 18 * bu to 0, lv.clk + 33 * bu, minthi, mint 55%, mintlo; opacity: bs.clock * lm; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
+        text clock_mn { at: floor(lf.x - 5 * bu + 0.5), floor(lv.clk + 28 * bu + 0.5); anchor: center; align: center; size: 17 * bz; weight: 700; gradient: 0, lv.clk - 18 * bu to 0, lv.clk + 33 * bu, minthi, mint 55%, mintlo; opacity: bs.clock * lm; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
+        PBLine(lf.x - 5 * bu, lv.clk + 16.5 * bu, bar_hit.hover, 18 * bu, 0.85 * bs.clock * lm)   // the rule under the hour, in pencil
         //  am/pm: two letters one over the other, on the right, level with the rule (the hour and the minutes are moved left to make room).
-        text bar_ap1 { at: floor(lf.x + 12.5 * u + 0.5), floor(lv.clk + 11.9 * u + 0.5); anchor: center; align: center; size: 11; weight: 700; color: mint; opacity: bs.clock * lm; family: "Space Grotesk" }
-        text "m" { at: floor(lf.x + 12.5 * u + 0.5), floor(lv.clk + 21.1 * u + 0.5); anchor: center; align: center; size: 11; weight: 700; color: mint; opacity: bs.clock * lm; family: "Space Grotesk" }
+        text bar_ap1 { at: floor(lf.x + 12.5 * bu + 0.5), floor(lv.clk + 11.9 * bu + 0.5); anchor: center; align: center; size: 11 * bz; weight: 700; color: mint; opacity: bs.clock * lm; family: "Space Grotesk" }
+        text "m" { at: floor(lf.x + 12.5 * bu + 0.5), floor(lv.clk + 21.1 * bu + 0.5); anchor: center; align: center; size: 11 * bz; weight: 700; color: mint; opacity: bs.clock * lm; family: "Space Grotesk" }
         //  Under them the day of the week and the date.
-        text bar_date { at: floor(lf.x + 5 * u + 0.5), floor(lv.clk + 41 * u + 0.5); anchor: center; align: center; size: 11; weight: 700; color: faint; opacity: bs.clock * lm; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
-        text date_md { at: floor(lf.x + 0.5), floor(lv.clk + 55 * u + 0.5); anchor: center; align: center; size: 14; weight: 700; color: ink; opacity: bs.clock * lm; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
+        text bar_date { at: floor(lf.x + 5 * bu + 0.5), floor(lv.clk + 41 * bu + 0.5); anchor: center; align: center; size: 11 * bz; weight: 700; color: faint; opacity: bs.clock * lm; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
+        text date_md { at: floor(lf.x + 0.5), floor(lv.clk + 55 * bu + 0.5); anchor: center; align: center; size: 14 * bz; weight: 700; color: ink; opacity: bs.clock * lm; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
     }
     //  The window title down the left: the app, and under it (to its right once turned) the title, turned a quarter anticlockwise so that it reads
     //  from the foot up, each centred on the strip's middle line and on the stretch `lv.tm` and cut with an ellipsis where that ends.
     group {
-        pivot: lf.x - 9 * cu * (1 - 2 * rt), lv.tm
+        pivot: lf.x - 9 * bcu * (1 - 2 * rt), lv.tm
         rotate: (2 * rt - 1) * 90deg
         opacity: lm * bs.title0
-        text win.class { at: floor(lf.x - 9 * cu * (1 - 2 * rt) + 0.5), floor(lv.tm + 0.5); anchor: center; align: center; size: 15; weight: 600; width: max(1, lv.span); lines: 1; color: faint; opacity: 70%; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
+        text win.class { at: floor(lf.x - 9 * bcu * (1 - 2 * rt) + 0.5), floor(lv.tm + 0.5); anchor: center; align: center; size: 15 * bz; weight: 600; width: max(1, lv.span); lines: 1; color: faint; opacity: 70%; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
     }
     group {
         opacity: lm * bs.title0 * lv.none
         repeat i in 0..3 {
-            ellipse { at: lf.x, lv.tm + (i - 1) * 8 * cu; radius: 1.9 * cu; color: faint; opacity: 70% + 30% * pl_btn_z.hover }
+            ellipse { at: lf.x, lv.tm + (i - 1) * 8 * bcu; radius: 1.9 * bcu; color: faint; opacity: 70% + 30% * pl_btn_z.hover }
         }
     }
     group {
-        pivot: lf.x + 9 * cu * (1 - 2 * rt), lv.tm
+        pivot: lf.x + 9 * bcu * (1 - 2 * rt), lv.tm
         rotate: (2 * rt - 1) * 90deg
         opacity: lm * bs.title0
-        text win.title { at: floor(lf.x + 9 * cu * (1 - 2 * rt) + 0.5), floor(lv.tm + 0.5); anchor: center; align: center; size: 14; weight: 500; width: max(1, lv.span); lines: 1; color: ink; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
+        text win.title { at: floor(lf.x + 9 * bcu * (1 - 2 * rt) + 0.5), floor(lv.tm + 0.5); anchor: center; align: center; size: 14 * bz; weight: 500; width: max(1, lv.span); lines: 1; color: ink; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
     }
-    text win.class { at: floor(win.xs + 0.5), floor(bar.y - 6.5 * u + 0.5); anchor: left center; size: 17; weight: 600; width: max(0, win.hw - 12 * u - mctl); lines: 1; color: faint; opacity: 55% * bs.title; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
-    text win.title { at: floor(win.xs + 0.5), floor(bar.y + 8.75 * u + 0.5); anchor: left center; size: 13.5; weight: 500; width: max(0, win.hw - 12 * u); lines: 1; color: ink; opacity: bs.title; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
+    text win.class { at: floor(win.xs + 0.5), floor(bar.y - 6.5 * bu + 0.5); anchor: left center; size: 17 * bz; weight: 600; width: max(0, win.hw - 12 * bu - mctl); lines: 1; color: faint; opacity: 55% * bs.title; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
+    text win.title { at: floor(win.xs + 0.5), floor(bar.y + 8.75 * bu + 0.5); anchor: left center; size: 13.5 * bz; weight: 500; width: max(0, win.hw - 12 * bu); lines: 1; color: ink; opacity: bs.title; shadow: 0, 1, 3, 40%, deep; family: "Space Grotesk" }
 
     //  Along the top with nothing focused (an empty workspace) and no player: three dots take the title's place, as down the left, so there is something to click.
     group {
         opacity: bs.title * (1 - win.have) * (1 - clamp(mshow * bs.media, 0, 1))
         repeat i in 0..3 {
-            ellipse { at: win.zc + (i - 1) * 8 * u, bar.y; radius: 1.9 * u; color: faint; opacity: 70% + 30% * win_hit.hover }
+            ellipse { at: win.zc + (i - 1) * 8 * bu, bar.y; radius: 1.9 * bu; color: faint; opacity: 70% + 30% * win_hit.hover }
         }
     }
 
