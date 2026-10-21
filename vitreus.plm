@@ -3679,8 +3679,8 @@ scene Vitreus {
     fact bar_c3 = false
     fact bar_others = false                  // the monitors without the bar keep the frame alone, with no notches (logic/bar_monitors.luau)
     let sb = if(screen.index == 0, if(bar_c0, 1, 0), if(screen.index == 1, if(bar_c1, 1, 0), if(screen.index == 2, if(bar_c2, 1, 0), if(bar_c3, 1, 0))))
-    let lm = mix(1, clamp(bar_lm, 0, 1), sb)
     let gbm = if(screen.index == 0, if(glass_b0, 1, 0), if(screen.index == 1, if(glass_b1, 1, 0), if(screen.index == 2, if(glass_b2, 1, 0), if(glass_b3, 1, 0))))
+    let lm = mix(1, clamp(bar_lm, 0, 1), sb)
     //  The strip on the right is the left one in a mirror: the glass is drawn flipped about the middle of the screen (`rt` is 1 then), and every block of
     //  content that belongs to it (the strip's pieces, the panels that come out of it or out of a frame's notch) is drawn where its mirror image falls, upright.
     let rt = if(bar_frame and bar_anchor == right, sb, 0)
