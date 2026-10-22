@@ -2965,6 +2965,17 @@ local wp_pending, wp_pending_until = nil, 0
 -- The wallpaper picker's cards change the wallpaper while they are shifted through; the colours are only worked out once one is kept. Until then what
 -- awww shows is not a change made from outside (a global: this chunk is at Luau's limit of locals).
 wp_prev = { on = false, touched = false, cancel = false, orig = nil, shown = nil }
+-- The glass bends a copy of the wallpaper instead of a capture of the screen (the scene's `lens = image`, in vitreus.plm): half
+-- the screen's size is plenty under the frosting. Pleamar looks at the file twice a second and reads it again when it changes (a half-written one fails to decode and is tried again). Called wherever the wallpaper changes
+-- (the watcher below, and `wp_apply`, which marks the change as seen so the watcher never notices it). A global: this chunk is at Luau's limit of locals.
+function lens_image(path)
+    if not path then return end
+    run("printenv", { "HOME" }, function(h)
+        h = (h or ""):gsub("%s+$", "")
+        if h == "" then return end
+        run("magick", { path .. "[0]", "-auto-orient", "-resize", "960x540^", "-gravity", "center", "-extent", "960x540", "PNG:" .. h .. "/.cache/pleamar/vitreus/lens.png" }, function() end)
+    end)
+end
 local function check_wallpaper()
     run("awww", { "query" }, function(out, code)
         if code ~= 0 or not out then return end
@@ -2986,6 +2997,7 @@ local function check_wallpaper()
         end
         if path and shown ~= iris_last_wp then
             iris_last_wp = shown
+            lens_image(path)
             wp_on_change(shown)
             run_iris(path, not (iris_cfg.enabled and not iris_cfg.preset))
         end
@@ -3640,6 +3652,7 @@ local function wp_apply(path, how, started, hex, quiet)
         wp_on_change(path)
         -- The path is known: Iris starts now, while the fade plays, not when the watcher next notices the
         -- change. Marking it seen stops the watcher running it a second time.
+        lens_image(src)
         if iris_last_wp ~= path then
             iris_last_wp = path
             run_iris(src, not (iris_cfg.enabled and not iris_cfg.preset))      -- a named palette or the greys: only the Theme card follows
@@ -3911,16 +3924,28 @@ wp_load()
 -- of it shaded; below 30 % no blur is asked of the compositor). It is a number from 0 to 1 that the
 -- scene reads, kept in `glass.json` a moment after the last change so a drag does not write a file per pixel.
 -- Four more, all of them multipliers or switches the scene reads: `rim` (how bright the light along the edge is, 0 to 2, 1 as it
--- was), `refr` (how thick the glass is, 0 to 2) and `disp` (the rainbow at the edge, 0 to 2.5) only show when `bend` is on,
+-- was), `refr` (how thick the glass is, 0 to 3) and `disp` (the rainbow at the edge, 0 to 2.5) only show when `bend` is on,
 -- which swaps the compositor's blur for glass that really bends what is behind it. The blur's own strength is Hyprland's, and
 -- lives in the Hyprland section below (it puts its setter in `glass.set_blur`).
 -- `clear` (0 clear glass .. 1 frosted, pleamar's `frost:`) and `auto` (frost only where what is behind is busy) are the glass that bends's own
 -- frost, and only show with `bend`. (There was once a "glass amount" slider, the scene's `glass:`: it overlapped Opacity and the Glass switch, and is always 100 % now.)
-local glass = { opacity = 1, rim = 1, refr = 1, disp = 1, dome = 0, milk = 0, bend = false, obsidian = false, clear = 1, auto = false }
+local glass = { opacity = 1, rim = 1, refr = 1, disp = 1, dome = 0, milk = 0, bend = false, live = false, bend_mon = nil, obsidian = false, clear = 1, auto = false }
 local GLASS_OP_MIN = 0.3
 local glass_save_waiting = false
 
+-- "Bend on": the glass bends on every monitor, or only on the one named in `glass.bend_mon`. Each copy of the bar knows its monitor by `screen.K.name`
+-- (empty until it knows: it bends then), the page's tiles are the Bar page's (`bar_m.i.name`). Only sets what changed.
+local function glass_mons()
+    for k = 0, 3 do
+        local name = text["screen." .. k .. ".name"]
+        local on = glass.bend_mon == nil or name == nil or name == "" or name == glass.bend_mon
+        if fact["glass_b" .. k] ~= on then fact["glass_b" .. k] = on end
+        local lit = glass.bend_mon ~= nil and text["bar_m." .. k .. ".name"] == glass.bend_mon
+        if fact["glass_bm." .. k] ~= lit then fact["glass_bm." .. k] = lit end
+    end
+end
 local function glass_refresh()
+    glass_mons()
     fact.glass_op = glass.opacity
     text.glass_op_text = string.format("%d%%", math.floor(glass.opacity * 100 + 0.5))
     fact.glass_rim = glass.rim
@@ -3929,6 +3954,7 @@ local function glass_refresh()
     fact.glass_dome = glass.dome
     fact.glass_milk = glass.milk
     fact.glass_bend = glass.bend
+    fact.glass_live = glass.live
     fact.glass_clear = glass.clear
     fact.glass_auto = glass.auto
     text.glass_clear_text = string.format("%d%%", math.floor(glass.clear * 100 + 0.5))
@@ -3954,7 +3980,7 @@ local function glass_save_soon()
     glass_save_waiting = true
     after(500, function()
         glass_save_waiting = false
-        pcall(sys.call, "files.write", "glass.json", { opacity = glass.opacity, rim = glass.rim, refr = glass.refr, disp = glass.disp, dome = glass.dome, milk = glass.milk, bend = glass.bend, obsidian = glass.obsidian, clear = glass.clear, auto = glass.auto })
+        pcall(sys.call, "files.write", "glass.json", { opacity = glass.opacity, rim = glass.rim, refr = glass.refr, disp = glass.disp, dome = glass.dome, milk = glass.milk, bend = glass.bend, live = glass.live, bend_mon = glass.bend_mon, obsidian = glass.obsidian, clear = glass.clear, auto = glass.auto })
     end)
 end
 
@@ -3963,11 +3989,13 @@ do
     if ok and type(saved) == "table" then
         if type(saved.opacity) == "number" then glass.opacity = math.max(GLASS_OP_MIN, math.min(1, saved.opacity)) end
         if type(saved.rim) == "number" then glass.rim = math.max(0, math.min(2, saved.rim)) end
-        if type(saved.refr) == "number" then glass.refr = math.max(0, math.min(2, saved.refr)) end
+        if type(saved.refr) == "number" then glass.refr = math.max(0, math.min(3, saved.refr)) end
         if type(saved.disp) == "number" then glass.disp = math.max(0, math.min(2.5, saved.disp)) end
         if type(saved.dome) == "number" then glass.dome = math.max(0, math.min(1.5, saved.dome)) end
         if type(saved.milk) == "number" then glass.milk = math.max(0, math.min(1, saved.milk)) end
         if type(saved.bend) == "boolean" then glass.bend = saved.bend end
+        if type(saved.live) == "boolean" then glass.live = saved.live end
+        if type(saved.bend_mon) == "string" and saved.bend_mon ~= "" then glass.bend_mon = saved.bend_mon end
         if type(saved.obsidian) == "boolean" then glass.obsidian = saved.obsidian end
         if type(saved.clear) == "number" then glass.clear = math.max(0, math.min(1, saved.clear)) end
         if type(saved.auto) == "boolean" then glass.auto = saved.auto end
@@ -3985,11 +4013,20 @@ end)
 -- A slider's track is 0 to 1; these turn it into the value, in steps of 5 %.
 function glass.step(t, top) return math.floor(math.max(0, math.min(1, t)) * top * 20 + 0.5) / 20 end
 on("glass_rim_set", function(t) glass.rim = glass.step(t, 2); glass_refresh(); glass_save_soon() end)
-on("glass_refr_set", function(t) glass.refr = glass.step(t, 2); glass_refresh(); glass_save_soon() end)
+on("glass_refr_set", function(t) glass.refr = glass.step(t, 3); glass_refresh(); glass_save_soon() end)
 on("glass_disp_set", function(t) glass.disp = glass.step(t, 2.5); glass_refresh(); glass_save_soon() end)
 on("glass_dome_set", function(t) glass.dome = glass.step(t, 1.5); glass_refresh(); glass_save_soon() end)
 on("glass_milk_set", function(t) glass.milk = glass.step(t, 1); glass_refresh(); glass_save_soon() end)
 on("glass_obs_toggle", function() glass.obsidian = not glass.obsidian; glass_refresh(); glass_save_soon() end)
+on("glass_bend_mon", function(i)
+    local name = text["bar_m." .. math.floor(i) .. ".name"]
+    if name == nil or name == "" then return end
+    glass.bend_mon = (glass.bend_mon ~= name) and name or nil
+    glass_refresh(); glass_save_soon()
+end)
+-- the monitors' names arrive after the shell starts, and change when one is plugged in
+every(2000, glass_mons)
+on("glass_live_toggle", function() glass.live = not glass.live; glass_refresh(); glass_save_soon() end)
 on("glass_bend_toggle", function() glass.bend = not glass.bend; glass_refresh(); glass_save_soon() end)
 on("glass_clear_set", function(t) glass.clear = glass.step(t, 1); glass_refresh(); glass_save_soon() end)
 on("glass_auto_toggle", function() glass.auto = not glass.auto; glass_refresh(); glass_save_soon() end)

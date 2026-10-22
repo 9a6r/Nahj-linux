@@ -70,7 +70,7 @@ scene Vitreus {
     //  The keyboard is `on_demand`, not `exclusive`: it is asked for every open copy at once (the `while` is not per copy), and Hyprland gave it, and the
     //  pointer with it, to a copy where nothing was open: the cursor seemed stuck until the panel closed. A field that takes the focus (the launcher's
     //  search, the desk's inputs) still has it lent exclusively, to the copy it is on only.
-    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 62 while bar_anchor == top and not bar_frame and bar_size > 0.995; screens: each max 4; open: sb > 0.5 or bar_others; keyboard: on_demand while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or dash_open }
+    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 62 while bar_anchor == top and not bar_frame and bar_size > 0.995; screens: each max 2; open: sb > 0.5 or bar_others; keyboard: on_demand while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or (cdk_on and ws_empty) or dash_open }
     permissions { services: "files", "files.write", "auth", "clock", "clock.seconds", "thumbnails", "thumbnails.*", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
                   run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "vitreus-themes", "claude", "ollama", "codex", "pacman", "paru", "yay", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "date", "udevadm", "test", "wl-paste", "ffprobe" }
 
@@ -377,6 +377,16 @@ scene Vitreus {
     fact glass_dome = 0              // pleamar's `dome:` (magnifies what is behind, towards the middle), 0 to 150 %: a test knob
     fact glass_milk = 0              // pleamar's `milk:` (a milky veil inside the glass), 0 to 100 %: a test knob
     fact glass_bend = false
+    fact glass_live = false           // the Glass page's "Live bend": the glass bends the live windows (a capture) instead of the wallpaper copy
+    //  Which monitors bend (the Glass page's "Bend on"): `glass_b0` to `glass_b3` by copy number, all true while no monitor is picked (vitreus.luau). `glass_bm.i` lights the page's tile i.
+    fact glass_b0 = true
+    fact glass_b1 = true
+    fact glass_b2 = true
+    fact glass_b3 = true
+    repeat i in 0..4 {
+        fact glass_bm.$i = false
+    }
+    event glass_bend_mon ->
     fact glass_clear = 1             // pleamar's `frost:` (0.2.35): 0 clear glass, 1 frosted inside the bevel; only the glass that bends has it
     fact glass_auto = false          // `frost: auto`: frosted only where what is behind is busy
     text glass_clear_text = "100%"
@@ -423,6 +433,7 @@ scene Vitreus {
     event glass_dome_set ->
     event glass_milk_set ->
     event glass_bend_toggle ->
+    event glass_live_toggle ->
     event glass_blur_set ->
     event glass_op_set ->           // the Opacity slider: 0..1 along its track
     event hy_layout_set ->
@@ -897,6 +908,14 @@ scene Vitreus {
     shader wave = file "wave.wgsl"
     shader pixelate = file "pixelate.wgsl"
     shader matrix = file "matrix.wgsl"                  // the Cyber theme's digital rain
+    //  The frosting behind the glass, as wide as the Glass page's blur slider says (`hy_blur`, 0 to 20; 0 is off): see blur.wgsl.
+    blur = file "blur.wgsl" {
+        passes: wide 0.5, tall 1
+        values: clamp(hy_blur / 20, 0, 1)
+        reach: 40
+    }
+    //  The glass bends a copy of the wallpaper, not a capture of the screen: `lens_image` in vitreus.luau writes it (half the screen's size is plenty under the frosting).
+    lens = image "~/.cache/pleamar/vitreus/lens.png" while not glass_live
     spring dripl = 46, 8          // the drip down the left: slow enough to see the neck stretch, thin and snap, and loose enough to swing past where it lands
     spring drip = 170, 18         // underdamped: it overshoots and settles back, like a real drop landing
     spring pop  = 300, 12         // snappier and much less damped: a toggle knob popping past where it lands
@@ -923,6 +942,8 @@ scene Vitreus {
     prop f7    = 0 ~780ms          // fifth: bluetooth
     prop glass_bend_pill = 0 ~pop    // the Glass page's lens switch, popping past where it lands
     follow glass_bend_pill = if(glass_bend, 1, 0)
+    prop glass_live_pill = 0 ~pop
+    follow glass_live_pill = if(glass_live, 1, 0)
     prop glass_auto_pill = 0 ~pop     // the Glass page's auto-frost switch
     follow glass_auto_pill = if(glass_auto, 1, 0)
     prop glass_on_pill = 1 ~pop       // the Glass switch on the Glass page (on = glass, off = obsidian), likewise
@@ -985,6 +1006,7 @@ scene Vitreus {
     fact mf_bx = 0                 // where it was when it was grabbed
     fact mf_by = 0
     fact mf_hold = false           // it is held: its grab zone stays where it was pressed
+    fact mf_scr = 0                // which monitor's copy it floats on: the one it was grabbed on (the others draw none of it)
     fact mf_hx = 0
     fact mf_hy = 0
     spring mf_sp = 300, 20
@@ -1660,6 +1682,8 @@ scene Vitreus {
     //  the tray. The logic makes the pictures (`wp_picker`), orders them by colour and does the awww side of a pick.
     model wp_picker max 200 { img: image 104, 120; hue: number; cur: bool; dim: bool; name: text }       // the picture is 124 x 143 (120 x 139 and two transparent pixels all round), and the cell is declared smaller, 104 x 120, in the same shape (the picture is fitted inside it; the resting tiles are drawn at about that size): every image takes its whole cell from the atlas (one 2048 x 2048 texture, shared with the text), and at 186 x 215 only about a hundred of the hundred and thirty-seven tiles fitted, the rest were drawn empty
     fact wp_picker_open = false
+    text wp_kb = ""                          // the picker's keyboard catcher (see `wp_kb` in the picker)
+    on change wp_picker_open while wp_picker_open { focus wp_kb }
     text wp_picker_status = ""                // "Reading your wallpapers… 42 of 137" while the first analysis runs
     text wp_picker_hero_name = ""             // the name of the hexagon under the pointer
     fact wp_picker_hero_cur = false           // the one under the pointer is the wallpaper in use
@@ -3669,6 +3693,7 @@ scene Vitreus {
     fact bar_c3 = false
     fact bar_others = false                  // the monitors without the bar keep the frame alone, with no notches (logic/bar_monitors.luau)
     let sb = if(screen.index == 0, if(bar_c0, 1, 0), if(screen.index == 1, if(bar_c1, 1, 0), if(screen.index == 2, if(bar_c2, 1, 0), if(bar_c3, 1, 0))))
+    let gbm = if(screen.index == 0, if(glass_b0, 1, 0), if(screen.index == 1, if(glass_b1, 1, 0), if(screen.index == 2, if(glass_b2, 1, 0), if(glass_b3, 1, 0))))
     let lm = mix(1, clamp(bar_lm, 0, 1), sb)
     //  The strip on the right is the left one in a mirror: the glass is drawn flipped about the middle of the screen (`rt` is 1 then), and every block of
     //  content that belongs to it (the strip's pieces, the panels that come out of it or out of a frame's notch) is drawn where its mirror image falls, upright.
@@ -4075,7 +4100,7 @@ scene Vitreus {
     let vpn.fh = if(vpn_mode == vpm_wg, 180, if(vpn_mode == vpm_ovpn, 144, 276))
     let wm.h = 946                     // the Pleamar-WM page: to the bottom of its last card
     let ck.h = 1208                    // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
-    let gl.h = 682                     // the Glass page: to the bottom of its last card
+    let gl.h = 862                     // the Glass page: to the bottom of its last card
     let lk.h = 806                     // the Lock screen page: its cards, to the bottom of the last
     //  The Notifications page: the apps card has a row for each app (up to 14), and the rules card is there while one is open.
     let nt.ds = (14 - clamp(nta_count, 1, 14)) * 36
@@ -4768,6 +4793,7 @@ scene Vitreus {
     //  The media card's middle: its place in the panel (the card's full height, whatever the panel is doing), or where it floats; and how much of it shows.
     //  Docked, its place is where the panel's contents are drawn on the screen: on the right (and along the bottom) that is the mirror image of where the
     //  panel is laid out, so the card starts from there and does not jump when it is picked up.
+    let mf.mine = if(mf_scr == screen.index, 1, 0)             // this copy is the monitor the floating card is on
     let mf.cx = mix(mdx + rt * (screen.width - 2 * pcx), mf_px, mfl)
     let mf.cy = mix(ck + (media_top + 74) * cu + bt * (yo + vb - 2 * (th.t + lp.hd / 2)), mf_py, mfl)
     let mf.k  = mix(1, mf_s, clamp(mfl, 0, 1))                  // its scale
@@ -4779,7 +4805,7 @@ scene Vitreus {
     //  In the Frame layout its glass is the frame's own, as the desk's (`dz.f*`): each side that is near the frame's inner edge (`mf.d*` 0 against it, 1 once it is
     //  64 away) reaches into the frame instead of ending, and the blend makes the wings. Far from the frame it is a plain rounded card. (Along the top, the
     //  island layout, it has glass of its own, below.)
-    let mf.g  = clamp(mfl, 0, 1) * media_open                        // how much of its glass there is
+    let mf.g  = clamp(mfl, 0, 1) * mf.mine * media_open                        // how much of its glass there is
     let mf.hw = 154 * cu * mf.k
     let mf.hh = 84 * cu * mf.k
     //  How far it can be carried, in screen terms: the desk's bounds are the drawing's, so on the right and the bottom they swap sides.
@@ -4799,7 +4825,7 @@ scene Vitreus {
     let mf.fw = max(0.1, mf.fr - mf.fl)
     let mf.fcy = (mf.ft + mf.fb) / 2
     let mf.fh = max(0.1, mf.fb - mf.ft)
-    let mf.vis = media_open * mix(if(dm_mode == dmm_player, f3, 0), 1, clamp(mfl, 0, 1))
+    let mf.vis = media_open * mix(if(dm_mode == dmm_player, f3, 0), mf.mine, clamp(mfl, 0, 1))
     //  A held Power button counts its second on this clock, and a recording pulses on it, so they need it too. So does the dashboard's wavy progress bar while a song is playing in it.
     //  The Cyber's terminal readouts (bar_glass.plm) flicker and blink on this clock, so it runs while one of them can be seen: only while a drawer is out (`cy_on`).
     let cy_on = clamp(max(max(dk0, dc0), max(max(ds0, dl0), max(dm0, max(dz0, do0)))) * 50, 0, 1) * cy_k
@@ -5317,7 +5343,7 @@ scene Vitreus {
             color: mix(tint, #000000, cy_dark * cy_k)
             glass: 100%
             opacity: glass_op * (1 - obs)
-            lens: glass_bend
+            lens: glass_bend and gbm > 0.5
             frost: glass_clear
             refraction: glass_refr
             dispersion: glass_disp
@@ -5329,14 +5355,14 @@ scene Vitreus {
             show: obs < 0.996 and not glass_auto
             box { at: do.ix + if(fm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
             box { at: dz.six + if(fm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(fm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and media_open > 0.01 }
+            box { at: mf.cx + if(fm < 0.5 and mfl > 0.01 and mf.mine > 0.5 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and mf.mine > 0.5 and media_open > 0.01 }
         }
         //  The same glass with `frost: auto` (frosted only where what is behind is busy): `frost:` cannot take `auto` from an expression, so it is a body of its own.
         body {
             color: mix(tint, #000000, cy_dark * cy_k)
             glass: 100%
             opacity: glass_op * (1 - obs)
-            lens: glass_bend
+            lens: glass_bend and gbm > 0.5
             frost: auto
             refraction: glass_refr
             dispersion: glass_disp
@@ -5348,7 +5374,7 @@ scene Vitreus {
             show: obs < 0.996 and glass_auto
             box { at: do.ix + if(fm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
             box { at: dz.six + if(fm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(fm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and media_open > 0.01 }
+            box { at: mf.cx + if(fm < 0.5 and mfl > 0.01 and mf.mine > 0.5 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and mf.mine > 0.5 and media_open > 0.01 }
         }
         //  Blur behind the obsidian: a glass body asks the compositor for it (100 % glass at 34 %: the request needs glass x opacity of 30 % or more, and a more opaque layer would hide the blur), and the obsidian over it (60 % opaque while blur is on, solid when it is off) hides the glass's look.
         body {
@@ -5363,7 +5389,7 @@ scene Vitreus {
             show: obs > 0.97
             box { at: do.ix + if(fm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
             box { at: dz.six + if(fm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(fm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and media_open > 0.01 }
+            box { at: mf.cx + if(fm < 0.5 and mfl > 0.01 and mf.mine > 0.5 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and mf.mine > 0.5 and media_open > 0.01 }
         }
         body {
             color: obsidian
@@ -5373,7 +5399,7 @@ scene Vitreus {
             show: obs > 0.004
             box { at: do.ix + if(fm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
             box { at: dz.six + if(fm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(fm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and media_open > 0.01 }
+            box { at: mf.cx + if(fm < 0.5 and mfl > 0.01 and mf.mine > 0.5 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and mf.mine > 0.5 and media_open > 0.01 }
         }
         //  The Cassette's plastic over it (see `cas_k`): a lit lip, a dark outline, a hard shadow.
         body {
@@ -5385,7 +5411,7 @@ scene Vitreus {
             show: cas_k > 0.004
             box { at: do.ix + if(fm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
             box { at: dz.six + if(fm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(fm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and media_open > 0.01 }
+            box { at: mf.cx + if(fm < 0.5 and mfl > 0.01 and mf.mine > 0.5 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and mf.mine > 0.5 and media_open > 0.01 }
         }
         //  The UwU's candy plastic over it: a pastel gradient across the whole screen (pink, lilac, sky, mint), a thick grape outline, a lit lip and a hard pink shadow.
         body {
@@ -5397,7 +5423,7 @@ scene Vitreus {
             show: uwu_k > 0.004
             box { at: do.ix + if(fm < 0.5 and do0 > 0.004, 0, 30000), do.ey; size: do.iw * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble), do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble); corner: mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)); show: do0 > 0.004 }
             box { at: dz.six + if(fm < 0.5 and dz0 > 0.004, 0, 30000), dz.siy; size: dz.siw * (1 + dz.stretch - 0.07 * dz.bell), dz.sih * (1 - dz.stretch * 0.5); corner: mix(min(dz.siw, dz.sih) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)); show: dz0 > 0.004 }
-            box { at: mf.cx + if(fm < 0.5 and mfl > 0.01 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and media_open > 0.01 }
+            box { at: mf.cx + if(fm < 0.5 and mfl > 0.01 and mf.mine > 0.5 and media_open > 0.01, 0, 30000), mf.cy; size: max(0.3, 308 * cu * clamp(mfl, 0, 1) * media_open * mf_s), max(0.3, 168 * cu * clamp(mfl, 0, 1) * media_open * mf_s); corner: 26 * cu * (1 - 0.73 * sq); show: mfl > 0.01 and mf.mine > 0.5 and media_open > 0.01 }
         }
     }
     //  The volume / notification drawer's decorations (Retro: tab and grips; UwU: ears, stars, hearts, paws). They are drawn here, after the glass it has of its own along the top
@@ -6087,6 +6113,9 @@ scene Vitreus {
         zone box wp_pg_dot1 { at: cx + 9, yo + vh - 24; size: 18, 18; corner: 9; cursor: pointer; active: wp_picker_show > 0.5 }
         on press wp_pg_dot0 { wp_pg = 0 }
         on press wp_pg_dot1 { wp_pg = 1 }
+        //  Only here to be focused when the picker opens: it has Hyprland lend the keyboard to this copy of the shell (opened from SUPER+B, the focus stayed on the
+        //  window below, and the arrows did nothing until the pointer was over a card). `passive`: it takes no key, so the arrows, Tab, Enter and Esc reach the rules below.
+        input wp_kb { at: cx - 2, yo + vh - 24; width: 4; size: 10; color: ink; opacity: 0; passive: true }
     }
 
     include "pages/overview.plm"
@@ -6107,7 +6136,7 @@ scene Vitreus {
             color: mix(tint, #000000, cy_dark * cy_k)
             glass: 100%
             opacity: glass_op * (1 - obs)
-            lens: glass_bend
+            lens: glass_bend and gbm > 0.5
             frost: glass_clear
             refraction: glass_refr
             dispersion: glass_disp
@@ -6123,7 +6152,7 @@ scene Vitreus {
             color: mix(tint, #000000, cy_dark * cy_k)
             glass: 100%
             opacity: glass_op * (1 - obs)
-            lens: glass_bend
+            lens: glass_bend and gbm > 0.5
             frost: auto
             refraction: glass_refr
             dispersion: glass_disp
