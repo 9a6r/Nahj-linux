@@ -63,7 +63,7 @@ part Display {
                 //  Turn it a quarter: a ring in the corner.
                 ellipse { at: bx + bw - 14 * pu, by + 14 * pu; radius: 9 * pu; color: ink; opacity: if(disp_b.$i.on, 14% + 22% * disp_rm.$i.hover, 0%) }
                 arc { at: bx + bw - 14 * pu, by + 14 * pu - 1 * pu; radius: 4.5 * pu; span: 270deg; width: 1.5 * pu; rotate: 45deg; color: ink; opacity: if(disp_b.$i.on, 90%, 0%) }
-                zone box disp_mz.$i { from: bx, by; size: bw, bh; cursor: grab; active: (disp_b.$i.on) and (by + (bh) / 2) - disp.off > sby and (by + (bh) / 2) - disp.off < sby + set.h * pu }
+                zone box disp_mz.$i { from: bx, by; size: bw, bh; cursor: if(disp_mz.$i.pressed > 0.5, grabbing, grab); active: (disp_b.$i.on) and (by + (bh) / 2) - disp.off > sby and (by + (bh) / 2) - disp.off < sby + set.h * pu }
                 on press disp_mz.$i { disp_grab_i = i; disp_px = ((pointer.x - tx.pnl) - cvx) / pu; disp_py = ((pointer.y - ty.set) - (cvy - disp.off)) / pu; emit disp_grab }
                 on drag disp_mz.$i { disp_px = ((pointer.x - tx.pnl) - cvx) / pu; disp_py = ((pointer.y - ty.set) - (cvy - disp.off)) / pu; emit disp_drag }
                 on release disp_mz.$i { emit disp_drop }
@@ -211,7 +211,7 @@ part Display {
                 let rdh = (disp_res_count * 24 + 10) * pu
                 let rdw = max(rtw, (disp_res_chars * 7.4 + 34) * pu)   // its longest option, and never narrower than the trigger
                 body {
-                    color: panel
+                    color: card
                     rim: 12%
                     shadow: 0, 6 * pu, 18 * pu, 40%, #000000
                     box { at: rx0 + rdw / 2, dtop + 116 * pu + rdh / 2; size: rdw, rdh; corner: 14 * pu }

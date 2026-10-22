@@ -101,7 +101,7 @@ part Theme {
                 opacity: font_dd
                 move: 0, (font_dd - 1) * 6 * pu
                 body {
-                    color: panel
+                    color: card
                     rim: 12%
                     shadow: 0, 6 * pu, 18 * pu, 40%, #000000
                     box { from: fnt_x, fnt_y + 38 * pu; size: fnt_w, 236 * pu; corner: 14 * pu }

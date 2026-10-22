@@ -148,7 +148,7 @@ scene DesktopEdit {
     }
 
     //  The shelf's own zone first (a press on the bare shelf goes nowhere), then the tiles and Done over it.
-    zone box shelf { at: sx0 + shw / 2, sy0 + shh / 2; size: shw, shh; cursor: grab; active: open and eo > 0.6 and mine; label: "Desktop editor: drag to move it" }
+    zone box shelf { at: sx0 + shw / 2, sy0 + shh / 2; size: shw, shh; cursor: if(shelf.pressed > 0.5, grabbing, grab); active: open and eo > 0.6 and mine; label: "Desktop editor: drag to move it" }
     on press shelf { shx0 = shx; shy0 = shy }
     on drag shelf { shx = clamp(shx0 + drag.dx, 8 - (sw - shw) / 2, (sw - shw) / 2 - 8); shy = clamp(shy0 + drag.dy, 8 - (sh - shh - 48), sh - shh - 8 - (sh - shh - 48)) }
     repeat i in 0..7 {

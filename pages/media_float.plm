@@ -31,7 +31,7 @@ part MediaFloat {
 
             //  Take it by anywhere that is not a button, and pull it off the panel; let go over the open panel and it goes back. While it is held its zone is the
             //  whole screen: the surface's input region is only what has a zone, so with no panel open a drag would be lost where the card is not. The buttons and the seek bar are declared after it, so they win.
-            zone box mf_grab { at: if(mf_hold, mf.zx, mf.cx), if(mf_hold, mf.zy, mf.cy); size: if(mf_hold, mf.zw, 288 * cu), if(mf_hold, mf.zh, 148 * cu); cursor: grab; active: mf.vis > 0.5; label: "Move the player" }
+            zone box mf_grab { at: if(mf_hold, mf.zx, mf.cx), if(mf_hold, mf.zy, mf.cy); size: if(mf_hold, mf.zw, 288 * cu), if(mf_hold, mf.zh, 148 * cu); cursor: if(mf_grab.pressed > 0.5, grabbing, grab); active: mf.vis > 0.5; label: "Move the player" }
             on press mf_grab { mf_scr = screen.index; mf_bx = mf.cx; mf_by = mf.cy; mf_hx = mf.cx; mf_hy = mf.cy; mf_gx = mf.cx; mf_gy = mf.cy; mf_hold = true }
             on press mf_grab while not mf_out { mf_px: mf.cx ~0ms; mf_py: mf.cy ~0ms }
             on drag mf_grab while mf_hold { mf_gx = clamp(mf_bx + drag.dx, mfb.l + 154 * cu * mf_gs, mfb.r - 154 * cu * mf_gs); mf_gy = clamp(mf_by + drag.dy, mfb.t + 84 * cu * mf_gs, mfb.b - 84 * cu * mf_gs) }

@@ -121,7 +121,7 @@ part Bar {
             repeat i in 0..8 {
                 let zx = mbx + if(bdrag == i, bdx - bgx, bcx.$i) * pu
                 let zy = mby + if(bdrag == i, bdy - bgy, bcy.$i) * pu
-                zone box bchip.$i { from: zx, zy; size: bcw.$i * pu, 28 * pu; corner: 9 * pu; cursor: grab; active: bar_fm < 0.5 }
+                zone box bchip.$i { from: zx, zy; size: bcw.$i * pu, 28 * pu; corner: 9 * pu; cursor: if(bchip.$i.pressed > 0.5, grabbing, grab); active: bar_fm < 0.5 }
                 on press bchip.$i { bgx = ((pointer.x - tx.pnl) - zx) / pu; bgy = ((pointer.y - ty.set) - zy) / pu; bdx = ((pointer.x - tx.pnl) - mbx) / pu; bdy = ((pointer.y - ty.set) - mby) / pu; bdrag = i; emit bar_lay_grab }
                 on release bchip.$i { emit bar_lay_drop }
             }

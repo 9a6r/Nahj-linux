@@ -1110,7 +1110,7 @@ scene Vitreus {
     follow pq.ds = if(panel == settings, 1, 0)
     follow pq.dl = if(panel == launch, 1, 0)
     follow pq.do = if(osd_on, 1, 0)
-    follow lr   = max(1, lcount, if(lp_on, 6, 1))
+    follow lr   = max(1, max(lcount, if(lp_on, 6, 1)))
     follow okv  = if(osd_kind == vol, 1, 0)
     follow okn  = if(osd_kind == note, 1, 0)
     follow oks  = if(osd_kind == shot, 1, 0)

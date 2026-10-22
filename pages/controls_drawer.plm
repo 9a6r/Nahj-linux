@@ -48,21 +48,21 @@ part ControlsDrawer {
         group {
             opacity: f6 * clamp(1 - expand0, 0, 1)
             move: 0, (1 - f6) * 12 * cu
-            let mcy = ck + (vol_top - 16) * cu
+            let micy = ck + (vol_top - 16) * cu
             let msl.x0 = pcx - 96 * cu
             let msl.w = 170 * cu
             let mth = (16 + 3 * mic_sl.hover) * cu
-            PSlider(msl.x0, mcy, msl.w, mic_shown, mic_sl.hover, cu, mth, if(audio.input_muted, 1, 0))
-            zone box mic_sl { at: msl.x0 + msl.w / 2, mcy; size: msl.w + 28 * cu, 34 * cu; cursor: pointer }
+            PSlider(msl.x0, micy, msl.w, mic_shown, mic_sl.hover, cu, mth, if(audio.input_muted, 1, 0))
+            zone box mic_sl { at: msl.x0 + msl.w / 2, micy; size: msl.w + 28 * cu, 34 * cu; cursor: pointer }
             on press mic_sl { mic_ui = clamp(((pointer.x - tx.pnl) - msl.x0) / msl.w, 0, 1); mic_lock: 1 ~1ms; emit setmic(clamp(((pointer.x - tx.pnl) - msl.x0) / msl.w, 0, 1)) }
             on drag mic_sl { mic_ui = clamp(((pointer.x - tx.pnl) - msl.x0) / msl.w, 0, 1); mic_lock: 1 ~1ms; emit setmic(clamp(((pointer.x - tx.pnl) - msl.x0) / msl.w, 0, 1)) }
             on release mic_sl { mic_lock: 0 ~1ms after 900ms }
             //  The icon is the mute button, declared after the track's zone so it wins where they meet.
-            PMic(pcx - 118 * cu, mcy, mic_hit.hover, if(audio.input_muted, 1, 0), mic_hit.hover)
-            zone box mic_hit { at: pcx - 118 * cu, mcy; size: 28 * cu, 32 * cu; corner: 13 * cu; cursor: pointer }
+            PMic(pcx - 118 * cu, micy, mic_hit.hover, if(audio.input_muted, 1, 0), mic_hit.hover)
+            zone box mic_hit { at: pcx - 118 * cu, micy; size: 28 * cu, 32 * cu; corner: 13 * cu; cursor: pointer }
             on press mic_hit { emit mic_toggle }
-            text number(mic_shown * 100, 0, "%") { at: floor(pcx + 120 * cu + 0.5), floor(mcy + 0.5); anchor: right center; size: 18.5; weight: 600; color: ink; family: "Space Grotesk"; show: not audio.input_muted }
-            text "Muted" { at: floor(pcx + 120 * cu + 0.5), floor(mcy + 0.5); anchor: right center; size: 18.5; weight: 600; color: faint; family: "Space Grotesk"; show: audio.input_muted }
+            text number(mic_shown * 100, 0, "%") { at: floor(pcx + 120 * cu + 0.5), floor(micy + 0.5); anchor: right center; size: 18.5; weight: 600; color: ink; family: "Space Grotesk"; show: not audio.input_muted }
+            text "Muted" { at: floor(pcx + 120 * cu + 0.5), floor(micy + 0.5); anchor: right center; size: 18.5; weight: 600; color: faint; family: "Space Grotesk"; show: audio.input_muted }
         }
 
         //  The volume: the speaker (the mute button), the slider, how loud; a chevron at the end opens the list of outputs, and the dots under it the mixer.
@@ -905,7 +905,7 @@ part ControlsDrawer {
             move: 0, (1 - dd) * -8 * cu
             let ddn = clamp(outlist.count, 1, 6)
             let ddh = ddn * 30 * cu + 12 * cu
-            box { at: pcx, ck + (vol_top + 24) * cu + ddh / 2; size: 288 * cu, ddh; corner: pr; color: panel }
+            box { at: pcx, ck + (vol_top + 24) * cu + ddh / 2; size: 288 * cu, ddh; corner: pr; color: card }
             zone box dd_block { at: pcx, ck + (vol_top + 24) * cu + ddh / 2; size: 288 * cu, ddh; active: dd > 0.05 }
             column dd_list {
                 at: floor(pcx - 138 * cu + 0.5), floor(ck + (vol_top + 24) * cu + 6 * cu + 0.5)
