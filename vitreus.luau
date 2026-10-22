@@ -2965,6 +2965,17 @@ local wp_pending, wp_pending_until = nil, 0
 -- The wallpaper picker's cards change the wallpaper while they are shifted through; the colours are only worked out once one is kept. Until then what
 -- awww shows is not a change made from outside (a global: this chunk is at Luau's limit of locals).
 wp_prev = { on = false, touched = false, cancel = false, orig = nil, shown = nil }
+-- The glass bends a copy of the wallpaper instead of a capture of the screen (pleamar's PLEAMAR_LENS_IMAGE, set on the autostart line): half
+-- the screen's size is plenty under the frosting. Pleamar looks at the file twice a second and reads it again when it changes (a half-written one fails to decode and is tried again). Called wherever the wallpaper changes
+-- (the watcher below, and `wp_apply`, which marks the change as seen so the watcher never notices it). A global: this chunk is at Luau's limit of locals.
+function lens_image(path)
+    if not path then return end
+    run("printenv", { "HOME" }, function(h)
+        h = (h or ""):gsub("%s+$", "")
+        if h == "" then return end
+        run("magick", { path .. "[0]", "-auto-orient", "-resize", "960x540^", "-gravity", "center", "-extent", "960x540", "PNG:" .. h .. "/.cache/pleamar/vitreus/lens.png" }, function() end)
+    end)
+end
 local function check_wallpaper()
     run("awww", { "query" }, function(out, code)
         if code ~= 0 or not out then return end
@@ -2986,6 +2997,7 @@ local function check_wallpaper()
         end
         if path and shown ~= iris_last_wp then
             iris_last_wp = shown
+            lens_image(path)
             wp_on_change(shown)
             run_iris(path, not (iris_cfg.enabled and not iris_cfg.preset))
         end
@@ -3640,6 +3652,7 @@ local function wp_apply(path, how, started, hex, quiet)
         wp_on_change(path)
         -- The path is known: Iris starts now, while the fade plays, not when the watcher next notices the
         -- change. Marking it seen stops the watcher running it a second time.
+        lens_image(src)
         if iris_last_wp ~= path then
             iris_last_wp = path
             run_iris(src, not (iris_cfg.enabled and not iris_cfg.preset))      -- a named palette or the greys: only the Theme card follows

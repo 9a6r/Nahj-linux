@@ -906,6 +906,12 @@ scene Vitreus {
     shader wave = file "wave.wgsl"
     shader pixelate = file "pixelate.wgsl"
     shader matrix = file "matrix.wgsl"                  // the Cyber theme's digital rain
+    //  The frosting behind the glass, as wide as the Glass page's blur slider says (`hy_blur`, 0 to 20; 0 is off): see blur.wgsl.
+    blur = file "blur.wgsl" {
+        passes: wide 0.5, tall 1
+        values: clamp(hy_blur / 20, 0, 1)
+        reach: 40
+    }
     spring dripl = 46, 8          // the drip down the left: slow enough to see the neck stretch, thin and snap, and loose enough to swing past where it lands
     spring drip = 170, 18         // underdamped: it overshoots and settles back, like a real drop landing
     spring pop  = 300, 12         // snappier and much less damped: a toggle knob popping past where it lands
@@ -1670,6 +1676,8 @@ scene Vitreus {
     //  the tray. The logic makes the pictures (`wp_picker`), orders them by colour and does the awww side of a pick.
     model wp_picker max 200 { img: image 104, 120; hue: number; cur: bool; dim: bool; name: text }       // the picture is 124 x 143 (120 x 139 and two transparent pixels all round), and the cell is declared smaller, 104 x 120, in the same shape (the picture is fitted inside it; the resting tiles are drawn at about that size): every image takes its whole cell from the atlas (one 2048 x 2048 texture, shared with the text), and at 186 x 215 only about a hundred of the hundred and thirty-seven tiles fitted, the rest were drawn empty
     fact wp_picker_open = false
+    text wp_kb = ""                          // the picker's keyboard catcher (see `wp_kb` in the picker)
+    on change wp_picker_open while wp_picker_open { focus wp_kb }
     text wp_picker_status = ""                // "Reading your wallpapers… 42 of 137" while the first analysis runs
     text wp_picker_hero_name = ""             // the name of the hexagon under the pointer
     fact wp_picker_hero_cur = false           // the one under the pointer is the wallpaper in use
@@ -6099,6 +6107,9 @@ scene Vitreus {
         zone box wp_pg_dot1 { at: cx + 9, yo + vh - 24; size: 18, 18; corner: 9; cursor: pointer; active: wp_picker_show > 0.5 }
         on press wp_pg_dot0 { wp_pg = 0 }
         on press wp_pg_dot1 { wp_pg = 1 }
+        //  Only here to be focused when the picker opens: it has Hyprland lend the keyboard to this copy of the shell (opened from SUPER+B, the focus stayed on the
+        //  window below, and the arrows did nothing until the pointer was over a card). `passive`: it takes no key, so the arrows, Tab, Enter and Esc reach the rules below.
+        input wp_kb { at: cx - 2, yo + vh - 24; width: 4; size: 10; color: ink; opacity: 0; passive: true }
     }
 
     include "pages/overview.plm"
