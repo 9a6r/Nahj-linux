@@ -3924,7 +3924,7 @@ wp_load()
 -- of it shaded; below 30 % no blur is asked of the compositor). It is a number from 0 to 1 that the
 -- scene reads, kept in `glass.json` a moment after the last change so a drag does not write a file per pixel.
 -- Four more, all of them multipliers or switches the scene reads: `rim` (how bright the light along the edge is, 0 to 2, 1 as it
--- was), `refr` (how thick the glass is, 0 to 2) and `disp` (the rainbow at the edge, 0 to 2.5) only show when `bend` is on,
+-- was), `refr` (how thick the glass is, 0 to 3) and `disp` (the rainbow at the edge, 0 to 2.5) only show when `bend` is on,
 -- which swaps the compositor's blur for glass that really bends what is behind it. The blur's own strength is Hyprland's, and
 -- lives in the Hyprland section below (it puts its setter in `glass.set_blur`).
 -- `clear` (0 clear glass .. 1 frosted, pleamar's `frost:`) and `auto` (frost only where what is behind is busy) are the glass that bends's own
@@ -3989,7 +3989,7 @@ do
     if ok and type(saved) == "table" then
         if type(saved.opacity) == "number" then glass.opacity = math.max(GLASS_OP_MIN, math.min(1, saved.opacity)) end
         if type(saved.rim) == "number" then glass.rim = math.max(0, math.min(2, saved.rim)) end
-        if type(saved.refr) == "number" then glass.refr = math.max(0, math.min(2, saved.refr)) end
+        if type(saved.refr) == "number" then glass.refr = math.max(0, math.min(3, saved.refr)) end
         if type(saved.disp) == "number" then glass.disp = math.max(0, math.min(2.5, saved.disp)) end
         if type(saved.dome) == "number" then glass.dome = math.max(0, math.min(1.5, saved.dome)) end
         if type(saved.milk) == "number" then glass.milk = math.max(0, math.min(1, saved.milk)) end
@@ -4013,7 +4013,7 @@ end)
 -- A slider's track is 0 to 1; these turn it into the value, in steps of 5 %.
 function glass.step(t, top) return math.floor(math.max(0, math.min(1, t)) * top * 20 + 0.5) / 20 end
 on("glass_rim_set", function(t) glass.rim = glass.step(t, 2); glass_refresh(); glass_save_soon() end)
-on("glass_refr_set", function(t) glass.refr = glass.step(t, 2); glass_refresh(); glass_save_soon() end)
+on("glass_refr_set", function(t) glass.refr = glass.step(t, 3); glass_refresh(); glass_save_soon() end)
 on("glass_disp_set", function(t) glass.disp = glass.step(t, 2.5); glass_refresh(); glass_save_soon() end)
 on("glass_dome_set", function(t) glass.dome = glass.step(t, 1.5); glass_refresh(); glass_save_soon() end)
 on("glass_milk_set", function(t) glass.milk = glass.step(t, 1); glass_refresh(); glass_save_soon() end)
