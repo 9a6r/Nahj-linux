@@ -12,6 +12,7 @@ What it adds to pleamar-wm's scene:
   * the room the shell's frame keeps round each monitor (fr.MONITOR.EDGE), added wherever the scene reads `win.reserved`;
   * the window styles (wst): 0 Vitreus glass, 1 Water, 2 Borderless, 3 Glow; and their corners, border, shadow, opacity and frost;
   * title bars on tiled windows (tbt), which pleamar-wm only gives to free ones;
+  * focus_slot and close_slot, which the shell's task list emits to bring up or close a window by its slot;
   * a right press on the bare desktop, counted for Vitreus (desk_n, desk_x, desk_y, desk_mon), which opens the desktop menu.
 """
 import os, re, subprocess, shutil, sys, tempfile
@@ -59,7 +60,13 @@ once("    let gap = 12\n    let tb = 30                          // each window'
 
 # the room the shell's frame keeps round a monitor, beyond what other programs' bars reserve
 frame = "".join("    fact fr.%d.%s = 0\n" % (m, e) for m in range(4) for e in ("top", "right", "bottom", "left"))
-once("    windows win max 16\n", """    windows win max 16
+once("    windows win max 16 placement manual\n", """    windows win max 16 placement manual
+
+    // The shell's task list picks a window by its slot: a click brings it up, its close button closes it (nothing else in the scene names a slot).
+    event focus_slot
+    event close_slot
+    on focus_slot(v) { focus win(v) }
+    on close_slot(v) { close win(v) }
 
     // The room Vitreus's glass frame keeps round each monitor, beyond what programs' bars reserve (Vitreus sets it).
 """ + frame + """
@@ -73,13 +80,14 @@ once("    windows win max 16\n", """    windows win max 16
     zone box desk { from: 0, 0; size: 2560, 2560 }
     on press right desk { desk_x = pointer.x; desk_y = pointer.y; desk_mon = screen.index; desk_n = desk_n + 1 }
 """)
-s, k = re.subn(r"win\.reserved\.(\w+|\$s)\.(top|right|bottom|left)", r"(win.reserved.\1.\2 + fr.\1.\2)", s)
+s, k = re.subn(r"win\.reserved(\.\w+|\.\$\w+|\[[^\]]+\])\.(top|right|bottom|left)", r"(win.reserved\1.\2 + fr\1.\2)", s)
 assert k > 10, "win.reserved was read %d times" % k
 
 # ── the title bars setting (tbt) is for every window: a free one has its bar only while it is on (a program that draws its own frame keeps its own handle) ──────────────────────────────────────────────────────────────────────────────────────────────────
 once("        let ours = F > 0.5 and win.$i.framed\n", "        let ours = tbt > 0.5 and win.$i.framed\n")
-once("zone box title.$i { from: x.$i + if(whole or F > 0.5, 0, 12), y.$i - if(whole or F > 0.5, 0, gap - 1); size: if(whole, w, if(F > 0.5, w - 76, w - 24)), if(whole, h, if(F > 0.5, tb, gap - 2));",
-     "zone box title.$i { from: x.$i + if(whole or (F > 0.5 and not win.$i.framed) or ours, 0, 12), y.$i - if(whole or (F > 0.5 and not win.$i.framed) or ours, 0, gap - 1); size: if(whole, w, if((F > 0.5 and not win.$i.framed) or ours, w - 76, w - 24)), if(whole, h, if((F > 0.5 and not win.$i.framed) or ours, tb, gap - 2));")
+once("            zone box title.$i { from: ", "            let tbz = (F > 0.5 and not win.$i.framed) or ours\n            zone box title.$i { from: ")
+once("from: x.$i + if(whole or F > 0.5, 0, 12) + if(not whole and fr and ours, 32, 0), y.$i - if(whole or F > 0.5, 0, gap - 1); size: if(whole, w, if(F > 0.5, w - 76, w - 24)) - if(not whole and fr and ours, 32, 0), if(whole, h, if(F > 0.5, tb, gap - 2));",
+     "from: x.$i + if(whole or tbz, 0, 12) + if(not whole and fr and ours, 32, 0), y.$i - if(whole or tbz, 0, gap - 1); size: if(whole, w, if(tbz, w - 76, w - 24)) - if(not whole and fr and ours, 32, 0), if(whole, h, if(tbz, tb, gap - 2));")
 
 # ── the corners where a window is not the one drawn in full ────────────────────────────────────────────────────────────────────────────
 once("box { from: hx + 4, hy + 4; size: hw - 8, hh - 8; corner: 12;", "box { from: hx + 4, hy + 4; size: hw - 8, hh - 8; corner: rad;", 2)
@@ -137,8 +145,8 @@ BAR_NEW = """box { from: x, y; size: w, tb * hb.$i; color: mix(#1a1e22, #1d2b27,
                     box { from: x, y; size: w, tb * hb.$i }
                 }
                 box { from: x, y + tb * hb.$i - 1; size: w, 1; color: #ffffff; opacity: 9%; show: hb.$i > 0.99 and wglass > 0.5 }"""
-TITLE_OLD = "size: 12; weight: 500; width: max(w - 110, 10); lines: 1; color: ink; opacity: (55% + 45% * lit.$i) * hb.$i; show: hb.$i > 0.01 }"
-TITLE_NEW = 'size: 11.5; weight: 600; width: max(w - 110, 10); lines: 1; color: ink; opacity: (55% + 45% * lit.$i) * hb.$i; family: "Space Grotesk"; show: hb.$i > 0.01 }'
+TITLE_OLD = "size: 12; weight: 500; width: max(w - 110 - 24 * cvpt.$i"
+TITLE_NEW = 'size: 11.5; weight: 600; family: "Space Grotesk"; width: max(w - 110 - 24 * cvpt.$i'
 BUTTONS_OLD = """            group {
                 show: hb.$i > 0.01
                 opacity: (45% + 55% * max(lit.$i, b.any)) * hb.$i * smooth(0.75, 1, water)
