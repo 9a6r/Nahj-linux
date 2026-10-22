@@ -1,6 +1,6 @@
 // The frosting behind the glass: a gaussian at half size, across and then down, as wide as the Glass page's blur slider says
 // (`s.a.x`, 0 to 1). pleamar's own is a fixed one; this is the same shape with a strength. The glass bends a picture of the
-// wallpaper (PLEAMAR_LENS_IMAGE), so what the slider cannot do on the compositor's blur it does here.
+// wallpaper (`lens = image`), so what the slider cannot do on the compositor's blur it does here.
 fn sigma(s: Blur) -> f32 {
     return mix(0.8, 9.0, clamp(s.a.x, 0.0, 1.0)) * s.scale;
 }

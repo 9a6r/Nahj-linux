@@ -2965,7 +2965,7 @@ local wp_pending, wp_pending_until = nil, 0
 -- The wallpaper picker's cards change the wallpaper while they are shifted through; the colours are only worked out once one is kept. Until then what
 -- awww shows is not a change made from outside (a global: this chunk is at Luau's limit of locals).
 wp_prev = { on = false, touched = false, cancel = false, orig = nil, shown = nil }
--- The glass bends a copy of the wallpaper instead of a capture of the screen (pleamar's PLEAMAR_LENS_IMAGE, set on the autostart line): half
+-- The glass bends a copy of the wallpaper instead of a capture of the screen (the scene's `lens = image`, in vitreus.plm): half
 -- the screen's size is plenty under the frosting. Pleamar looks at the file twice a second and reads it again when it changes (a half-written one fails to decode and is tried again). Called wherever the wallpaper changes
 -- (the watcher below, and `wp_apply`, which marks the change as seen so the watcher never notices it). A global: this chunk is at Luau's limit of locals.
 function lens_image(path)
