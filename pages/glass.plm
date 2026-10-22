@@ -33,16 +33,16 @@ part Glass {
 
             //  Blur.  (always available: it also blurs behind the obsidian shell)
             //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
-            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 125 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu } }
-            box { at: spx + 219 * pu, sby + 125 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
-            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 109 * pu + 0.5); text "Blur" { at: floor(spx + 14 * pu + 0.5), floor(sby + 109 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; opacity: 100%; family: "Space Grotesk" } }
-            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 124 * pu + 0.5); text "Hyprland's blur, for the flat look and glass that doesn't bend; see Frost" { at: floor(spx + 14 * pu + 0.5), floor(sby + 124 * pu + 0.5); anchor: left center; size: 12.5; color: faint; opacity: 100%; family: "Space Grotesk" } }
+            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 225 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu } }
+            box { at: spx + 219 * pu, sby + 225 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 209 * pu + 0.5); text "Blur" { at: floor(spx + 14 * pu + 0.5), floor(sby + 209 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; opacity: 100%; family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 224 * pu + 0.5); text "Hyprland's blur, for the flat look and glass that doesn't bend; see Frost" { at: floor(spx + 14 * pu + 0.5), floor(sby + 224 * pu + 0.5); anchor: left center; size: 12.5; color: faint; opacity: 100%; family: "Space Grotesk" } }
             group {
                 opacity: 100%
-                PSlider(gsl.x0, sby + 141 * pu, gsl.w, clamp(clamp(hy_blur / 20, 0, 1), 0, 1), glass_hit2.hover, cu, gh, 0)
+                PSlider(gsl.x0, sby + 241 * pu, gsl.w, clamp(clamp(hy_blur / 20, 0, 1), 0, 1), glass_hit2.hover, cu, gh, 0)
             }
-            group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 112 * pu + 0.5); text hy_blur_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 112 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100%; family: "Space Grotesk" } }
-            zone box glass_hit2 { at: gsl.x0 + gsl.w / 2, sby + 141 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (sby + 141 * pu) - gl.off > sby and (sby + 141 * pu) - gl.off < sby + set.h * pu }
+            group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 212 * pu + 0.5); text hy_blur_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 212 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100%; family: "Space Grotesk" } }
+            zone box glass_hit2 { at: gsl.x0 + gsl.w / 2, sby + 241 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (sby + 241 * pu) - gl.off > sby and (sby + 241 * pu) - gl.off < sby + set.h * pu }
             on press glass_hit2 { emit glass_blur_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
             on scroll glass_hit2 { gl_scroll_to = clamp(gl_scroll_to - wheel * 44, 0, max(0, gl.h - set.h)) }
             on drag glass_hit2 { emit glass_blur_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
@@ -54,67 +54,67 @@ part Glass {
 
             //  Opacity.
             //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
-            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 183 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu } }
-            box { at: spx + 219 * pu, sby + 183 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
-            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 167 * pu + 0.5); text "Opacity" { at: floor(spx + 14 * pu + 0.5), floor(sby + 167 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; opacity: 100%; family: "Space Grotesk" } }
-            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 182 * pu + 0.5); text "How solid; the first 30% can't be picked, the glass would vanish" { at: floor(spx + 14 * pu + 0.5), floor(sby + 182 * pu + 0.5); anchor: left center; size: 12.5; color: faint; opacity: 100%; family: "Space Grotesk" } }
+            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 283 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu } }
+            box { at: spx + 219 * pu, sby + 283 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 267 * pu + 0.5); text "Opacity" { at: floor(spx + 14 * pu + 0.5), floor(sby + 267 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; opacity: 100%; family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 282 * pu + 0.5); text "How solid; the first 30% can't be picked, the glass would vanish" { at: floor(spx + 14 * pu + 0.5), floor(sby + 282 * pu + 0.5); anchor: left center; size: 12.5; color: faint; opacity: 100%; family: "Space Grotesk" } }
             group {
                 opacity: 100%
-                PSlider(gsl.x0, sby + 199 * pu, gsl.w, clamp(clamp(glass_op, 0, 1), 0, 1), glass_hit1.hover, cu, gh, 0)
+                PSlider(gsl.x0, sby + 299 * pu, gsl.w, clamp(clamp(glass_op, 0, 1), 0, 1), glass_hit1.hover, cu, gh, 0)
             }
             //  The first 30 % of this track cannot be picked: it is shaded, with a tick where the range starts.
-            box { from: gsl.x0, sby + 199 * pu - gh / 2; size: gsl.w * 0.3, gh; corner: gh / 2; color: #000000; opacity: 38% }
-            box { at: gsl.x0 + gsl.w * 0.3, sby + 199 * pu; size: 1.5 * pu, gh + 6 * pu; corner: 0.75 * pu; color: ink; opacity: 45% }
-            group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 170 * pu + 0.5); text glass_op_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 170 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100%; family: "Space Grotesk" } }
-            zone box glass_hit1 { at: gsl.x0 + gsl.w / 2, sby + 199 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (obs < 0.5) and (sby + 199 * pu) - gl.off > sby and (sby + 199 * pu) - gl.off < sby + set.h * pu }
+            box { from: gsl.x0, sby + 299 * pu - gh / 2; size: gsl.w * 0.3, gh; corner: gh / 2; color: #000000; opacity: 38% }
+            box { at: gsl.x0 + gsl.w * 0.3, sby + 299 * pu; size: 1.5 * pu, gh + 6 * pu; corner: 0.75 * pu; color: ink; opacity: 45% }
+            group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 270 * pu + 0.5); text glass_op_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 270 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100%; family: "Space Grotesk" } }
+            zone box glass_hit1 { at: gsl.x0 + gsl.w / 2, sby + 299 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (obs < 0.5) and (sby + 299 * pu) - gl.off > sby and (sby + 299 * pu) - gl.off < sby + set.h * pu }
             on press glass_hit1 { emit glass_op_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
             on scroll glass_hit1 { gl_scroll_to = clamp(gl_scroll_to - wheel * 44, 0, max(0, gl.h - set.h)) }
             on drag glass_hit1 { emit glass_op_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
 
             //  Edge light.
             //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
-            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 241 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu } }
-            box { at: spx + 219 * pu, sby + 241 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
-            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 225 * pu + 0.5); text "Edge light" { at: floor(spx + 14 * pu + 0.5), floor(sby + 225 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; opacity: 100%; family: "Space Grotesk" } }
-            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 240 * pu + 0.5); text "How bright the light along the glass edge is" { at: floor(spx + 14 * pu + 0.5), floor(sby + 240 * pu + 0.5); anchor: left center; size: 12.5; color: faint; opacity: 100%; family: "Space Grotesk" } }
+            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 341 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu } }
+            box { at: spx + 219 * pu, sby + 341 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 325 * pu + 0.5); text "Edge light" { at: floor(spx + 14 * pu + 0.5), floor(sby + 325 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; opacity: 100%; family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 340 * pu + 0.5); text "How bright the light along the glass edge is" { at: floor(spx + 14 * pu + 0.5), floor(sby + 340 * pu + 0.5); anchor: left center; size: 12.5; color: faint; opacity: 100%; family: "Space Grotesk" } }
             group {
                 opacity: 100%
-                PSlider(gsl.x0, sby + 257 * pu, gsl.w, clamp(clamp(glass_rim / 2, 0, 1), 0, 1), glass_hit3.hover, cu, gh, 0)
+                PSlider(gsl.x0, sby + 357 * pu, gsl.w, clamp(clamp(glass_rim / 2, 0, 1), 0, 1), glass_hit3.hover, cu, gh, 0)
             }
-            group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 228 * pu + 0.5); text glass_rim_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 228 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100%; family: "Space Grotesk" } }
-            zone box glass_hit3 { at: gsl.x0 + gsl.w / 2, sby + 257 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (obs < 0.5) and (sby + 257 * pu) - gl.off > sby and (sby + 257 * pu) - gl.off < sby + set.h * pu }
+            group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 328 * pu + 0.5); text glass_rim_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 328 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100%; family: "Space Grotesk" } }
+            zone box glass_hit3 { at: gsl.x0 + gsl.w / 2, sby + 357 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (obs < 0.5) and (sby + 357 * pu) - gl.off > sby and (sby + 357 * pu) - gl.off < sby + set.h * pu }
             on press glass_hit3 { emit glass_rim_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
             on scroll glass_hit3 { gl_scroll_to = clamp(gl_scroll_to - wheel * 44, 0, max(0, gl.h - set.h)) }
             on drag glass_hit3 { emit glass_rim_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
 
             //  Edge thickness.
             //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
-            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 299 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu } }
-            box { at: spx + 219 * pu, sby + 299 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
-            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 283 * pu + 0.5); text "Edge thickness" { at: floor(spx + 14 * pu + 0.5), floor(sby + 283 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
-            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 298 * pu + 0.5); text "How much the edge bends what is behind it" { at: floor(spx + 14 * pu + 0.5), floor(sby + 298 * pu + 0.5); anchor: left center; size: 12.5; color: faint; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
+            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 399 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu } }
+            box { at: spx + 219 * pu, sby + 399 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 383 * pu + 0.5); text "Edge thickness" { at: floor(spx + 14 * pu + 0.5), floor(sby + 383 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 398 * pu + 0.5); text "How much the edge bends what is behind it" { at: floor(spx + 14 * pu + 0.5), floor(sby + 398 * pu + 0.5); anchor: left center; size: 12.5; color: faint; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
             group {
                 opacity: 100% * (0.35 + 0.65 * glass_bend_k)
-                PSlider(gsl.x0, sby + 315 * pu, gsl.w, clamp(clamp(glass_refr / 2, 0, 1), 0, 1), glass_hit4.hover, cu, gh, 0)
+                PSlider(gsl.x0, sby + 415 * pu, gsl.w, clamp(clamp(glass_refr / 2, 0, 1), 0, 1), glass_hit4.hover, cu, gh, 0)
             }
-            group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 286 * pu + 0.5); text glass_refr_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 286 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
-            zone box glass_hit4 { at: gsl.x0 + gsl.w / 2, sby + 315 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (obs < 0.5) and (sby + 315 * pu) - gl.off > sby and (sby + 315 * pu) - gl.off < sby + set.h * pu }
+            group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 386 * pu + 0.5); text glass_refr_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 386 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
+            zone box glass_hit4 { at: gsl.x0 + gsl.w / 2, sby + 415 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (obs < 0.5) and (sby + 415 * pu) - gl.off > sby and (sby + 415 * pu) - gl.off < sby + set.h * pu }
             on press glass_hit4 { emit glass_refr_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
             on scroll glass_hit4 { gl_scroll_to = clamp(gl_scroll_to - wheel * 44, 0, max(0, gl.h - set.h)) }
             on drag glass_hit4 { emit glass_refr_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
 
             //  Rainbow fringe.
             //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
-            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 357 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu } }
-            box { at: spx + 219 * pu, sby + 357 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
-            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 341 * pu + 0.5); text "Rainbow fringe" { at: floor(spx + 14 * pu + 0.5), floor(sby + 341 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
-            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 356 * pu + 0.5); text "How far red, green and blue split at the edge" { at: floor(spx + 14 * pu + 0.5), floor(sby + 356 * pu + 0.5); anchor: left center; size: 12.5; color: faint; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
+            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 457 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu } }
+            box { at: spx + 219 * pu, sby + 457 * pu; size: 438 * pu, 54 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 441 * pu + 0.5); text "Rainbow fringe" { at: floor(spx + 14 * pu + 0.5), floor(sby + 441 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 456 * pu + 0.5); text "How far red, green and blue split at the edge" { at: floor(spx + 14 * pu + 0.5), floor(sby + 456 * pu + 0.5); anchor: left center; size: 12.5; color: faint; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
             group {
                 opacity: 100% * (0.35 + 0.65 * glass_bend_k)
-                PSlider(gsl.x0, sby + 373 * pu, gsl.w, clamp(clamp(glass_disp / 2.5, 0, 1), 0, 1), glass_hit5.hover, cu, gh, 0)
+                PSlider(gsl.x0, sby + 473 * pu, gsl.w, clamp(clamp(glass_disp / 2.5, 0, 1), 0, 1), glass_hit5.hover, cu, gh, 0)
             }
-            group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 344 * pu + 0.5); text glass_disp_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 344 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
-            zone box glass_hit5 { at: gsl.x0 + gsl.w / 2, sby + 373 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (obs < 0.5) and (sby + 373 * pu) - gl.off > sby and (sby + 373 * pu) - gl.off < sby + set.h * pu }
+            group { scale: rs; pivot: floor(spx + 424 * pu + 0.5), floor(sby + 444 * pu + 0.5); text glass_disp_text { at: floor(spx + 424 * pu + 0.5), floor(sby + 444 * pu + 0.5); anchor: right center; size: 18; weight: 600; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
+            zone box glass_hit5 { at: gsl.x0 + gsl.w / 2, sby + 473 * pu; size: gsl.w + 28 * pu, 26 * pu; cursor: pointer; active: (obs < 0.5) and (sby + 473 * pu) - gl.off > sby and (sby + 473 * pu) - gl.off < sby + set.h * pu }
             on press glass_hit5 { emit glass_disp_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
             on scroll glass_hit5 { gl_scroll_to = clamp(gl_scroll_to - wheel * 44, 0, max(0, gl.h - set.h)) }
             on drag glass_hit5 { emit glass_disp_set(clamp(((pointer.x - tx.pnl) - gsl.x0) / gsl.w, 0, 1)) }
@@ -122,31 +122,31 @@ part Glass {
             //  Bend what is behind the glass: swaps the compositor's blur for real bending (it takes a screenshot of what is
             //  behind the bar while anything moves, so it costs more power).
             //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
-            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 410 * pu; size: 438 * pu, 44 * pu; corner: 14 * pu } }
-            box { at: spx + 219 * pu, sby + 410 * pu; size: 438 * pu, 44 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
-            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 402 * pu + 0.5); text "Bend what's behind the glass" { at: floor(spx + 14 * pu + 0.5), floor(sby + 402 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; family: "Space Grotesk" } }
-            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 418 * pu + 0.5); text "Real lens glass, not blur. Bends the wallpaper." { at: floor(spx + 14 * pu + 0.5), floor(sby + 418 * pu + 0.5); anchor: left center; size: 12.5; weight: 600; color: faint; family: "Space Grotesk" } }
-            SettingsSwitch(spx + 424 * pu, sby + 410 * pu, glass_bend_pill, glass_bend_hit.pressed, mint)
-            zone box glass_bend_hit { at: spx + 219 * pu, sby + 410 * pu; size: 430 * pu, 40 * pu; corner: 12 * pu; cursor: pointer; active: (obs < 0.5) and (sby + 410 * pu) - gl.off > sby and (sby + 410 * pu) - gl.off < sby + set.h * pu }
+            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 118 * pu; size: 438 * pu, 44 * pu; corner: 14 * pu } }
+            box { at: spx + 219 * pu, sby + 118 * pu; size: 438 * pu, 44 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 110 * pu + 0.5); text "X-Bend" { at: floor(spx + 14 * pu + 0.5), floor(sby + 110 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 126 * pu + 0.5); text "Show wallpaper but not live windows. Light GPU load." { at: floor(spx + 14 * pu + 0.5), floor(sby + 126 * pu + 0.5); anchor: left center; size: 12.5; weight: 600; color: faint; family: "Space Grotesk" } }
+            SettingsSwitch(spx + 424 * pu, sby + 118 * pu, glass_bend_pill, glass_bend_hit.pressed, mint)
+            zone box glass_bend_hit { at: spx + 219 * pu, sby + 118 * pu; size: 430 * pu, 40 * pu; corner: 12 * pu; cursor: pointer; active: (obs < 0.5) and (sby + 118 * pu) - gl.off > sby and (sby + 118 * pu) - gl.off < sby + set.h * pu }
             on press glass_bend_hit { emit glass_bend_toggle }
             on scroll glass_bend_hit { gl_scroll_to = clamp(gl_scroll_to - wheel * 44, 0, max(0, gl.h - set.h)) }
 
             //  Live bend: the glass bends the live windows behind it (a capture) instead of the wallpaper copy (`lens = image ... while`): real, but a screencopy each time something moves.
-            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 460 * pu; size: 438 * pu, 44 * pu; corner: 14 * pu } }
-            box { at: spx + 219 * pu, sby + 460 * pu; size: 438 * pu, 44 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
+            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 168 * pu; size: 438 * pu, 44 * pu; corner: 14 * pu } }
+            box { at: spx + 219 * pu, sby + 168 * pu; size: 438 * pu, 44 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
             group {
                 opacity: 100% * (0.35 + 0.65 * glass_bend_k)
-                path { at: spx + 26 * pu, sby + 460 * pu; stroke: 1.8 * pu; color: alert; move 0, -9 * pu; line 10 * pu, 8 * pu; line -10 * pu, 8 * pu; line 0, -9 * pu }
-                path { at: spx + 26 * pu, sby + 460 * pu; stroke: 1.8 * pu; color: alert; move 0, -3 * pu; line 0, 2.5 * pu }
-                ellipse { at: spx + 26 * pu, sby + 463.5 * pu; radius: 1.1 * pu; color: alert }
+                path { at: spx + 26 * pu, sby + 168 * pu; stroke: 1.8 * pu; color: alert; move 0, -9 * pu; line 10 * pu, 8 * pu; line -10 * pu, 8 * pu; line 0, -9 * pu }
+                path { at: spx + 26 * pu, sby + 168 * pu; stroke: 1.8 * pu; color: alert; move 0, -3 * pu; line 0, 2.5 * pu }
+                ellipse { at: spx + 26 * pu, sby + 171.5 * pu; radius: 1.1 * pu; color: alert }
             }
-            group { scale: rs; pivot: floor(spx + 46 * pu + 0.5), floor(sby + 452 * pu + 0.5); text "Live bend" { at: floor(spx + 46 * pu + 0.5), floor(sby + 452 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
-            group { scale: rs; pivot: floor(spx + 46 * pu + 0.5), floor(sby + 468 * pu + 0.5); text "Bends the live windows. Heavy GPU load." { at: floor(spx + 46 * pu + 0.5), floor(sby + 468 * pu + 0.5); anchor: left center; size: 12.5; weight: 600; color: alert; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(spx + 46 * pu + 0.5), floor(sby + 160 * pu + 0.5); text "Live bend" { at: floor(spx + 46 * pu + 0.5), floor(sby + 160 * pu + 0.5); anchor: left center; size: 15.5; weight: 700; color: ink; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(spx + 46 * pu + 0.5), floor(sby + 176 * pu + 0.5); text "Bends the live windows. Heavy GPU load." { at: floor(spx + 46 * pu + 0.5), floor(sby + 176 * pu + 0.5); anchor: left center; size: 12.5; weight: 600; color: alert; opacity: 100% * (0.35 + 0.65 * glass_bend_k); family: "Space Grotesk" } }
             group {
                 opacity: 100% * (0.35 + 0.65 * glass_bend_k)
-                SettingsSwitch(spx + 424 * pu, sby + 460 * pu, glass_live_pill, glass_live_hit.pressed, mint)
+                SettingsSwitch(spx + 424 * pu, sby + 168 * pu, glass_live_pill, glass_live_hit.pressed, mint)
             }
-            zone box glass_live_hit { at: spx + 219 * pu, sby + 460 * pu; size: 430 * pu, 40 * pu; corner: 12 * pu; cursor: pointer; active: (obs < 0.5 and glass_bend) and (sby + 460 * pu) - gl.off > sby and (sby + 460 * pu) - gl.off < sby + set.h * pu }
+            zone box glass_live_hit { at: spx + 219 * pu, sby + 168 * pu; size: 430 * pu, 40 * pu; corner: 12 * pu; cursor: pointer; active: (obs < 0.5 and glass_bend) and (sby + 168 * pu) - gl.off > sby and (sby + 168 * pu) - gl.off < sby + set.h * pu }
             on press glass_live_hit { emit glass_live_toggle }
             on scroll glass_live_hit { gl_scroll_to = clamp(gl_scroll_to - wheel * 44, 0, max(0, gl.h - set.h)) }
 
