@@ -69,8 +69,10 @@ scene Vitreus {
     //  the frame and its notches (Settings > Bar, "Frame on the other monitors": `bar_others`).
     //  The keyboard is `on_demand`, not `exclusive`: it is asked for every open copy at once (the `while` is not per copy), and Hyprland gave it, and the
     //  pointer with it, to a copy where nothing was open: the cursor seemed stuck until the panel closed. A field that takes the focus (the launcher's
-    //  search, the desk's inputs) still has it lent exclusively, to the copy it is on only.
-    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 62 while bar_anchor == top and not bar_frame and bar_size > 0.995; screens: each max 2; open: sb > 0.5 or bar_others; keyboard: on_demand while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or (cdk_on and ws_empty) or dash_open }
+    //  search, the desk's inputs) still has it lent exclusively, to the copy it is on only. A loan ends only when this rule goes false, so the corner dock
+    //  asks for the keyboard on an empty workspace while one of its icons is under the pointer or held (`cdk_hot`, `cdk_down`), not all the time:
+    //  `cdk_on and ws_empty` held every loan on both copies, and the cursor stuck again.
+    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 62 while bar_anchor == top and not bar_frame and bar_size > 0.995; screens: each max 2; open: sb > 0.5 or bar_others; keyboard: on_demand while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or (((cdk_hot > 0.5 and cdk_ga > 0.5) or cdk_down > 0.5) and ws_empty) or dash_open }
     permissions { services: "files", "files.write", "auth", "clock", "clock.seconds", "thumbnails", "thumbnails.*", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
                   run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "vitreus-themes", "claude", "ollama", "codex", "pacman", "paru", "yay", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "pw-play", "ffmpeg", "tesseract", "cat", "date", "udevadm", "test", "wl-paste", "ffprobe" }
 
@@ -261,6 +263,7 @@ scene Vitreus {
     fact cdk_on = true                                   // the corner dock is shown
     fact cdk_corner = 0                                  // which of the two corners opposite the bar it is in (kept in dock-pins.json)
     fact cdk_down = 0                                    // an icon or the pill is pressed
+    fact cdk_hot = 0                                     // the pointer is on an icon (the surface asks for the keyboard on an empty workspace)
     fact cdk_drag = 0                                    // ...and has been pulled far enough to be a drag, not a click
     fact cdk_px = 0                                      // where the pill's middle is being taken to, on the screen
     fact cdk_py = 0
@@ -3479,6 +3482,8 @@ scene Vitreus {
             image t.icon { at: 0, 0; size: floor(24 * bu + 0.5), floor(24 * bu + 0.5); opacity: 88% + 12% * touch.hover }
         }
         zone box touch { at: 12 * bu, 12 * bu; size: 31 * bu, 33 * bu; cursor: pointer; active: cdk.g > 0.6 }
+        on enter touch { cdk_hot = 1 }
+        on leave touch { cdk_hot = 0 }
         on press touch { cdk_down = 1; cdk_drag = 0; cdk_hx = pointer.x - cdk.rcx; cdk_hy = pointer.y - cdk.rcy }
         on drag touch while cdk_down > 0.5 { cdk_px = clamp(pointer.x - cdk_hx, 0, screen.width); cdk_py = clamp(pointer.y - cdk_hy, 0, screen.height); cdk_drag = if(cdk_drag > 0.5 or abs(drag.dx) + abs(drag.dy) > 8, 1, 0) }
         on release touch while cdk_down > 0.5 and cdk_drag < 0.5 { emit cdk_go(t.index) }
