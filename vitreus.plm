@@ -348,8 +348,8 @@ scene Vitreus {
     event shot_close ->
     event nt_act ->                // one of its buttons, by position
     //  Settings: a panel of pages, the wallpaper picker first. The logic lists the folder and keeps one
-    //  page of twelve thumbnails at a time (the folder can hold hundreds of full-size images).
-    model wps max 12 { thumb: image 260, 146 }
+    //  page of sixteen thumbnails at a time (the folder can hold hundreds of full-size images).
+    model wps max 16 { thumb: image 260, 146 }
     fact wp_sel = -1                // which thumbnail of this page is the wallpaper in use, or -1
     text wp_curpath = ""            // the wallpaper in use: a path
     image wp_cur = from wp_curpath, 320, 180
@@ -4124,24 +4124,24 @@ scene Vitreus {
     //  follows it (see `set.h`).
     let side.h1 = 18
     let side.wp = 42
-    let side.th = 74
-    let side.gl = 106
-    let side.h2 = 140
-    let side.bar = 164
-    let side.ck = 196                  // the Widgets row
-    let side.nt = 228
-    let side.lk = 260
-    let side.h3 = 294
-    let side.dp = 318
-    let side.nm = 350                  // the Night mode row
-    let side.h4 = 384
-    let side.hy = 408
-    let side.wm = side.hy + if(wm_hypr, 32, 0)             // the Hyprland row is only there on Hyprland, and the Pleamar-WM one only under pleamar-wm
-    let side.ky = side.wm + if(wm_pwm, 32, 0)              // the Keybinds row
-    let side.vpn = side.ky + 32
-    let side.mon = side.vpn + 32
+    let side.th = 70
+    let side.gl = 98
+    let side.h2 = 132
+    let side.bar = 156
+    let side.ck = 184                  // the Widgets row
+    let side.nt = 212
+    let side.lk = 240
+    let side.h3 = 274
+    let side.dp = 298
+    let side.nm = 326                  // the Night mode row
+    let side.h4 = 360
+    let side.hy = 384
+    let side.wm = side.hy + if(wm_hypr, 28, 0)             // the Hyprland row is only there on Hyprland, and the Pleamar-WM one only under pleamar-wm
+    let side.ky = side.wm + if(wm_pwm, 28, 0)              // the Keybinds row
+    let side.vpn = side.ky + 28
+    let side.mon = side.vpn + 28
     let side.last = side.mon
-    let side.ab = side.last + 32
+    let side.ab = side.last + 28
     let sm.ds = (4 - clamp(sm_mnt.count, 1, 4)) * 38
     let sm.dt = (8 - clamp(sm_tmp.count, 1, 8)) * 24
     let sm.h = 1536 - sm.ds - sm.dt

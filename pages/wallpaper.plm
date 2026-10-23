@@ -95,27 +95,27 @@ part Wallpaper {
                 on press wp_sw.$i { emit wp_filter_set(i) }
             }
 
-            //  Card four: the gallery, twelve at a time, with a pager.
+            //  Card four: the gallery, sixteen at a time, with a pager.
             //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
-            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 330 * pu; size: 438 * pu, 252 * pu; corner: 14 * pu } }
-            box { at: spx + 219 * pu, sby + 330 * pu; size: 438 * pu, 252 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
+            body { color: mix(obsidian, ink, (veil) * 1.6); opacity: obs; shadow: 0, 2 * pu, 7 * pu, 40%, #000000; show: obs > 0.004; box { at: spx + 219 * pu, sby + 361 * pu; size: 438 * pu, 314 * pu; corner: 14 * pu } }
+            box { at: spx + 219 * pu, sby + 361 * pu; size: 438 * pu, 314 * pu; corner: 14 * pu; color: ink; opacity: (veil) * (1 - obs) }
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 220 * pu + 0.5); text "WALLPAPER GALLERY" { at: floor(spx + 14 * pu + 0.5), floor(sby + 220 * pu + 0.5); anchor: left center; size: 13.5; weight: 700; color: faint; family: "Space Grotesk" } }
 
             on press wp_dir_hit { wpd_open = true; emit wp_dir_browse }
             on key Escape while wpd_open { wpd_open = false }
             on change set_page { wpd_open = false }
-            group { scale: rs; pivot: floor(spx + 219 * pu + 0.5), floor(sby + 330 * pu + 0.5); text "No wallpaper of this color" { at: floor(spx + 219 * pu + 0.5), floor(sby + 330 * pu + 0.5); anchor: center; size: 18; color: faint; family: "Space Grotesk"; show: wps.count < 1 } }
+            group { scale: rs; pivot: floor(spx + 219 * pu + 0.5), floor(sby + 361 * pu + 0.5); text "No wallpaper of this color" { at: floor(spx + 219 * pu + 0.5), floor(sby + 361 * pu + 0.5); anchor: center; size: 18; color: faint; family: "Space Grotesk"; show: wps.count < 1 } }
             row wp_grid {
                 at: floor(spx + 15 * pu + 0.5), floor(sby + 238 * pu + 0.5)
                 gap: 8 * pu
                 wrap: 4
                 for w in wps { WpThumb(w, pick: wp_pick) }
             }
-            path { at: spx + 40 * pu, sby + 438 * pu; stroke: 1.6 * pu; color: ink; opacity: 55% + 45% * wp_prev_hit.hover; move 3 * pu, -5 * pu; line -3 * pu, 0; line 3 * pu, 5 * pu }
-            group { scale: rs; pivot: floor(spx + 219 * pu + 0.5), floor(sby + 438 * pu + 0.5); text wp_pager { at: floor(spx + 219 * pu + 0.5), floor(sby + 438 * pu + 0.5); anchor: center; align: center; size: 16.5; weight: 600; width: (100 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
-            path { at: spx + 398 * pu, sby + 438 * pu; stroke: 1.6 * pu; color: ink; opacity: 55% + 45% * wp_next_hit.hover; move -3 * pu, -5 * pu; line 3 * pu, 0; line -3 * pu, 5 * pu }
-            zone box wp_prev_hit { at: spx + 40 * pu, sby + 438 * pu; size: 30 * pu, 28 * pu; corner: 14 * pu; cursor: pointer; active: set_page == pg_wall }
-            zone box wp_next_hit { at: spx + 398 * pu, sby + 438 * pu; size: 30 * pu, 28 * pu; corner: 14 * pu; cursor: pointer; active: set_page == pg_wall }
+            path { at: spx + 40 * pu, sby + 500 * pu; stroke: 1.6 * pu; color: ink; opacity: 55% + 45% * wp_prev_hit.hover; move 3 * pu, -5 * pu; line -3 * pu, 0; line 3 * pu, 5 * pu }
+            group { scale: rs; pivot: floor(spx + 219 * pu + 0.5), floor(sby + 500 * pu + 0.5); text wp_pager { at: floor(spx + 219 * pu + 0.5), floor(sby + 500 * pu + 0.5); anchor: center; align: center; size: 16.5; weight: 600; width: (100 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
+            path { at: spx + 398 * pu, sby + 500 * pu; stroke: 1.6 * pu; color: ink; opacity: 55% + 45% * wp_next_hit.hover; move -3 * pu, -5 * pu; line 3 * pu, 0; line -3 * pu, 5 * pu }
+            zone box wp_prev_hit { at: spx + 40 * pu, sby + 500 * pu; size: 30 * pu, 28 * pu; corner: 14 * pu; cursor: pointer; active: set_page == pg_wall }
+            zone box wp_next_hit { at: spx + 398 * pu, sby + 500 * pu; size: 30 * pu, 28 * pu; corner: 14 * pu; cursor: pointer; active: set_page == pg_wall }
             on press wp_prev_hit { emit wp_prev }
             on press wp_next_hit { emit wp_next }
             //  ── The folder browser: the dashboard picture's (its logic lists and walks the folders: `face_*`), shown over this page: the folder's folders and pictures as a grid,

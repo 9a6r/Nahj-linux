@@ -3438,10 +3438,10 @@ end)
 
 -- ── Settings: the wallpaper picker ───────────────────────────────────────────────────────
 -- The folder is `<Pictures>/Wallpapers` (`xdg-user-dir PICTURES`, else `$HOME/Pictures`). It is listed
--- once and shown twelve at a time: the scene only ever holds one page of thumbnails, since the folder
+-- once and shown sixteen at a time: the scene only ever holds one page of thumbnails, since the folder
 -- can hold hundreds of full-size images. Choosing one asks awww to fade to it; the wallpaper watcher
 -- above then sees the change, which is also what re-runs Iris.
-local WP_PER_PAGE = 12
+local WP_PER_PAGE = 16
 local wp_files = {}
 local wp_view = {}                        -- wp_files narrowed by the colour filter: what the gallery pages over
 local wp_page = 0
