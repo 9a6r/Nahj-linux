@@ -4118,19 +4118,29 @@ scene Vitreus {
     let disp.h = 554 + disp.prows + 114
     //  The System monitor page: the storage card has a row for each drive and the temperature card one for each sensor, and what is under
     //  them slides up as they shrink (see the page, which is generated: sm.ds and sm.dt are how much each has given back).
-    //  The sidebar's SYSTEM group, top to bottom. To add a section, give it a row here (`side.NAME = previous row + 32`), draw its item
-    //  like the others, and move `side.last` to its row: About is always the row after `side.last`, so it stays the final one, and
-    //  Settings' minimum height follows it (see `set.h`).
-    let side.ck = 234                  // the Clock row: after Night mode (202)
-    let side.th = 74                   // the Theme row: the first after Wallpaper
-    let side.hy = 290
+    //  The sidebar, top to bottom: LOOK (Wallpaper, Theme, Glass), SHELL (Bar, Widgets, Notifications, Lock screen), SCREEN (Display, Night mode) and SYSTEM
+    //  (the window manager, Keybinds, VPN, System monitor, About). `side.hN` are the headings. To add a section, give it a row here (the previous row + 32), draw its
+    //  item like the others, and move `side.last` to its row: About is always the row after `side.last`, so it stays the final one, and Settings' minimum height
+    //  follows it (see `set.h`).
+    let side.h1 = 18
+    let side.wp = 42
+    let side.th = 74
+    let side.gl = 106
+    let side.h2 = 140
+    let side.bar = 164
+    let side.ck = 196                  // the Widgets row
+    let side.nt = 228
+    let side.lk = 260
+    let side.h3 = 294
+    let side.dp = 318
+    let side.nm = 350                  // the Night mode row
+    let side.h4 = 384
+    let side.hy = 408
     let side.wm = side.hy + if(wm_hypr, 32, 0)             // the Hyprland row is only there on Hyprland, and the Pleamar-WM one only under pleamar-wm
-    let side.mon = side.wm + if(wm_pwm, 32, 0)
-    let side.nt = side.mon + 32
-    let side.lk = side.nt + 32
-    let side.vpn = side.lk + 32
-    let side.ky = side.vpn + 32           // the Keybinds row
-    let side.last = side.ky
+    let side.ky = side.wm + if(wm_pwm, 32, 0)              // the Keybinds row
+    let side.vpn = side.ky + 32
+    let side.mon = side.vpn + 32
+    let side.last = side.mon
     let side.ab = side.last + 32
     let sm.ds = (4 - clamp(sm_mnt.count, 1, 4)) * 38
     let sm.dt = (8 - clamp(sm_tmp.count, 1, 8)) * 24
