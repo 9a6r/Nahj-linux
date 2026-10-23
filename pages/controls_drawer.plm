@@ -559,7 +559,8 @@ part ControlsDrawer {
             //  Where it stands, beside the title: how long is left, or that it is on until turned off.
             text dnd_left { at: floor(pcx + 78 * cu + 0.5), floor(nx_cy + 0.5); anchor: right center; align: right; size: 11.5; width: 62 * cu; lines: 1; color: if(dnd_on, mint, faint); family: "Space Grotesk" }
             box { at: pcx + 112 * cu, nx_cy; size: 52 * cu, 24 * cu; corner: 12 * cu; color: ink; opacity: 8% + 10% * nt_clear_hit.hover }
-            text "Clear" { at: floor(pcx + 112 * cu + 0.5), floor(nx_cy + 0.5); anchor: center; size: 12.5; weight: 600; color: ink; opacity: 85%; family: "Space Grotesk" }
+            PPillOutline(pcx + 112 * cu, nx_cy, 52 * cu, 24 * cu, 12 * cu, nt_clear_hit.hover, clamp(3 * (8% + 10% * nt_clear_hit.hover), 0, 1), cu)
+            text "Clear" { at: floor(pcx + 112 * cu + 0.5), floor(nx_cy + 0.5); anchor: center; size: 14; weight: 600; color: ink; opacity: 85%; family: "Space Grotesk" }
             zone box nt_clear_hit { at: pcx + 112 * cu, nx_cy; size: 54 * cu, 26 * cu; corner: 13 * cu; cursor: pointer }
             on press nt_clear_hit { emit nt_clear }
             box { at: pcx, nx_top + 44 * cu; size: 276 * cu, 1 * cu; color: ink; opacity: 8% }

@@ -3953,7 +3953,8 @@ local function glass_refresh()
     fact.glass_disp = glass.disp
     fact.glass_dome = glass.dome
     fact.glass_milk = glass.milk
-    fact.glass_bend = glass.bend
+    fact.glass_bend = glass.bend or glass.live      -- the lens: either switch turns it on (Live bend does not need X-Bend)
+    fact.glass_x = glass.bend
     fact.glass_live = glass.live
     fact.glass_clear = glass.clear
     fact.glass_auto = glass.auto

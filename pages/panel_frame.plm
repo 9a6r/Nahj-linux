@@ -60,7 +60,8 @@ part PanelFrame {
             text cal.month { at: floor(pcx - 30 * cu + 0.5), floor(cy - 92 * cu + 0.5); anchor: left center; size: 17; weight: 600; color: ink; family: "Space Grotesk" }
             path { at: pcx + 134 * cu, cy - 92 * cu; color: ink; stroke: 1.6 * cu; opacity: 55% + 45% * cal_prev_btn.hover; move 2.5 * cu, -5 * cu; line -2.5 * cu, 0; line 2.5 * cu, 5 * cu }
             box { at: pcx + 163 * cu, cy - 92 * cu; size: 40 * cu, 20 * cu; corner: 10 * cu; color: ink; opacity: 8% + 10% * cal_today_btn.hover }
-            text "Today" { at: floor(pcx + 163 * cu + 0.5), floor(cy - 92 * cu + 0.5); anchor: center; size: 11.5; weight: 600; color: ink; opacity: 80%; family: "Space Grotesk" }
+            PPillOutline(pcx + 163 * cu, cy - 92 * cu, 40 * cu, 20 * cu, 10 * cu, cal_today_btn.hover, clamp(3 * (8% + 10% * cal_today_btn.hover), 0, 1), cu)
+            text "Today" { at: floor(pcx + 163 * cu + 0.5), floor(cy - 92 * cu + 0.5); anchor: center; size: 13; weight: 600; color: ink; opacity: 80%; family: "Space Grotesk" }
             path { at: pcx + 192 * cu, cy - 92 * cu; color: ink; stroke: 1.6 * cu; opacity: 55% + 45% * cal_next_btn.hover; move -2.5 * cu, -5 * cu; line 2.5 * cu, 0; line -2.5 * cu, 5 * cu }
             zone box cal_prev_btn { at: pcx + 134 * cu, cy - 92 * cu; size: 26 * cu, 26 * cu; corner: 13 * cu; cursor: pointer }
             zone box cal_today_btn { at: pcx + 163 * cu, cy - 92 * cu; size: 42 * cu, 24 * cu; corner: 12 * cu; cursor: pointer }
@@ -127,7 +128,8 @@ part PanelFrame {
             input cal_new { at: floor(pcx - 189 * cu + 0.5), floor(cy + 206.7 * cu + 0.5); width: 330 * cu; size: 15; color: ink; family: "Space Grotesk"
                             placeholder: "New reminder: 3:30pm Call mom"; selection: mintlo }
             box { at: pcx + 178 * cu, cy + 213 * cu; size: 46 * cu, 24 * cu; corner: 12 * cu; color: mint; opacity: 80% + 20% * cal_add_btn.hover }
-            text "Add" { at: floor(pcx + 178 * cu + 0.5), floor(cy + 213 * cu + 0.5); anchor: center; size: 12.5; weight: 700; color: onmint; family: "Space Grotesk" }
+            PPillOutline(pcx + 178 * cu, cy + 213 * cu, 46 * cu, 24 * cu, 12 * cu, cal_add_btn.hover, clamp(3 * (80% + 20% * cal_add_btn.hover), 0, 1), cu)
+            text "Add" { at: floor(pcx + 178 * cu + 0.5), floor(cy + 213 * cu + 0.5); anchor: center; size: 14; weight: 700; color: onmint; family: "Space Grotesk" }
             zone box cal_add_btn { at: pcx + 178 * cu, cy + 213 * cu; size: 48 * cu, 28 * cu; corner: pr; cursor: pointer }
             on press cal_add_btn { emit cal_add }
         }

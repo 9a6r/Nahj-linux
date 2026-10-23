@@ -379,7 +379,8 @@ scene Vitreus {
     fact glass_disp = 1
     fact glass_dome = 0              // pleamar's `dome:` (magnifies what is behind, towards the middle), 0 to 150 %: a test knob
     fact glass_milk = 0              // pleamar's `milk:` (a milky veil inside the glass), 0 to 100 %: a test knob
-    fact glass_bend = false
+    fact glass_bend = false           // the lens is on: X-Bend or Live bend (either one; the switches' own states are `glass_x` and `glass_live`)
+    fact glass_x = false              // the Glass page's "X-Bend" switch: the glass bends the wallpaper copy
     fact glass_live = false           // the Glass page's "Live bend": the glass bends the live windows (a capture) instead of the wallpaper copy
     //  Which monitors bend (the Glass page's "Bend on"): `glass_b0` to `glass_b3` by copy number, all true while no monitor is picked (vitreus.luau). `glass_bm.i` lights the page's tile i.
     fact glass_b0 = true
@@ -424,6 +425,8 @@ scene Vitreus {
     fact hy_blur = 3
     prop glass_bend_k = 0 ~quick
     follow glass_bend_k = if(glass_bend, 1, 0)
+    prop glass_live_k = 0 ~quick     // Live bend on: it decides what is bent, so the X-Bend row greys
+    follow glass_live_k = if(glass_live, 1, 0)
     text glass_rim_text = "100%"
     text glass_refr_text = "100%"
     text glass_disp_text = "100%"
@@ -944,7 +947,7 @@ scene Vitreus {
     prop f6    = 0 ~700ms          // fourth: wifi
     prop f7    = 0 ~780ms          // fifth: bluetooth
     prop glass_bend_pill = 0 ~pop    // the Glass page's lens switch, popping past where it lands
-    follow glass_bend_pill = if(glass_bend, 1, 0)
+    follow glass_bend_pill = if(glass_x, 1, 0)
     prop glass_live_pill = 0 ~pop
     follow glass_live_pill = if(glass_live, 1, 0)
     prop glass_auto_pill = 0 ~pop     // the Glass page's auto-frost switch
@@ -2982,6 +2985,21 @@ scene Vitreus {
         ellipse { at: kx + jt * sin(fr * 67 + 17057), y + jt * sin(fr * 48 + 17214); radius: h * 0.85 * (1 + 0.04 * sin(fr * 47 + 0)); stroke: 1.5 * k; color: ink; opacity: 0.9 }
         ellipse { at: kx + 0.35 * cu + jt * sin(fr * 51 + 17428), y + 0.28 * cu + jt * sin(fr * 63 + 17585); radius: h * 0.85 * (1 + 0.04 * sin(fr * 47 + 70)); stroke: 1.05 * k; color: ink; opacity: 0.3 }
         ellipse { at: kx, y; radius: h * 0.85; color: ink; opacity: 0.14 }
+    }
+
+    //  A button or pill's outline in pencil, over its fill (the fill and the label stay): the crooked double outline of PSlider's track, drawn as a rounded box with corner `r`, calm
+    //  at rest and redrawn about five times a second under the pointer (`hot`). `cx`, `cy` its middle, `w`, `h` its size, `o` how much of it shows, `ku` the unit it is laid out in.
+    component PPillOutline(cx: number, cy: number, w: number, h: number, r: number, hot: number, o: number, ku: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let jt = (0.18 + 0.25 * a) * ku
+        let x0 = cx - w / 2
+        let x1 = cx + w / 2
+        let y0 = cy - h / 2
+        let y1 = cy + h / 2
+        path { at: 0, 0; stroke: 1.3 * ku; color: ink; opacity: 0.6 * o; move x0 + r + jt * sin(fr * 57 + 71000), y0 + jt * sin(fr * 62 + 71060); line x1 - r + jt * sin(fr * 64 + 71100), y0 + jt * sin(fr * 69 + 71160); curve x1 + jt * sin(fr * 71 + 71200), y0 + r + jt * sin(fr * 76 + 71260) via x1 + jt * sin(fr * 72 + 71300), y0 + jt * sin(fr * 77 + 71360); line x1 + jt * sin(fr * 47 + 71400), y1 - r + jt * sin(fr * 52 + 71460); curve x1 - r + jt * sin(fr * 48 + 71500), y1 + jt * sin(fr * 53 + 71560) via x1 + jt * sin(fr * 54 + 71600), y1 + jt * sin(fr * 59 + 71660); line x0 + r + jt * sin(fr * 61 + 71700), y1 + jt * sin(fr * 66 + 71760); curve x0 + jt * sin(fr * 62 + 71800), y1 - r + jt * sin(fr * 67 + 71860) via x0 + jt * sin(fr * 68 + 71900), y1 + jt * sin(fr * 73 + 71960); line x0 + jt * sin(fr * 69 + 72000), y0 + r + jt * sin(fr * 74 + 72060); curve x0 + r + jt * sin(fr * 51 + 72100), y0 + jt * sin(fr * 56 + 72160) via x0 + jt * sin(fr * 58 + 72200), y0 + jt * sin(fr * 63 + 72260); }
+        path { at: 0.35 * ku, 0.28 * ku; stroke: 0.9 * ku; color: ink; opacity: 0.2 * o; move x0 + r + jt * sin(fr * 72 + 72300), y0 + jt * sin(fr * 77 + 72360); line x1 - r + jt * sin(fr * 48 + 72400), y0 + jt * sin(fr * 53 + 72460); curve x1 + jt * sin(fr * 55 + 72500), y0 + r + jt * sin(fr * 60 + 72560) via x1 + jt * sin(fr * 56 + 72600), y0 + jt * sin(fr * 61 + 72660); line x1 + jt * sin(fr * 63 + 72700), y1 - r + jt * sin(fr * 68 + 72760); curve x1 - r + jt * sin(fr * 64 + 72800), y1 + jt * sin(fr * 69 + 72860) via x1 + jt * sin(fr * 70 + 72900), y1 + jt * sin(fr * 75 + 72960); line x0 + r + jt * sin(fr * 46 + 73000), y1 + jt * sin(fr * 51 + 73060); curve x0 + jt * sin(fr * 47 + 73100), y1 - r + jt * sin(fr * 52 + 73160) via x0 + jt * sin(fr * 53 + 73200), y1 + jt * sin(fr * 58 + 73260); line x0 + jt * sin(fr * 54 + 73300), y0 + r + jt * sin(fr * 59 + 73360); curve x0 + r + jt * sin(fr * 73 + 73400), y0 + jt * sin(fr * 78 + 73460) via x0 + jt * sin(fr * 49 + 73500), y0 + jt * sin(fr * 54 + 73560); }
     }
 
     //  A switch's track in pencil, over its fill (the knob stays the solid one): the capsule's crooked double outline and, with the radio on, a few hatched columns up to the knob,
