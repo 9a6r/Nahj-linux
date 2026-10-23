@@ -15,7 +15,7 @@ part Bar {
             group {
                 opacity: if(bar_rest, 1, 0.45)
                 group { scale: rs; pivot: floor(spx + 380 * pu + 0.5), floor(sby + 13 * pu + 0.5); text "Frame on the other monitors" { at: floor(spx + 380 * pu + 0.5), floor(sby + 13 * pu + 0.5); anchor: right center; align: right; size: 13.5; width: (240 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
-                SettingsSwitch(spx + 424 * pu, sby + 13 * pu, bar_oth_pill, bar_oth_hit.pressed, mint)
+                SettingsSwitch(spx + 424 * pu, sby + 13 * pu, bar_oth_pill, bar_oth_hit.pressed, bar_oth_hit.hover, mint)
                 zone box bar_oth_hit { at: spx + 405 * pu, sby + 13 * pu; size: 46 * pu, 26 * pu; cursor: pointer; active: bar_rest }
                 on press bar_oth_hit { emit bar_others_toggle }
             }

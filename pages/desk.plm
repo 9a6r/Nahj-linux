@@ -443,6 +443,7 @@ part Desk {
                     rim: 16% * sp0
                     box { at: sr0 - sw0 / 2, fs_y; size: sw0, 22 * du; corner: (11 - 2 * sp0) * du }
                 }
+                PSwitchTrack(sr0 - sw0 / 2, fs_y, sw0, sk0, ft_sw.0.hover, sp0, du)
                 body {
                     color: ink
                     opacity: 1 - uwu_k
@@ -481,6 +482,7 @@ part Desk {
                     rim: 16% * sp1
                     box { at: sr1 - sw1 / 2, fs_y; size: sw1, 22 * du; corner: (11 - 2 * sp1) * du }
                 }
+                PSwitchTrack(sr1 - sw1 / 2, fs_y, sw1, sk1, ft_sw.1.hover, sp1, du)
                 body {
                     color: ink
                     opacity: 1 - uwu_k

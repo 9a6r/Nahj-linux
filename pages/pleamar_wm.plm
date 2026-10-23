@@ -83,7 +83,7 @@ part PleamarWm {
 
             //  Free-floating windows, as on Windows or KDE.
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 232 * pu + 0.5); text "Free-floating windows" { at: floor(spx + 14 * pu + 0.5), floor(sby + 232 * pu + 0.5); anchor: left center; size: 15.5; weight: 600; color: ink; family: "Space Grotesk" } }
-            SettingsSwitch(spx + 424 * pu, sby + 232 * pu, wm_k0, wm_tg_hit.0.pressed, mint)
+            SettingsSwitch(spx + 424 * pu, sby + 232 * pu, wm_k0, wm_tg_hit.0.pressed, wm_tg_hit.0.hover, mint)
             zone box wm_tg_hit.0 { at: spx + 219 * pu, sby + 232 * pu; size: 430 * pu, 28 * pu; corner: 10 * pu; cursor: pointer; active: (sby + 232 * pu) - sby - wm.off > 0 and (sby + 232 * pu) - sby - wm.off < set.h * pu }
             on press wm_tg_hit.0 { emit wm_toggle(0) }
 
@@ -92,7 +92,7 @@ part PleamarWm {
                 let ty = sby + (296 + (i - 1) * 30) * pu
                 let tk = pick(i - 1, wm_k1, wm_k2)
                 group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(ty + 0.5); text pick(i - 1, "Rain on the glass", "Snow") { at: floor(spx + 14 * pu + 0.5), floor(ty + 0.5); anchor: left center; size: 15.5; weight: 600; color: ink; family: "Space Grotesk" } }
-                SettingsSwitch(spx + 424 * pu, ty, tk, wm_tg_hit.$i.pressed, mint)
+                SettingsSwitch(spx + 424 * pu, ty, tk, wm_tg_hit.$i.pressed, wm_tg_hit.$i.hover, mint)
                 zone box wm_tg_hit.$i { at: spx + 219 * pu, ty; size: 430 * pu, 28 * pu; corner: 10 * pu; cursor: pointer; active: (ty) - sby - wm.off > 0 and (ty) - sby - wm.off < set.h * pu }
                 on press wm_tg_hit.$i { emit wm_toggle(i) }
             }
@@ -116,7 +116,7 @@ part PleamarWm {
                 let ty = sby + (382 + i * 30) * pu
                 let tk = pick(i - 3, wm_k3, wm_k4)
                 group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(ty + 0.5); text pick(i - 3, "Natural scroll (touchpad)", "Tap to click (touchpad)") { at: floor(spx + 14 * pu + 0.5), floor(ty + 0.5); anchor: left center; size: 15.5; weight: 600; color: ink; family: "Space Grotesk" } }
-                SettingsSwitch(spx + 424 * pu, ty, tk, wm_tg_hit.$i.pressed, mint)
+                SettingsSwitch(spx + 424 * pu, ty, tk, wm_tg_hit.$i.pressed, wm_tg_hit.$i.hover, mint)
                 zone box wm_tg_hit.$i { at: spx + 219 * pu, ty; size: 430 * pu, 28 * pu; corner: 10 * pu; cursor: pointer; active: (ty) - sby - wm.off > 0 and (ty) - sby - wm.off < set.h * pu }
                 on press wm_tg_hit.$i { emit wm_toggle(i) }
             }
@@ -138,7 +138,7 @@ part PleamarWm {
             }
             //  Title bars, on every window (tiled or floating).
             group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 634 * pu + 0.5); text "Title bars" { at: floor(spx + 14 * pu + 0.5), floor(sby + 634 * pu + 0.5); anchor: left center; size: 15.5; weight: 600; color: ink; family: "Space Grotesk" } }
-            SettingsSwitch(spx + 424 * pu, sby + 634 * pu, wm_k5, wm_tg_hit.5.pressed, mint)
+            SettingsSwitch(spx + 424 * pu, sby + 634 * pu, wm_k5, wm_tg_hit.5.pressed, wm_tg_hit.5.hover, mint)
             zone box wm_tg_hit.5 { at: spx + 219 * pu, sby + 634 * pu; size: 430 * pu, 28 * pu; corner: 10 * pu; cursor: pointer; active: (sby + 634 * pu) - sby - wm.off > 0 and (sby + 634 * pu) - sby - wm.off < set.h * pu }
             on press wm_tg_hit.5 { emit wm_toggle(5) }
             repeat i in 0..9 {

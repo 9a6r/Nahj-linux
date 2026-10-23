@@ -2854,8 +2854,8 @@ scene Vitreus {
     }
     //  The switch of the Settings, drawn exactly like the Control Center's (the Notifications tile's, say) without the little icon on the knob: a track that is
     //  a dark hollow off and raised and lit from inside on, a solid knob that swells while it moves and under the finger, and the light that travels with it.
-    //  `rx` is the track's right edge, `cy` its middle, `k` how on it is (0 to 1, a spring), `press` how pressed (the row's zone `.pressed`), `acc` the colour on.
-    component SettingsSwitch(rx: number, cy: number, k: number, press: number, acc: color) {
+    //  `rx` is the track's right edge, `cy` its middle, `k` how on it is (0 to 1, a spring), `press` how pressed (the row's zone `.pressed`), `hot` its hover (`.hover`), `acc` the colour on.
+    component SettingsSwitch(rx: number, cy: number, k: number, press: number, hot: number, acc: color) {
         let sm = clamp(4 * k * (1 - k), 0, 1)             // how much it is moving (0 at rest, 1 half way)
         let sw = (34 + 4 * k) * cu
         let scx = rx - sw / 2
@@ -2881,6 +2881,7 @@ scene Vitreus {
                 box { at: sl + (4.5 + 5 * i - (k - 0.5) * 9) * cu, cy; size: 1.2 * cu, 9 * cu; corner: 0.6 * cu; color: ink; opacity: 24% * sm }
             }
         }
+        PSwitchTrack(scx, cy, sw, skx, hot, k, cu)
         body {
             color: ink
             opacity: 1 - uwu_k
@@ -2981,6 +2982,24 @@ scene Vitreus {
         ellipse { at: kx + jt * sin(fr * 67 + 17057), y + jt * sin(fr * 48 + 17214); radius: h * 0.85 * (1 + 0.04 * sin(fr * 47 + 0)); stroke: 1.5 * k; color: ink; opacity: 0.9 }
         ellipse { at: kx + 0.35 * cu + jt * sin(fr * 51 + 17428), y + 0.28 * cu + jt * sin(fr * 63 + 17585); radius: h * 0.85 * (1 + 0.04 * sin(fr * 47 + 70)); stroke: 1.05 * k; color: ink; opacity: 0.3 }
         ellipse { at: kx, y; radius: h * 0.85; color: ink; opacity: 0.14 }
+    }
+
+    //  A switch's track in pencil, over its fill (the knob stays the solid one): the capsule's crooked double outline and, with the radio on, a few hatched columns up to the knob,
+    //  calm at rest and redrawn about five times a second under the pointer (`hot`), like PSlider. `cx`, `cy` the track's middle, `w` its width, `kx` the knob's middle, `on` 0 to 1, `ku` the unit it is laid out in.
+    component PSwitchTrack(cx: number, cy: number, w: number, kx: number, hot: number, on: number, ku: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let jt = (0.18 + 0.25 * a) * ku
+        let r = 11 * ku
+        let x0 = cx - w / 2
+        let x1 = cx + w / 2
+        path { at: 0, 0; stroke: 1.3 * ku; color: ink; opacity: 0.6; move x0 + r + jt * sin(fr * 57 + 51000), cy - r + jt * sin(fr * 62 + 51060); line x1 - r + jt * sin(fr * 64 + 51100), cy - r + jt * sin(fr * 69 + 51160); curve x1 + jt * sin(fr * 71 + 51200), cy + jt * sin(fr * 76 + 51260) via x1 + jt * sin(fr * 72 + 51300), cy - r + jt * sin(fr * 77 + 51360); curve x1 - r + jt * sin(fr * 47 + 51400), cy + r + jt * sin(fr * 52 + 51460) via x1 + jt * sin(fr * 48 + 51500), cy + r + jt * sin(fr * 53 + 51560); line x0 + r + jt * sin(fr * 54 + 51600), cy + r + jt * sin(fr * 59 + 51660); curve x0 + jt * sin(fr * 61 + 51700), cy + jt * sin(fr * 66 + 51760) via x0 + jt * sin(fr * 62 + 51800), cy + r + jt * sin(fr * 67 + 51860); curve x0 + r + jt * sin(fr * 68 + 51900), cy - r + jt * sin(fr * 73 + 51960) via x0 + jt * sin(fr * 69 + 52000), cy - r + jt * sin(fr * 74 + 52060); }
+        path { at: 0.35 * ku, 0.28 * ku; stroke: 0.9 * ku; color: ink; opacity: 0.2; move x0 + r + jt * sin(fr * 72 + 52100), cy - r + jt * sin(fr * 77 + 52160); line x1 - r + jt * sin(fr * 48 + 52200), cy - r + jt * sin(fr * 53 + 52260); curve x1 + jt * sin(fr * 55 + 52300), cy + jt * sin(fr * 60 + 52360) via x1 + jt * sin(fr * 56 + 52400), cy - r + jt * sin(fr * 61 + 52460); curve x1 - r + jt * sin(fr * 63 + 52500), cy + r + jt * sin(fr * 68 + 52560) via x1 + jt * sin(fr * 64 + 52600), cy + r + jt * sin(fr * 69 + 52660); line x0 + r + jt * sin(fr * 70 + 52700), cy + r + jt * sin(fr * 75 + 52760); curve x0 + jt * sin(fr * 46 + 52800), cy + jt * sin(fr * 51 + 52860) via x0 + jt * sin(fr * 47 + 52900), cy + r + jt * sin(fr * 52 + 52960); curve x0 + r + jt * sin(fr * 53 + 53000), cy - r + jt * sin(fr * 58 + 53060) via x0 + jt * sin(fr * 54 + 53100), cy - r + jt * sin(fr * 59 + 53160); }
+        repeat i in 0..9 {
+            let hx = x0 + r * 0.6 + i * (w - r * 1.2) / 8
+            line { from: hx + 0.5 * ku * sin(i * 2.3) + jt * sin(fr * 49 + i * 71), cy - 7 * ku + jt * sin(fr * 61 + i * 53); to: hx - 0.8 * ku + jt * sin(fr * 58 + i * 37), cy + 7 * ku + jt * sin(fr * 67 + i * 43); width: 0.9 * ku; color: ink; opacity: 0.2 * on * clamp((kx - hx) / (4 * ku) + 0.5, 0, 1) }
+        }
     }
 
     //  A workspace mark's outline in pencil (the glass pill is as it is, inside it): a rounded square drawn by hand, with smooth curves for the corners and sides that bow a little, so the wobble

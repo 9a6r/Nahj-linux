@@ -193,6 +193,9 @@ part ControlsDrawer {
                 }
             }
 
+            //  The track in pencil, over the fill (hybrid: the knob stays the solid one).
+            PSwitchTrack(wf_cx, wf_cy, wf_w, wf_kx, wifi_toggle_hit.hover, wifi_on, cu)
+
             //  The knob: a plain solid one, swelling under the finger, with a Wi-Fi mark on it that is solid with the radio on
             //  and an outline, crossed out, with it off.
             body {
@@ -265,6 +268,8 @@ part ControlsDrawer {
                 }
             }
 
+            PSwitchTrack(gbt_cx, gbt_cy, gbt_w, gbt_kx, bt_toggle_hit.hover, bt_on, cu)
+
             //  The knob: plain, solid, squared a little when on, swelling under the finger, with a mark on it.
             body {
                 color: ink
@@ -329,6 +334,8 @@ part ControlsDrawer {
                     box { at: gdn_l + (4.5 + 5 * i - (dnd_pill - 0.5) * 9) * cu, gdn_cy; size: 1.2 * cu, 9 * cu; corner: 0.6 * cu; color: ink; opacity: 24% * gdn_m }
                 }
             }
+
+            PSwitchTrack(gdn_cx, gdn_cy, gdn_w, gdn_kx, dnd_toggle_hit.hover, dnd_pill, cu)
 
             //  The knob: plain, solid, squared a little when on, swelling under the finger, with a mark on it.
             body {
@@ -406,6 +413,8 @@ part ControlsDrawer {
                         box { at: gcf_l + (4.5 + 5 * i - (caf_pill - 0.5) * 9) * cu, gcf_cy; size: 1.2 * cu, 9 * cu; corner: 0.6 * cu; color: ink; opacity: 24% * gcf_m }
                     }
                 }
+
+                PSwitchTrack(gcf_cx, gcf_cy, gcf_w, gcf_kx, caf_toggle_hit.hover, caf_pill, cu)
 
                 //  The knob: plain, solid, squared a little when on, swelling under the finger, with a mark on it.
                 body {
@@ -771,11 +780,11 @@ part ControlsDrawer {
                 show: not rec_on
                 text "RECORD WITH" { at: floor(pcx - 138 * cu + 0.5), floor(qx_ay + 0.5); anchor: left center; size: 11; weight: 700; color: faint; family: "Space Grotesk" }
                 text "MIC" { at: floor(pcx + 88 * cu + 0.5), floor(qx_ay + 0.5); anchor: right center; size: 11; weight: 700; color: faint; family: "Space Grotesk" }
-                SettingsSwitch(pcx + 138 * cu, qx_ay, rec_mic_pill, rec_mic_hit.pressed, mint)
+                SettingsSwitch(pcx + 138 * cu, qx_ay, rec_mic_pill, rec_mic_hit.pressed, rec_mic_hit.hover, mint)
                 zone box rec_mic_hit { at: pcx + 106 * cu, qx_ay; size: 80 * cu, 30 * cu; corner: 10 * cu; cursor: pointer; label: "Record microphone" }
                 on press rec_mic_hit { emit rec_mic_toggle }
                 text "SYS" { at: floor(pcx - 2 * cu + 0.5), floor(qx_ay + 0.5); anchor: right center; size: 11; weight: 700; color: faint; family: "Space Grotesk" }
-                SettingsSwitch(pcx + 44 * cu, qx_ay, rec_sys_pill, rec_sys_hit.pressed, mint)
+                SettingsSwitch(pcx + 44 * cu, qx_ay, rec_sys_pill, rec_sys_hit.pressed, rec_sys_hit.hover, mint)
                 zone box rec_sys_hit { at: pcx + 16 * cu, qx_ay; size: 62 * cu, 30 * cu; corner: 10 * cu; cursor: pointer; label: "Record system sound" }
                 on press rec_sys_hit { emit rec_sys_toggle }
             }
