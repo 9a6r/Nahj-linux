@@ -1071,12 +1071,13 @@ part BarGlass {
                 }
             }
         }
-        //  The three dots on each tab (the volume card's hint), fading out as the panel they open comes out.
+        //  The three dots on each tab (the volume card's hint): always there, in the frame while the tab is in it, and in the tab as it comes out;
+        //  they fade out as the panel they open comes out.
         group {
-            show: lm > 0.35 and max(nt_vis_t.$screen, nt_vis_b.$screen) > 0.05
+            show: lm > 0.35 or fm > 0.35
             repeat i in 0..3 {
-                ellipse { at: ccx + (i - 1) * 6.5 * cu, yo + lf.t + nt_d * nt_vis_t.$screen / 2; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_t.hover) * clamp(nt_vis_t.$screen * 1.6 - 0.4, 0, 1) * (1 - clamp(dl, 0, 1)) }
-                ellipse { at: ccx + (i - 1) * 6.5 * cu, vb - lf.t - nt_d * nt_vis_b.$screen / 2; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_b.hover) * clamp(nt_vis_b.$screen * 1.6 - 0.4, 0, 1) * (1 - clamp(ds, 0, 1)) }
+                ellipse { at: ccx + (i - 1) * 6.5 * cu, yo + lf.t / 2 + (lf.t + nt_d) / 2 * nt_vis_t.$screen; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_t.hover) * (1 - clamp(dl, 0, 1)) * if(lm > 0.35 and sb > 0.5, 1, 0) }
+                ellipse { at: ccx + (i - 1) * 6.5 * cu, vb - lf.t / 2 - (lf.t + nt_d) / 2 * nt_vis_b.$screen; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_b.hover) * (1 - clamp(ds, 0, 1)) * if(fm > 0.35 and sb > 0.5, 1, 0) }
             }
         }
         //  The battery gauge, inside the bar with a thick margin of empty glass round it (`bf.m`). It is only there

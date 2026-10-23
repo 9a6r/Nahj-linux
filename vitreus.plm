@@ -5591,16 +5591,16 @@ scene Vitreus {
     //  The desk's contents (and its tab and opener): drawn after the island's glass above, so the glass is under them and not over them.
         //  The left tab's three dots (with the strip along the top).
         group {
-            show: tm > 0.35 and nt_vis_l.$screen > 0.05
+            show: tm > 0.35
             repeat i in 0..3 {
-                ellipse { at: th.l + nt_d * nt_vis_l.$screen / 2, mix(vcc, yo + vb - vcc, bt) + (i - 1) * 6.5 * cu; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_l.hover) * clamp(nt_vis_l.$screen * 1.6 - 0.4, 0, 1) * (1 - clamp(dl, 0, 1)) }
+                ellipse { at: th.l / 2 + (th.l + nt_d) / 2 * nt_vis_l.$screen, mix(vcc, yo + vb - vcc, bt) + (i - 1) * 6.5 * cu; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_l.hover) * (1 - clamp(dl, 0, 1)) }
             }
         }
         //  The right tab's three dots (stacked, since the tab is on the side).
         group {
-            show: fm > 0.35 and nt_vis_r.$screen > 0.05
+            show: fm > 0.35
             repeat i in 0..3 {
-                ellipse { at: mix(screen.width - th.r - nt_d * nt_vis_r.$screen / 2, th.r + nt_d * nt_vis_r.$screen / 2, rt), mix(vcc, yo + vb - vcc, bt) + (i - 1) * 6.5 * cu; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_r.hover) * clamp(nt_vis_r.$screen * 1.6 - 0.4, 0, 1) }
+                ellipse { at: mix(screen.width - th.r / 2 - (th.r + nt_d) / 2 * nt_vis_r.$screen, th.r / 2 + (th.r + nt_d) / 2 * nt_vis_r.$screen, rt), mix(vcc, yo + vb - vcc, bt) + (i - 1) * 6.5 * cu; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * ntn_r.hover) * (1 - clamp(dz0, 0, 1)) }
             }
         }
         //  The Island layout's way in to the desk: a small side-panel icon in the top right corner, level with the bar. It stays while the desk is open, lit,
