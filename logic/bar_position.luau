@@ -48,5 +48,7 @@ return function()
         pcall(sys.call, "files.write", "bar-position.json", { pos = pos, left = pos == "left" })
         show()
         iris_fx.apply_hypr()
+        -- pleamar-wm keeps its windows out of the frame by `fr.*`, which is otherwise only looked at every 5 s: tell it now.
+        if wm_frame_sync then wm_frame_sync() end
     end)
 end
