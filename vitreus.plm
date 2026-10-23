@@ -4185,7 +4185,7 @@ scene Vitreus {
     let dl.hh = bar.h / 2 + (172 + lr * 44) * pu * dl0 + max(0, sag)
     let dl.f = clamp((dl.w - bar.w + 24 * u) / (24 * u), 0, 1)     // as for the calendar
     let dl.top = mix(bar.y, bar.y - bar.h / 2, dl.f)
-    let dm.w = (120 + 192 * (min(1, dm0 * 1.6) + max(0, dm0 - 1) * 0.6)) * cu
+    let dm.w = (120 + 208 * (min(1, dm0 * 1.6) + max(0, dm0 - 1) * 0.6)) * cu
     //  Under the player's plate, the running windows and then the tray apps, each a header and rows, scrolling past a few.
     let task_rows = min(max(1, tasks.count), 6)
     let tasks_top = media_bot + 8 * mdk
@@ -4207,8 +4207,8 @@ scene Vitreus {
     //  Margins: the plates are 12 in from a drawer's top and bottom in their own layouts and 18.5 in from its sides, so a panel's content is moved by
     //  `lp.dy` and the drawer made `lp.dd` taller to make them 18.5 all round (Settings included).
     let lpm = max(lmk, tm * att)                  // the corrections apply to the strip's own panels on a top or bottom frame as well as on a side one
-    let lp.dy = if(lp_k == 1, 4.5, if(lp_k == 2 or lp_k == 3 or lp_k == 5 or lp_k == 6 or lp_k == 7 or lp_k == 8, 6.5, if(lp_k == 4, -0.5, 0))) * ku * lpm
-    let lp.dd = if(lp_k == 1, 11, if(lp_k == 2, 11, if(lp_k == 3 or lp_k == 5 or lp_k == 6 or lp_k == 7 or lp_k == 8, 13, if(lp_k == 4, 6, 0)))) * ku * lpm
+    let lp.dy = if(lp_k == 1, 4.5, if(lp_k == 2 or lp_k == 3 or lp_k == 7 or lp_k == 8, 6.5, if(lp_k == 4, -0.5, 0))) * ku * lpm
+    let lp.dd = if(lp_k == 1, 11, if(lp_k == 2, 11, if(lp_k == 3 or lp_k == 7 or lp_k == 8, 13, if(lp_k == 4, 6, 0)))) * ku * lpm
     let lp.hd = (if(lp_k == 1, (8 + 36 + 8 + set.h + 16) * pu, if(lp_k == 2, (172 + lr * 44) * pu, if(lp_k == 3, (content_bot + 16) * cu, if(lp_k == 4, 373 * cu, if(lp_k == 5 or lp_k == 6, (if(dm_mode == dmm_tray, tm_bot, panel_bot) + 16) * cu, if(lp_k == 9, dsk_h, (8 + osd_h + 16) * u))))))) + lp.dd
     //  Where it settles, as drawn (`ty`): Settings low, the launcher high, a good way from the middle, and clear of the frame; then back to the panel's
     //  own coordinates (the contents are scaled about the middle of the screen).
@@ -4229,7 +4229,7 @@ scene Vitreus {
         //  Which panel was opened last, and how wide it is: where the panels sit down the left follows it (see `lp.top`, `pcx`). Here, in the
         //  scene, not in the logic (its own popups, volume and notifications, set `panel` itself and nothing told it), and only once the panel
         //  is really being opened: a switch from one to another leaves the open one in its own shape until it has gone.
-        lp_w = if(panel == settings, 620, if(panel == controls or panel == player or panel == tray, 312, if(panel == volume or panel == notif, 340, if(panel == calendar or panel == launch, 450, if(panel == desk, 340, lp_w)))))
+        lp_w = if(panel == settings, 620, if(panel == controls, 312, if(panel == player or panel == tray, 328, if(panel == volume or panel == notif, 340, if(panel == calendar or panel == launch, 450, if(panel == desk, 340, lp_w))))))
         lp_k = if(panel == settings, 1, if(panel == launch, 2, if(panel == controls, 3, if(panel == calendar, 4, if(panel == tray, 5, if(panel == player, 6, if(panel == volume, 7, if(panel == notif, 8, if(panel == desk, 9, lp_k)))))))))
     }
     //  Whatever happened on the way (a hover that bounced between the two), the drawer that is coming out is the one whose shape and width the strip uses.
@@ -4297,8 +4297,9 @@ scene Vitreus {
     let dc.tR = bar.h / 2 + 373 * cu + 6 * cu * tm + max(0, sag)
     let dc.teh = dc.tR * dc.lf
     let dc.tey = bar.y + dc.teh / 2
-    let dc.tew = (450 * cu + (13 * cu + 14 * u * if(lp_k == 4, 1, 0)) * tm) * dc.lf
-    let dc.tex = pcx + 7 * u * if(lp_k == 4, 1, 0) * dc.lf * tm
+    let dc.mf = if(lp_k == 4, clamp((pcx + 238.5 * cu - (screen.width - th.r - 14 * u)) / (14 * u), 0, 1), 0)    // how far the calendar's glass reaches into the right frame: only when it sits against it, so a centred one is even on both sides
+    let dc.tew = (450 * cu + (13 * cu + 14 * u * dc.mf) * tm) * dc.lf
+    let dc.tex = pcx + 7 * u * dc.mf * dc.lf * tm
     let dc.er = if(lp_k == 4, 14 * u * lm * clamp((dc.gx + dc.gw / 2 - (screen.width - th.r - 14 * u)) / (14 * u), 0, 1), 0) * dc.lf
     let dc.ew = mix(mix(dc.w, dc.gw + dc.er, lm), dc.tew, tu)
     let dc.eh = mix(mix((bar.y + dc.hh - dc.top), dc.gh + if(lp_k == 4, lp.ext * dc.lf, 0), lm), dc.teh, tu)
@@ -4351,14 +4352,14 @@ scene Vitreus {
     let do.stretch = clamp(vel(do) * 0.07, 0, 0.5)
     let dm.gl = mix(min(dtrav, dm0), dm0, att)
     let dm.lf = min(1, dm.gl * 1.6) + max(0, dm.gl - 1) * 0.6
-    let dm.rt = mix(2 * (156 + 6.5) * cu, (lf.w - lf.x) + 325 * cu, att)
+    let dm.rt = mix(2 * (164 + 6.5) * cu, (lf.w - lf.x) + 341 * cu, att)
     let dm.gw = max(0.1, dm.rt * dm.lf)
     let dm.gh = (((if(dm_mode == dmm_tray, tm_bot, panel_bot) + 16) * cu) + lp.dd + max(0, sag)) * dm.lf
     let dm.gx = mix(lp.xl + dm.gw / 2, ccx, edg)
     let dm.tR = bar.h / 2 + (if(dm_mode == dmm_tray, tm_bot, panel_bot) + 16) * cu + 13 * cu * tm + max(0, sag)
     let dm.teh = dm.tR * dm.lf
     let dm.tey = bar.y + dm.teh / 2
-    let dm.tew = 312 * cu * dm.lf
+    let dm.tew = 328 * cu * dm.lf
     let dm.tex = pcx
     let dm.ew = mix(mix(dm.w, dm.gw, lm), dm.tew, tu)
     let dm.eh = mix(mix(dm.hh, dm.gh, lm), dm.teh, tu)
@@ -4850,7 +4851,7 @@ scene Vitreus {
     let tq.h = max(20 * u * (1 - tprip) * clamp(tprip * 6, 0, 1) * fm * (1 - uwu_k), 0.3)
     let tq.act = if(cas_k < 0.5 and lm > 0.5 and tprip < 0.98 and pown > 0.5 and sg < 0.5, 1, 0)
     let tq.actt = if(cas_k < 0.5 and tm > 0.5 and tprip < 0.98 and pown > 0.5 and sg < 0.5, 1, 0)       // along the top or bottom: the same two crests, turned a quarter
-    on change dm > 0.5 while dm > 0.5 and panel == player { lp_k = 6; lp_w = 312 }
+    on change dm > 0.5 while dm > 0.5 and panel == player { lp_k = 6; lp_w = 328 }
     //  Where the contents hang from: the panel's old middle, so they keep their
     //  place when the panel grows to make room for the player.
     let cy = mix(bar.y + bar.h / 2, lp.top, lmk) + (6 + 125 * (1 + (mix(drop, 1, lmk) - 1) * (1 - 2 * bt))) * ku + lp.dy
