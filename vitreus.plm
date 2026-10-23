@@ -4591,7 +4591,7 @@ scene Vitreus {
     prop nt_hold_r.3 = 0 ~280ms
     follow nt_hold_r.$screen = if(max(ntz_r.hover, ntn_r.hover) > 0.5, 1, 0)
     follow nt_vis_r.$screen = if(nt_hold_r.$screen > 0.3 and not desk_open, 1, 0)
-    on press ntn_r { desk_open = true }
+    on press ntn_r { panel_scr = screen.index; desk_open = true }
     //  The focus timer (see the Focus section of vitreus.luau).
     event ft_toggle ->                                      // start, pause or resume; carries the minutes
     event ft_reset ->
@@ -5613,7 +5613,7 @@ scene Vitreus {
             box { at: screen.width - 41 * cu + 5 * cu, os.stop + 20 * u - 4.25 * cu; size: 7 * cu, 5.5 * cu; corner: 1.8 * cu; color: mix(ink, mint, clamp(dz0, 0, 1)); opacity: 70% + 30% * desk_open_z.hover }
             box { at: screen.width - 41 * cu + 5 * cu, os.stop + 20 * u + 4.25 * cu; size: 7 * cu, 5.5 * cu; corner: 1.8 * cu; color: mix(ink, mint, clamp(dz0, 0, 1)); opacity: 55% + 45% * desk_open_z.hover }
             zone box desk_open_z { at: screen.width - 41 * cu, os.stop + 20 * u; size: 32 * cu, 32 * cu; corner: 16 * cu; cursor: pointer; active: fm < 0.5 }
-            on press desk_open_z { desk_open = not desk_open }
+            on press desk_open_z { panel_scr = screen.index; desk_open = not desk_open }
         }
     include "pages/desk.plm"
 
