@@ -45,7 +45,7 @@ part Theme {
                         ellipse { at: cx + 34 * pu, cy + 24 * pu; radius: 6.4 * pu; stroke: 1 * pu; color: ink; opacity: 28% }
                         ellipse { at: cx + 36 * pu, cy - 25 * pu; radius: 7 * pu; color: mint; opacity: if(theme_sel == i, 100%, 0) }
                         path { at: cx + 36 * pu, cy - 25 * pu; stroke: 1.5 * pu; color: onmint; opacity: if(theme_sel == i, 100%, 0); move -3 * pu, 0; line -0.9 * pu, 2.5 * pu; line 3.2 * pu, -2.7 * pu }
-                        zone box theme_hit.$i { at: cx, cy; size: 96 * pu, 76 * pu; corner: 14 * pu; cursor: pointer; label: "Theme" }
+                        zone box theme_hit.$i { at: cx, cy; size: 96 * pu, 76 * pu; corner: 14 * pu; cursor: pointer; active: abs(cx - (spx + 219 * pu)) < 205 * pu; label: "Theme" }
                         on press theme_hit.$i { emit theme_pick(i) }
                         on scroll theme_hit.$i { th_first = clamp(th_first - sign(wheel), 0, max(0, themes.count - 4)) }
                     }

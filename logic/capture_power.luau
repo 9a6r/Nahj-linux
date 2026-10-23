@@ -114,8 +114,9 @@ return function(set_panel)
     end
     on("pow_press", function(i)
         i = math.floor(i + 0.5)
-        set_panel("none")
-        after(300, function() do_it(i) end)
+        -- The button shatters first (about a second in the scene): the window closes and the action runs once the shards have flown.
+        after(900, function() set_panel("none") end)
+        after(1000, function() do_it(i) end)
     end)
 
     -- ── The power profile ────────────────────────────────────────────────────────────────────────────────────────

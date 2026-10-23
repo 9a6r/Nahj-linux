@@ -400,7 +400,7 @@ scene Vitreus {
     //  Glass switched off (`glass_obs`): the same bar and drawers, but a flat, solid obsidian instead of glass. `obs` is 0 glass, 1 obsidian, and travels between them.
     fact glass_obs = false
     prop obs = 0 ~calm
-    follow obs = if(glass_obs or cas or uwu, 1, 0)
+    follow obs = if(glass_obs or cas or uwu or milk, 1, 0)
     //  The Cassette theme (Settings > Theme): the same flat body as obsidian, but in the palette's own plastic (`obsidian` below stops being darkened), with a hard
     //  edge, a lit lip, a seam, a four-colour stripe across each drawer's head and a hard shadow. `cas_k` travels between glass and plastic; the drawers' liquid
     //  (necks, drips, the jelly) is switched off with it and their corners are cut square (`rc`, `bk`).
@@ -412,7 +412,12 @@ scene Vitreus {
     fact uwu = false
     prop uwu_k = 0 ~calm
     follow uwu_k = if(uwu, 1, 0)
-    let pk = max(cas_k, uwu_k)
+    //  The Milk theme: one soft pale material, no outlines; each drawer is pushed out of the surface by a light shadow on its top left and a dark one on its bottom right
+    //  (see bar_glass.plm). The same opaque body as the plastics, with the liquid left on. `milk_k` travels between glass and Milk.
+    fact milk = false
+    prop milk_k = 0 ~calm
+    follow milk_k = if(milk, 1, 0)
+    let pk = max(max(cas_k, uwu_k), milk_k)
     //  The Cyber theme: a neon HUD. The glass stays glass (the palette makes it near-black); on top of it each drawer gets a hairline neon outline, corner brackets and
     //  scan ticks (see bar_glass.plm). `cy_k` travels between glass and Cyber. `deep` is its second neon.
     fact cyber_on = false
@@ -1274,22 +1279,32 @@ scene Vitreus {
     prop pw_hp0 = 0 ~80ms             // how far its hold has got, 0 to 1 in a steady second (this spring only smooths the ends)
     fact pw_d0 = false               // it is being held
     follow pw_hp0 = if(pw_d0, clamp((time - pw_s0) / 1, 0, 1), 0)
+    fact pw_b0 = -100                // when its hold completed and it shattered (`time`); the tile is gone for 0.8 s and then comes back together
+    event pw_shatter0
     fact pw_s1 = 0                   // when the Sleep button was pressed (`time`)
     prop pw_hp1 = 0 ~80ms             // how far its hold has got, 0 to 1 in a steady second (this spring only smooths the ends)
     fact pw_d1 = false               // it is being held
     follow pw_hp1 = if(pw_d1, clamp((time - pw_s1) / 1, 0, 1), 0)
+    fact pw_b1 = -100                // when its hold completed and it shattered (`time`); the tile is gone for 0.8 s and then comes back together
+    event pw_shatter1
     fact pw_s2 = 0                   // when the Log out button was pressed (`time`)
     prop pw_hp2 = 0 ~80ms             // how far its hold has got, 0 to 1 in a steady second (this spring only smooths the ends)
     fact pw_d2 = false               // it is being held
     follow pw_hp2 = if(pw_d2, clamp((time - pw_s2) / 1, 0, 1), 0)
+    fact pw_b2 = -100                // when its hold completed and it shattered (`time`); the tile is gone for 0.8 s and then comes back together
+    event pw_shatter2
     fact pw_s3 = 0                   // when the Restart button was pressed (`time`)
     prop pw_hp3 = 0 ~80ms             // how far its hold has got, 0 to 1 in a steady second (this spring only smooths the ends)
     fact pw_d3 = false               // it is being held
     follow pw_hp3 = if(pw_d3, clamp((time - pw_s3) / 1, 0, 1), 0)
+    fact pw_b3 = -100                // when its hold completed and it shattered (`time`); the tile is gone for 0.8 s and then comes back together
+    event pw_shatter3
     fact pw_s4 = 0                   // when the Power off button was pressed (`time`)
     prop pw_hp4 = 0 ~80ms             // how far its hold has got, 0 to 1 in a steady second (this spring only smooths the ends)
     fact pw_d4 = false               // it is being held
     follow pw_hp4 = if(pw_d4, clamp((time - pw_s4) / 1, 0, 1), 0)
+    fact pw_b4 = -100                // when its hold completed and it shattered (`time`); the tile is gone for 0.8 s and then comes back together
+    event pw_shatter4
     prop pow_th = 1 ~pop                // where the power-profile thumb is: 0 saver, 1 balanced, 2 performance
     prop wp_show_pill = 0 ~pop
     prop iris_pill = 0 ~pop
@@ -5625,7 +5640,7 @@ scene Vitreus {
         move: rt * (screen.width - 2 * lf.x), bt * (yo + vb - 2 * bar.y)
     include "pages/bar_icons.plm"
     //  The clock runs while something needs it. It is here, after the bar's zones, because it reads their hover: the bar's icons only boil under the pointer.
-    let need_clock = (cy_on > 0.01) or bar_hit.hover > 0.01 or wsh.1.$screen > 0.01 or wsh.2.$screen > 0.01 or wsh.3.$screen > 0.01 or wsh.4.$screen > 0.01 or wsh.5.$screen > 0.01 or ws.sp > 0.01 or set_hit.hover > 0.01 or sr_hit.hover > 0.01 or ctl_hit.hover > 0.01 or ov_btn.hover > 0.01 or bp.prev.hover > 0.01 or bp.play.hover > 0.01 or bp.next.hover > 0.01 or vm_prev.hover > 0.01 or vm_play.hover > 0.01 or vm_next.hover > 0.01 or ds > 0.01 or dl > 0.01 or dk > 0.01 or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or osd_kind == note or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
+    let need_clock = (cy_on > 0.01) or bar_hit.hover > 0.01 or wsh.1.$screen > 0.01 or wsh.2.$screen > 0.01 or wsh.3.$screen > 0.01 or wsh.4.$screen > 0.01 or wsh.5.$screen > 0.01 or ws.sp > 0.01 or set_hit.hover > 0.01 or sr_hit.hover > 0.01 or ctl_hit.hover > 0.01 or ov_btn.hover > 0.01 or bp.prev.hover > 0.01 or bp.play.hover > 0.01 or bp.next.hover > 0.01 or vm_prev.hover > 0.01 or vm_play.hover > 0.01 or vm_next.hover > 0.01 or ds > 0.01 or dl > 0.01 or dk > 0.01 or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or osd_kind == note or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or time - pw_b0 < 1.5 or time - pw_b1 < 1.5 or time - pw_b2 < 1.5 or time - pw_b3 < 1.5 or time - pw_b4 < 1.5 or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
     spin time by if(need_clock, 1, 0)
 
 

@@ -88,6 +88,7 @@ scene Lockscreen {
     figure shp = file "shapes.svg"
     shader lockwave = file "lockwave.wgsl"
     shader glow = file "glow.wgsl"
+    shader blob = file "blob.wgsl"
     spring wobble = 520, 11
     spring pop = 420, 14
     measure ck_w
@@ -250,12 +251,11 @@ scene Lockscreen {
                 text clock_ampm { at: ap_x, ckc; anchor: center; size: 11; weight: 700; color: acc; family: "Space Grotesk"; show: show_ampm }
                 text clock_date { at: cx, cb + 263; anchor: center; size: 21; weight: 500; color: faint; family: "Space Grotesk" }
 
-                //  The avatar: a 200 px disc with a 3 px accent ring and its glow.
+                //  The avatar: a 200 px disc inside a morphing aurora blob (blob.wgsl).
+                shader blob { at: cx - 130, cb + 270; size: 260, 260; values: 1; colors: mintlo, minthi }
                 body {
                     color: panel
                     opacity: 80%
-                    border: 3, mint
-                    shadow: 0, 0, 16, 50%, mint
                     ellipse { at: cx, cb + 400; radius: 100 }
                 }
                 group {

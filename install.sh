@@ -23,7 +23,7 @@
 #                                      on any other distribution it lists what to install by hand).
 #                                      hyprsunset is required on Hyprland (Night mode): without it, this stops
 #   2. pleamar, the runtime           (its own installer, into your home; a few minutes to build)
-#   3. the fonts                      (Space Grotesk, and the three the Retro, UwU and Cyber themes are drawn in: Audiowide, Mochiy Pop One and Orbitron;
+#   3. the fonts                      (Space Grotesk, and the four the Retro, UwU, Cyber and Milkbox themes are drawn in: Audiowide, Mochiy Pop One, Orbitron and Zen Kurenaido;
 #                                      into ~/.local/share/fonts, no sudo)
 #   4. the shell                      (into ~/.config/pleamar/shells/vitreus: cloned, or updated)
 #   5. your palette, autostart entry  (made once and never written over)
@@ -49,6 +49,9 @@ mochiy_url="https://github.com/google/fonts/raw/main/ofl/mochiypopone/MochiyPopO
 # The Cyber theme's typeface, Orbitron (a squared techno face; Google Fonts, OFL).
 orbitron_url="https://github.com/google/fonts/raw/main/ofl/orbitron/Orbitron%5Bwght%5D.ttf"
 orbitron_licence_url="https://github.com/google/fonts/raw/main/ofl/orbitron/OFL.txt"
+# The Milkbox theme's typeface, Zen Kurenaido (a soft hand-drawn face; Google Fonts, OFL).
+kurenaido_url="https://github.com/google/fonts/raw/main/ofl/zenkurenaido/ZenKurenaido-Regular.ttf"
+kurenaido_licence_url="https://github.com/google/fonts/raw/main/ofl/zenkurenaido/OFL.txt"
 
 conf="${XDG_CONFIG_HOME:-$HOME/.config}"
 data="${XDG_DATA_HOME:-$HOME/.local/share}"
@@ -58,6 +61,7 @@ fonts="$data/fonts/SpaceGrotesk"
 fonts_dot="$data/fonts/Audiowide"
 fonts_mochiy="$data/fonts/MochiyPopOne"
 fonts_orbitron="$data/fonts/Orbitron"
+fonts_kurenaido="$data/fonts/ZenKurenaido"
 
 # Official-repo packages, then AUR ones: what each is for is in the README.
 pacman_pkgs="git curl jq python fontconfig socat glib2 file imagemagick cava playerctl networkmanager bluez bluez-utils brightnessctl hypridle hyprsunset libnotify xdg-user-dirs xdg-utils wl-clipboard cliphist awww ffmpeg grim slurp wf-recorder power-profiles-daemon polkit python-gobject python-pyte ttf-space-mono-nerd pipewire-audio sound-theme-freedesktop tesseract tesseract-data-eng"
@@ -347,7 +351,7 @@ if $deps; then
     xdg-user-dirs   finding your Pictures folder, and the places in Files' sidebar
     git, fontconfig
     python          the font setup of the Retro and UwU themes and the font picker (bin/vitreus-fonts)
-    Audiowide, Mochiy Pop One, Orbitron  the typefaces of the Retro, UwU and Cyber themes (Space Grotesk's neighbours, installed into ~/.local/share/fonts)
+    Audiowide, Mochiy Pop One, Orbitron, Zen Kurenaido  the typefaces of the Retro, UwU, Cyber and Milkbox themes (Space Grotesk's neighbours, installed into ~/.local/share/fonts)
 LIST
     fi
     # On Hyprland hyprsunset is not optional: Night mode is driven by it. Without it the shell would have to fall back to a Hyprland
@@ -523,6 +527,18 @@ LIST
             curl -fsSL -m 120 "$orbitron_url" -o "$fonts_orbitron/Orbitron[wght].ttf" || warn "could not download Orbitron: the Cyber theme will use Space Grotesk until you install it"
             curl -fsSL -m 120 "$orbitron_licence_url" -o "$fonts_orbitron/OFL.txt" 2> /dev/null || true
             have fc-cache && fc-cache -f "$fonts_orbitron" > /dev/null 2>&1 || true
+        fi
+    fi
+    if have fc-list && fc-list 2> /dev/null | grep -qi 'zen kurenaido'; then
+        say "the Zen Kurenaido font is installed"
+    elif ask_font "install the Zen Kurenaido font, for the Milk theme (into $fonts_kurenaido)?"; then
+        if $dry; then
+            echo "    would download $kurenaido_url"
+        else
+            mkdir -p "$fonts_kurenaido"
+            curl -fsSL -m 120 "$kurenaido_url" -o "$fonts_kurenaido/ZenKurenaido-Regular.ttf" || warn "could not download Zen Kurenaido: the Milkbox theme will use Space Grotesk until you install it"
+            curl -fsSL -m 120 "$kurenaido_licence_url" -o "$fonts_kurenaido/OFL.txt" 2> /dev/null || true
+            have fc-cache && fc-cache -f "$fonts_kurenaido" > /dev/null 2>&1 || true
         fi
     fi
     fi

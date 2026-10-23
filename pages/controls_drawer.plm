@@ -805,76 +805,126 @@ part ControlsDrawer {
             text "POWER" { at: floor(pcx - 102 * cu + 0.5), floor(px_cy + 0.5); anchor: left center; size: 17; weight: 700; color: ink; family: "Space Grotesk" }
             box { at: pcx, px_top + 44 * cu; size: 276 * cu, 1 * cu; color: ink; opacity: 8% }
             text "SESSION" { at: floor(pcx - 138 * cu + 0.5), floor(px_top + 62 * cu + 0.5); anchor: left center; size: 11; weight: 700; color: faint; family: "Space Grotesk" }
-            box { at: pcx + -113.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: ink; opacity: 8% + 9% * pw_t0.hover }
-            box { at: pcx + -113.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: mint; opacity: 12% * pw_t0.hover }
+            let pwj0 = pw_hp0
+            let pwx0 = sin(time * 5400 + 0.0) * 3 * cu * pwj0
+            let pwy0 = sin(time * 6300 + 0.9) * 3 * cu * pwj0
+            let pwv0 = clamp((time - pw_b0 - 0.8) / 0.5, 0, 1)
             group {
-                clip inset 0 box { at: pcx + -113.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr }
-                box { at: pcx + -113.0 * cu, px_top + 96 * cu + 29 * cu - 29 * cu * clamp(pw_hp0, 0, 1); size: 52 * cu, 58 * cu * clamp(pw_hp0, 0, 1); color: mint; opacity: 34% }
-                box { at: pcx + -113.0 * cu, px_top + 96 * cu + 29 * cu - 58 * cu * clamp(pw_hp0, 0, 1); size: 52 * cu, 2 * cu; color: mint; opacity: 70% * clamp(pw_hp0 * 8, 0, 1) }
+                move: pwx0, pwy0
+                opacity: pwv0
+                box { at: pcx + -113.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: ink; opacity: 8% + 9% * pw_t0.hover }
+                box { at: pcx + -113.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: mint; opacity: 12% * pw_t0.hover }
+                group {
+                    clip inset 0 box { at: pcx + -113.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr }
+                    box { at: pcx + -113.0 * cu, px_top + 96 * cu + 29 * cu - 29 * cu * clamp(pw_hp0, 0, 1); size: 52 * cu, 58 * cu * clamp(pw_hp0, 0, 1); color: mint; opacity: 34% }
+                    box { at: pcx + -113.0 * cu, px_top + 96 * cu + 29 * cu - 58 * cu * clamp(pw_hp0, 0, 1); size: 52 * cu, 2 * cu; color: mint; opacity: 70% * clamp(pw_hp0 * 8, 0, 1) }
+                }
+                PSLock(pcx + -113.0 * cu, px_top + 96 * cu - 8 * cu, max(pw_t0.hover, clamp(pw_hp0 * 3, 0, 1)))
+                text "Lock" { at: floor(pcx + -113.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 600; width: 50 * cu; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; show: pw_hp0 < 0.03 }
+                text number(1 - clamp(pw_hp0, 0, 1), 1, "s") { at: floor(pcx + -113.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 700; width: 50 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: pw_hp0 >= 0.03 }
             }
-            PSLock(pcx + -113.0 * cu, px_top + 96 * cu - 8 * cu, max(pw_t0.hover, clamp(pw_hp0 * 3, 0, 1)))
-            text "Lock" { at: floor(pcx + -113.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 600; width: 50 * cu; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; show: pw_hp0 < 0.03 }
-            text number(1 - clamp(pw_hp0, 0, 1), 1, "s") { at: floor(pcx + -113.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 700; width: 50 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: pw_hp0 >= 0.03 }
-            zone box pw_t0 { at: pcx + -113.0 * cu, px_top + 96 * cu; size: 54 * cu, 60 * cu; corner: 15 * cu; cursor: pointer }
+            particles { at: pcx + -113.0 * cu, px_top + 96 * cu; area: 44, 52; count: 30; life: 0.5s .. 0.95s; speed: 70 .. 230; spread: 360deg
+                gravity: 0, 420; drag: 1.3; size: 6, 2; colors: mint, minthi; opacity: 100%, 0%; shape: square; burst: pw_shatter0 }
+            zone box pw_t0 { at: pcx + -113.0 * cu, px_top + 96 * cu; size: 54 * cu, 60 * cu; corner: 15 * cu; cursor: pointer; active: pwv0 > 0.9 }
             on press pw_t0 { pw_s0 = time; pw_d0 = true }
             on release pw_t0 { pw_d0 = false }
-            on hold pw_t0 for 1000ms { pw_d0 = false; emit pow_press(0) }
-            box { at: pcx + -56.5 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: ink; opacity: 8% + 9% * pw_t1.hover }
-            box { at: pcx + -56.5 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: mint; opacity: 12% * pw_t1.hover }
+            on hold pw_t0 for 1000ms { pw_d0 = false; pw_b0 = time; emit pow_press(0); emit pw_shatter0 }
+            let pwj1 = pw_hp1
+            let pwx1 = sin(time * 5400 + 1.7) * 3 * cu * pwj1
+            let pwy1 = sin(time * 6300 + 3.2) * 3 * cu * pwj1
+            let pwv1 = clamp((time - pw_b1 - 0.8) / 0.5, 0, 1)
             group {
-                clip inset 0 box { at: pcx + -56.5 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr }
-                box { at: pcx + -56.5 * cu, px_top + 96 * cu + 29 * cu - 29 * cu * clamp(pw_hp1, 0, 1); size: 52 * cu, 58 * cu * clamp(pw_hp1, 0, 1); color: mint; opacity: 34% }
-                box { at: pcx + -56.5 * cu, px_top + 96 * cu + 29 * cu - 58 * cu * clamp(pw_hp1, 0, 1); size: 52 * cu, 2 * cu; color: mint; opacity: 70% * clamp(pw_hp1 * 8, 0, 1) }
+                move: pwx1, pwy1
+                opacity: pwv1
+                box { at: pcx + -56.5 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: ink; opacity: 8% + 9% * pw_t1.hover }
+                box { at: pcx + -56.5 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: mint; opacity: 12% * pw_t1.hover }
+                group {
+                    clip inset 0 box { at: pcx + -56.5 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr }
+                    box { at: pcx + -56.5 * cu, px_top + 96 * cu + 29 * cu - 29 * cu * clamp(pw_hp1, 0, 1); size: 52 * cu, 58 * cu * clamp(pw_hp1, 0, 1); color: mint; opacity: 34% }
+                    box { at: pcx + -56.5 * cu, px_top + 96 * cu + 29 * cu - 58 * cu * clamp(pw_hp1, 0, 1); size: 52 * cu, 2 * cu; color: mint; opacity: 70% * clamp(pw_hp1 * 8, 0, 1) }
+                }
+                PSSleep(pcx + -56.5 * cu, px_top + 96 * cu - 8 * cu, max(pw_t1.hover, clamp(pw_hp1 * 3, 0, 1)))
+                text "Sleep" { at: floor(pcx + -56.5 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 600; width: 50 * cu; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; show: pw_hp1 < 0.03 }
+                text number(1 - clamp(pw_hp1, 0, 1), 1, "s") { at: floor(pcx + -56.5 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 700; width: 50 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: pw_hp1 >= 0.03 }
             }
-            PSSleep(pcx + -56.5 * cu, px_top + 96 * cu - 8 * cu, max(pw_t1.hover, clamp(pw_hp1 * 3, 0, 1)))
-            text "Sleep" { at: floor(pcx + -56.5 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 600; width: 50 * cu; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; show: pw_hp1 < 0.03 }
-            text number(1 - clamp(pw_hp1, 0, 1), 1, "s") { at: floor(pcx + -56.5 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 700; width: 50 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: pw_hp1 >= 0.03 }
-            zone box pw_t1 { at: pcx + -56.5 * cu, px_top + 96 * cu; size: 54 * cu, 60 * cu; corner: 15 * cu; cursor: pointer }
+            particles { at: pcx + -56.5 * cu, px_top + 96 * cu; area: 44, 52; count: 30; life: 0.5s .. 0.95s; speed: 70 .. 230; spread: 360deg
+                gravity: 0, 420; drag: 1.3; size: 6, 2; colors: mint, minthi; opacity: 100%, 0%; shape: square; burst: pw_shatter1 }
+            zone box pw_t1 { at: pcx + -56.5 * cu, px_top + 96 * cu; size: 54 * cu, 60 * cu; corner: 15 * cu; cursor: pointer; active: pwv1 > 0.9 }
             on press pw_t1 { pw_s1 = time; pw_d1 = true }
             on release pw_t1 { pw_d1 = false }
-            on hold pw_t1 for 1000ms { pw_d1 = false; emit pow_press(1) }
-            box { at: pcx + 0.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: ink; opacity: 8% + 9% * pw_t2.hover }
-            box { at: pcx + 0.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: mint; opacity: 12% * pw_t2.hover }
+            on hold pw_t1 for 1000ms { pw_d1 = false; pw_b1 = time; emit pow_press(1); emit pw_shatter1 }
+            let pwj2 = pw_hp2
+            let pwx2 = sin(time * 5400 + 3.4) * 3 * cu * pwj2
+            let pwy2 = sin(time * 6300 + 5.5) * 3 * cu * pwj2
+            let pwv2 = clamp((time - pw_b2 - 0.8) / 0.5, 0, 1)
             group {
-                clip inset 0 box { at: pcx + 0.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr }
-                box { at: pcx + 0.0 * cu, px_top + 96 * cu + 29 * cu - 29 * cu * clamp(pw_hp2, 0, 1); size: 52 * cu, 58 * cu * clamp(pw_hp2, 0, 1); color: mint; opacity: 34% }
-                box { at: pcx + 0.0 * cu, px_top + 96 * cu + 29 * cu - 58 * cu * clamp(pw_hp2, 0, 1); size: 52 * cu, 2 * cu; color: mint; opacity: 70% * clamp(pw_hp2 * 8, 0, 1) }
+                move: pwx2, pwy2
+                opacity: pwv2
+                box { at: pcx + 0.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: ink; opacity: 8% + 9% * pw_t2.hover }
+                box { at: pcx + 0.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: mint; opacity: 12% * pw_t2.hover }
+                group {
+                    clip inset 0 box { at: pcx + 0.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr }
+                    box { at: pcx + 0.0 * cu, px_top + 96 * cu + 29 * cu - 29 * cu * clamp(pw_hp2, 0, 1); size: 52 * cu, 58 * cu * clamp(pw_hp2, 0, 1); color: mint; opacity: 34% }
+                    box { at: pcx + 0.0 * cu, px_top + 96 * cu + 29 * cu - 58 * cu * clamp(pw_hp2, 0, 1); size: 52 * cu, 2 * cu; color: mint; opacity: 70% * clamp(pw_hp2 * 8, 0, 1) }
+                }
+                PSOut(pcx + 0.0 * cu, px_top + 96 * cu - 8 * cu, max(pw_t2.hover, clamp(pw_hp2 * 3, 0, 1)))
+                text "Log out" { at: floor(pcx + 0.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 600; width: 50 * cu; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; show: pw_hp2 < 0.03 }
+                text number(1 - clamp(pw_hp2, 0, 1), 1, "s") { at: floor(pcx + 0.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 700; width: 50 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: pw_hp2 >= 0.03 }
             }
-            PSOut(pcx + 0.0 * cu, px_top + 96 * cu - 8 * cu, max(pw_t2.hover, clamp(pw_hp2 * 3, 0, 1)))
-            text "Log out" { at: floor(pcx + 0.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 600; width: 50 * cu; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; show: pw_hp2 < 0.03 }
-            text number(1 - clamp(pw_hp2, 0, 1), 1, "s") { at: floor(pcx + 0.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 700; width: 50 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: pw_hp2 >= 0.03 }
-            zone box pw_t2 { at: pcx + 0.0 * cu, px_top + 96 * cu; size: 54 * cu, 60 * cu; corner: 15 * cu; cursor: pointer }
+            particles { at: pcx + 0.0 * cu, px_top + 96 * cu; area: 44, 52; count: 30; life: 0.5s .. 0.95s; speed: 70 .. 230; spread: 360deg
+                gravity: 0, 420; drag: 1.3; size: 6, 2; colors: mint, minthi; opacity: 100%, 0%; shape: square; burst: pw_shatter2 }
+            zone box pw_t2 { at: pcx + 0.0 * cu, px_top + 96 * cu; size: 54 * cu, 60 * cu; corner: 15 * cu; cursor: pointer; active: pwv2 > 0.9 }
             on press pw_t2 { pw_s2 = time; pw_d2 = true }
             on release pw_t2 { pw_d2 = false }
-            on hold pw_t2 for 1000ms { pw_d2 = false; emit pow_press(2) }
-            box { at: pcx + 56.5 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: ink; opacity: 8% + 9% * pw_t3.hover }
-            box { at: pcx + 56.5 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: mint; opacity: 12% * pw_t3.hover }
+            on hold pw_t2 for 1000ms { pw_d2 = false; pw_b2 = time; emit pow_press(2); emit pw_shatter2 }
+            let pwj3 = pw_hp3
+            let pwx3 = sin(time * 5400 + 5.1) * 3 * cu * pwj3
+            let pwy3 = sin(time * 6300 + 7.8) * 3 * cu * pwj3
+            let pwv3 = clamp((time - pw_b3 - 0.8) / 0.5, 0, 1)
             group {
-                clip inset 0 box { at: pcx + 56.5 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr }
-                box { at: pcx + 56.5 * cu, px_top + 96 * cu + 29 * cu - 29 * cu * clamp(pw_hp3, 0, 1); size: 52 * cu, 58 * cu * clamp(pw_hp3, 0, 1); color: mint; opacity: 34% }
-                box { at: pcx + 56.5 * cu, px_top + 96 * cu + 29 * cu - 58 * cu * clamp(pw_hp3, 0, 1); size: 52 * cu, 2 * cu; color: mint; opacity: 70% * clamp(pw_hp3 * 8, 0, 1) }
+                move: pwx3, pwy3
+                opacity: pwv3
+                box { at: pcx + 56.5 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: ink; opacity: 8% + 9% * pw_t3.hover }
+                box { at: pcx + 56.5 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: mint; opacity: 12% * pw_t3.hover }
+                group {
+                    clip inset 0 box { at: pcx + 56.5 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr }
+                    box { at: pcx + 56.5 * cu, px_top + 96 * cu + 29 * cu - 29 * cu * clamp(pw_hp3, 0, 1); size: 52 * cu, 58 * cu * clamp(pw_hp3, 0, 1); color: mint; opacity: 34% }
+                    box { at: pcx + 56.5 * cu, px_top + 96 * cu + 29 * cu - 58 * cu * clamp(pw_hp3, 0, 1); size: 52 * cu, 2 * cu; color: mint; opacity: 70% * clamp(pw_hp3 * 8, 0, 1) }
+                }
+                PSRestart(pcx + 56.5 * cu, px_top + 96 * cu - 8 * cu, max(pw_t3.hover, clamp(pw_hp3 * 3, 0, 1)))
+                text "Restart" { at: floor(pcx + 56.5 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 600; width: 50 * cu; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; show: pw_hp3 < 0.03 }
+                text number(1 - clamp(pw_hp3, 0, 1), 1, "s") { at: floor(pcx + 56.5 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 700; width: 50 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: pw_hp3 >= 0.03 }
             }
-            PSRestart(pcx + 56.5 * cu, px_top + 96 * cu - 8 * cu, max(pw_t3.hover, clamp(pw_hp3 * 3, 0, 1)))
-            text "Restart" { at: floor(pcx + 56.5 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 600; width: 50 * cu; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; show: pw_hp3 < 0.03 }
-            text number(1 - clamp(pw_hp3, 0, 1), 1, "s") { at: floor(pcx + 56.5 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 700; width: 50 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: pw_hp3 >= 0.03 }
-            zone box pw_t3 { at: pcx + 56.5 * cu, px_top + 96 * cu; size: 54 * cu, 60 * cu; corner: 15 * cu; cursor: pointer }
+            particles { at: pcx + 56.5 * cu, px_top + 96 * cu; area: 44, 52; count: 30; life: 0.5s .. 0.95s; speed: 70 .. 230; spread: 360deg
+                gravity: 0, 420; drag: 1.3; size: 6, 2; colors: mint, minthi; opacity: 100%, 0%; shape: square; burst: pw_shatter3 }
+            zone box pw_t3 { at: pcx + 56.5 * cu, px_top + 96 * cu; size: 54 * cu, 60 * cu; corner: 15 * cu; cursor: pointer; active: pwv3 > 0.9 }
             on press pw_t3 { pw_s3 = time; pw_d3 = true }
             on release pw_t3 { pw_d3 = false }
-            on hold pw_t3 for 1000ms { pw_d3 = false; emit pow_press(3) }
-            box { at: pcx + 113.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: ink; opacity: 8% + 9% * pw_t4.hover }
-            box { at: pcx + 113.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: mint; opacity: 12% * pw_t4.hover }
+            on hold pw_t3 for 1000ms { pw_d3 = false; pw_b3 = time; emit pow_press(3); emit pw_shatter3 }
+            let pwj4 = pw_hp4
+            let pwx4 = sin(time * 5400 + 6.8) * 3 * cu * pwj4
+            let pwy4 = sin(time * 6300 + 10.1) * 3 * cu * pwj4
+            let pwv4 = clamp((time - pw_b4 - 0.8) / 0.5, 0, 1)
             group {
-                clip inset 0 box { at: pcx + 113.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr }
-                box { at: pcx + 113.0 * cu, px_top + 96 * cu + 29 * cu - 29 * cu * clamp(pw_hp4, 0, 1); size: 52 * cu, 58 * cu * clamp(pw_hp4, 0, 1); color: mint; opacity: 34% }
-                box { at: pcx + 113.0 * cu, px_top + 96 * cu + 29 * cu - 58 * cu * clamp(pw_hp4, 0, 1); size: 52 * cu, 2 * cu; color: mint; opacity: 70% * clamp(pw_hp4 * 8, 0, 1) }
+                move: pwx4, pwy4
+                opacity: pwv4
+                box { at: pcx + 113.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: ink; opacity: 8% + 9% * pw_t4.hover }
+                box { at: pcx + 113.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr; color: mint; opacity: 12% * pw_t4.hover }
+                group {
+                    clip inset 0 box { at: pcx + 113.0 * cu, px_top + 96 * cu; size: 52 * cu, 58 * cu; corner: pr }
+                    box { at: pcx + 113.0 * cu, px_top + 96 * cu + 29 * cu - 29 * cu * clamp(pw_hp4, 0, 1); size: 52 * cu, 58 * cu * clamp(pw_hp4, 0, 1); color: mint; opacity: 34% }
+                    box { at: pcx + 113.0 * cu, px_top + 96 * cu + 29 * cu - 58 * cu * clamp(pw_hp4, 0, 1); size: 52 * cu, 2 * cu; color: mint; opacity: 70% * clamp(pw_hp4 * 8, 0, 1) }
+                }
+                PSOff(pcx + 113.0 * cu, px_top + 96 * cu - 8 * cu, max(pw_t4.hover, clamp(pw_hp4 * 3, 0, 1)))
+                text "Power off" { at: floor(pcx + 113.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 600; width: 50 * cu; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; show: pw_hp4 < 0.03 }
+                text number(1 - clamp(pw_hp4, 0, 1), 1, "s") { at: floor(pcx + 113.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 700; width: 50 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: pw_hp4 >= 0.03 }
             }
-            PSOff(pcx + 113.0 * cu, px_top + 96 * cu - 8 * cu, max(pw_t4.hover, clamp(pw_hp4 * 3, 0, 1)))
-            text "Power off" { at: floor(pcx + 113.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 600; width: 50 * cu; lines: 1; color: ink; opacity: 85%; family: "Space Grotesk"; show: pw_hp4 < 0.03 }
-            text number(1 - clamp(pw_hp4, 0, 1), 1, "s") { at: floor(pcx + 113.0 * cu + 0.5), floor(px_top + 96 * cu + 19 * cu + 0.5); anchor: center; align: center; size: 11; weight: 700; width: 50 * cu; lines: 1; color: mint; family: "Space Grotesk"; show: pw_hp4 >= 0.03 }
-            zone box pw_t4 { at: pcx + 113.0 * cu, px_top + 96 * cu; size: 54 * cu, 60 * cu; corner: 15 * cu; cursor: pointer }
+            particles { at: pcx + 113.0 * cu, px_top + 96 * cu; area: 44, 52; count: 30; life: 0.5s .. 0.95s; speed: 70 .. 230; spread: 360deg
+                gravity: 0, 420; drag: 1.3; size: 6, 2; colors: mint, minthi; opacity: 100%, 0%; shape: square; burst: pw_shatter4 }
+            zone box pw_t4 { at: pcx + 113.0 * cu, px_top + 96 * cu; size: 54 * cu, 60 * cu; corner: 15 * cu; cursor: pointer; active: pwv4 > 0.9 }
             on press pw_t4 { pw_s4 = time; pw_d4 = true }
             on release pw_t4 { pw_d4 = false }
-            on hold pw_t4 for 1000ms { pw_d4 = false; emit pow_press(4) }
+            on hold pw_t4 for 1000ms { pw_d4 = false; pw_b4 = time; emit pow_press(4); emit pw_shatter4 }
             //  The battery levels: this computer, then each connected device that reports a charge. Nothing at all with none.
             text "BATTERY" { at: floor(pcx - 138 * cu + 0.5), floor(px_top + 142 * cu + 0.5); anchor: left center; size: 11; weight: 700; color: faint; family: "Space Grotesk"; show: bat_rows > 0 }
             column bat_list {

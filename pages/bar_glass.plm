@@ -311,6 +311,77 @@ part BarGlass {
             include "bar_shapes.plm"
             include "bar_waves.plm"
         }
+        //  The Milk's body: two layers of the same pale material, one casting a white light up and to the left, the other a soft dark shade down and to the right.
+        body {
+            color: obsidian
+            rim: 0%
+            shadow: -3 * u * milk_k, -3 * u * milk_k, 8 * u * milk_k, 38% * milk_k, #ffffff
+            opacity: milk_k
+            show: (milk_k > 0.004) and fw_act < 0.5
+            include "bar_shapes.plm"
+        }
+        body {
+            color: obsidian
+            rim: 0%
+            shadow: 3 * u * milk_k, 4 * u * milk_k, 10 * u * milk_k, 28% * milk_k, deep
+            opacity: milk_k
+            show: (milk_k > 0.004) and fw_act < 0.5
+            include "bar_shapes.plm"
+        }
+        body {
+            color: obsidian
+            rim: 0%
+            shadow: -3 * u * milk_k, -3 * u * milk_k, 8 * u * milk_k, 38% * milk_k, #ffffff
+            opacity: milk_k
+            show: (milk_k > 0.004) and fw_act > 0.5 and fw_act < 1.5
+            include "bar_shapes.plm"
+            include "bar_waves_12.plm"
+        }
+        body {
+            color: obsidian
+            rim: 0%
+            shadow: 3 * u * milk_k, 4 * u * milk_k, 10 * u * milk_k, 28% * milk_k, deep
+            opacity: milk_k
+            show: (milk_k > 0.004) and fw_act > 0.5 and fw_act < 1.5
+            include "bar_shapes.plm"
+            include "bar_waves_12.plm"
+        }
+        body {
+            color: obsidian
+            rim: 0%
+            shadow: -3 * u * milk_k, -3 * u * milk_k, 8 * u * milk_k, 38% * milk_k, #ffffff
+            opacity: milk_k
+            show: (milk_k > 0.004) and fw_act > 1.5 and fw_act < 2.5
+            include "bar_shapes.plm"
+            include "bar_waves_24.plm"
+        }
+        body {
+            color: obsidian
+            rim: 0%
+            shadow: 3 * u * milk_k, 4 * u * milk_k, 10 * u * milk_k, 28% * milk_k, deep
+            opacity: milk_k
+            show: (milk_k > 0.004) and fw_act > 1.5 and fw_act < 2.5
+            include "bar_shapes.plm"
+            include "bar_waves_24.plm"
+        }
+        body {
+            color: obsidian
+            rim: 0%
+            shadow: -3 * u * milk_k, -3 * u * milk_k, 8 * u * milk_k, 38% * milk_k, #ffffff
+            opacity: milk_k
+            show: (milk_k > 0.004) and fw_act > 2.5 and fw_act < 3.5
+            include "bar_shapes.plm"
+            include "bar_waves.plm"
+        }
+        body {
+            color: obsidian
+            rim: 0%
+            shadow: 3 * u * milk_k, 4 * u * milk_k, 10 * u * milk_k, 28% * milk_k, deep
+            opacity: milk_k
+            show: (milk_k > 0.004) and fw_act > 2.5 and fw_act < 3.5
+            include "bar_shapes.plm"
+            include "bar_waves.plm"
+        }
         //  The Cassette's detail on each drawer, only while it is plastic and the drawer is out: an accent-coloured tab at the top left (opposite the grips) (a console's button), a row of straight vertical grip slots in the bottom right
         //  corner (like the vents of a handheld: dark, with a lit edge) that run a few pixels past the drawer's bottom edge as if they wrapped round the base, and a screw in the bottom left.
         //  Inside the drawer they stay in its margin, so they never touch what it holds.

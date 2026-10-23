@@ -3013,9 +3013,10 @@ end
 iris_fx.CASSETTE = 8
 iris_fx.UWU = 9
 iris_fx.CYBER = 10
+iris_fx.MILK = 11
 iris_fx.CUSTOM = 100
 vtheme = { list = {}, by_id = {}, errors = {}, folder = "" }
-vtheme.look_id = { [8] = "retro", [9] = "uwu", [10] = "cyber" }
+vtheme.look_id = { [8] = "retro", [9] = "uwu", [10] = "cyber", [11] = "milk" }
 function vtheme.load()
     local ok, f = pcall(sys.ask, "files.read", "themes.json", "json")
     if not ok or type(f) ~= "table" or type(f.themes) ~= "table" then return false end
@@ -3053,10 +3054,10 @@ do
     if ok and type(saved) == "table" then
         if saved.enabled ~= nil then iris_cfg.enabled = saved.enabled and true or false end
         local pr = tonumber(saved.preset)
-        if pr and (math.floor(pr) == iris_fx.CASSETTE or math.floor(pr) == iris_fx.UWU or math.floor(pr) == iris_fx.CYBER or math.floor(pr) == iris_fx.CUSTOM) then iris_cfg.preset = math.floor(pr) end
+        if pr and (math.floor(pr) == iris_fx.CASSETTE or math.floor(pr) == iris_fx.UWU or math.floor(pr) == iris_fx.CYBER or math.floor(pr) == iris_fx.MILK or math.floor(pr) == iris_fx.CUSTOM) then iris_cfg.preset = math.floor(pr) end
         -- The look (the shape of the shell) is its own setting, apart from where the colours come from: Iris may colour a Retro or UwU shell and it stays one.
         local lk = tonumber(saved.look)
-        if lk and (math.floor(lk) == iris_fx.CASSETTE or math.floor(lk) == iris_fx.UWU or math.floor(lk) == iris_fx.CYBER) then iris_cfg.look = math.floor(lk)
+        if lk and (math.floor(lk) == iris_fx.CASSETTE or math.floor(lk) == iris_fx.UWU or math.floor(lk) == iris_fx.CYBER or math.floor(lk) == iris_fx.MILK) then iris_cfg.look = math.floor(lk)
         elseif lk == nil then iris_cfg.look = iris_cfg.preset ~= iris_fx.CUSTOM and iris_cfg.preset or nil end      -- an older file: the look was the palette
         -- The theme itself. An older file has only the look, which names one of Vitreus's own; a theme whose file has gone leaves Glass.
         if type(saved.theme) == "string" then iris_cfg.theme = saved.theme
@@ -3071,12 +3072,13 @@ do
     local INTENSITIES = { "subtle", "medium", "bold" }
     -- The desktop clock and system monitor draw themselves as plastic with Retro and UwU: they are told the theme (0 Glass, 1 Retro, 2 UwU).
     local function push_look()
-        local v = iris_cfg.look == iris_fx.CASSETTE and 1 or iris_cfg.look == iris_fx.UWU and 2 or iris_cfg.look == iris_fx.CYBER and 3 or 0
+        local v = iris_cfg.look == iris_fx.CASSETTE and 1 or iris_cfg.look == iris_fx.UWU and 2 or iris_cfg.look == iris_fx.CYBER and 3 or iris_cfg.look == iris_fx.MILK and 4 or 0
         run("pleamar", { "--say", "desktopclock", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopsysmon", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopcards", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopnotes", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "files", "fact look " .. v }, function() end)
+        run("pleamar", { "--say", "cursortrail", "fact look " .. v }, function() end)      -- the sparkle trail behind the mouse: UwU only
     end
     local function show()
         push_look()
@@ -3086,6 +3088,7 @@ do
         fact.cas = iris_cfg.look == iris_fx.CASSETTE
         fact.uwu = iris_cfg.look == iris_fx.UWU
         fact.cyber_on = iris_cfg.look == iris_fx.CYBER
+        fact.milk = iris_cfg.look == iris_fx.MILK
         if hy_theme_changed then hy_theme_changed(vtheme.current().id) end
         for k, name in ipairs(INTENSITIES) do if name == iris_cfg.intensity then fact.iris_int = k - 1 end end
     end
@@ -5262,7 +5265,11 @@ do
         wm_frame_sync()
     end
 
+    -- Nothing is written to wm.json until the saved choices have been read back (below, a few seconds after the shell starts): a theme is applied at once on
+    -- starting, and saving then wrote the first values (no layouts at all) over the file, which the restore then read.
+    local wm_restored = false
     local function wm_save()
+        if not wm_restored then return end
         pcall(sys.call, "files.write", "wm.json", { layout = wm.layout, lays = wm.lays, share = wm.share, gap = wm.gap, free = wm.free, rain = wm.rain, snow = wm.snow, bw = wm.bw, ba = wm.ba, rad = wm.rad, shd = wm.shd, tb = wm.tb, tbo = wm.tbo, wa = wm.wa, wi = wm.wi, fr = wm.fr, wst = wm.wst, tbt = wm.tbt })
     end
 
@@ -5302,7 +5309,7 @@ do
         -- Pleamar-WM answers only when it is the window manager; on Hyprland each of these would start a command to get nothing back.
         if on_hyprland then return end
         -- One connection for all of them (`say_many`): a `pleamar --say` program for each of these fifteen made the page stall when it opened.
-        local names = { "gap", "ratio", "monname.0", "free.0", "rain", "snow", "bw", "ba", "rad", "shd", "tb", "tbo", "wo_a", "wo_i", "wfr", "wst", "tbt" }
+        local names = { "gap", "ratio", "monname.0", "free.0", "rain", "snow", "bw", "ba", "rad", "shd", "tb", "tbo", "wo_a", "wo_i", "wfr", "wst", "tbt", "vit" }
         local cmds = {}
         for i, n in ipairs(names) do cmds[i] = "get " .. n end
         -- (after those: each monitor's name and the layout it has now, to show what is really there)
@@ -5310,6 +5317,9 @@ do
         say_many("wm", cmds, function(r)
             if not r then return end
             local base = #names
+            -- The scene was read in again (a theme or the wallpaper changed its palette) and has its first values, not the ones chosen: taking those as what is
+            -- there would forget every layout and setting. The chosen ones go back in instead.
+            if (tonumber(((r[base] or ""):match("%-?[%d.]+"))) or 0) ~= 1 then wm_send(); return end
             wm_names = {}
             for m = 0, 3 do
                 local n = (r[base + m * 2 + 1] or ""):match("^%s*([%w%._%-]+)")
@@ -5374,6 +5384,7 @@ do
     after(3000, function()
         if on_hyprland then return end
         local ok, saved = pcall(sys.ask, "files.read", "wm.json", "json")
+        wm_restored = true
         if ok and type(saved) == "table" then
             wm.layout = math.max(0, math.min(7, tonumber(saved.layout) or 0))
             wm.lays = {}

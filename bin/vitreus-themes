@@ -14,8 +14,8 @@ user = os.path.join(os.path.expanduser("~"), ".config", "pleamar", "vitreus-them
 ORDER = ["ink", "faint", "mint", "mintlo", "minthi", "onmint", "tint", "panel", "deep", "off", "alert"]
 STOCK = {"ink": "#f5f7f5", "faint": "#c2c7cc", "mint": "#9ed6bd", "mintlo": "#6cbc9c", "minthi": "#dcf8ec", "onmint": "#10161a",
          "tint": "#1b2127", "panel": "#161a1f", "deep": "#0b0e11", "off": "#3a4048", "alert": "#ef4444"}
-BASES = ("glass", "retro", "uwu", "cyber")
-LOOK = {"glass": None, "retro": 8, "uwu": 9, "cyber": 10}     # the numbers iris.json has always used for the looks
+BASES = ("glass", "retro", "uwu", "cyber", "milk")
+LOOK = {"glass": None, "retro": 8, "uwu": 9, "cyber": 10, "milk": 11}     # the numbers iris.json has always used for the looks
 
 def colour(v, where):
     if isinstance(v, str):
