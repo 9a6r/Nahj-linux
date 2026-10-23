@@ -90,6 +90,47 @@ Item {
 
     MouseArea { anchors.fill: parent; onClicked: pw.forceActiveFocus() }
 
+    // A line of text whose letters grow into place one after another when `on` turns true (the lock screen does the same): each starts big, low and clear, and settles.
+    // `src` is the plain Text it stands in for (kept, hidden, to size and place it); letters made later (a new minute) just appear.
+    component Letters: Item {
+        id: lt
+        property Text src
+        property bool on: false
+        property int pause: 0                // before the first letter, ms
+        property int stagger: 40             // between letters, ms
+        property real big: 0.6               // how much bigger a letter starts, 0.6 = 1.6 times
+        property real drop: 16               // how far below it starts, in px at 1080 high
+        property real maxOpacity: 1
+        property bool shadowed: false
+        width: src.width
+        height: src.height
+        layer.enabled: shadowed
+        layer.effect: MultiEffect { shadowEnabled: true; shadowColor: "#66000000"; shadowBlur: 0.9; shadowVerticalOffset: 8 }
+        Row {
+            anchors.horizontalCenter: parent.horizontalCenter
+            Repeater {
+                model: lt.src.text.length
+                delegate: Text {
+                    id: ch
+                    property real p: lt.on ? 1 : 0
+                    Behavior on p {
+                        SequentialAnimation {
+                            PauseAnimation { duration: lt.on ? lt.pause + index * lt.stagger : 0 }
+                            NumberAnimation { duration: lt.on ? 520 : 150; easing.type: Easing.OutCubic }
+                        }
+                    }
+                    text: lt.src.text.charAt(index)
+                    color: lt.src.color
+                    font: lt.src.font
+                    opacity: p * lt.maxOpacity
+                    scale: 1 + lt.big * (1 - p)
+                    transformOrigin: Item.Center
+                    transform: Translate { y: lt.drop * root.u * (1 - ch.p) }
+                }
+            }
+        }
+    }
+
     // ── the clock and the date ──
     Item {
         id: clockBox
@@ -105,13 +146,12 @@ Item {
             x: 0
             text: root.clock24 ? Qt.formatTime(root.now, "HH:mm") : ((root.now.getHours() % 12 === 0 ? 12 : root.now.getHours() % 12) + ":" + Qt.formatTime(root.now, "mm"))
             color: root.ink
-            opacity: 0.88
+            visible: false
             font.family: root.fontName
             font.pixelSize: 230 * root.u
             font.weight: Font.Bold
-            layer.enabled: true
-            layer.effect: MultiEffect { shadowEnabled: true; shadowColor: "#66000000"; shadowBlur: 0.9; shadowVerticalOffset: 8 }
         }
+        Letters { anchors.fill: clockText; src: clockText; on: root.stage >= 2; pause: 150; stagger: 55; big: 1.1; drop: 50; maxOpacity: 0.88; shadowed: true }
         Rectangle {
             visible: !root.clock24
             x: clockText.width + 10 * root.u
@@ -140,12 +180,12 @@ Item {
         anchors.topMargin: -22 * root.u
         text: Qt.formatDate(root.now, "dddd, MMMM d, yyyy")
         color: root.ink
-        opacity: root.stage >= 3 ? 0.85 : 0
-        Behavior on opacity { NumberAnimation { duration: 600 } }
+        visible: false
         font.family: root.fontName
         font.pixelSize: 25 * root.u
         font.weight: Font.Medium
     }
+    Letters { anchors.fill: dateText; src: dateText; on: root.stage >= 3; pause: 100; stagger: 16; maxOpacity: 0.85 }
 
     // ── who ──
     Item {
@@ -160,14 +200,51 @@ Item {
         Behavior on opacity { NumberAnimation { duration: 600 } }
         Behavior on scale { NumberAnimation { duration: 700; easing.type: Easing.OutBack } }
 
+        // The frame: an aurora blob that slowly morphs (6 s) and turns (9 s), with a darker "ghost" blob set inside it turning the other way; the disc is over the middle.
+        Canvas {
+            id: blob
+            width: parent.width * 1.3
+            height: width
+            anchors.centerIn: parent
+            property real t: 0
+            function edge(th, base, m) { return base * (1 + 0.06 * Math.sin(2 * th + m) + 0.045 * Math.sin(3 * th - m + 1.3) + 0.025 * Math.sin(5 * th + 2 * m)) }
+            function trace(ctx, cx, cy, base, dir, phase) {
+                var m = 2 * Math.PI * t / 6 + phase, spin = 2 * Math.PI * t / 9
+                ctx.beginPath()
+                for (var i = 0; i <= 120; i++) {
+                    var a = i / 120 * 2 * Math.PI
+                    var r = edge(a - dir * spin, base, m)
+                    var x = cx + r * Math.cos(a), y = cy + r * Math.sin(a)
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y)
+                }
+                ctx.closePath()
+            }
+            onPaint: {
+                var ctx = getContext("2d")
+                ctx.reset()
+                var c = width / 2, R = parent.width / 2
+                var spin = 2 * Math.PI * t / 9
+                var gx = Math.cos(spin + 0.8) * R * 1.15, gy = Math.sin(spin + 0.8) * R * 1.15
+                var g = ctx.createLinearGradient(c - gx, c - gy, c + gx, c + gy)
+                g.addColorStop(0, Qt.darker(root.accent, 1.25))
+                g.addColorStop(0.5, root.accent)
+                g.addColorStop(1, Qt.lighter(root.accent, 1.45))
+                ctx.shadowColor = Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.4)
+                ctx.shadowBlur = 18 * root.u
+                trace(ctx, c, c, R * 1.14, 1, 0)
+                ctx.fillStyle = g
+                ctx.fill()
+                ctx.shadowBlur = 0
+                trace(ctx, c, c, R * 1.06, -1, 2.1)
+                ctx.fillStyle = Qt.rgba(0, 0, 0, 0.30)
+                ctx.fill()
+            }
+            FrameAnimation { running: root.stage >= 3 && !root.leaving; onTriggered: { blob.t += frameTime; blob.requestPaint() } }
+        }
         Rectangle {
             anchors.fill: parent
             radius: width / 2
             color: root.barColor
-            border.color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.5)
-            border.width: 2.5
-            layer.enabled: true
-            layer.effect: MultiEffect { shadowEnabled: true; shadowColor: "#55000000"; shadowBlur: 0.8; shadowVerticalOffset: 8 }
         }
         Item {
             id: faceMask
@@ -214,12 +291,12 @@ Item {
         anchors.topMargin: 16 * root.u
         text: root.realName !== "" ? root.realName : qsTr("Welcome")
         color: root.ink
-        opacity: root.stage >= 3 ? 1 : 0
-        Behavior on opacity { NumberAnimation { duration: 600 } }
+        visible: false
         font.family: root.fontName
         font.pixelSize: 24 * root.u
         font.weight: Font.Bold
     }
+    Letters { anchors.fill: nameText; src: nameText; on: root.stage >= 3; pause: 250; stagger: 28 }
     Text {
         id: subText
         anchors.horizontalCenter: parent.horizontalCenter
@@ -296,18 +373,51 @@ Item {
             spacing: 6 * root.u
             Repeater {
                 model: picks
-                delegate: Shape {
-                    width: 24
+                // Each shape is a spring, the one the Unsaid Word Rewind component uses (stiffness .18, friction .8 a frame): it comes in thin and tall with a bounce, and
+                // when it is taken back it goes in about four frames while the ones after it close up. `gone` marks one on its way out.
+                delegate: Item {
+                    id: slot
+                    property real p: 0
+                    property real v: 0
+                    readonly property real pp: Math.max(p, 0)
+                    readonly property real target: model.gone ? 0 : 1
+                    width: 24 * pp
                     height: 24
-                    scale: 0.82 * root.u
-                    ShapePath {
-                        fillColor: root.shapeColors[col]
-                        strokeColor: "transparent"
-                        fillRule: ShapePath.OddEvenFill
-                        PathSvg { path: root.shapePaths[kind] }
+                    FrameAnimation {
+                        running: Math.abs(slot.v) > 0.001 || Math.abs(slot.target - slot.p) > 0.001
+                        onTriggered: {
+                            var dt = Math.min(frameTime, 0.05) * 60
+                            slot.v = (slot.v + (slot.target - slot.p) * 0.18 * dt) * Math.pow(0.8, dt)
+                            slot.p += slot.v * dt
+                            if (model.gone && slot.p <= 0) root.dropPick(model.uid)
+                        }
+                    }
+                    Shape {
+                        width: 24
+                        height: 24
+                        opacity: Math.min(1, slot.pp * 1.4)
+                        transform: Scale {
+                            origin.x: 12
+                            origin.y: 12
+                            xScale: 0.82 * root.u * slot.pp
+                            yScale: 0.82 * root.u * (slot.pp < 1 ? 1 + (1 - slot.pp) * 0.6 : slot.pp)
+                        }
+                        ShapePath {
+                            fillColor: root.shapeColors[model.col]
+                            strokeColor: "transparent"
+                            fillRule: ShapePath.OddEvenFill
+                            PathSvg { path: root.shapePaths[model.kind] }
+                        }
                     }
                 }
             }
+        }
+        // A clear (Esc, or a wrong password) unsays the shapes from the end, one every 70 ms, like holding Backspace.
+        Timer {
+            id: rewinder
+            interval: 70
+            repeat: true
+            onTriggered: { if (root.liveCount() > pw.text.length) root.unsayOne(); else stop() }
         }
         // go
         Rectangle {
@@ -350,11 +460,22 @@ Item {
         onAccepted: root.tryLogin()
         onTextChanged: {
             root.errorText = ""
-            while (picks.count < text.length) picks.append({ kind: Math.floor(Math.random() * root.shapePaths.length), col: Math.floor(Math.random() * root.shapeColors.length) })
-            while (picks.count > text.length) picks.remove(picks.count - 1)
+            var live = root.liveCount()
+            if (text.length > live) {
+                rewinder.stop()
+                for (var i = picks.count - 1; i >= 0; i--) if (picks.get(i).gone) picks.remove(i)     // typing again: what was on its way out is gone
+                while (picks.count < text.length) picks.append({ kind: Math.floor(Math.random() * root.shapePaths.length), col: Math.floor(Math.random() * root.shapeColors.length), gone: false, uid: ++root.pickSeq })
+            } else if (text.length < live) {
+                if (text.length === 0 && live > 1) rewinder.start()
+                else while (root.liveCount() > text.length) root.unsayOne()
+            }
         }
         Keys.onEscapePressed: text = ""
     }
+    property int pickSeq: 0
+    function liveCount() { var n = 0; for (var i = 0; i < picks.count; i++) if (!picks.get(i).gone) n++; return n }
+    function unsayOne() { for (var i = picks.count - 1; i >= 0; i--) if (!picks.get(i).gone) { picks.setProperty(i, "gone", true); return } }
+    function dropPick(uid) { for (var i = 0; i < picks.count; i++) if (picks.get(i).uid === uid) { picks.remove(i); return } }
     function tryLogin() {
         if (pw.text.length === 0 || root.leaving) return
         sddm.login(root.userName, pw.text, root.sessionIndex)
