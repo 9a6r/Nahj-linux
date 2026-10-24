@@ -5,10 +5,10 @@ language 0.1
 //  Colours: the shell's palette is not imported here (an add-on cannot reach into the shell's folder), so draw with colours of your own.
 //  A scene says what it needs in `permissions`; this one needs nothing.
 
-scene HelloAddon {
+scene MyAddon {
     surface { size: 260, 90; anchor: top_right; margin: 32; level: bottom }
 
     box { at: 130, 45; size: 252, 82; corner: 18; color: #1b2127; opacity: 80% }
     box { at: 130, 45; size: 252, 82; corner: 18; stroke: 1.5; color: #9ed6bd; opacity: 70% }
-    text "Hello from an add-on" { at: 130, 45; anchor: center; size: 17; weight: 700; color: #f5f7f5; family: "Space Grotesk" }
+    text "Your add-on goes here" { at: 130, 45; anchor: center; size: 17; weight: 700; color: #f5f7f5; family: "Space Grotesk" }
 }

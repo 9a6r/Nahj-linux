@@ -9,8 +9,8 @@
 # it runs, every service it reads): read them before turning someone else's add-on on, it
 # is not sandboxed. A mistake in this file is shown under the list and the add-on is left out.
 
-name        = "Hello"                    # the title of the card (up to ~28 characters)
-description = "A small card on the desktop"      # the line under the title (up to ~80 characters; one line is shown)
+name        = "My add-on"                    # the title of the card (up to ~28 characters)
+description = "What it does, in one line"      # the line under the title (up to ~80 characters; one line is shown)
 author      = "Your Name <you@example.com>"      # shown small, with the version, under the description
 version     = "0.1"
 
