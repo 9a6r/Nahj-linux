@@ -1,5 +1,5 @@
 language 0.1
-import "palette.plm"
+import "addon-palette.plm"
 
 //  A Vitreus add-on: a scene of its own, started while its switch is on (Settings > Add-ons) and started again if it stops.
 //  Change this one into yours; give this file a name no other add-on uses (its id is a good one) and name it in addon.toml (`scene`).

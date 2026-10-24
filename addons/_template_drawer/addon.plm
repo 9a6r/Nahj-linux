@@ -1,5 +1,5 @@
 language 0.1
-import "palette.plm"
+import "addon-palette.plm"
 
 //  A Vitreus add-on with a PANEL: the shell puts the add-on's icon on the add-on pill (the pill of icons in the corner the app dock is not in) and draws a panel out of it
 //  (the same glass as its own drawers) with a title bar of its own (the add-on's name, a grip to pull it by and an X), and this scene draws what is below the bar. `icon`

@@ -1,5 +1,5 @@
 language 0.1
-import "palette.plm"
+import "addon-palette.plm"
 
 //  A test add-on: a panel out of the add-on pill with some placeholder text in it. The shell draws the title bar (the name, a grip and the X) across the top
 //  of the panel; `slot_y` and `slot_h` are what is below it.
