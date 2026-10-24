@@ -2791,9 +2791,9 @@ function dock_fx.room()
     local bu = 1.35 * (bar_fx and bar_fx.size or 1)
     if anchor == "left" or anchor == "right" then
         local n = math.max(c and dock_fx.nc or 0, a and dock_fx.na or 0)
-        r[anchor == "left" and "right" or "left"] = math.floor(1.35 * 8 + n * 30 * bu + 8 * bu + 6 + 0.5)
+        r[anchor == "left" and "right" or "left"] = math.floor(1.35 * 8 + n * 30 * bu + 8 * bu + 13 + 0.5)
     else
-        r[anchor == "bottom" and "top" or "bottom"] = math.floor(1.35 * 8 + 34 * bu + 6 + 0.5)
+        r[anchor == "bottom" and "top" or "bottom"] = math.floor(1.35 * 8 + 34 * bu + 13 + 0.5)
     end
     return r
 end
@@ -2922,10 +2922,6 @@ function iris_fx.niri_code(gap)
         if has_bar then
             g = bar_fx.left and bar_gaps or { isl and iris_fx.island_room() or 0, 0, 0, 0 }
             g = dock_fx.raise(g)
-            -- next to the dock the window ended nearer the dock than the sides are to the frame: 7 px more there (on niri; measured and then checked by eye)
-            local dr = dock_fx.room()
-            local EDGE = { top = 1, right = 2, bottom = 3, left = 4 }
-            for e, v in pairs(dr) do if g[EDGE[e]] == v then g[EDGE[e]] = v + 7 end end
         else
             g = (bar_fx.left and bar_fx.thin) and { px, px, px, px } or { 0, 0, 0, 0 }
         end
