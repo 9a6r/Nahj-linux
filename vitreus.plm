@@ -2428,73 +2428,217 @@ scene Vitreus {
 
     //  The Power window's icons in pencil, like the rest (see PWifi and the others above): the session tiles', the power profiles' and the battery cell. `hot` (hover, or the
     //  tile being held) makes them swell and redraw; the profile ones colour by `sel` (the chosen one), the cell by `low`.
+    //  The Lock icon, in the control center's pencil manner: the body and shackle twice, an accent wash, a keyhole and two shading strokes.
     component PSLock(cx: number, cy: number, hot: number) {
         prop a = 0 ~calm
         follow a = hot
         let fr = if(a > 0.02, floor(time * 5), 0)
+        let kk = 1.1 * cu
+        let ic = mix(ink, mint, a)
         group {
             pivot: cx, cy
             scale: 1 + 0.18 * a
-            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (1); move -3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 5830), -1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 5890); line -3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 5927), -4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 5987); curve 3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 6024), -4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 6084) via 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 10874), -10.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 72 + 10934); line 3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 65 + 6121), -1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 6181); }
-            path { at: cx + 0.5 * cu, cy + 0.4 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (1) * 0.34; move -3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 6201), -1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 6261); line -3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 6298), -4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 6358); curve 3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 6395), -4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 6455) via 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 11245), -10.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 11305); line 3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 6492), -1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 6552); }
-            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (1); move -4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 55 + 5883), -1.25 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 60 + 5943); line 4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 62 + 5980), -1.25 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 6040); line 6.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 69 + 6077), 1.25 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 6137); line 6.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 6174), 5.75 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 50 + 6234); line 4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 6271), 8.25 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 6331); line -4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 6368), 8.25 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 6428); line -6.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 6465), 5.75 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 6525); line -6.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 6562), 1.25 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 6622); close }
-            path { at: cx + 0.5 * cu, cy + 0.4 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (1) * 0.34; move -4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 6254), -1.25 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 6314); line 4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 46 + 6351), -1.25 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 6411); line 6.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 53 + 6448), 1.25 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 6508); line 6.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 60 + 6545), 5.75 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 65 + 6605); line 4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 6642), 8.25 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 72 + 6702); line -4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 6739), 8.25 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 48 + 6799); line -6.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 50 + 6836), 5.75 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 55 + 6896); line -6.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 6933), 1.25 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 62 + 6993); close }
+            path { at: cx, cy; color: mint; opacity: 28%; move -5 * kk, -1 * kk; line 5 * kk, -1 * kk; curve 7 * kk, 1 * kk via 7 * kk, -1 * kk; line 7 * kk, 7 * kk; curve 5 * kk, 9 * kk via 7 * kk, 9 * kk; line -5 * kk, 9 * kk; curve -7 * kk, 7 * kk via -7 * kk, 9 * kk; line -7 * kk, 1 * kk; curve -5 * kk, -1 * kk via -7 * kk, -1 * kk; close }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kk
+                let bj = (0.28 + 0.4 * a) * cu * sin(fr * 53 + bp * 137 + 101)
+                let bk = (0.28 + 0.4 * a) * cu * sin(fr * 61 + bp * 71 + 141)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kk; color: ic; opacity: if(bp == 0, 90%, 34%)
+                       move -4.2 * kk + bj, -1 * kk + bk
+                       line -4.2 * kk + bk, -4.5 * kk + bj
+                       curve 4.2 * kk + bj, -4.5 * kk + bk via 0 * kk, -12.5 * kk
+                       line 4.2 * kk + bk, -1 * kk + bj }
+            }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kk
+                let bj = (0.28 + 0.4 * a) * cu * sin(fr * 53 + bp * 137 + 131)
+                let bk = (0.28 + 0.4 * a) * cu * sin(fr * 61 + bp * 71 + 171)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kk; color: ic; opacity: if(bp == 0, 90%, 34%)
+                       move -5 * kk + bj, -1 * kk + bk
+                       line 5 * kk + bk, -1 * kk + bj
+                       curve 7 * kk + bj, 1 * kk + bk via 7 * kk, -1 * kk
+                       line 7 * kk + bk, 7 * kk + bj
+                       curve 5 * kk + bj, 9 * kk + bk via 7 * kk, 9 * kk
+                       line -5 * kk + bk, 9 * kk + bj
+                       curve -7 * kk + bj, 7 * kk + bk via -7 * kk, 9 * kk
+                       line -7 * kk + bk, 1 * kk + bj
+                       curve -5 * kk + bj, -1 * kk + bk via -7 * kk, -1 * kk
+                       close }
+            }
+            ellipse { at: cx + 0 * kk, cy + 3.6 * kk; radius: 1.5 * kk; color: mint; opacity: 100% }
+            line { from: cx, cy + 4 * kk; to: cx, cy + 6.5 * kk; width: 1.3 * kk; color: mint; opacity: 100% }
+            line { from: cx + -5 * kk, cy + 1.5 * kk + 0.3 * cu * sin(fr * 47 + 60); to: cx + -4.8 * kk, cy + 6.5 * kk + 0.3 * cu * sin(fr * 53 + 70); width: 1.1 * kk; color: mint; opacity: 65% }
+            line { from: cx + -3.3 * kk, cy + 2 * kk + 0.3 * cu * sin(fr * 53 + 70); to: cx + -3.1 * kk, cy + 5.5 * kk + 0.3 * cu * sin(fr * 59 + 80); width: 1.1 * kk; color: mint; opacity: 65% }
         }
     }
 
+    //  The Sleep icon, in the control center's pencil manner: a crescent twice, an accent wash, two stars and two shading strokes.
     component PSSleep(cx: number, cy: number, hot: number) {
         prop a = 0 ~calm
         follow a = hot
         let fr = if(a > 0.02, floor(time * 5), 0)
+        let kk = 1.1 * cu
+        let ic = mix(ink, mint, a)
         group {
             pivot: cx, cy
             scale: 1 + 0.18 * a
-            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (1); move 8.29 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 6360), 3.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 6420); line 7.76 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 6457), 4.27 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 6517); line 7.08 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 6554), 5.28 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 6614); line 6.26 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 6651), 6.18 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 6711); line 5.33 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 6748), 6.97 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 6808); line 4.29 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 65 + 6845), 7.61 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 6905); line 3.18 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 72 + 6942), 8.1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 46 + 7002); line 2 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 48 + 7039), 8.42 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 53 + 7099); line 0.79 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 55 + 7136), 8.58 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 60 + 7196); line -0.42 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 62 + 7233), 8.56 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 7293); line -1.63 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 69 + 7330), 8.38 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 7390); line -2.79 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 7427), 8.02 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 50 + 7487); line -3.9 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 7524), 7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 7584); line -4.92 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 7621), 6.84 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 7681); line -5.83 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 7718), 6.03 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 7778); line -6.62 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 7815), 5.11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 7875); line -7.28 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 7912), 4.08 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 7972); line -7.78 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 8009), 2.97 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 8069); line -8.12 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 8106), 1.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 8166); line -8.29 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 8203), 0.59 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 8263); line -8.28 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 46 + 8300), -0.63 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 8360); line -8.11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 53 + 8397), -1.83 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 8457); line -7.77 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 60 + 8494), -3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 65 + 8554); line -7.26 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 8591), -4.11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 72 + 8651); line -6.61 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 8688), -5.14 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 48 + 8748); line -5.81 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 50 + 8785), -6.06 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 55 + 8845); line -4.9 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 8882), -6.86 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 62 + 8942); line -3.87 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 8979), -7.53 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 69 + 9039); line -2.77 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 9076), -8.04 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 9136); line -1.6 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 9173), -8.39 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 9233); line -0.4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 9270), -8.58 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 9330); line -0.97 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 9367), -7.92 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 9427); line -1.46 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 9464), -7.2 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 9524); line -1.86 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 9561), -6.43 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 9621); line -2.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 9658), -5.62 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 9718); line -2.38 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 9755), -4.78 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 9815); line -2.49 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 65 + 9852), -3.91 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 9912); line -2.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 72 + 9949), -3.05 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 46 + 10009); line -2.4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 48 + 10046), -2.18 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 53 + 10106); line -2.21 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 55 + 10143), -1.33 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 60 + 10203); line -1.92 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 62 + 10240), -0.52 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 10300); line -1.53 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 69 + 10337), 0.26 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 10397); line -1.06 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 10434), 0.99 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 50 + 10494); line -0.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 10531), 1.66 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 10591); line 0.13 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 10628), 2.26 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 10688); line 0.83 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 10725), 2.78 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 10785); line 1.58 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 10822), 3.21 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 10882); line 2.38 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 10919), 3.55 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 10979); line 3.21 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 11016), 3.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 11076); line 4.07 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 11113), 3.95 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 11173); line 4.94 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 11210), 3.99 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 11270); line 5.81 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 46 + 11307), 3.94 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 11367); line 6.66 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 53 + 11404), 3.78 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 11464); line 7.49 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 60 + 11501), 3.52 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 65 + 11561); line 8.29 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 11598), 3.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 72 + 11658); line 8.29 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 11695), 3.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 48 + 11755); }
-            path { at: cx + 0.5 * cu, cy + 0.4 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (1) * 0.34; move 8.29 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 6731), 3.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 50 + 6791); line 7.76 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 6828), 4.27 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 6888); line 7.08 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 6925), 5.28 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 6985); line 6.26 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 7022), 6.18 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 7082); line 5.33 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 7119), 6.97 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 7179); line 4.29 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 7216), 7.61 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 7276); line 3.18 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 7313), 8.1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 7373); line 2 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 7410), 8.42 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 7470); line 0.79 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 7507), 8.58 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 7567); line -0.42 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 46 + 7604), 8.56 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 7664); line -1.63 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 53 + 7701), 8.38 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 7761); line -2.79 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 60 + 7798), 8.02 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 65 + 7858); line -3.9 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 7895), 7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 72 + 7955); line -4.92 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 7992), 6.84 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 48 + 8052); line -5.83 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 50 + 8089), 6.03 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 55 + 8149); line -6.62 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 8186), 5.11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 62 + 8246); line -7.28 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 8283), 4.08 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 69 + 8343); line -7.78 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 8380), 2.97 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 8440); line -8.12 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 8477), 1.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 8537); line -8.29 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 8574), 0.59 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 8634); line -8.28 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 8671), -0.63 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 8731); line -8.11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 8768), -1.83 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 8828); line -7.77 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 8865), -3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 8925); line -7.26 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 8962), -4.11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 9022); line -6.61 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 9059), -5.14 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 9119); line -5.81 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 65 + 9156), -6.06 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 9216); line -4.9 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 72 + 9253), -6.86 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 46 + 9313); line -3.87 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 48 + 9350), -7.53 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 53 + 9410); line -2.77 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 55 + 9447), -8.04 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 60 + 9507); line -1.6 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 62 + 9544), -8.39 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 9604); line -0.4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 69 + 9641), -8.58 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 9701); line -0.97 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 9738), -7.92 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 50 + 9798); line -1.46 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 9835), -7.2 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 9895); line -1.86 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 9932), -6.43 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 9992); line -2.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 10029), -5.62 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 10089); line -2.38 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 10126), -4.78 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 10186); line -2.49 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 10223), -3.91 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 10283); line -2.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 10320), -3.05 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 10380); line -2.4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 10417), -2.18 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 10477); line -2.21 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 10514), -1.33 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 10574); line -1.92 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 46 + 10611), -0.52 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 10671); line -1.53 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 53 + 10708), 0.26 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 10768); line -1.06 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 60 + 10805), 0.99 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 65 + 10865); line -0.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 10902), 1.66 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 72 + 10962); line 0.13 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 10999), 2.26 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 48 + 11059); line 0.83 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 50 + 11096), 2.78 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 55 + 11156); line 1.58 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 11193), 3.21 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 62 + 11253); line 2.38 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 11290), 3.55 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 69 + 11350); line 3.21 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 11387), 3.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 11447); line 4.07 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 11484), 3.95 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 11544); line 4.94 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 11581), 3.99 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 11641); line 5.81 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 11678), 3.94 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 11738); line 6.66 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 11775), 3.78 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 11835); line 7.49 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 11872), 3.52 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 11932); line 8.29 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 11969), 3.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 12029); line 8.29 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 12066), 3.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 12126); }
+            path { at: cx, cy; color: mint; opacity: 28%; move 1 * kk, -9 * kk; curve 9 * kk, 5 * kk via -19 * kk, 2 * kk; curve 1 * kk, -9 * kk via -5 * kk, -1 * kk; close }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kk
+                let bj = (0.28 + 0.4 * a) * cu * sin(fr * 53 + bp * 137 + 171)
+                let bk = (0.28 + 0.4 * a) * cu * sin(fr * 61 + bp * 71 + 211)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kk; color: ic; opacity: if(bp == 0, 90%, 34%)
+                       move 1 * kk + bj, -9 * kk + bk
+                       curve 9 * kk + bk, 5 * kk + bj via -19 * kk, 2 * kk
+                       curve 1 * kk + bj, -9 * kk + bk via -5 * kk, -1 * kk
+                       close }
+            }
+            ellipse { at: cx + 4.6 * kk, cy + -4.2 * kk; radius: 1.2 * kk; color: mint; opacity: 100% }
+            ellipse { at: cx + 8 * kk, cy + -1.5 * kk; radius: 0.8 * kk; color: mint; opacity: 100% }
+            line { from: cx + -4.8 * kk, cy + -3 * kk + 0.3 * cu * sin(fr * 47 + 60); to: cx + -4.5 * kk, cy + 2.2 * kk + 0.3 * cu * sin(fr * 53 + 70); width: 1.1 * kk; color: mint; opacity: 65% }
+            line { from: cx + -3 * kk, cy + -3.4 * kk + 0.3 * cu * sin(fr * 53 + 70); to: cx + -2.8 * kk, cy + 0.8 * kk + 0.3 * cu * sin(fr * 59 + 80); width: 1.1 * kk; color: mint; opacity: 65% }
         }
     }
 
+    //  The Log out icon, in the control center's pencil manner: the door and the arrow twice, an accent wash in the doorway, an accent arrowhead and two shading strokes.
     component PSOut(cx: number, cy: number, hot: number) {
         prop a = 0 ~calm
         follow a = hot
         let fr = if(a > 0.02, floor(time * 5), 0)
+        let kk = 1.1 * cu
+        let ic = mix(ink, mint, a)
         group {
             pivot: cx, cy
             scale: 1 + 0.18 * a
-            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (1); move 1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 6890), -7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 6950); line -5.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 6987), -7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 7047); line -5.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 7084), 7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 7144); line 1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 7181), 7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 7241); }
-            path { at: cx + 0.5 * cu, cy + 0.4 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (1) * 0.34; move 1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 62 + 7261), -7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 7321); line -5.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 69 + 7358), -7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 7418); line -5.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 7455), 7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 50 + 7515); line 1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 7552), 7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 7612); }
-            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (1); move -2 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 6943), 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 7003); line 7 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 65 + 7040), 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 7100); }
-            path { at: cx + 0.5 * cu, cy + 0.4 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (1) * 0.34; move -2 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 7314), 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 7374); line 7 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 7411), 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 7471); }
-            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (1); move 4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 69 + 6996), -3.2 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 7056); line 7.2 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 7093), 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 50 + 7153); line 4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 7190), 3.2 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 7250); }
-            path { at: cx + 0.5 * cu, cy + 0.4 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (1) * 0.34; move 4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 53 + 7367), -3.2 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 7427); line 7.2 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 60 + 7464), 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 65 + 7524); line 4 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 7561), 3.2 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 72 + 7621); }
+            path { at: cx, cy; color: mint; opacity: 28%; move 1 * kk, -8 * kk; line -4 * kk, -8 * kk; curve -6 * kk, -6 * kk via -6 * kk, -8 * kk; line -6 * kk, 6 * kk; curve -4 * kk, 8 * kk via -6 * kk, 8 * kk; line 1 * kk, 8 * kk; close }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kk
+                let bj = (0.28 + 0.4 * a) * cu * sin(fr * 53 + bp * 137 + 211)
+                let bk = (0.28 + 0.4 * a) * cu * sin(fr * 61 + bp * 71 + 251)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kk; color: ic; opacity: if(bp == 0, 90%, 34%)
+                       move 1 * kk + bj, -8 * kk + bk
+                       line -4 * kk + bk, -8 * kk + bj
+                       curve -6 * kk + bj, -6 * kk + bk via -6 * kk, -8 * kk
+                       line -6 * kk + bk, 6 * kk + bj
+                       curve -4 * kk + bj, 8 * kk + bk via -6 * kk, 8 * kk
+                       line 1 * kk + bk, 8 * kk + bj }
+            }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kk
+                let bj = (0.28 + 0.4 * a) * cu * sin(fr * 53 + bp * 137 + 241)
+                let bk = (0.28 + 0.4 * a) * cu * sin(fr * 61 + bp * 71 + 281)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kk; color: ic; opacity: if(bp == 0, 90%, 34%)
+                       move -2 * kk + bj, 0 + bk
+                       line 7.5 * kk + bk, 0 + bj }
+            }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kk
+                let bj = (0.28 + 0.4 * a) * cu * sin(fr * 53 + bp * 137 + 271)
+                let bk = (0.28 + 0.4 * a) * cu * sin(fr * 61 + bp * 71 + 311)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kk; color: ic; opacity: if(bp == 0, 90%, 34%)
+                       move 4 * kk + bj, -3.5 * kk + bk
+                       line 8 * kk + bk, 0 + bj
+                       line 4 * kk + bj, 3.5 * kk + bk }
+            }
+            path { at: cx, cy; color: mint; opacity: 70%; move 4 * kk, -3.5 * kk; line 8 * kk, 0 * kk; line 4 * kk, 3.5 * kk; close }
+            line { from: cx + -4.2 * kk, cy + -4 * kk + 0.3 * cu * sin(fr * 47 + 60); to: cx + -4 * kk, cy + 1 * kk + 0.3 * cu * sin(fr * 53 + 70); width: 1.1 * kk; color: mint; opacity: 65% }
+            line { from: cx + -2.6 * kk, cy + -4.4 * kk + 0.3 * cu * sin(fr * 53 + 70); to: cx + -2.4 * kk, cy + -0.4 * kk + 0.3 * cu * sin(fr * 59 + 80); width: 1.1 * kk; color: mint; opacity: 65% }
         }
     }
 
+    //  The Restart icon, in the control center's pencil manner: the ring and its arrowhead twice, an accent wash inside and two shading strokes.
     component PSRestart(cx: number, cy: number, hot: number) {
         prop a = 0 ~calm
         follow a = hot
         let fr = if(a > 0.02, floor(time * 5), 0)
+        let kk = 1.1 * cu
+        let ic = mix(ink, mint, a)
         group {
             pivot: cx, cy
             scale: 1 + 0.18 * a
-            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (1); move 5.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 7420), -5.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 69 + 7480); line 6.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 7517), -3.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 7577); line 7.47 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 7614), -0.65 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 7674); line 7.24 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 7711), 1.94 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 7771); line 6.14 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 7808), 4.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 7868); line 4.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 7905), 6.14 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 7965); line 1.94 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 8002), 7.24 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 8062); line -0.65 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 8099), 7.47 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 8159); line -3.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 8196), 6.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 8256); line -5.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 65 + 8293), 5.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 8353); line -6.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 72 + 8390), 3.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 46 + 8450); line -7.47 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 48 + 8487), 0.65 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 53 + 8547); line -7.24 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 55 + 8584), -1.94 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 60 + 8644); line -6.14 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 62 + 8681), -4.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 8741); line -4.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 69 + 8778), -6.14 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 8838); }
-            path { at: cx + 0.5 * cu, cy + 0.4 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (1) * 0.34; move 5.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 48 + 7791), -5.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 53 + 7851); line 6.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 55 + 7888), -3.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 60 + 7948); line 7.47 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 62 + 7985), -0.65 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 8045); line 7.24 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 69 + 8082), 1.94 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 8142); line 6.14 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 8179), 4.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 50 + 8239); line 4.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 8276), 6.14 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 8336); line 1.94 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 8373), 7.24 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 8433); line -0.65 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 8470), 7.47 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 8530); line -3.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 8567), 6.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 8627); line -5.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 8664), 5.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 8724); line -6.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 8761), 3.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 8821); line -7.47 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 8858), 0.65 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 8918); line -7.24 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 8955), -1.94 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 9015); line -6.14 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 46 + 9052), -4.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 9112); line -4.3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 53 + 9149), -6.14 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 9209); }
-            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (1); move -6.75 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 7473), -8.04 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 7533); line -2.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 7570), -7.63 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 7630); line -3.36 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 7667), -3.19 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 7727); }
-            path { at: cx + 0.5 * cu, cy + 0.4 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (1) * 0.34; move -6.75 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 7844), -8.04 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 7904); line -2.17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 7941), -7.63 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 8001); line -3.36 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 8038), -3.19 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 8098); }
+            ellipse { at: cx, cy + 0.5 * kk; radius: 7.5 * kk; color: mint; opacity: 22% }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kk
+                let bj = (0.28 + 0.4 * a) * cu * sin(fr * 53 + bp * 137 + 311)
+                let bk = (0.28 + 0.4 * a) * cu * sin(fr * 61 + bp * 71 + 351)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kk; color: ic; opacity: if(bp == 0, 90%, 34%)
+                       move 5.303 * kk + bj, -4.803 * kk + bk
+                       line 6.836 * kk + bk, -2.585 * kk + bj
+                       line 7.485 * kk + bj, 0.033 * kk + bk
+                       line 7.167 * kk + bk, 2.711 * kk + bj
+                       line 5.922 * kk + bj, 5.103 * kk + bk
+                       line 3.911 * kk + bk, 6.9 * kk + bj
+                       line 1.394 * kk + bj, 7.869 * kk + bk
+                       line -1.302 * kk + bk, 7.886 * kk + bj
+                       line -3.831 * kk + bj, 6.948 * kk + bk
+                       line -5.864 * kk + bk, 5.176 * kk + bj
+                       line -7.139 * kk + bj, 2.8 * kk + bk
+                       line -7.491 * kk + bk, 0.126 * kk + bj
+                       line -6.874 * kk + bj, -2.499 * kk + bk
+                       line -5.369 * kk + bk, -4.737 * kk + bj
+                       line -3.17 * kk + bj, -6.297 * kk + bk }
+            }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kk
+                let bj = (0.28 + 0.4 * a) * cu * sin(fr * 53 + bp * 137 + 341)
+                let bk = (0.28 + 0.4 * a) * cu * sin(fr * 61 + bp * 71 + 381)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kk; color: ic; opacity: if(bp == 0, 90%, 34%)
+                       move -4.362 * kk + bj, -3.433 * kk + bk
+                       line -2.067 * kk + bk, -6.709 * kk + bj
+                       line -6.052 * kk + bj, -7.058 * kk + bk }
+            }
+            ellipse { at: cx + 0 * kk, cy + 0.5 * kk; radius: 1.2 * kk; color: mint; opacity: 100% }
+            path { at: cx, cy; color: mint; opacity: 70%; move -4.36159 * kk, -3.43285 * kk; line -2.06728 * kk, -6.70946 * kk; line -6.05206 * kk, -7.05809 * kk; close }
+            line { from: cx + -4.6 * kk, cy + -0.5 * kk + 0.3 * cu * sin(fr * 47 + 60); to: cx + -4.4 * kk, cy + 4 * kk + 0.3 * cu * sin(fr * 53 + 70); width: 1.1 * kk; color: mint; opacity: 65% }
+            line { from: cx + -3 * kk, cy + -0.9 * kk + 0.3 * cu * sin(fr * 53 + 70); to: cx + -2.8 * kk, cy + 3.1 * kk + 0.3 * cu * sin(fr * 59 + 80); width: 1.1 * kk; color: mint; opacity: 65% }
         }
     }
 
+    //  The Power off icon, in the control center's pencil manner (as the Power tile's): the ring and its bar twice, an accent wash, a dot and two shading strokes.
     component PSOff(cx: number, cy: number, hot: number) {
         prop a = 0 ~calm
         follow a = hot
         let fr = if(a > 0.02, floor(time * 5), 0)
+        let kk = 1.1 * cu
+        let ic = mix(ink, mint, a)
         group {
             pivot: cx, cy
             scale: 1 + 0.18 * a
-            path { at: cx, cy; stroke: 1.5 * cu; color: mix(ink, mint, a); opacity: (1); move 4.43 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 50 + 7950), -5.67 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 55 + 8010); line 6.11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 8047), -3.82 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 62 + 8107); line 7.04 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 8144), -1.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 69 + 8204); line 7.13 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 8241), 1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 8301); line 6.36 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 8338), 3.38 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 8398); line 4.82 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 8435), 5.35 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 8495); line 2.7 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 8532), 6.68 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 8592); line 0.25 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 8629), 7.2 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 8689); line -2.22 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 8726), 6.85 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 8786); line -4.43 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 8823), 5.67 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 8883); line -6.11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 8920), 3.82 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 8980); line -7.04 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 65 + 9017), 1.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 9077); line -7.13 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 72 + 9114), -1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 46 + 9174); line -6.36 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 48 + 9211), -3.38 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 53 + 9271); line -4.82 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 55 + 9308), -5.35 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 60 + 9368); line -4.43 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 62 + 9405), -5.67 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 9465); }
-            path { at: cx + 0.5 * cu, cy + 0.4 * cu; stroke: 1.05 * cu; color: mix(ink, mint, a); opacity: (1) * 0.34; move 4.43 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 65 + 8321), -5.67 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 8381); line 6.11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 72 + 8418), -3.82 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 46 + 8478); line 7.04 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 48 + 8515), -1.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 53 + 8575); line 7.13 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 55 + 8612), 1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 60 + 8672); line 6.36 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 62 + 8709), 3.38 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 8769); line 4.82 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 69 + 8806), 5.35 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 8866); line 2.7 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 8903), 6.68 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 50 + 8963); line 0.25 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 9000), 7.2 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 9060); line -2.22 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 9097), 6.85 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 9157); line -4.43 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 9194), 5.67 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 9254); line -6.11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 9291), 3.82 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 9351); line -7.04 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 9388), 1.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 9448); line -7.13 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 9485), -1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 9545); line -6.36 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 9582), -3.38 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 9642); line -4.82 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 9679), -5.35 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 9739); line -4.43 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 46 + 9776), -5.67 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 9836); }
-            path { at: cx, cy; stroke: 1.8 * cu; color: mix(ink, mint, a); opacity: (1); move 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 8003), -10 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 8063); line 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 8100), -1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 8160); }
-            path { at: cx + 0.5 * cu, cy + 0.4 * cu; stroke: 1.26 * cu; color: mix(ink, mint, a); opacity: (1) * 0.34; move 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 8374), -10 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 50 + 8434); line 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 8471), -1 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 8531); }
+            ellipse { at: cx, cy + 0.8 * kk; radius: 8.4 * kk; color: mint; opacity: 22% }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kk
+                let bj = (0.28 + 0.4 * a) * cu * sin(fr * 53 + bp * 137 + 371)
+                let bk = (0.28 + 0.4 * a) * cu * sin(fr * 61 + bp * 71 + 411)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kk; color: ic; opacity: if(bp == 0, 90%, 34%)
+                       move 4.818 * kk + bj, -6.081 * kk + bk
+                       line 6.72 * kk + bk, -4.241 * kk + bj
+                       line 7.954 * kk + bj, -1.9 * kk + bk
+                       line 8.4 * kk + bk, 0.708 * kk + bj
+                       line 8.011 * kk + bj, 3.326 * kk + bk
+                       line 6.828 * kk + bk, 5.693 * kk + bj
+                       line 4.967 * kk + bj, 7.574 * kk + bk
+                       line 2.613 * kk + bk, 8.783 * kk + bj
+                       line 0 + bj, 9.2 * kk + bk
+                       line -2.613 * kk + bk, 8.783 * kk + bj
+                       line -4.967 * kk + bj, 7.574 * kk + bk
+                       line -6.828 * kk + bk, 5.693 * kk + bj
+                       line -8.011 * kk + bj, 3.326 * kk + bk
+                       line -8.4 * kk + bk, 0.708 * kk + bj
+                       line -7.954 * kk + bj, -1.9 * kk + bk
+                       line -6.72 * kk + bk, -4.241 * kk + bj
+                       line -4.818 * kk + bj, -6.081 * kk + bk }
+            }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kk
+                let bj = (0.28 + 0.4 * a) * cu * sin(fr * 53 + bp * 137 + 401)
+                let bk = (0.28 + 0.4 * a) * cu * sin(fr * 61 + bp * 71 + 441)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 2.0, 1.4) * kk; color: ic; opacity: if(bp == 0, 90%, 34%)
+                       move 0 + bj, -10.5 * kk + bk
+                       line 0 + bk, -1.5 * kk + bj }
+            }
+            ellipse { at: cx + 0 * kk, cy + 5.5 * kk; radius: 1.1 * kk; color: mint; opacity: 100% }
+            line { from: cx + -5 * kk, cy + 1 * kk + 0.3 * cu * sin(fr * 47 + 60); to: cx + -4.5 * kk, cy + 5 * kk + 0.3 * cu * sin(fr * 53 + 70); width: 1.1 * kk; color: mint; opacity: 65% }
+            line { from: cx + -3.5 * kk, cy + 1.5 * kk + 0.3 * cu * sin(fr * 53 + 70); to: cx + -3 * kk, cy + 4.6 * kk + 0.3 * cu * sin(fr * 59 + 80); width: 1.1 * kk; color: mint; opacity: 65% }
         }
     }
 
@@ -2538,21 +2682,58 @@ scene Vitreus {
         }
     }
 
+    //  The battery, in the control center's pencil manner: the body twice with its rounded corners, a wash and the charge in the battery's colour, hatching on the charge, a terminal and (while charging) the bolt twice.
     component PBatt(cx: number, cy: number, hot: number, lv: number, chg: number, low: number) {
         prop a = 0 ~calm
         follow a = hot
-        let fr = if(a > 0.02, floor(time * 5), 0)
+        let fr = floor(time * 4)                           // a slow, faint boil; the battery's `hot` is only 'charging', so it cannot wait for the pointer
+        let ic = mix(mint, #e0655a, low)
         group {
             pivot: cx, cy
             scale: 1 + 0.18 * a
-            path { at: cx, cy; stroke: 1.5 * cu; color: mix(mint, #e0655a, low); opacity: (1); move -11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 10070), -7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 10130); line 11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 10167), -7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 10227); line 15 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 70 + 10264), -3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 10324); line 15 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 46 + 10361), 3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 10421); line 11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 53 + 10458), 7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 10518); line -11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 60 + 10555), 7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 65 + 10615); line -15 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 10652), 3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 72 + 10712); line -15 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 10749), -3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 48 + 10809); close }
-            path { at: cx + 0.5 * cu, cy + 0.4 * cu; stroke: 1.05 * cu; color: mix(mint, #e0655a, low); opacity: (1) * 0.34; move -11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 10441), -7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 10501); line 11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 10538), -7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 10598); line 15 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 10635), -3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 10695); line 15 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 10732), 3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 10792); line 11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 10829), 7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 10889); line -11 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 10926), 7.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 10986); line -15 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 11023), 3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 11083); line -15 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 11120), -3.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 11180); close }
-            path { at: cx, cy; stroke: 2 * cu; color: mix(mint, #e0655a, low); opacity: (1); move 17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 67 + 10123), -3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 72 + 10183); line 17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 43 + 10220), 3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 48 + 10280); }
-            path { at: cx + 0.5 * cu, cy + 0.4 * cu; stroke: 1.4 * cu; color: mix(mint, #e0655a, low); opacity: (1) * 0.34; move 17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 10494), -3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 10554); line 17 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 10591), 3 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 10651); }
-            path { at: cx, cy; color: mix(mint, #e0655a, low); opacity: (if(chg > 0.5, 0.3, 1)); move -12.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 10600), -5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 10660); line (-12.5 + max(4, lv * 25)) * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 10697), -5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 10757); line (-12.5 + max(4, lv * 25)) * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 10794), 5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 10854); line -12.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 10891), 5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 10951); close }
-            path { at: cx + 0.35 * cu, cy + 0.28 * cu; color: mix(mint, #e0655a, low); opacity: (if(chg > 0.5, 0.3, 1)) * 0.28; move -12.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 57 + 10971), -5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 62 + 11031); line (-12.5 + max(4, lv * 25)) * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 11068), -5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 69 + 11128); line (-12.5 + max(4, lv * 25)) * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 11165), 5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 45 + 11225); line -12.5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 11262), 5 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 52 + 11322); close }
-            path { at: cx, cy; color: mix(mint, #e0655a, low); opacity: (chg); move 2.9 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 11130), -8.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 64 + 11190); line -4.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 11227), 1.6 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 71 + 11287); line 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 11324), 1.6 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 47 + 11384); line -2.9 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 11421), 8.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 11481); line 4.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 11518), -1.6 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 11578); line 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 11615), -1.6 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 11675); close }
-            path { at: cx + 0.5 * cu, cy + 0.4 * cu; color: mix(mint, #e0655a, low); opacity: (chg) * 0.34; move 2.9 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 54 + 11554), -8.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 59 + 11614); line -4.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 61 + 11651), 1.6 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 66 + 11711); line 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 68 + 11748), 1.6 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 73 + 11808); line -2.9 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 44 + 11845), 8.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 49 + 11905); line 4.8 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 51 + 11942), -1.6 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 56 + 12002); line 0 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 58 + 12039), -1.6 * cu + (0.28 + 0.4 * a) * cu * sin(fr * 63 + 12099); close }
+            path { at: cx, cy; color: ic; opacity: 30%; move -12 * cu, -7.5 * cu; line 12 * cu, -7.5 * cu; curve 15 * cu, -4.5 * cu via 15 * cu, -7.5 * cu; line 15 * cu, 4.5 * cu; curve 12 * cu, 7.5 * cu via 15 * cu, 7.5 * cu; line -12 * cu, 7.5 * cu; curve -15 * cu, 4.5 * cu via -15 * cu, 7.5 * cu; line -15 * cu, -4.5 * cu; curve -12 * cu, -7.5 * cu via -15 * cu, -7.5 * cu; close }
+            path { at: cx, cy; color: ic; opacity: (if(chg > 0.5, 0.35, 1)); move -12.5 * cu + 0.25 * cu * sin(fr * 43), -4.8 * cu + 0.25 * cu * sin(fr * 47); line (-12.5 + max(4, lv * 25)) * cu + 0.25 * cu * sin(fr * 53), -4.8 * cu + 0.25 * cu * sin(fr * 59); line (-12.5 + max(4, lv * 25)) * cu + 0.25 * cu * sin(fr * 61), 4.8 * cu + 0.25 * cu * sin(fr * 67); line -12.5 * cu + 0.25 * cu * sin(fr * 71), 4.8 * cu + 0.25 * cu * sin(fr * 73); close }
+            line { from: cx + (-11 + 0) * cu, cy + -3 * cu + 0.3 * cu * sin(fr * 47 + 60); to: cx + (-10.5 + 0) * cu, cy + 3 * cu + 0.3 * cu * sin(fr * 53 + 70); width: 0.9 * cu; color: ink; opacity: 28% * clamp((lv * 25 - 0) / 4, 0, 1) }
+            line { from: cx + (-11 + 3) * cu, cy + -3 * cu + 0.3 * cu * sin(fr * 53 + 70); to: cx + (-10.5 + 3) * cu, cy + 3 * cu + 0.3 * cu * sin(fr * 59 + 80); width: 0.9 * cu; color: ink; opacity: 28% * clamp((lv * 25 - 3) / 4, 0, 1) }
+            line { from: cx + (-11 + 6) * cu, cy + -3 * cu + 0.3 * cu * sin(fr * 59 + 80); to: cx + (-10.5 + 6) * cu, cy + 3 * cu + 0.3 * cu * sin(fr * 65 + 90); width: 0.9 * cu; color: ink; opacity: 28% * clamp((lv * 25 - 6) / 4, 0, 1) }
+            repeat bp in 0..3 {
+                let bo = bp * 0.5 * cu
+                let bj = (0.3 + 0.2 * a) * cu * sin(fr * 53 + bp * 137 + 431)
+                let bk = (0.3 + 0.2 * a) * cu * sin(fr * 61 + bp * 71 + 471)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.9, 1.3) * cu; color: ic; opacity: if(bp == 0, 100%, 45%)
+                       move -12 * cu + bj, -7.5 * cu + bk
+                       line 12 * cu + bk, -7.5 * cu + bj
+                       curve 15 * cu + bj, -4.5 * cu + bk via 15 * cu, -7.5 * cu
+                       line 15 * cu + bk, 4.5 * cu + bj
+                       curve 12 * cu + bj, 7.5 * cu + bk via 15 * cu, 7.5 * cu
+                       line -12 * cu + bk, 7.5 * cu + bj
+                       curve -15 * cu + bj, 4.5 * cu + bk via -15 * cu, 7.5 * cu
+                       line -15 * cu + bk, -4.5 * cu + bj
+                       curve -12 * cu + bj, -7.5 * cu + bk via -15 * cu, -7.5 * cu
+                       close }
+            }
+            repeat bp in 0..3 {
+                let bo = bp * 0.5 * cu
+                let bj = (0.3 + 0.2 * a) * cu * sin(fr * 53 + bp * 137 + 451)
+                let bk = (0.3 + 0.2 * a) * cu * sin(fr * 61 + bp * 71 + 491)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 2.6, 1.8) * cu; color: ic; opacity: if(bp == 0, 100%, 45%)
+                       move 17.5 * cu + bj, -3 * cu + bk
+                       line 17.5 * cu + bk, 3 * cu + bj }
+            }
+            repeat bp in 0..3 {
+                let bo = bp * 0.5 * cu
+                let bj = (0.3 + 0.2 * a) * cu * sin(fr * 53 + bp * 137 + 461)
+                let bk = (0.3 + 0.2 * a) * cu * sin(fr * 61 + bp * 71 + 501)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.9, 1.3) * cu; color: ic; opacity: if(bp == 0, 100%, 45%) * chg
+                       move 2.9 * cu + bj, -8.8 * cu + bk
+                       line -4.8 * cu + bk, 1.6 * cu + bj
+                       line 0 + bj, 1.6 * cu + bk
+                       line -2.9 * cu + bk, 8.8 * cu + bj
+                       line 4.8 * cu + bj, -1.6 * cu + bk
+                       line 0 + bk, -1.6 * cu + bj
+                       close }
+            }
+            path { at: cx, cy; color: ic; opacity: chg; move 2.9 * cu, -8.8 * cu; line -4.8 * cu, 1.6 * cu; line 0, 1.6 * cu; line -2.9 * cu, 8.8 * cu; line 4.8 * cu, -1.6 * cu; line 0, -1.6 * cu; close }
         }
     }
 
