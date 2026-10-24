@@ -135,7 +135,7 @@ natepayn3@gmail.com if you have no account. With Vitreus installed it is just `v
 * **Files** — a file manager of its own, in the shell's glass (**SUPER + E**, or "Files" in the launcher): places down the left (Recent, Starred, your folders, drives, network, and any you pin), where you are across the top (click it or press Ctrl+L to type a path), tabs, the folder as tiles or lines (sortable, zoomable), a right-click menu, Space to look at a file, Properties (with permissions and Open With), copy/cut/paste/drag with a question when a name is taken, progress and Cancel, Undo (Ctrl+Z), the Trash with Restore, compress and extract, and a search of names or contents. Drag a box to choose several things. It follows the theme (glass off, Retro, UwU, Cyber) and uses `imagemagick`, `ffmpeg`, `poppler` and `libarchive` (`bsdtar`) for pictures and archives.
 * **Desktop** — right-click the bare wallpaper for a menu: **Webcam** (your camera in a round glass pane over everything; drag it, and pull its edge to resize it, as the Desk's corners do), the clock, the system monitor, and **New sticky note**. Stickers are glass notes, tinted from your palette, that stay where you put them and can be dragged onto other monitors.
 * **Theme** — a card for each theme, each with its own typeface: **Glass**, which Iris recolours from your wallpaper; **Retro**, moulded
-  plastic; **UwU**, candy plastic with cat ears; **Cyber**, a neon HUD on black glass; and any you make yourself (see below).
+  plastic; **UwU**, candy plastic with cat ears and a gooey trail behind the mouse (Hyprland and pleamar-wm: niri cannot tell where the mouse is); **Cyber**, a neon HUD on black glass; and any you make yourself (see below).
 
 ### Making your own theme
 
