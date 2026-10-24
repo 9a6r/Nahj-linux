@@ -1598,7 +1598,7 @@ local function menu_row(rows, label, k, on, ic, key, sep, danger, chk)
     rows[#rows + 1] = { label = label, k = k, on = on, ic = ic, key = key or "", sep = sep == true, danger = danger == true, chk = chk == true }
 end
 -- ── custom actions (local) ──
--- Your own commands in the right-click menu, from ~/.config/pleamar/vitreus-files-actions.json (outside the shell's folder: updating Vitreus
+-- Your own commands in the right-click menu, from ~/.config/pleamar/vitreus-files-actions.json (files/actions.example.json is a model; outside the shell's folder: updating Vitreus
 -- never touches it). Each: { "name", "command", "group" (optional, shown as "Group › Name"), "on": "files" | "folders" | "both" |
 -- "background" (a click on the empty part of a folder), "patterns": ["*.jpg", …] (optional, files only), "many": true (optional: also with
 -- several picked) }. In the command %f is the item (or the folder, for background), %F every one picked, %d the folder in view, %n the
