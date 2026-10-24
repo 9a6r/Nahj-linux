@@ -4319,6 +4319,11 @@ scene Vitreus {
     fact ax_w = 0                                          // its size (0: about 40 % of the room wide, and all of its height; the manifest can say)
     fact ax_h = 0
     text ax_title = ""
+    //  The wallpaper hook (logic/wallpaper_hook.luau): what the add-on that frames wallpapers answers with.
+    text wph_out = ""
+    event wph_done ->
+    event wph_busy ->
+    event wph_again ->
     fact ax_rx = 0                                         // where its content goes, once out: the middle and the size (the add-on is told when the drawer opens)
     fact ax_ry = 0
     fact ax_rw = 0

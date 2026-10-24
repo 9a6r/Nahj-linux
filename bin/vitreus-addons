@@ -44,7 +44,12 @@ def read(folder, name):
         if icon is None:
             raise ValueError("%s: a drawer opens from the add-on pill, which needs an icon (icon = \"icon.svg\" in addon.toml)" % name)
         drawer = {"width": px("width", 240, 1600), "height": px("height", 160, 1600)}
-    return {"id": name, "icon": icon, "drawer": drawer, "sock": os.path.splitext(os.path.basename(path))[0], "name": str(t.get("name", name))[:28], "author": str(t.get("author", ""))[:40],
+    wallpaper = t.get("wallpaper")
+    if wallpaper is not None:
+        if not isinstance(wallpaper, dict) or not isinstance(wallpaper.get("frames", False), bool):
+            raise ValueError("%s: [wallpaper] has to be a table, with frames = true or false" % name)
+        wallpaper = {"frames": wallpaper.get("frames", False)}
+    return {"id": name, "icon": icon, "drawer": drawer, "wallpaper": wallpaper, "sock": os.path.splitext(os.path.basename(path))[0], "name": str(t.get("name", name))[:28], "author": str(t.get("author", ""))[:40],
             "version": str(t.get("version", ""))[:12], "description": str(t.get("description", ""))[:80], "scene": path}
 
 RESERVED = {"vitreus", "desktopclock", "desktopsysmon", "desktopnotes", "desktopmenu", "desktopmenu_hypr", "desktopedit", "desktopcards", "webcam", "lockscreen", "wptrans", "files", "cursortrail", "dashboard", "snap", "wm"}

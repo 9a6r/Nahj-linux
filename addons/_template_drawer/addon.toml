@@ -28,3 +28,9 @@ icon = "icon.svg"
 [drawer]
 width  = 0
 height = 0
+
+# An add-on that frames wallpapers (a matte frame, blur, any effect): whenever Vitreus sets a wallpaper it first asks this add-on for the picture awww should show, and waits
+# (the old wallpaper stays, for up to 30 s, longer while the add-on says it is busy). One add-on frames at a time: the first that is on. logic/wallpaper_hook.luau has the
+# messages; the scene needs `"pleamar"` in its `run:` permissions. Take it out for an add-on that does not touch wallpapers.
+# [wallpaper]
+# frames = true

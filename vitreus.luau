@@ -3001,6 +3001,19 @@ function wpv.flush()
     if n then wpv.settle(n[1]) end
 end
 
+-- The wallpaper hook (logic/wallpaper_hook.luau): `rec` is the picture an add-on made for the screen and the wallpaper it was made from, read here at
+-- once, so the first look at awww (below) knows that picture is that wallpaper (else Iris would read the frame, and the page would show it as the
+-- wallpaper). `busy`: an add-on is making one, and awww still shows the old wallpaper, which is not a change from outside. A global: this chunk is at Luau's limit of locals.
+wph = { busy = false, rec = nil, frame = nil }
+do
+    local ok, r = pcall(sys.ask, "files.read", "wallpaper-frame.json", "json")
+    if ok and type(r) == "table" and type(r.out) == "string" and type(r.src) == "string" then wph.rec = r end
+end
+function wph.src_of(p)
+    local r = wph.rec
+    if p and r and r.out == p then return r.src end
+    return nil
+end
 -- The wallpaper is asked of awww every half second; when it changes, Iris is run on the new one.
 local wp_on_change = function(path) end       -- the wallpaper page, further down, takes this over
 -- A wallpaper that the hexagon dissolve is bringing in: awww is told about it only when the dissolve is over, a couple of seconds on, and
@@ -3025,6 +3038,7 @@ local function check_wallpaper()
     run("awww", { "query" }, function(out, code)
         if code ~= 0 or not out then return end
         if wp_prev.on then return end
+        if wph.busy then return end          -- an add-on is making the picture: awww shows the old one, which is not a change from outside
         local path = out:match("currently displaying: image: ([^\n]+)")
         if wp_pending then
             if path == wp_pending then wp_pending = nil
@@ -3034,7 +3048,8 @@ local function check_wallpaper()
         end
         -- awww shows a video's poster; the wallpaper is the video. One that is playing while awww shows something else was replaced
         -- from outside.
-        local shown = wpv.from_poster(path) or path
+        local framed = wph.src_of(path)      -- a picture an add-on made: the wallpaper is the one it was made from
+        local shown = wpv.from_poster(path) or framed or path
         if path and wpv.cur and shown ~= wpv.cur and not wpv.next then
             wpv.cur = nil
             wpv_save()
@@ -3044,7 +3059,7 @@ local function check_wallpaper()
             iris_last_wp = shown
             lens_image(path)
             wp_on_change(shown)
-            run_iris(path, not (iris_cfg.enabled and not iris_cfg.preset))
+            run_iris(framed or path, not (iris_cfg.enabled and not iris_cfg.preset))
         end
     end)
 end
@@ -3684,20 +3699,25 @@ local function wp_apply(path, how, started, hex, quiet)
     -- `src`: the picture awww is given: the wallpaper itself, or a video's poster (made first, once)
     wpv.src(path, function(src)
         if not src then return end
-        local function by_awww()
-            local args = { "img", src }
-            for _, a in ipairs(how or { "--transition-type", "fade", "--transition-duration", "0.8" }) do args[#args + 1] = a end
-            run("awww", args, function()
-                if not quiet then wpv.settle(path) end
-                if started then started() end     -- `started`: awww has the picture, the change is under way
-            end)
+        -- `pic`: what awww is given: `src`, or the picture the add-on that frames wallpapers made of it (a quick try from the cards is never sent: it can take seconds)
+        local function show(pic)
+            local function by_awww()
+                local args = { "img", pic }
+                for _, a in ipairs(how or { "--transition-type", "fade", "--transition-duration", "0.8" }) do args[#args + 1] = a end
+                run("awww", args, function()
+                    if not quiet then wpv.settle(path) end
+                    if started then started() end     -- `started`: awww has the picture, the change is under way
+                end)
+            end
+            if hex then
+                -- the video (or the stop of the one playing) waits for the end of the dissolve: see `check_wallpaper`
+                wp_hex(pic, hex.x, hex.y, function() wpv.next = { path }; if started then started() end end, by_awww)
+            else
+                by_awww()
+            end
         end
-        if hex then
-            -- the video (or the stop of the one playing) waits for the end of the dissolve: see `check_wallpaper`
-            wp_hex(src, hex.x, hex.y, function() wpv.next = { path }; if started then started() end end, by_awww)
-        else
-            by_awww()
-        end
+        -- (a request an add-on is still working on when a newer one comes is dropped, and says `started` so whoever waits for it is not left waiting)
+        if quiet or not wph.frame then show(src) else wph.frame(path, src, show, function() if started then started() end end) end
         if quiet then return end
         wp_on_change(path)
         -- The path is known: Iris starts now, while the fade plays, not when the watcher next notices the
@@ -6641,6 +6661,9 @@ require("logic/visualizer")()
 
 -- add-ons people write (Settings > Widgets > Add-ons): see logic/addons.luau
 require("logic/addons")()
+
+-- the wallpaper hook for the add-on that frames wallpapers: see logic/wallpaper_hook.luau
+require("logic/wallpaper_hook")(wp_apply, function() return wp_cur end)
 
 -- how big a notification is (Settings > Notifications): see logic/notif_size.luau
 require("logic/notif_size")()

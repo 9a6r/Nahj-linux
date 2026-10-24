@@ -64,18 +64,20 @@ return function()
         if (tonumber(fact.ax_cur) or -1) >= 0 and not (cur and cur.drawer) then
             fact.ax_cur = -1
             fact.ax_open = false
+            after(150, push_slot)         -- (a fact the logic sets itself does not fire `on("fact:…")`: the add-on is told here)
         end
     end
     local function pin_go(i)
         local a = pins[i + 1]
         if not a then return end
         if a.drawer then
-            if fact.ax_open == true and tonumber(fact.ax_cur) == i then fact.ax_open = false; return end
+            if fact.ax_open == true and tonumber(fact.ax_cur) == i then fact.ax_open = false; after(150, push_slot); return end
             local sz = sizes[a.id]
             fact.ax_w, fact.ax_h = (sz and sz.w or a.drawer.width), (sz and sz.h or a.drawer.height)       -- (before `ax_cur`: the content's place is worked out when that changes)
             text.ax_title = a.name
             fact.ax_cur = i
             fact.ax_open = true
+            after(150, push_slot)         -- (as above: it is the logic that set them)
         else
             winopen[a.id] = not winopen[a.id]
             say_one(a.sock, { "fact slot_open " .. tostring(winopen[a.id] == true) })
@@ -195,6 +197,7 @@ return function()
                 a.version = type(a.version) == "string" and a.version or ""
                 a.drawer = type(a.drawer) == "table" and a.drawer or nil
                 a.icon = type(a.icon) == "string" and a.icon or nil
+                a.wallpaper = type(a.wallpaper) == "table" and a.wallpaper or nil
                 out[#out + 1] = a
             end
         end
@@ -203,6 +206,17 @@ return function()
         folder = type(f.folder) == "string" and f.folder or ""
         template = type(f.template) == "string" and f.template or ""
         return true
+    end
+
+    -- The add-on that frames wallpapers (`[wallpaper] frames = true` in its addon.toml): the first that is on and running, by its socket; nil when there is none
+    -- (logic/wallpaper_hook.luau asks this before every wallpaper it sets).
+    function addon_framer()
+        for _, a in ipairs(list) do
+            if enabled[a.id] and a.wallpaper and a.wallpaper.frames == true then
+                for _, sk in ipairs(addon_scenes) do if sk == a.sock then return a.sock end end
+            end
+        end
+        return nil
     end
 
     local function refresh(first)

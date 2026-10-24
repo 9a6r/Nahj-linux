@@ -177,8 +177,14 @@ behind a button that says so. The shell tells an add-on the forecast as `wx_*` t
 own `wx_*` or they would be overwritten (the News & Weather one uses `nw_*`). Give the scene file a name of its own: two add-ons whose scene files share a name cannot both run.
 
 **News & Weather** (`addons/news-weather/`, from jaslrobinson's drawer, issue #22) is a panel add-on built this way: an RSS/Atom reader and an Open-Meteo forecast (48-hour graphs, 16 days, saved places).
-To use it, run `./install.sh` once (it links `vitreus-feedfetch`), copy the folder to `~/.config/pleamar/vitreus-addons/news-weather/`, and turn it on in Settings > Add-ons; its icon
+To use it, run `./install.sh` once (it links `vitreus-feedfetch`) and turn it on in Settings > Add-ons (it ships with the shell, so it is listed there; a copy of the same name in `~/.config/pleamar/vitreus-addons/` wins over it); its icon
 appears on the add-on pill. Feeds and places are added from the clipboard, and the feed manager lists popular feeds to pick from.
+
+**Add-ons that frame wallpapers.** An add-on can declare `[wallpaper] frames = true` in its `addon.toml` (see `addons/_template_drawer/addon.toml`). Whenever Vitreus sets a wallpaper (a pick, Random, the slideshow, the picker; not a card's
+quick try) it first asks that add-on, the first one that is on, for the picture awww should show, and keeps the old wallpaper on screen while it waits (30 s, again from each `wph_busy`). The shell stays the only one that calls awww, and it
+remembers which wallpaper a made picture came from, so Iris and the gallery always read the real wallpaper, never the frame. The messages (`logic/wallpaper_hook.luau`): the shell sends `text wph_path`, `text wph_src` and `emit wph_frame <n>`
+(and `text wph_cur`, the wallpaper in use, when it changes and every 10 s); the add-on answers with `pleamar --say vitreus "text wph_out <path>"` and `"emit wph_done <n>"` (the made picture, or `wph_src` itself for none), `"emit wph_busy <n>"`
+while a slow render goes on, or `"emit wph_again"` to apply the current wallpaper again. Idea and first version: jaslrobinson (issue #26).
 
 ---
 
