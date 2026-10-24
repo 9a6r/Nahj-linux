@@ -2,7 +2,7 @@
 """hyprctl for niri: `hyprctl [-j] monitors | activewindow | clients | workspaces | dispatch ... | eval hl.monitor(...)`, answered from `niri msg --json` in Hyprland's words (the ones Vitreus reads:
 monitors with name, id, size, scale, transform, focused; the focused window; the windows as Hyprland's text lists them; the workspaces; and the dispatchers that focus, close and move a window). Anything else
 fails (exit 1), which is what a program asking hyprctl has to be ready for on a desktop that is not Hyprland. Reached through pleamar-wm/hyprctl."""
-import json, re, subprocess, sys
+import json, os, re, subprocess, sys
 
 def niri(*args):
     r = subprocess.run(["niri", "msg", "--json", *args], capture_output=True, text=True, timeout=5)
@@ -50,6 +50,68 @@ def windows():
     for n, w in enumerate(wins):
         ws = wss.get(w.get("workspace_id")) or {}
         out.append((n, w, ws))
+    return out
+
+def niri_numbers():
+    """(gap, struts) as niri has them: `gaps` from config.kdl, the struts as the last block says (the shell's vitreus.kdl is included after it)."""
+    gap, struts = 16.0, {"left": 0.0, "right": 0.0, "top": 0.0, "bottom": 0.0}
+    base = os.path.join(os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config"), "niri")
+    for name in ("config.kdl", "vitreus.kdl"):
+        try:
+            with open(os.path.join(base, name)) as f:
+                text = re.sub(r"//[^\n]*", "", f.read())
+        except OSError:
+            continue
+        m = re.search(r"^\s*gaps\s+([0-9.]+)", text, re.M)
+        if m:
+            gap = float(m.group(1))
+        for blk in re.finditer(r"struts\s*\{([^}]*)\}", text):
+            for side, v in re.findall(r"(left|right|top|bottom)\s+(-?[0-9.]+)", blk.group(1)):
+                struts[side] = float(v)
+    return gap, struts
+
+def geometry(wins, wss, mons):
+    """Where each tiled window is on its monitor, as {id: (x, y, w, h)}. niri's IPC gives sizes and the place in the columns but not the place on the screen, so it is worked out the way niri lays
+    columns out: from the strut and the gap, one column after another, a column's tiles one under another; and the view scrolled only as far as the column in focus needs to be seen (where it
+    has scrolled to is not told, so a long row of columns that was moved about can be off). Floating windows have no place to give."""
+    gap, st = niri_numbers()
+    size = {m["id"]: (m["width"] / (m["scale"] or 1), m["height"] / (m["scale"] or 1)) for m in mons}
+    mon_id = {m["name"]: m["id"] for m in mons}
+    out = {}
+    for ws in wss.values():
+        mid = mon_id.get(ws.get("output"))
+        if mid is None:
+            continue
+        mw, mh = size[mid]
+        cols = {}
+        for w in wins:
+            lay = w.get("layout") or {}
+            pos = lay.get("pos_in_scrolling_layout")
+            if w.get("workspace_id") == ws["id"] and pos and not w.get("is_floating"):
+                cols.setdefault(pos[0], []).append((pos[1], w))
+        x, edges = 0.0, {}
+        for c in sorted(cols):
+            width = max(w["layout"]["tile_size"][0] for _, w in cols[c])
+            edges[c] = (x, x + width)
+            x += width + gap
+        view = mw - st["left"] - st["right"] - 2 * gap
+        active = next((w for w in wins if w["id"] == ws.get("active_window_id")), None)
+        ac = ((active or {}).get("layout") or {}).get("pos_in_scrolling_layout")
+        off = 0.0
+        if ac and ac[0] in edges:
+            left, right = edges[ac[0]]
+            if right - off > view:
+                off = right - view
+            if left - off < 0:
+                off = left
+        for c, tiles in cols.items():
+            y = st["top"] + gap
+            for _, w in sorted(tiles, key=lambda t: t[0]):
+                tw, th = w["layout"]["tile_size"]
+                ww, wh = w["layout"]["window_size"]
+                ox, oy = w["layout"].get("window_offset_in_tile") or (0, 0)
+                out[w["id"]] = (round(st["left"] + gap + edges[c][0] - off + ox), round(y + oy), ww, wh)
+                y += th + gap
     return out
 
 def workspaces():
@@ -168,8 +230,15 @@ def main():
             print("\tfocusHistoryID: %d" % n)
             print()
         if as_json:
-            print(json.dumps([{"address": "0x" + addr(w), "mapped": True, "title": w.get("title") or "", "class": w.get("app_id") or "", "pid": w.get("pid") or 0,
-                               "floating": bool(w.get("is_floating")), "workspace": {"id": ws.get("idx", 0), "name": str(ws.get("idx", 0))}, "focusHistoryID": n}
+            wins = niri("windows") or []
+            wss = {w["id"]: w for w in (niri("workspaces") or [])}
+            mons = monitors()
+            mon_id = {m["name"]: m["id"] for m in mons}
+            where = geometry(wins, wss, mons)
+            print(json.dumps([{"address": "0x" + addr(w), "mapped": True, "hidden": w["id"] not in where, "title": w.get("title") or "", "class": w.get("app_id") or "", "pid": w.get("pid") or 0,
+                               "floating": bool(w.get("is_floating")), "fullscreen": 0, "monitor": mon_id.get(ws.get("output"), 0),
+                               "at": list(where.get(w["id"], (0, 0, 0, 0))[:2]), "size": list(where.get(w["id"], (0, 0, 0, 0))[2:]),
+                               "workspace": {"id": ws.get("idx", 0), "name": str(ws.get("idx", 0))}, "focusHistoryID": n}
                               for n, w, ws in windows()]))
     else:
         sys.exit(1)
