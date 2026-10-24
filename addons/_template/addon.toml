@@ -14,5 +14,10 @@ description = "What it does, in one line"      # the line under the title (up to
 author      = "Your Name <you@example.com>"      # shown small, with the version, under the description
 version     = "0.1"
 
-# The scene to run, in this folder. Leave it out and it is <id>.plm.
+# Optional: an icon on the add-on pill (the pill of icons in the corner the app dock is not in; an .svg or .png in this folder, about 24 px, one colour). Its click
+# flips `slot_open` in the scene (declare `fact slot_open = false`), so the add-on can show and hide its window. Take the # off to use it.
+# icon = "icon.svg"
+
+# The scene to run, in this folder (leave it out and it is <id>.plm). Rename addon.plm to something of your own (your id is a good name) and
+# put it here: two add-ons whose scene files have the same name cannot both run.
 scene = "addon.plm"

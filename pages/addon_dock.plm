@@ -1,0 +1,40 @@
+part AddonDock {
+    //  The add-on pill's icons (the glass is in bar_shapes.plm, `adk.*` in vitreus.plm): the corner dock's twin, in the corner the dock is not in. Pulled like the dock, and
+    //  the two swap when the one pulled crosses the middle of the screen. A click on an icon (let go without having been pulled) is `adk_go` (logic/addons.luau).
+    zone box adk_bg { at: adk.rcx, adk.rcy; size: adk.L, cdk.t; cursor: pointer; active: adk.g > 0.6; label: "Add-ons" }
+    on press adk_bg { adk_down = 1; adk_drag = 0; adk_hx = pointer.x - adk.rcx; adk_hy = pointer.y - adk.rcy }
+    on drag adk_bg while adk_down > 0.5 { adk_px = clamp(pointer.x - adk_hx, 0, screen.width); adk_py = clamp(pointer.y - adk_hy, 0, screen.height); adk_drag = if(adk_drag > 0.5 or abs(drag.dx) + abs(drag.dy) > 8, 1, 0) }
+    on release adk_bg while adk_down > 0.5 { cdk_corner = if(adk_drag > 0.5, 1 - adk.pick, cdk_corner); adk_down = 0; adk_drag = 0 }
+    group {
+        glow: 2.4 * bu, 110%, deep
+        row adk_row {
+            at: floor(mix(pick(screen.index, adk_cx.0, adk_cx.1) - adk.L / 2 + 7 * bu, screen.width - (pick(screen.index, adk_cx.0, adk_cx.1) - adk.L / 2 + 7 * bu) - (adk.L - 14 * bu), rt) + 0.5), floor(mix(pick(screen.index, adk_cy.0, adk_cy.1) - cdk.s / 2, yo + vb - pick(screen.index, adk_cy.0, adk_cy.1) - cdk.s / 2, bt) + 0.5)
+            gap: floor(6 * bu + 0.5)
+            show: adk.g > 0.02
+            opacity: clamp(adk.g * 2 - 1, 0, 1)
+            for t in adk_pins { AdkIcon(t) }
+        }
+    }
+
+    //  The add-on drawer's title bar, the shell's part of the panel (the add-on draws below it): the add-on's name, a grip to pull the panel by (as the Desk's: it
+    //  comes away from the pill and stays where it is let go, and goes back if let go near its place) and the X that shuts it. Drawn in screen coordinates.
+    group {
+        show: ax_open and axo > 0.5 and dax0 > 0.3
+        opacity: clamp(dax0 * 2 - 1, 0, 1)
+        let axb.cx = mix(dax.ex, screen.width - dax.ex, rt)
+        let axb.top = mix(dax.ey, yo + vb - dax.ey, bt) - dax.eh / 2
+        let axb.y = axb.top + 20
+        group { scale: rs; pivot: floor(axb.cx - dax.ew / 2 + 18 + 0.5), floor(axb.y + 0.5); text ax_title { at: floor(axb.cx - dax.ew / 2 + 18 + 0.5), floor(axb.y + 0.5); anchor: left center; size: 17; weight: 700; width: (dax.ew - 90) / rs; lines: 1; color: ink; family: "Space Grotesk" } }
+        box { at: axb.cx, axb.top + 7; size: 34, 4; corner: 2; color: ink; opacity: 20% + 35% * max(ax_grip.hover, if(ax_hold, 1, 0)) }
+        zone box ax_grip { at: if(ax_hold, ax_hx, axb.cx - 20), if(ax_hold, ax_hy, axb.y); size: dax.ew - 74, 34; cursor: pointer; label: "Move the add-on panel" }
+        on press ax_grip { ax_hold = true; ax_bx = ax_gx; ax_by = ax_gy; ax_hx = pointer.x; ax_hy = pointer.y }
+        on drag ax_grip while ax_hold { ax_gx = clamp(ax_bx + drag.dx * (1 - 2 * rt), axs.xmin, axs.xmax); ax_gy = clamp(ax_by + drag.dy * (1 - 2 * bt), axs.ymin, axs.ymax) }
+        on release ax_grip while length(ax_gx, ax_gy) < 60 { ax_gx = 0; ax_gy = 0 }
+        on release ax_grip { ax_hold = false }
+        ellipse { at: axb.cx + dax.ew / 2 - 24, axb.y; radius: 13; color: ink; opacity: 8% + 12% * ax_x_z.hover }
+        path { at: axb.cx + dax.ew / 2 - 24, axb.y; stroke: 1.5; color: ink; opacity: 70% + 30% * ax_x_z.hover; move -3.4, -3.4; line 3.4, 3.4 }
+        path { at: axb.cx + dax.ew / 2 - 24, axb.y; stroke: 1.5; color: ink; opacity: 70% + 30% * ax_x_z.hover; move 3.4, -3.4; line -3.4, 3.4 }
+        zone box ax_x_z { at: axb.cx + dax.ew / 2 - 24, axb.y; size: 28, 28; cursor: pointer; label: "Close the add-on panel" }
+        on press ax_x_z { ax_open = false }
+    }
+}

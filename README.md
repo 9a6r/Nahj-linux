@@ -158,7 +158,14 @@ again if it stops. It lives in its own folder, outside Vitreus's, so updating Vi
    dashes) and change `addon.toml` and the scene it names.
 2. Open **Settings > Add-ons**: your add-on is a card there, with the title and description from `addon.toml` and its own switch. Turn it on.
 
-An add-on is not sandboxed: its scene declares the programs it runs and the services it reads in its own `permissions`, and turning it on lets it
+An add-on with an `icon` in its `addon.toml` (an `.svg` or `.png` in its folder) gets that icon on the **add-on pill**: a pill of icons, like the corner dock, in the corner the dock
+is not in. Pull either pill across the middle of the screen and the two swap corners. For an add-on that shows a panel, copy `addons/_template_drawer/` instead: its `addon.toml` has a
+`[drawer]` section (a size in pixels, or 0 for about the control centre's), and a click on its icon opens a panel out of the pill, in the same glass as the shell's own. The shell draws
+the panel's title bar (the add-on's name, a grip and an X); your scene draws what is below it, in the place the shell tells it (`slot_x`, `slot_y`, `slot_w`, `slot_h`, `slot_open`). Like the
+Desk, the panel stays until its X (or its icon) shuts it, and it can be pulled away from the pill and left anywhere. An add-on with an icon and no `[drawer]` gets a button that flips
+`slot_open`, so it can show and hide its own window. A panel cannot take text yet, and shows on one monitor. A key can open the first panel with `pleamar --say vitreus "emit ax_toggle"`.
+
+While it runs, Vitreus tells it, as facts and texts of its scene, the palette (so a theme restyles it at once), the room the bar takes, the theme's shape and the forecast; the template declares them all and says what each is. An add-on is not sandboxed: its scene declares the programs it runs and the services it reads in its own `permissions`, and turning it on lets it
 have them, so read someone else's before you do. A folder that cannot be read is named in the line under the rows and left out. `bin/vitreus-addons`
 reads the folders and leaves `addons.json` in the data folder; which are on is kept in `addons-state.json` there.
 

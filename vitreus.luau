@@ -7,6 +7,7 @@ end)
 
 -- Workspaces only: what moves is moved by the renderer.
 ws_urgent = {}
+addon_scenes = {}                          -- the sockets of the running add-ons (logic/addons.luau), told the palette, the bar's room, the look and the weather
 sys.watch("workspaces", function(w)
     local busy = {}
     for _, d in ipairs(w.list) do busy[d.id] = d.windows > 0 end
@@ -2657,7 +2658,9 @@ function iris_fx.push_pal(pal)
         facts[#facts + 1] = string.format("fact pal_%s_b %.4f", k, b)
     end
     -- (the desktop editor, desktopedit/, reads them the same way)
-    for _, scene in ipairs({ "desktopclock", "desktopedit", "desktopcards" }) do
+    local scenes = { "desktopclock", "desktopedit", "desktopcards" }
+    for _, sk in ipairs(addon_scenes or {}) do scenes[#scenes + 1] = sk end
+    for _, scene in ipairs(scenes) do
         local args = { "--say", scene }
         for _, f in ipairs(facts) do args[#args + 1] = f end
         run("pleamar", args, function() end)
@@ -2674,7 +2677,9 @@ function iris_fx.push_room()
     local r = { 0, 0, 0, 0 }
     if fact.bar_frame == true then r = iris_fx.rooms[(fact.bar_seg == true) and "seg" or fact.bar_anchor] or r
     elseif fact.bar_anchor == "top" then r = { 56, 0, 0, 0 } end
-    for _, scene in ipairs({ "desktopclock", "desktopsysmon", "desktopcards", "desktopedit" }) do
+    local scenes = { "desktopclock", "desktopsysmon", "desktopcards", "desktopedit" }
+    for _, sk in ipairs(addon_scenes or {}) do scenes[#scenes + 1] = sk end
+    for _, scene in ipairs(scenes) do
         run("pleamar", { "--say", scene, "fact room_t " .. r[1], "fact room_r " .. r[2], "fact room_b " .. r[3], "fact room_l " .. r[4] }, function() end)
     end
 end
@@ -3073,12 +3078,14 @@ do
     -- The desktop clock and system monitor draw themselves as plastic with Retro and UwU: they are told the theme (0 Glass, 1 Retro, 2 UwU).
     local function push_look()
         local v = iris_cfg.look == iris_fx.CASSETTE and 1 or iris_cfg.look == iris_fx.UWU and 2 or iris_cfg.look == iris_fx.CYBER and 3 or iris_cfg.look == iris_fx.MILK and 4 or 0
+        addon_look = v
         run("pleamar", { "--say", "desktopclock", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopsysmon", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopcards", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopnotes", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "files", "fact look " .. v }, function() end)
-        run("pleamar", { "--say", "cursortrail", "fact look " .. v }, function() end)      -- the sparkle trail behind the mouse: UwU only
+        run("pleamar", { "--say", "cursortrail", "fact look " .. v }, function() end)
+        for _, sk in ipairs(addon_scenes or {}) do run("pleamar", { "--say", sk, "fact look " .. v }, function() end) end      -- the sparkle trail behind the mouse: UwU only
     end
     local function show()
         push_look()
@@ -4855,6 +4862,7 @@ local function wx_show(w)
     end
     model.wx_days = rows
     fact.wx_ok = true
+    if addon_push_wx then addon_push_wx() end
     return true
 end
 

@@ -270,6 +270,17 @@ scene Vitreus {
     fact cdk_py = 0
     fact cdk_hx = 0                                      // where in the pill it was taken hold of
     fact cdk_hy = 0
+    //  The add-on pill: the corner dock's twin, in the other corner, with an icon for each add-on that gave one (logic/addons.luau). It is pulled like the dock, and the
+    //  two swap corners as soon as the one pulled crosses the middle of the screen. Its corner is always the one the dock is not in, so there is no setting of its own.
+    model adk_pins max 12 { icon: image 32, 32; name: text }
+    fact adk_down = 0
+    fact adk_hot = 0
+    fact adk_drag = 0
+    fact adk_px = 0
+    fact adk_py = 0
+    fact adk_hx = 0
+    fact adk_hy = 0
+    event adk_go ->                 // an add-on's icon, by place: a click (let go without having been pulled)
     //  One entry of a tray app's menu, flattened: an open submenu is followed by its own entries, `depth` deeper.
     model tray_menu max 40 { label: text; enabled: bool; sep: bool; checked: bool; kids: bool; open: bool; depth: number }
     //  The tray menu panel (it hangs from the window title, like the player's) is about one app.
@@ -1065,6 +1076,7 @@ scene Vitreus {
     prop ds    = 0 ~drip          // the settings panel
     prop fs    = 0 ~300ms         // what is in it, fading in
     prop dl    = 0 ~drip          // the launcher
+    prop dax   = 0 ~drip          // the add-on drawer
     //  The Settings gear and the Search squares (settings_panel.plm, the launcher below): a click round for each page / kind of search. Their pencil lines are redrawn
     //  about eight times a second for as long as the panel is out, which keeps the scene's clock running (`need_clock`).
     fact gr_n = 0
@@ -1129,6 +1141,7 @@ scene Vitreus {
     follow dz   = if(desk_open, 1, 0)
     follow ds   = if(panel == settings, 1, 0)
     follow dl   = if(panel == launch, 1, 0)
+    follow dax  = if(ax_open, 1, 0)
     follow pq.dc = if(panel == calendar, 1, 0)
     follow pq.dk = if(panel == controls, 1, 0)
     follow pq.dm = if(panel == player or panel == tray, 1, 0)
@@ -1456,6 +1469,23 @@ scene Vitreus {
     prop cdk_ay.1 = 0 ~calm
     prop cdk_ay.2 = 0 ~calm
     prop cdk_ay.3 = 0 ~calm
+    prop adk_ga = 0 ~calm             // how far out the add-on pill is (0 while it holds nothing)
+    prop adk_cx.0 = 0 ~cdk_sp
+    prop adk_cx.1 = 0 ~cdk_sp
+    prop adk_cx.2 = 0 ~cdk_sp
+    prop adk_cx.3 = 0 ~cdk_sp
+    prop adk_cy.0 = 0 ~cdk_sp
+    prop adk_cy.1 = 0 ~cdk_sp
+    prop adk_cy.2 = 0 ~cdk_sp
+    prop adk_cy.3 = 0 ~cdk_sp
+    prop adk_ax.0 = 0 ~calm
+    prop adk_ax.1 = 0 ~calm
+    prop adk_ax.2 = 0 ~calm
+    prop adk_ax.3 = 0 ~calm
+    prop adk_ay.0 = 0 ~calm
+    prop adk_ay.1 = 0 ~calm
+    prop adk_ay.2 = 0 ~calm
+    prop adk_ay.3 = 0 ~calm
     prop trn = 0 ~calm                // how many tray icons the bar holds, smoothly: the bar widens with it
     prop disp_auto_pill = 0 ~pop
     prop snd_pill = 0 ~pop
@@ -1502,6 +1532,7 @@ scene Vitreus {
     follow bs.tray = if(bv.tray, 1, 0)
     follow trn = bartrays.count
     follow cdk_ga = if(cdk_on and cdk_pins.count > 0, 1, 0)
+    follow adk_ga = if(adk_pins.count > 0, 1, 0)
     follow rcn = if(rec_on, 1, 0)
     prop pvn = 0 ~calm                // the privacy lights' slots, the same way
     follow pvn = if(priv_mic, 1, 0) + if(priv_cam, 1, 0) + if(priv_scr and not rec_on, 1, 0)
@@ -3618,6 +3649,23 @@ scene Vitreus {
         on press right touch { emit cdk_unpin(t.index) }
     }
 
+    component AdkIcon(t: record) {
+        size: floor(24 * bu + 0.5), floor(24 * bu + 0.5)
+        box { at: 12 * bu, 12 * bu; size: 33 * bu, 33 * bu; corner: 10 * bu * (1 - 0.5 * sq); color: ink; opacity: 16% * touch.hover * (1 - adk_drag) }
+        group {
+            pivot: 12 * bu, 12 * bu
+            scale: 1 + 0.16 * touch.hover * (1 - adk_drag)
+            image t.icon { at: 0, 0; size: floor(24 * bu + 0.5), floor(24 * bu + 0.5); opacity: 88% + 12% * touch.hover }
+        }
+        zone box touch { at: 12 * bu, 12 * bu; size: 31 * bu, 33 * bu; cursor: pointer; active: adk.g > 0.6 }
+        on enter touch { adk_hot = 1 }
+        on leave touch { adk_hot = 0 }
+        on press touch { adk_down = 1; adk_drag = 0; adk_hx = pointer.x - adk.rcx; adk_hy = pointer.y - adk.rcy }
+        on drag touch while adk_down > 0.5 { adk_px = clamp(pointer.x - adk_hx, 0, screen.width); adk_py = clamp(pointer.y - adk_hy, 0, screen.height); adk_drag = if(adk_drag > 0.5 or abs(drag.dx) + abs(drag.dy) > 8, 1, 0) }
+        on release touch while adk_down > 0.5 and adk_drag < 0.5 { ax_scr = screen.index; emit adk_go(t.index) }
+        on release touch while adk_down > 0.5 { cdk_corner = if(adk_drag > 0.5, 1 - adk.pick, cdk_corner); adk_down = 0; adk_drag = 0 }
+    }
+
     //  While a screen recording runs, a red dot rides the tray. Under the pointer it squares off into a stop button.
     //  A privacy light on the bar, while something uses the microphone (kind 0, amber), the camera (1, green) or shares the screen (2, blue):
     //  its icon on a soft glowing disc. Under the pointer, the apps doing it are named below it.
@@ -3848,13 +3896,41 @@ scene Vitreus {
     let vc = yo + vh / 2
     let ccx = mix(cx, (th.l + screen.width - th.r) / 2, fm)         // the middle of what can be seen: inside the frame
     let vcc = mix(vc, (yo + th.t + vb - th.b) / 2, fm)              // and the middle of it down the screen
-    let lmk = if(lp_k == 1 or lp_k == 2 or lp_k > 6, fm, lm)           // how far over the frame's layout the open panel is: the strip's own panels follow the strip, the ones out of a notch follow the frame
-    let att = if(lp_k == 3 or lp_k == 4 or lp_k == 5 or lp_k == 6 or lp_k > 6, 1, 0)           // the control center, the calendar, the player and tray, the volume and the notifications: they stay joined to the strip, and are not scaled
-    let rgt = if(lp_k > 6, 1, 0)                                    // the volume and the notifications come out of the right frame, not the strip, and grow leftwards
+    let lmk = if(lp_k == 1 or lp_k == 2 or (lp_k == 7 or lp_k == 8 or lp_k == 9), fm, lm)           // how far over the frame's layout the open panel is: the strip's own panels follow the strip, the ones out of a notch follow the frame
+    let att = if(lp_k == 3 or lp_k == 4 or lp_k == 5 or lp_k == 6 or (lp_k == 7 or lp_k == 8 or lp_k == 9), 1, 0)           // the control center, the calendar, the player and tray, the volume and the notifications: they stay joined to the strip, and are not scaled
+    let rgt = if((lp_k == 7 or lp_k == 8 or lp_k == 9), 1, 0)                                    // the volume and the notifications come out of the right frame, not the strip, and grow leftwards
     let edg = if(lp_k == 1 or lp_k == 2, 1, 0)                      // Settings rises out of the bottom frame's middle, the launcher lowers out of the top frame's: not from the strip
     let dsl = max(0, dtrav * 1.3 - 0.3)
     //  With the strip along the top the launcher comes out of the LEFT frame's notch (a side drawer, like the desk's on the right): `lside` is how far over that is,
     //  `dl.cL` where the middle of what it holds is then (6.5 in from the frame's inner edge, its contents 430 wide).
+    //  The add-on drawer: out of the add-on pill (the corner dock's twin, in the other corner), the glass drawn here and the content by the add-on's own scene, which is told
+    //  where to draw (`ax_r*`, below). `ax_cur` is the add-on in the pill that holds it (logic/addons.luau).
+    fact ax_cur = -1
+    fact ax_open = false                                   // the drawer is out: like the Desk it stays until its X (or its icon) shuts it, and no other panel closes it
+    fact ax_scr = 0                                        // the monitor it is on
+    fact ax_gx = 0                                         // pulled by its title bar: where it is being taken to (an offset from its place; in the glass's drawing)
+    fact ax_gy = 0
+    fact ax_bx = 0                                         // where it was when the bar was pressed
+    fact ax_by = 0
+    fact ax_hold = false                                   // its title bar is held
+    fact ax_hx = 0                                         // where on the screen it was taken hold of
+    fact ax_hy = 0
+    spring ax_sp = 300, 20
+    prop ax_ox = 0 ~ax_sp
+    prop ax_oy = 0 ~ax_sp
+    follow ax_ox = ax_gx
+    follow ax_oy = ax_gy
+    on change ax_open while not ax_open { ax_gx = 0; ax_gy = 0; ax_hold = false }
+    fact ax_on = false                                     // an add-on that asked for a drawer is on
+    fact ax_w = 0                                          // its size (0: about 40 % of the room wide, and all of its height; the manifest can say)
+    fact ax_h = 0
+    text ax_title = ""
+    fact ax_rx = 0                                         // where its content goes, once out: the middle and the size (the add-on is told when the drawer opens)
+    fact ax_ry = 0
+    fact ax_rw = 0
+    fact ax_rh = 0
+    event ax_toggle ->
+    //  Where the add-on's content goes, as the drawer settles: kept up to date for the logic, which tells the add-on when the drawer opens.
     let lside = if(lp_k == 2, tm * (1 - bt), 0)
     let lbot = if(lp_k == 2, tm * bt, 0)                    // along the bottom (flipped, so the top on screen) the launcher comes out of the bottom notch, as Settings does otherwise
     let ssd = if(lp_k == 1, tm * bt, 0)                     // and Settings out of the left one
@@ -4098,6 +4174,8 @@ scene Vitreus {
     let dz0 = max(0, dz) * pown
     let ds0 = max(0, ds) * pown
     let dl0 = max(0, dl) * pown
+    let axo = if(ax_scr == screen.index, 1, 0)             // this copy is the monitor the add-on drawer is on
+    let dax0 = max(0, dax) * axo
     //  The Retro's pixelation, only while a drawer opens or closes: the side of a square, from how far the drawer's spring and its slower twin (`pq.*`, below) are apart: none at rest, the biggest soon after it
     //  starts moving, and still there after it has arrived. `px.*` is each drawer's own (its contents: pixelate.wgsl), `pxa` the biggest, for the glass (wave.wgsl).
     let px.dc = cas_k * 16 * min(1, sqrt(2.4 * abs(clamp(dc, 0, 1) - pq.dc)))
@@ -4116,6 +4194,7 @@ scene Vitreus {
     let dk.tail = mix(1, clamp(dk0 * 16 - 0.1, 0, 1), sg)       // the three pieces: the controls' drawer shrinks away over its last few percent, instead of lingering as a nub under its piece
     let ds.bell = 4 * min(1, ds0) * (1 - min(1, ds0))
     let dl.bell = 4 * min(1, dl0) * (1 - min(1, dl0))
+    let dax.bell = 4 * min(1, dax0) * (1 - min(1, dax0))
     let dc.bell = 4 * min(1, dc0) * (1 - min(1, dc0))
     let do.bell = 4 * min(1, do0) * (1 - min(1, do0))
     let dz.bell = 4 * min(1, dz0) * (1 - min(1, dz0))
@@ -4301,7 +4380,7 @@ scene Vitreus {
     //  own coordinates (the contents are scaled about the middle of the screen).
     let lp.ty = if(lp_k == 1, mix(min(vc + 190 * u, vb - th.b - 24 * u - lp.hd / 2), vcc, ssd), mix(mix(max(vc - 210 * u, yo + th.t + 24 * u + lp.hd / 2), vcc, lside), vb - th.b - 24 * u - lp.hd / 2, lbot))
     let lp.yf = if(lp_k == 1 or lp_k == 2, lp.ty, if(lp_k == 3 or lp_k == 4, clamp(lp.btn, yo + lf.t + 24 * u + lp.hd / 2, vb - lf.t - lp.hd / 2), if(lp_k == 5 or lp_k == 6, clamp(lp.btn, yo + lf.t + 24 * u + lp.hd / 2, vb - lf.t - 24 * u - lp.hd / 2), if(lp_k == 7, vb - lf.t - 24 * u - lp.hd / 2, if(lp_k == 8, yo + lf.t + 24 * u + lp.hd / 2, vc)))))
-    let lp.sy0 = if(lp_k > 6, lp.yf, lp.btn)
+    let lp.sy0 = if((lp_k == 7 or lp_k == 8 or lp_k == 9), lp.yf, lp.btn)
     let lp.gy0 = if(att > 0.5, lp.yf, lp.btn)
     let lp.cy = lp.gy0 + (lp.yf - lp.gy0) * dsl
     //  The controls and the calendar can sit against the bottom frame, and melt into it; the others keep 24 off it.
@@ -4412,6 +4491,7 @@ scene Vitreus {
     let dl.eh = mix((bar.y + dl.hh - dl.top), dl.gh, fm)
     let dl.ex = mix(pcx, dl.gx, fm)
     let dl.ey = mix((dl.top + bar.y + dl.hh) / 2, lp.cy, fm)
+    //  The add-on drawer's box: out of its notch with the side drip (`lside`), growing as it travels, standing 24 off the frame.
     //  The volume's and the notifications' drawer has its own place, whatever else is open: out of the right frame, the volume low and the
     //  notification high (down the left); from the bar, as before (along the top). Its content hangs from `os.ck` and is centred on `os.px`.
     //  A notification's drawer at its size (`nt_size`), the volume's and a screenshot's always whole: the glass is made smaller here, from its top right corner (the
@@ -4572,6 +4652,7 @@ scene Vitreus {
     zone box ntn_b { at: mix(ccx, screen.width - ccx, rt), mix(vb - (th.b + nt_d) / 2, yo + (th.b + nt_d) / 2, bt); size: nt_w, th.b + nt_d; cursor: pointer; active: fm > 0.5 and nt_vis_b.$screen > 0.5 }
     zone box ntz_l { at: (th.l + 6 * cu) / 2, mix(vcc, yo + vb - vcc, bt); size: th.l + 6 * cu, nt_w + 24 * cu; active: sb > 0.5 and tm > 0.5 }
     zone box ntn_l { at: (th.l + nt_d) / 2, mix(vcc, yo + vb - vcc, bt); size: th.l + nt_d, nt_w; cursor: pointer; active: tm > 0.5 and nt_vis_l.$screen > 0.5 }
+    zone box ax_body { at: mix(dax.ex, screen.width - dax.ex, rt), mix(dax.ey, yo + vb - dax.ey, bt); size: dax.ew, dax.eh; active: ax_open and axo > 0.5 }
     zone box ntp_t { at: mix(dl.ex, screen.width - dl.ex, rt), mix(dl.ey, yo + vb - dl.ey, bt); size: dl.ew + 8, dl.eh + 8; active: fm > 0.5 and panel == launch }
     zone box ntp_b { at: mix(ds.ex, screen.width - ds.ex, rt), mix(ds.ey, yo + vb - ds.ey, bt); size: ds.ew + 8, ds.eh + 8; active: fm > 0.5 and panel == settings }
     prop nt_vis_t.0 = 0 ~calm                                // how far the tab is out
@@ -4616,14 +4697,19 @@ scene Vitreus {
     let cdk.yt = yo + th.t * fm
     let cdk.xe = screen.width - th.r * fm
     let cdk.xs = th.l * fm
-    let cdk.sr = if(lm > 0.5, 1, cdk_corner)                       // against the right edge (1) or the left (0)
-    let cdk.sb = if(lm > 0.5, cdk_corner, 1)                       // against the bottom (1) or the top (0)
+    let adk.g = adk_ga * sb
+    //  The corner nearer the pill's middle (not the pointer: it may have taken hold of the pill by one end), when it is let go (in the glass's drawing: down the right edge the two are the top and the bottom, otherwise the left and the right).
+    let cdk.pick = if(lm > 0.5, if(mix(cdk_py, yo + vb - cdk_py, bt) > vc, 1, 0), if(mix(cdk_px, screen.width - cdk_px, rt) > screen.width / 2, 1, 0))
+    let adk.pick = if(lm > 0.5, if(mix(adk_py, yo + vb - adk_py, bt) > vc, 1, 0), if(mix(adk_px, screen.width - adk_px, rt) > screen.width / 2, 1, 0))
+    //  Where each rests: the other is in the opposite corner, and it goes there as soon as the one pulled is nearer the far one (the swap).
+    let cdk.cor = if(adk_drag > 0.5, 1 - adk.pick, cdk_corner)
+    let adk.cor = if(cdk_drag > 0.5, 1 - cdk.pick, 1 - cdk_corner)
+    let cdk.sr = if(lm > 0.5, 1, cdk.cor)                       // against the right edge (1) or the left (0)
+    let cdk.sb = if(lm > 0.5, cdk.cor, 1)                       // against the bottom (1) or the top (0)
     let cdk.restx = mix(cdk.xs + cdk.L / 2, cdk.xe - cdk.L / 2, cdk.sr)
     let cdk.resty = mix(cdk.yt + cdk.t / 2, cdk.ye - cdk.t / 2, cdk.sb)
     let cdk.rcx = mix(pick(screen.index, cdk_cx.0, cdk_cx.1), screen.width - pick(screen.index, cdk_cx.0, cdk_cx.1), rt)           // where its middle is on the screen
     let cdk.rcy = mix(pick(screen.index, cdk_cy.0, cdk_cy.1), yo + vb - pick(screen.index, cdk_cy.0, cdk_cy.1), bt)
-    //  The corner nearer the pill's middle (not the pointer: it may have taken hold of the pill by one end), when it is let go (in the glass's drawing: down the right edge the two are the top and the bottom, otherwise the left and the right).
-    let cdk.pick = if(lm > 0.5, if(mix(cdk_py, yo + vb - cdk_py, bt) > vc, 1, 0), if(mix(cdk_px, screen.width - cdk_px, rt) > screen.width / 2, 1, 0))
     follow cdk_cx.$screen = if(cdk_drag > 0.5, mix(cdk_px, screen.width - cdk_px, rt), cdk.restx)
     follow cdk_cy.$screen = if(cdk_drag > 0.5, mix(cdk_py, yo + vb - cdk_py, bt), cdk.resty)
     follow cdk_ax.$screen = if(cdk_drag > 0.5, 0, cdk.sr * 2 - 1)
@@ -4633,6 +4719,59 @@ scene Vitreus {
     let cdk.bw = cdk.L * cdk.g + cdk.r * abs(pick(screen.index, cdk_ax.0, cdk_ax.1))
     let cdk.bh = cdk.t + cdk.r * abs(pick(screen.index, cdk_ay.0, cdk_ay.1))
     let cdk.cr = min(cdk.t / 2, rc)
+    let adk.L = adk_pins.count * cdk.p + 8 * bu
+    let adk.sr = if(lm > 0.5, 1, adk.cor)
+    let adk.sb = if(lm > 0.5, adk.cor, 1)
+    let adk.restx = mix(cdk.xs + adk.L / 2, cdk.xe - adk.L / 2, adk.sr)
+    let adk.resty = mix(cdk.yt + cdk.t / 2, cdk.ye - cdk.t / 2, adk.sb)
+    let adk.rcx = mix(pick(screen.index, adk_cx.0, adk_cx.1), screen.width - pick(screen.index, adk_cx.0, adk_cx.1), rt)
+    let adk.rcy = mix(pick(screen.index, adk_cy.0, adk_cy.1), yo + vb - pick(screen.index, adk_cy.0, adk_cy.1), bt)
+    follow adk_cx.$screen = if(adk_drag > 0.5, mix(adk_px, screen.width - adk_px, rt), adk.restx)
+    follow adk_cy.$screen = if(adk_drag > 0.5, mix(adk_py, yo + vb - adk_py, bt), adk.resty)
+    follow adk_ax.$screen = if(adk_drag > 0.5, 0, adk.sr * 2 - 1)
+    follow adk_ay.$screen = if(adk_drag > 0.5, 0, adk.sb * 2 - 1)
+    let adk.bx = pick(screen.index, adk_cx.0, adk_cx.1) + pick(screen.index, adk_ax.0, adk_ax.1) * cdk.r / 2
+    let adk.by = pick(screen.index, adk_cy.0, adk_cy.1) + pick(screen.index, adk_ay.0, adk_ay.1) * cdk.r / 2
+    let adk.bw = adk.L * adk.g + cdk.r * abs(pick(screen.index, adk_ax.0, adk_ax.1))
+    let adk.bh = cdk.t + cdk.r * abs(pick(screen.index, adk_ay.0, adk_ay.1))
+    //  The add-on drawer (`ax_open`): out of the add-on pill, standing in its corner, as wide and tall as the add-on asked, against the frame and on the pill. It grows from the pill as it opens.
+    let axs.x0 = cdk.xs                                    // flush with the frame, as the Desk is: it is part of it until it is pulled away
+    let axs.x1 = cdk.xe
+    let axs.w = clamp(if(ax_w > 0, ax_w, 300 * cu), 240, max(240, axs.x1 - axs.x0))
+    let axs.y0 = mix(yo + max(th.ts, sg.hc * sg) + 24 * u, cdk.yt, 1 - adk.sb)
+    let axs.y1 = mix(vb - th.b - 24 * u, cdk.ye, adk.sb)
+    let axs.h = clamp(if(ax_h > 0, ax_h, 280 * cu), 160, max(160, axs.y1 - axs.y0))
+    let axs.fx = mix(axs.x0 + axs.w / 2, axs.x1 - axs.w / 2, adk.sr)
+    let axs.fy = mix(axs.y0 + axs.h / 2, axs.y1 - axs.h / 2, adk.sb)
+    let dax.lf = min(1, dax0 * 1.6) + max(0, dax0 - 1) * 0.6
+    let dax.ew = max(0.1, axs.w * dax.lf)
+    let dax.eh = max(0.1, axs.h * dax.lf)
+    let dax.ex = mix(adk.restx, axs.fx, dax.lf) + ax_ox * dax.lf
+    let dax.ey = mix(adk.resty, axs.fy, dax.lf) + ax_oy * dax.lf
+    //  Like the control centre and the Desk, it is one piece with a frame it stands against: wherever one of its edges is within a hand of the frame's, the glass runs on into the
+    //  frame (`dax.bl`, `dax.br`, `dax.bt`, `dax.bb`) so the two melt and the join is a fillet. It lets go of the frame as it is pulled away, and takes hold of another it comes to.
+    let axs.top = yo + mix(th.t, sg.hc, sg) * fm              // the top of the room: the frame, or the bottom of the pieces that hang from it
+    let dax.nl = clamp(1 - (dax.ex - dax.ew / 2 - cdk.xs) / (30 * u), 0, 1)
+    let dax.nr = clamp(1 - (cdk.xe - dax.ex - dax.ew / 2) / (30 * u), 0, 1)
+    let dax.nt = clamp(1 - (dax.ey - dax.eh / 2 - axs.top) / (30 * u), 0, 1)
+    let dax.nb = clamp(1 - (cdk.ye - dax.ey - dax.eh / 2) / (30 * u), 0, 1)
+    let dax.k = 14 * u * min(1, dax0 * 3)
+    let dax.bl = dax.k * dax.nl
+    let dax.br = dax.k * dax.nr
+    let dax.bt = dax.k * dax.nt
+    let dax.bb = dax.k * dax.nb
+    let axs.hh = 40                                        // the shell's title bar across the top of the panel (title, grip, X): the content is below it
+    let axs.rt = axs.hh + cdk.t * (1 - adk.sb)             // what the content leaves free: the title bar, and the pill's strip when the pill is at the top
+    let axs.rb = cdk.t * adk.sb                            // ... and the pill's strip along the bottom (the pill is in the panel's corner, its icons showing)
+    //  How far it may be pulled (offsets from its place, in the glass's drawing): anywhere inside the frame, right up against it, as the Desk can be.
+    let axs.xmin = cdk.xs - (axs.fx - axs.w / 2)
+    let axs.xmax = cdk.xe - (axs.fx + axs.w / 2)
+    let axs.ymin = axs.top - (axs.fy - axs.h / 2)
+    let axs.ymax = cdk.ye - (axs.fy + axs.h / 2)
+    //  Where the add-on's content goes, as it settles, on the screen (the glass is drawn unmirrored; the screen is not): kept for the logic, which tells the add-on.
+    on change ax_open { ax_rx = mix(axs.fx + ax_gx, screen.width - (axs.fx + ax_gx), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w; ax_rh = axs.h - axs.rt - axs.rb }
+    on change ax_cur { ax_rx = mix(axs.fx + ax_gx, screen.width - (axs.fx + ax_gx), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w; ax_rh = axs.h - axs.rt - axs.rb }
+    on change ax_hold { ax_rx = mix(axs.fx + ax_gx, screen.width - (axs.fx + ax_gx), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w; ax_rh = axs.h - axs.rt - axs.rb }
     //  The right notch opens the desk: a panel out of the right frame with a few small tools, in tabs. It is not one of the values of `panel`, so it
     //  stays open while the calendar, the controls, the volume or a notification come and go. It is drawn like the volume's and the title panel's
     //  drawers (`dz.*`: the same springs and shape) but with its own geometry, which does not depend on whichever of those is out.
@@ -5797,6 +5936,7 @@ scene Vitreus {
 
     }
     include "pages/corner_dock.plm"
+    include "pages/addon_dock.plm"
     include "pages/panel_frame.plm"
     include "pages/controls_drawer.plm"
     include "pages/player.plm"
