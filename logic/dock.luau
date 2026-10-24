@@ -11,11 +11,14 @@ return function()
     local function save()
         pcall(sys.call, "files.write", "dock-pins.json", { pins = pins, corner = (fact.cdk_corner == 1 or fact.cdk_corner == true) and 1 or 0, on = shown })
     end
+    local was = false                 -- whether the dock was out at the last `render`, for the room the windows keep clear of it (`dock_fx`, vitreus.luau)
     local function render()
         local rows = {}
         for i, p in ipairs(pins) do rows[i] = { icon = p.icon or "" } end
         model.cdk_pins = rows
         fact.cdk_on = shown
+        local out = shown and #pins > 0
+        if out ~= was then was = out; dock_fx.c = out; dock_fx.changed() end
     end
     local function clean_exec(e)
         e = (e or ""):gsub("%%%%", "\1"):gsub("%%[fFuUdDnNickvm]", ""):gsub("\1", "%%")
@@ -69,8 +72,8 @@ return function()
         table.remove(pins, n)
         save(); render()
     end)
-    on("fact:cdk_corner", function() save() end)
-    on("fact:cdk_on", function(v) local b = v == true or v == 1; if b ~= shown then shown = b; save() end end)
+    on("fact:cdk_corner", function() save(); if dock_fx then dock_fx.changed() end end)
+    on("fact:cdk_on", function(v) local b = v == true or v == 1; if b ~= shown then shown = b; save(); render() end end)
 
     -- An icon theme change or an app that came later: refresh the pins' icons from what the apps service says.
     sys.watch("apps", function(list)

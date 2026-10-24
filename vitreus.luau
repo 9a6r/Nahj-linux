@@ -2741,6 +2741,40 @@ end
 -- What Hyprland is told: the window borders from the palette, and, with the bar down the left (bar_fx.left), the room the strip and the frame
 -- take round the windows (gaps_out: the layer's own reserved zone is not moved when the surface changes edge). It is sent at once and kept in
 -- vitreus_colors.lua, which hyprland.lua loads last (the installer adds the line). Up on the top, the gaps go back to what they were (bar_fx.orig, read once).
+-- Which docks are out (set by logic/dock.luau and logic/addons.luau): the windows keep clear of them (`wm_frame_sync`).
+dock_fx = { c = false, a = false }
+-- The corner dock and the add-on pill stand over the windows' area, against the edge opposite the bar (the bottom for the Island and the top frame, the top for the
+-- bottom frame; down a side strip they are in the two corners of the far edge: `cdk_corner` is the dock's, the add-on pill has the other). While one is out, that edge
+-- keeps the room for it: how far from the screen's edge the windows start, in pixels: the frame's 8 * u, the pill's height (`cdk.t`, 34 * bu, bu being 1.35 at the bar's size)
+-- and a few pixels. `room()` is `{ top = n, bottom = n }` for the edges that need it.
+function dock_fx.room()
+    local r = {}
+    local c, a = dock_fx.c, dock_fx.a
+    if not (c or a) then return r end
+    local anchor = fact.bar_anchor
+    local px = math.floor(1.35 * 8 + 34 * 1.35 * (bar_fx and bar_fx.size or 1) + 6 + 0.5)
+    if anchor == "left" or anchor == "right" then
+        local bottom = fact.cdk_corner == 1 or fact.cdk_corner == true
+        if (c and bottom) or (a and not bottom) then r.bottom = px end
+        if (c and not bottom) or (a and bottom) then r.top = px end
+    else
+        r[anchor == "bottom" and "top" or "bottom"] = px
+    end
+    return r
+end
+-- Raises the gaps `g` ({ top, right, bottom, left }) where a dock needs the room. Not for the gaps as they were (`left == false`), and not for what is written to Hyprland's file.
+function dock_fx.raise(g)
+    local r = dock_fx.room()
+    local out = { g[1], g[2], g[3], g[4] }
+    if r.top then out[1] = math.max(out[1], r.top) end
+    if r.bottom then out[3] = math.max(out[3], r.bottom) end
+    return out
+end
+function dock_fx.on() local r = dock_fx.room(); return r.top ~= nil or r.bottom ~= nil end
+function dock_fx.changed()
+    if iris_fx and iris_fx.apply_hypr then iris_fx.apply_hypr() end
+    if wm_frame_sync then wm_frame_sync() end
+end
 bar_fx = { left = false, edge = "top", orig = nil, on = "all", mons = {}, thin = false, size = 1 }   -- `left`: a strip and a frame are in use, on `edge` (left, right, top or bottom)
 bar_fx.restart = [[
 P="$1"; L="$2"
@@ -2762,8 +2796,9 @@ exec pleamar --scene "$P" --no-hud >>"$L" 2>&1
 -- `left` says where the bar is for this code (false: the gaps as they were before us); left out, it is where the bar is now.
 function iris_fx.island_min() return (bar_fx.size or 1) < 0.995 and not bar_fx.left and bar_fx.edge == "top" end   -- the Island below 100 %: no reserved strip (a reserve is a plain number)
 function iris_fx.island_room() return math.floor(8 + 1.35 * 40 * (bar_fx.size or 1) + 0.5) end                  -- what it keeps above the windows instead: 8 and the bar (62 at 100 %): the window gap does the rest
-function iris_fx.gaps_code(left)
+function iris_fx.gaps_code(left, nodock)
     local isl = left == nil and iris_fx.island_min()     -- (asked for the gaps as they were: `left` false, then none of this)
+    local docked = left == nil and not nodock and dock_fx.on()      -- (`left` false asks for the gaps as they were, and `nodock` for what Hyprland keeps in its file: with no docks)
     if left == nil then left = bar_fx.left or isl end
     local o = bar_fx.orig
     if not left and not o then return nil end
@@ -2782,12 +2817,17 @@ function iris_fx.gaps_code(left)
     if bar_fx.seg then bar_gaps = { math.floor(1.35 * 36 * bz + 0.5) + 10, px, px, px } end       -- the top frame in pieces: thin, but the windows start below the pieces (36 * u) and a gap
     if isl then bar_gaps = { o[1] + iris_fx.island_room(), o[2], o[3], o[4] } end
     local everywhere = (bar_fx.on or "all") == "all"      -- the bar is on every monitor there is
-    local parts = { cfg((left and everywhere) and bar_gaps or o) }
+    local base = (left and everywhere) and bar_gaps or o
+    if docked and everywhere then base = dock_fx.raise(base) end
+    local parts = { cfg(base) }
     for _, name in ipairs(bar_fx.mons or {}) do
         if name:match("^[%w%._%-]+$") then
             local has_bar = left and (everywhere or (bar_fx.sel ~= nil and bar_fx.sel[name] == true))
             -- a monitor with only the frame (Settings > Bar, "Frame on the other monitors"; logic/bar_monitors.luau) gets the frame's room on every side
-            parts[#parts + 1] = rule(name, has_bar and bar_gaps or ((left and bar_fx.thin and not isl) and { px, px, px, px } or o))
+            local g = has_bar and bar_gaps or ((left and bar_fx.thin and not isl) and { px, px, px, px } or o)
+            -- the docks are on the monitors the bar is on, framed or not
+            if docked and (everywhere or (bar_fx.sel ~= nil and bar_fx.sel[name] == true)) then g = dock_fx.raise(g) end
+            parts[#parts + 1] = rule(name, g)
         end
     end
     return table.concat(parts, " ")
@@ -2797,10 +2837,10 @@ function iris_fx.apply_hypr()
     local parts, keep = {}, {}
     if pal then local c = iris_fx.border_code(pal); parts[#parts + 1] = c; keep[#keep + 1] = c end
     local g = iris_fx.gaps_code()
-    if g then parts[#parts + 1] = g; if bar_fx.left or iris_fx.island_min() then keep[#keep + 1] = g end end
+    if g then parts[#parts + 1] = g; if bar_fx.left or iris_fx.island_min() then keep[#keep + 1] = iris_fx.gaps_code(nil, true) end end
     -- The gaps are Hyprland's settings, so they outlive the shell (a layer's reserved zone does not). gaps-undo.lua says how to give
     -- them back, and bin/vitreus-keep sends it when it stops for good; empty with the bar on the top, where there is nothing to undo.
-    pcall(sys.call, "files.write", "gaps-undo.lua", (bar_fx.left or iris_fx.island_min()) and (iris_fx.gaps_code(false) or "") or "")
+    pcall(sys.call, "files.write", "gaps-undo.lua", (bar_fx.left or iris_fx.island_min() or dock_fx.on()) and (iris_fx.gaps_code(false) or "") or "")
     if #parts == 0 then return end
     run("hyprctl", { "eval", table.concat(parts, " ") }, function() end)
     with_dirs(function(d)
@@ -5207,6 +5247,7 @@ do
             if fact.bar_seg == true and fact.bar_anchor == "top" then room = FRAME_SEG end   -- the top frame in pieces: windows start below the pieces, as on Hyprland (`iris_fx.gaps_code`)
             local island_min = not framed and bar_mon.name ~= nil and iris_fx.island_min() and fact.bar_anchor == "top"   -- the Island below 100 % reserves nothing: its room is kept here
             local want, cmds = {}, {}
+            local dock = dock_fx.room()
             for id = 0, 3 do
                 local has = framed and names[id] ~= nil and (bar_mon.set ~= nil and bar_mon.set[names[id]] == true)
                 -- a monitor with only the frame (Settings > Bar, "Frame on the other monitors") gets the frame's room on every side
@@ -5214,6 +5255,8 @@ do
                 for _, e in ipairs(EDGES) do
                     want[#want + 1] = has and math.max(0, room[e] - wm.gap) or (thin and math.max(0, FRAME_ROOM.top - wm.gap) or 0)
                     if island_min and e == "top" and names[id] ~= nil and (bar_mon.set ~= nil and bar_mon.set[names[id]] == true) then want[#want] = iris_fx.island_room() end
+                    -- the docks are on the monitors the bar is on only
+                    if dock[e] and names[id] ~= nil and bar_mon.set ~= nil and bar_mon.set[names[id]] == true then want[#want] = math.max(want[#want], math.max(0, dock[e] - wm.gap)) end
                     cmds[#cmds + 1] = "get fr." .. id .. "." .. e
                 end
             end
