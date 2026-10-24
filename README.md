@@ -132,22 +132,22 @@ natepayn3@gmail.com if you have no account. With Vitreus installed it is just `v
 * **Lock screen**, **Night mode**, and a **desktop clock** drawn as glass.
 * **Login screen** — the lock screen's look as an [SDDM](sddm/README.md) theme: your picture, a big clock, your face and a glass password bar, with the session (Hyprland, pleamar-wm) chosen by the badge under the field. The installer offers it (it needs sudo, and asks before replacing a theme you already use; `--no-login` skips it); `./sddm/install.sh` does it again with another picture.
 * **Audio visualiser** — the bottom edge of the screen rises into the music: cava's bars as columns of the shell's own glass, melted into the frame (or, in the Island layout, into the screen's edge). Switch it on or off, and choose how many columns, how sensitive it is, how tall, and how blended, from Settings > Widgets, the desktop editor's tile, or the launcher; it falls flat while nothing plays.
-* **Files** — a file manager of its own, in the shell's glass (**SUPER + E**, or "Files" in the launcher): places down the left (Recent, Starred, your folders, drives, network, and any you pin), where you are across the top (click it or press Ctrl+L to type a path), tabs, the folder as tiles or lines (sortable, zoomable), a right-click menu, Space to look at a file, Properties (with permissions and Open With), copy/cut/paste/drag with a question when a name is taken, progress and Cancel, Undo (Ctrl+Z), the Trash with Restore, compress and extract, and a search of names or contents. Drag a box to choose several things. It follows the theme (glass off, Retro, UwU, Cyber) and uses `imagemagick`, `ffmpeg`, `poppler` and `libarchive` (`bsdtar`) for pictures and archives.
+* **Files** — a file manager of its own, in the shell's glass (**SUPER + E**, or "Files" in the launcher): places down the left (Recent, Starred, your folders, drives, network, and any you pin), where you are across the top (click it or press Ctrl+L to type a path), tabs, the folder as tiles or lines (sortable, zoomable), a right-click menu, Space to look at a file, Properties (with permissions and Open With), copy/cut/paste/drag with a question when a name is taken, progress and Cancel, Undo (Ctrl+Z), the Trash with Restore, compress and extract, and a search of names or contents. Drag a box to choose several things. It follows the theme (glass off, Retro, UwU, Cyber, Milkbox) and uses `imagemagick`, `ffmpeg`, `poppler` and `libarchive` (`bsdtar`) for pictures and archives.
 * **Desktop** — right-click the bare wallpaper for a menu: **Webcam** (your camera in a round glass pane over everything; drag it, and pull its edge to resize it, as the Desk's corners do), the clock, the system monitor, and **New sticky note**. Stickers are glass notes, tinted from your palette, that stay where you put them and can be dragged onto other monitors.
 * **Theme** — a card for each theme, each with its own typeface: **Glass**, which Iris recolours from your wallpaper; **Retro**, moulded
-  plastic; **UwU**, candy plastic with cat ears and a gooey trail behind the mouse (Hyprland and pleamar-wm: niri cannot tell where the mouse is); **Cyber**, a neon HUD on black glass; and any you make yourself (see below).
+  plastic; **UwU**, candy plastic with cat ears and a gooey trail behind the mouse (Hyprland and pleamar-wm: niri cannot tell where the mouse is); **Cyber**, a neon HUD on black glass; **Milkbox**, soft raised drawers in one pale blue-grey, with no outlines; and any you make yourself (see below).
 
 ### Making your own theme
 
 A theme is a small `.toml` file: eleven colours, a typeface and how round the window corners are. Vitreus's own are in `themes/`
-(`retro.toml`, `uwu.toml`, `cyber.toml`, and `glass.toml`, which only carries Glass's font and corners because the wallpaper is its palette).
+(`retro.toml`, `uwu.toml`, `cyber.toml`, `milk.toml`, and `glass.toml`, which only carries Glass's font and corners because the wallpaper is its palette).
 
 1. Copy `themes/_template.toml` to `~/.config/pleamar/vitreus-themes/` under any name (`sunset.toml`) and change it. Every setting is
    explained in the template.
 2. Open **Settings > Theme** (or open the page again): your theme is a card at the end of the strip. Pick it.
 
 A file that cannot be read is named in the line under the cards and left out; the others are not affected. `base` chooses the shape the colours
-are worn on (`glass`, `retro`, `uwu` or `cyber`); a theme cannot add shapes of its own. `bin/vitreus-themes` reads the files and leaves the
+are worn on (`glass`, `retro`, `uwu`, `cyber` or `milk`); a theme cannot add shapes of its own. `bin/vitreus-themes` reads the files and leaves the
 list in `themes.json` in the data folder, which the shell, its font setup and the window-corner code all read.
 
 ### Making your own add-on
