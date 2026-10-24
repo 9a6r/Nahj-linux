@@ -2900,6 +2900,8 @@ function iris_fx.niri_code(gap)
     local pal = iris_fx.last_pal
     local ring = pal and string.format("\n        focus-ring {\n            active-color \"%s\"\n            inactive-color \"%s\"\n        }", pal.mint, pal.off) or ""
     parts[#parts + 1] = "layout {" .. ring .. "\n        " .. struts(room(everywhere)) .. "\n}\n"
+    -- A window that opens maximized to the edges (Chrome asks for it) is laid over the whole monitor, struts and all: so nothing opens that way.
+    parts[#parts + 1] = "window-rule {\n    open-maximized-to-edges false\n}\n"
     -- What Settings > Display kept for each monitor (display.json, `saved`: mode, scale, transform, position), in niri's words.
     local TRANSFORM = { [0] = "normal", "90", "180", "270", "flipped", "flipped-90", "flipped-180", "flipped-270" }
     local disp = {}
