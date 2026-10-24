@@ -206,13 +206,16 @@ Item {
             width: parent.width * 1.3
             height: width
             anchors.centerIn: parent
+            // Drawn on the graphics card and off the main thread, and only 20 times a second: a slow morph does not need more, and the greeter has no GPU to spare.
+            renderTarget: Canvas.FramebufferObject
+            renderStrategy: Canvas.Threaded
             property real t: 0
             function edge(th, base, m) { return base * (1 + 0.06 * Math.sin(2 * th + m) + 0.045 * Math.sin(3 * th - m + 1.3) + 0.025 * Math.sin(5 * th + 2 * m)) }
             function trace(ctx, cx, cy, base, dir, phase) {
                 var m = 2 * Math.PI * t / 6 + phase, spin = 2 * Math.PI * t / 9
                 ctx.beginPath()
-                for (var i = 0; i <= 120; i++) {
-                    var a = i / 120 * 2 * Math.PI
+                for (var i = 0; i <= 64; i++) {
+                    var a = i / 64 * 2 * Math.PI
                     var r = edge(a - dir * spin, base, m)
                     var x = cx + r * Math.cos(a), y = cy + r * Math.sin(a)
                     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y)
@@ -229,17 +232,18 @@ Item {
                 g.addColorStop(0, Qt.darker(root.accent, 1.25))
                 g.addColorStop(0.5, root.accent)
                 g.addColorStop(1, Qt.lighter(root.accent, 1.45))
-                ctx.shadowColor = Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.4)
-                ctx.shadowBlur = 18 * root.u
+                // The glow: a wider, fainter copy under it (a blurred shadow, redrawn each time, was what made this slow).
+                trace(ctx, c, c, R * 1.2, 1, 0)
+                ctx.fillStyle = Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.16)
+                ctx.fill()
                 trace(ctx, c, c, R * 1.14, 1, 0)
                 ctx.fillStyle = g
                 ctx.fill()
-                ctx.shadowBlur = 0
                 trace(ctx, c, c, R * 1.06, -1, 2.1)
                 ctx.fillStyle = Qt.rgba(0, 0, 0, 0.30)
                 ctx.fill()
             }
-            FrameAnimation { running: root.stage >= 3 && !root.leaving; onTriggered: { blob.t += frameTime; blob.requestPaint() } }
+            Timer { interval: 50; repeat: true; running: root.stage >= 3 && !root.leaving; onTriggered: { blob.t += 0.05; blob.requestPaint() } }
         }
         Rectangle {
             anchors.fill: parent
