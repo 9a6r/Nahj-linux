@@ -4,7 +4,7 @@
 -- and the ones that are on start with the shell. An add-on is not sandboxed: its scene declares what it runs and reads in its own `permissions`.
 return function()
     local MAX = 12
-    local list, errors, folder = {}, {}, ""
+    local list, errors, folder, template = {}, {}, "", ""
     local enabled = {}
     local ready = false
 
@@ -35,6 +35,8 @@ return function()
             text.ad_note = "Yours go in ~/.config/pleamar/vitreus-addons"
         end
         fact.ad_err = #errors > 0
+        local shown = template:gsub("^/home/[^/]+", "~")
+        text.ad_tpl = template ~= "" and ("The template to copy: " .. shown) or ""
     end
 
     local function start(a)
@@ -66,6 +68,7 @@ return function()
         list = out
         errors = type(f.errors) == "table" and f.errors or {}
         folder = type(f.folder) == "string" and f.folder or ""
+        template = type(f.template) == "string" and f.template or ""
         return true
     end
 

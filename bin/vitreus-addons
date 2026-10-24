@@ -7,6 +7,8 @@ and named in "errors", so one bad add-on never costs the others. Prints nothing;
 import json, os, re, sys, tomllib
 
 data = sys.argv[1]
+here = os.path.dirname(os.path.realpath(__file__))
+template = os.path.realpath(os.path.join(here, "..", "addons", "_template"))
 user = os.path.join(os.path.expanduser("~"), ".config", "pleamar", "vitreus-addons")
 
 def read(folder, name):
@@ -41,7 +43,7 @@ try:
     os.makedirs(data, exist_ok=True)
     tmp = os.path.join(data, "addons.json.tmp")
     with open(tmp, "w") as f:
-        json.dump({"folder": user, "addons": found, "errors": errors}, f)
+        json.dump({"folder": user, "template": template, "addons": found, "errors": errors}, f)
     os.replace(tmp, os.path.join(data, "addons.json"))
 except OSError:
     sys.exit(1)

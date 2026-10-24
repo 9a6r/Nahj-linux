@@ -30,6 +30,7 @@ part Addons {
                     }
                 }
                 group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + (36 + max(1, addons.count) * 92 + 6) * pu + 0.5); text ad_note { at: floor(spx + 14 * pu + 0.5), floor(sby + (36 + max(1, addons.count) * 92 + 6) * pu + 0.5); anchor: left center; size: 13; width: (410 * pu) / rs; lines: 1; color: if(ad_err, alert, faint); opacity: if(ad_err, 100%, 70%); family: "Space Grotesk" } }
+                group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + (36 + max(1, addons.count) * 92 + 26) * pu + 0.5); text ad_tpl { at: floor(spx + 14 * pu + 0.5), floor(sby + (36 + max(1, addons.count) * 92 + 26) * pu + 0.5); anchor: left center; size: 13; width: (410 * pu) / rs; lines: 1; color: faint; opacity: 70%; family: "Space Grotesk" } }
             }
             let ad.thh = set.h * set.h / max(set.h, ad.h)
             let ad.thy = ad.thh / 2 + ad.sc / max(1, ad.h - set.h) * (set.h - ad.thh)
