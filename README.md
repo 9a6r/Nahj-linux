@@ -9,6 +9,7 @@
   <p>
     <a href="https://github.com/k4ditano/pleamar"><img src="https://img.shields.io/badge/pleamar-required-9ed6bd?style=for-the-badge" alt="pleamar" /></a>
     <a href="https://hyprland.org"><img src="https://img.shields.io/badge/Hyprland-33CCFF?style=for-the-badge&logo=hyprland&logoColor=white" alt="Hyprland" /></a>
+    <a href="https://github.com/niri-wm/niri"><img src="https://img.shields.io/badge/niri-5A6BFF?style=for-the-badge" alt="niri" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="MIT License" /></a>
   </p>
 
@@ -116,7 +117,7 @@ natepayn3@gmail.com if you have no account. With Vitreus installed it is just `v
   in the shell's look.
 * **Player** — cover art, a live spectrum, and your running windows.
 * **Launcher** (`SUPER + Space`) — apps, files, commands, emoji, clipboard history and wallpapers, with previews. A sum or a conversion (`5 km to mi`, `20 c in f`, `15% of 80`) is answered as you type; `?` or `!yt lofi` searches the web (twenty-one `!bang` sites, and DuckDuckGo's instant answer); `@` switches to an open window; `$` expands snippets and quicklinks from `snippets.json`. `+firefox` searches the repositories and, if you have `paru` or `yay`, the AUR (Arch only): Enter installs the package in a terminal window, where it can ask for your password.
-* **Settings** (`SUPER + SHIFT + Space`) — wallpaper, theme, glass, display, Hyprland, notifications, clock and a system monitor.
+* **Settings** (`SUPER + SHIFT + Space`) — wallpaper, theme, glass, display, your window manager (Hyprland, niri or pleamar-wm), notifications, clock and a system monitor.
 * **Wallpaper picker** (`SUPER + B`) — your wallpapers as a honeycomb of glass hexagons, and (`Tab`) a row of slanted cards that changes the wallpaper live as you step through them, with a colour filter and each picture's size and kind. It opens on the one you used last.
 * **Workspace overview** (`SUPER + TAB`) — a glass card per workspace; drag a window to move it.
 * **Desk** (`SUPER + D`) — a panel out of the right edge: Focus timer, Shelf, Pad (tasks and drawing), a terminal, Ask, and Clip (your
@@ -191,7 +192,7 @@ while a slow render goes on, or `"emit wph_again"` to apply the current wallpape
 ## 📦 Requirements
 
 * [**pleamar**](https://github.com/k4ditano/pleamar) — the runtime Vitreus is written for
-* **Hyprland** or **pleamar-wm**
+* **Hyprland**, **niri** or **pleamar-wm**
 * **A Vulkan driver for your graphics card** — pleamar draws with Vulkan. On Arch that is `vulkan-radeon` (AMD), `vulkan-intel` (Intel) or NVIDIA's driver with `nvidia-utils`; on Debian, Ubuntu and Fedora, `mesa-vulkan-drivers`. A minimal install often has none, and then nothing starts and nothing says why. `install.sh` checks for it and offers to install the AMD and Intel ones; `vulkaninfo --summary` shows what Vulkan can see.
 
 The packages `install.sh` installs (pacman, and the AUR for the last two):
@@ -266,6 +267,12 @@ To start it with the desktop, add `vitreus-keep ~/.config/pleamar/shells/vitreus
 when a monitor wakes; the installer does the same for the lock screen, the wallpaper transition and the desktop clock), and on Hyprland put
 `exec-once = pleamar --autostart` in your config (`hl.on("hyprland.start", …)` in a Lua config). The scene reloads
 itself whenever a file in the folder is saved.
+
+**On niri**, the script adds three lines to the end of `~/.config/niri/config.kdl` (it asks first, keeps a copy as
+`config.kdl.before-vitreus`, and takes them out again on `--uninstall`): `spawn-at-startup "pleamar" "--autostart"`, and
+`include "niri_vitreus.kdl"` and `include "vitreus.kdl"`. The first of these two files, linked into `~/.config/niri`, has the shell's key binds; the
+second is written by the shell: the room the windows keep clear of the bar and docks (as `struts`), the focus ring, and what Settings > niri
+changes. Settings > niri takes the place of the Hyprland page there.
 
 Two things the script does that you would do by hand: link `bin/vitreus-clipimg` into a folder on your `PATH` (the
 launcher's clipboard pictures), and, on Hyprland with a Lua config, load the key binds and what Settings saves:
