@@ -16,7 +16,7 @@ scene Files {
 
     permissions {
         services: "files", "files.write"
-        run: "find", "magick", "ffmpeg", "ffprobe", "identify", "pdftoppm", "stat", "du", "file", "rm", "rmdir", "hyprctl", "xdg-open", "gio", "cp", "mv", "mkdir", "df", "xdg-user-dir", "printenv", "pleamar", "wl-copy", "wl-paste", "fc-match", "vitreus-files", "cat", "head", "chmod", "ln", "touch", "bsdtar", "grep", "sha256sum", "lsblk", "udisksctl", "awww", "which", "readlink", "kitty", "alacritty", "foot", "wezterm", "konsole", "gnome-terminal", "xterm", "date"
+        run: "find", "magick", "ffmpeg", "ffprobe", "identify", "pdftoppm", "stat", "du", "file", "rm", "rmdir", "hyprctl", "xdg-open", "gio", "cp", "mv", "mkdir", "df", "xdg-user-dir", "printenv", "pleamar", "wl-copy", "wl-paste", "fc-match", "vitreus-files", "cat", "head", "chmod", "ln", "touch", "bsdtar", "grep", "sha256sum", "lsblk", "udisksctl", "awww", "which", "readlink", "kitty", "alacritty", "foot", "wezterm", "konsole", "gnome-terminal", "xterm", "date", "sh"
     }
 
     // ── what the logic says ──
@@ -109,7 +109,7 @@ scene Files {
     model tabs max 10 { at: number; name: text; x: number; w: number; active: bool }
     model pinfo max 1 { name: text; sub: text; ik: number; thumb: image 192, 144; has.thumb: bool }
     model prows max 18 { label: text; value: text; tog: bool; on: bool; btn: text; hb: bool; k: number }
-    model menuitems max 20 { label: text; k: number; on: bool; ic: number; key: text; danger: bool; sep: bool; chk: bool }
+    model menuitems max 28 { label: text; k: number; on: bool; ic: number; key: text; danger: bool; sep: bool; chk: bool }
     model picks max 14 { at: number; label: text; sub: text; hs: bool; ic: number }
     model rows max 12 {
         list cells max 10 {
