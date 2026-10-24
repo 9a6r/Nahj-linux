@@ -3,7 +3,7 @@ part Hyprland {
         //  Every change goes to Hyprland at once and is kept for the next start (see the Hyprland section of
         //  vitreus.luau). It fits the page, so it does not scroll.
         group {
-            show: set_pgh > 0.01
+            show: set_pgh > 0.01 and not wm_niri
             opacity: set_pgh
             let hsl.x0 = spx + 122 * pu
             let hsl.w = 250 * pu

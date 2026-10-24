@@ -467,6 +467,9 @@ scene Vitreus {
     event hy_follow_set ->
     event hy_toggle ->
     event hy_refresh ->
+    event ni_center_set ->
+    event ni_colw_set ->
+    event ni_toggle ->
     event wm_layout_set ->
     event wm_wst_set ->
     event wm_share_set ->
@@ -1557,6 +1560,9 @@ scene Vitreus {
     fact hy_tear = false
     fact hy_anim = true
     fact hy_nat = false
+    fact ni_center = 0                // Settings > niri: when the focused column is centred (0 never, 1 always, 2 when it overflows)
+    fact ni_colw = 1                  // the width a new column opens at (0 a third, 1 a half, 2 two thirds, 3 the whole)
+    fact ni_single = false            // a lone column sits in the middle
     //  Settings > Pleamar-WM: what the window manager has now (see the logic). The window manager's own facts are set live; the
     //  input lines go to session.conf and apply at the next login.
     fact wm_hypr = false             // the session is Hyprland: the Hyprland page is in the Settings (set by the logic)
@@ -2236,10 +2242,12 @@ scene Vitreus {
     prop hy_k1 = 0 ~pop
     prop hy_k2 = 1 ~pop
     prop hy_k3 = 0 ~pop
+    prop ni_k0 = 0 ~pop
     follow hy_k0 = if(hy_resize, 1, 0)
     follow hy_k1 = if(hy_tear, 1, 0)
     follow hy_k2 = if(hy_anim, 1, 0)
     follow hy_k3 = if(hy_nat, 1, 0)
+    follow ni_k0 = if(ni_single, 1, 0)
     follow disp_auto_pill = if(disp_auto, 1, 0)
     follow snd_pill = if(snd_on, 1, 0)
     follow disp_dd = if(disp_res_open, 1, 0)
@@ -4721,7 +4729,7 @@ scene Vitreus {
     let side.nm = 354                  // the Night mode row
     let side.h4 = 388
     let side.hy = 412
-    let side.wm = side.hy + if(wm_hypr, 28, 0)             // the Hyprland row is only there on Hyprland, and the Pleamar-WM one only under pleamar-wm
+    let side.wm = side.hy + if(wm_hypr or wm_niri, 28, 0)    // the Hyprland row is only there on Hyprland (and the niri one on niri), and the Pleamar-WM one only under pleamar-wm
     let side.ky = side.wm + if(wm_pwm, 28, 0)              // the Keybinds row
     let side.vpn = side.ky + 28
     let side.mon = side.vpn + 28

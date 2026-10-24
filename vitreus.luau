@@ -2872,6 +2872,37 @@ end
 -- niri: the same room round the windows, as `struts` in a KDL file of its own (niri reloads its config when a file it includes changes), and the palette's accent as
 -- the focus ring. The user's config.kdl has `include "vitreus.kdl"` at the end (the installer adds it). A strut is what the windows keep clear of on top of niri's own
 -- `gaps` (read from the config; 16 is niri's default), so it is the room Hyprland would be given, less that gap. Each monitor the bar is on gets its own `output` block.
+-- Settings > niri (below): what the page has changed, kept in niri-set.json. A key that is nil is niri's own (config.kdl's), so nothing is written for it.
+niri_set = { gaps = nil, round = nil, border = nil, sens = nil, follow = nil, nat = nil, anim = nil, center = nil, colw = nil, single = nil }
+-- It is read when first needed, not when this file is loaded: at that moment the data folder is not there to read yet, and vitreus.kdl was written without the page's values.
+niri_set_loaded = false
+function iris_fx.niri_load()
+    if niri_set_loaded then return end
+    local ok, saved = pcall(sys.ask, "files.read", "niri-set.json", "json")
+    if ok and type(saved) == "table" then
+        niri_set_loaded = true
+        for _, k in ipairs({ "gaps", "round", "border", "sens", "follow", "nat", "anim", "center", "colw", "single" }) do      -- (a table of nil keys has none to walk with pairs)
+            if saved[k] ~= nil then niri_set[k] = saved[k] end
+        end
+    end
+end
+function iris_fx.niri_set_code()
+    iris_fx.niri_load()
+    local n = niri_set
+    local lay, rule, inp, extra = {}, {}, {}, {}
+    if n.gaps then lay[#lay + 1] = string.format("gaps %d", n.gaps) end
+    if n.center ~= nil then lay[#lay + 1] = string.format('center-focused-column "%s"', ({ [0] = "never", "always", "on-overflow" })[n.center] or "never") end
+    -- (a flag can be turned on here, not off again: a config.kdl that has it keeps it)
+    if n.single then lay[#lay + 1] = "always-center-single-column" end
+    if n.colw ~= nil then lay[#lay + 1] = string.format("default-column-width { proportion %s; }", ({ [0] = "0.33333", "0.5", "0.66667", "1.0" })[n.colw] or "0.5") end
+    if n.round then rule[#rule + 1] = string.format("geometry-corner-radius %d\n    clip-to-geometry true", n.round) end
+    if n.anim == false then extra[#extra + 1] = "animations {\n    off\n}" end
+    if n.follow and n.follow > 0 then inp[#inp + 1] = "focus-follows-mouse" end
+    local dev = {}
+    if n.nat then dev[#dev + 1] = "natural-scroll" end
+    if n.sens and n.sens ~= 0 then dev[#dev + 1] = string.format("accel-speed %.2f", n.sens) end
+    return lay, rule, inp, dev, extra
+end
 function iris_fx.niri_code(gap)
     local px = math.floor(1.35 * 8 + 0.5) + 13
     local bz = bar_fx.size or 1
@@ -2891,6 +2922,10 @@ function iris_fx.niri_code(gap)
         if has_bar then
             g = bar_fx.left and bar_gaps or { isl and iris_fx.island_room() or 0, 0, 0, 0 }
             g = dock_fx.raise(g)
+            -- next to the dock the window ended nearer the dock than the sides are to the frame: 7 px more there (on niri; measured and then checked by eye)
+            local dr = dock_fx.room()
+            local EDGE = { top = 1, right = 2, bottom = 3, left = 4 }
+            for e, v in pairs(dr) do if g[EDGE[e]] == v then g[EDGE[e]] = v + 7 end end
         else
             g = (bar_fx.left and bar_fx.thin) and { px, px, px, px } or { 0, 0, 0, 0 }
         end
@@ -2898,10 +2933,34 @@ function iris_fx.niri_code(gap)
     end
     local parts = { "// Written by Vitreus (the room round the windows, and the focus ring from the palette); edits here are overwritten.\n// config.kdl includes it: include \"vitreus.kdl\"\n" }
     local pal = iris_fx.last_pal
-    local ring = pal and string.format("\n        focus-ring {\n            active-color \"%s\"\n            inactive-color \"%s\"\n        }", pal.mint, pal.off) or ""
-    parts[#parts + 1] = "layout {" .. ring .. "\n        " .. struts(room(everywhere)) .. "\n}\n"
+    local ring_in = {}
+    if niri_set.border == 0 then ring_in[1] = "off"
+    else
+        if niri_set.border then ring_in[#ring_in + 1] = string.format("width %d", niri_set.border) end
+        if pal then
+            ring_in[#ring_in + 1] = string.format('active-color "%s"', pal.mint)
+            ring_in[#ring_in + 1] = string.format('inactive-color "%s"', pal.off)
+        end
+    end
+    local ring = #ring_in > 0 and ("\n        focus-ring {\n            " .. table.concat(ring_in, "\n            ") .. "\n        }") or ""
+    local lay, rule, inp, dev, extra = iris_fx.niri_set_code()
+    local lay_txt = ""
+    for _, l in ipairs(lay) do lay_txt = lay_txt .. "\n        " .. l end
+    parts[#parts + 1] = "layout {" .. lay_txt .. ring .. "\n        " .. struts(room(everywhere)) .. "\n}\n"
     -- A window that opens maximized to the edges (Chrome asks for it) is laid over the whole monitor, struts and all: so nothing opens that way.
-    parts[#parts + 1] = "window-rule {\n    open-maximized-to-edges false\n}\n"
+    parts[#parts + 1] = "window-rule {\n    open-maximized-to-edges false" .. (#rule > 0 and ("\n    " .. table.concat(rule, "\n    ")) or "") .. "\n}\n"
+    for _, e in ipairs(extra) do parts[#parts + 1] = e .. "\n" end
+    if #inp > 0 or #dev > 0 then
+        local t = "input {"
+        for _, l in ipairs(inp) do t = t .. "\n    " .. l end
+        if #dev > 0 then
+            t = t .. "\n    touchpad {\n        " .. table.concat(dev, "\n        ") .. "\n    }"
+            local m = {}
+            for _, l in ipairs(dev) do if l:match("^accel") then m[#m + 1] = l end end
+            if #m > 0 then t = t .. "\n    mouse {\n        " .. table.concat(m, "\n        ") .. "\n    }" end
+        end
+        parts[#parts + 1] = t .. "\n}\n"
+    end
     -- What Settings > Display kept for each monitor (display.json, `saved`: mode, scale, transform, position), in niri's words.
     local TRANSFORM = { [0] = "normal", "90", "180", "270", "flipped", "flipped-90", "flipped-180", "flipped-270" }
     local disp = {}
@@ -2934,7 +2993,8 @@ function iris_fx.apply_niri()
     with_dirs(function(d)
         local cfg = d.conf:gsub("/pleamar/shells/vitreus$", "/niri")
         run("grep", { "-m1", "-E", "^[[:space:]]*gaps[[:space:]]+[0-9.]+", cfg .. "/config.kdl" }, function(out)
-            local gap = tonumber((out or ""):match("gaps%s+([%d%.]+)")) or 16
+            iris_fx.niri_load()
+            local gap = niri_set.gaps or tonumber((out or ""):match("gaps%s+([%d%.]+)")) or 16
             local code = iris_fx.niri_code(gap)
             pcall(sys.call, "files.write", "vitreus.kdl", code)
             run("mkdir", { "-p", cfg }, function()
@@ -5141,7 +5201,7 @@ end
 -- written to vitreus_hypr.lua, which hyprland.lua loads after hypr_style.lua (the installer adds the line, also to an older install) so it wins on the next start.
 do
     local LAYOUTS = { "dwindle", "master", "scrolling" }
-    local hy = { layout = 3, gaps = 5, round = 10, border = 3, blur = 3, blur_on = true, passes = 1, resize = false, tear = false, anim = true, sens = 0, follow = 1, nat = false }
+    local hy = { layout = 3, gaps = 5, round = 10, border = 3, blur = 3, blur_on = true, passes = 1, resize = false, tear = false, anim = true, sens = 0, follow = 1, nat = false, center = 0, colw = 1, single = false }
     local hy_dirty, hy_waiting = false, false
 
     -- The windows' corners follow the theme: each theme has its own rounding (concentric with the shell's frame: Retro and Cyber are squarer, by the 73 % the drawers take),
@@ -5173,6 +5233,9 @@ do
         fact.hy_sens = hy.sens
         fact.hy_follow = hy.follow
         fact.hy_nat = hy.nat
+        fact.ni_center = hy.center
+        fact.ni_colw = hy.colw
+        fact.ni_single = hy.single
         text.hy_gaps_text = string.format("%d px", hy.gaps)
         text.hy_round_text = string.format("%d px", hy.round)
         text.hy_border_text = string.format("%d px", hy.border)
@@ -5202,7 +5265,71 @@ do
         end)
     end
 
+    -- niri: the same facts, from and to niri-set.json / vitreus.kdl (see `iris_fx.niri_code`) in place of hyprctl. What config.kdl has is what the page shows until it is changed.
+    local niri_apply_waiting, niri_ready = false, false
+    local niri_read
+    local function niri_changed()
+        iris_fx.niri_load()
+        if not niri_ready then            -- nothing of niri's has been read yet: read it first, so the values written are config.kdl's but for the one that changed
+            local r = hy.round
+            niri_read(function() niri_ready = true; hy.round = r; niri_changed() end)
+            return
+        end
+        hy_show()
+        local n = niri_set
+        n.gaps, n.round, n.border, n.sens, n.follow = hy.gaps, hy.round, hy.border, hy.sens, hy.follow
+        n.nat, n.anim, n.center, n.colw, n.single = hy.nat, hy.anim, hy.center, hy.colw, hy.single
+        pcall(sys.call, "files.write", "niri-set.json", n)
+        if niri_apply_waiting then return end
+        niri_apply_waiting = true
+        after(250, function()
+            niri_apply_waiting = false
+            iris_fx.apply_niri()
+        end)
+    end
+    niri_read = function(after_read)
+        iris_fx.niri_load()
+        with_dirs(function(d)
+            local cfg = d.conf:gsub("/pleamar/shells/vitreus$", "/niri") .. "/config.kdl"
+            run("cat", { cfg }, function(out, code)
+                local t = {}
+                for line in ((code == 0 and out) or ""):gmatch("[^\n]+") do t[#t + 1] = (line:gsub("//.*$", "")) end
+                local txt = table.concat(t, "\n")
+                local function has(pat) return txt:find(pat) ~= nil end
+                hy.gaps = tonumber(txt:match("\n%s*gaps%s+([%d%.]+)")) or 16
+                hy.round = 0
+                hy.border = tonumber(txt:match("focus%-ring%s*{[^}]-width%s+([%d%.]+)")) or 4
+                if has("focus%-ring%s*{%s*off") then hy.border = 0 end
+                hy.follow = has("\n%s*focus%-follows%-mouse") and 1 or 0
+                hy.nat = has("\n%s*natural%-scroll")
+                hy.anim = not has("animations%s*{[^}]-\n%s*off")
+                local c = txt:match('center%-focused%-column%s+"([%a%-]+)"')
+                hy.center = c == "always" and 1 or (c == "on-overflow" and 2 or 0)
+                hy.single = has("\n%s*always%-center%-single%-column")
+                local pr = tonumber(txt:match("default%-column%-width%s*{%s*proportion%s+([%d%.]+)"))
+                hy.colw = pr and (pr < 0.4 and 0 or (pr < 0.6 and 1 or (pr < 0.9 and 2 or 3))) or 1
+                hy.sens = 0
+                -- what the page itself has changed wins
+                local n = niri_set
+                if n.gaps then hy.gaps = n.gaps end
+                if n.round then hy.round = n.round end
+                if n.border then hy.border = n.border end
+                if n.sens then hy.sens = n.sens end
+                if n.follow ~= nil then hy.follow = n.follow end
+                if n.nat ~= nil then hy.nat = n.nat end
+                if n.anim ~= nil then hy.anim = n.anim end
+                if n.center ~= nil then hy.center = n.center end
+                if n.colw ~= nil then hy.colw = n.colw end
+                if n.single ~= nil then hy.single = n.single end
+                niri_ready = true
+                hy_show()
+                if after_read then after_read() end
+            end)
+        end)
+    end
+
     local function hy_changed()
+        if on_niri then return niri_changed() end
         hy_show()
         hy_dirty = true
         run("hyprctl", { "eval", hy_code() }, function() end)
@@ -5220,6 +5347,7 @@ do
         "decoration:blur:passes", "general:resize_on_border", "general:allow_tearing", "animations:enabled", "input:sensitivity",
         "input:follow_mouse", "input:touchpad:natural_scroll", "decoration:blur:enabled" }
     local function hy_read()
+        if on_niri then return niri_read() end
         local cmd = {}
         for i, n in ipairs(HY_OPTS) do cmd[i] = "getoption " .. n end
         run("hyprctl", { "--batch", table.concat(cmd, " ; ") }, function(out, code)
@@ -5254,7 +5382,7 @@ do
     hy_theme_changed = function(key)
         if key == hy_theme then return end
         hy_theme = key
-        hy.round = hy_round_by[key] or vtheme.round_of(key) or hy.round
+        hy.round = hy_round_by[key] or (on_niri and niri_set.round) or vtheme.round_of(key) or hy.round     -- (on niri a value set on the page is kept, whatever theme comes up)
         hy_changed()
     end
 
@@ -5280,11 +5408,21 @@ do
         hy.blur_on = v > 0
         hy.blur = math.max(1, v)
         hy.passes = passes or (1 + math.floor((hy.blur - 1) / 6))
+        if on_niri then hy_show() return end         -- (no blur to set on niri)
         hy_changed()
     end
     glass.set_blur = set_blur
     on("glass_blur_set", function(t) set_blur(math.max(0, math.min(1, t)) * 20) end)
     on("hy_follow_set", function(i) hy.follow = math.max(0, math.min(3, math.floor(i + 0.5))); hy_changed() end)
+    on("ni_center_set", function(i) hy.center = math.max(0, math.min(2, math.floor(i + 0.5))); hy_changed() end)
+    on("ni_colw_set", function(i) hy.colw = math.max(0, math.min(3, math.floor(i + 0.5))); hy_changed() end)
+    on("ni_toggle", function(k)
+        k = math.floor(k + 0.5)
+        if k == 0 then hy.single = not hy.single
+        elseif k == 1 then hy.anim = not hy.anim
+        else hy.nat = not hy.nat end
+        hy_changed()
+    end)
     on("hy_toggle", function(k)
         k = math.floor(k + 0.5)
         if k == 0 then hy.resize = not hy.resize
