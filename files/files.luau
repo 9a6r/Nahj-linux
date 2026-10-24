@@ -2753,7 +2753,16 @@ function F.paste(into)
     into = into or s.path
     if s.list then say("Open a folder to paste into it") return end
     F.read_clip(function(paths, cut)
-        if not paths then say("Nothing to paste") return end
+        if not paths then
+            -- no files, but maybe a picture (a screenshot): it becomes a new file here
+            run("sh", { "-c", 'wl-paste -l 2>/dev/null | grep -qx image/png || exit 3; '
+                .. 'f=' .. shq(into) .. '/"screenshot_$(date +%F_%H-%M-%S).png"; wl-paste --no-newline -t image/png > "$f" || { rm -f "$f"; exit 1; }' }, function(_, code)
+                if code == 0 then say("Pasted the picture"); F.refresh()
+                elseif code == 3 then say("Nothing to paste")
+                else say("The picture could not be pasted") end
+            end)
+            return
+        end
         if cut then
             F.bring(paths, into, "move", { after = function(ok) if ok then F.clear_clip() end end })
         else
