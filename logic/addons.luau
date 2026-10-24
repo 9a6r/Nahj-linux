@@ -46,7 +46,7 @@ return function()
             end
         end
     end
-    local pill_out = false            -- whether the add-on pill was out at the last `show_slot`, for the room the windows keep clear of it (`dock_fx`, vitreus.luau)
+    local pill_out = 0            -- whether the add-on pill was out at the last `show_slot`, for the room the windows keep clear of it (`dock_fx`, vitreus.luau)
     local function show_slot()
         pins = {}
         local rows, any = {}, false
@@ -59,7 +59,7 @@ return function()
         end
         model.adk_pins = rows
         fact.ax_on = any
-        if (#rows > 0) ~= pill_out then pill_out = #rows > 0; dock_fx.a = pill_out; dock_fx.changed() end
+        if #rows ~= pill_out then pill_out = #rows; dock_fx.na = pill_out; dock_fx.a = pill_out > 0; dock_fx.changed() end
         local cur = cur_pin()
         if (tonumber(fact.ax_cur) or -1) >= 0 and not (cur and cur.drawer) then
             fact.ax_cur = -1

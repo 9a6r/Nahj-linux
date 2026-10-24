@@ -2742,23 +2742,23 @@ end
 -- take round the windows (gaps_out: the layer's own reserved zone is not moved when the surface changes edge). It is sent at once and kept in
 -- vitreus_colors.lua, which hyprland.lua loads last (the installer adds the line). Up on the top, the gaps go back to what they were (bar_fx.orig, read once).
 -- Which docks are out (set by logic/dock.luau and logic/addons.luau): the windows keep clear of them (`wm_frame_sync`).
-dock_fx = { c = false, a = false }
+dock_fx = { c = false, a = false, nc = 0, na = 0 }
 -- The corner dock and the add-on pill stand over the windows' area, against the edge opposite the bar (the bottom for the Island and the top frame, the top for the
--- bottom frame; down a side strip they are in the two corners of the far edge: `cdk_corner` is the dock's, the add-on pill has the other). While one is out, that edge
--- keeps the room for it: how far from the screen's edge the windows start, in pixels: the frame's 8 * u, the pill's height (`cdk.t`, 34 * bu, bu being 1.35 at the bar's size)
--- and a few pixels. `room()` is `{ top = n, bottom = n }` for the edges that need it.
+-- bottom frame; down a side strip it is the far edge, the right one for the strip on the left and the left one for the strip on the right, where each pill lies along the top
+-- or the bottom corner and reaches in as far as its icons). While one is out, that edge keeps the room for it: how far from the screen's edge the windows start, in pixels:
+-- the frame's 8 * u, the pill (`cdk.t`, 34 * bu high, or `cdk.L`, 30 * bu for each icon and 8 * bu, wide; bu being 1.35 at the bar's size) and a few pixels.
+-- `nc`, `na`: how many icons the dock and the add-on pill hold while they are out (0 when not). `room()` is `{ top = n, right = n, bottom = n, left = n }` for the edges that need it.
 function dock_fx.room()
     local r = {}
     local c, a = dock_fx.c, dock_fx.a
     if not (c or a) then return r end
     local anchor = fact.bar_anchor
-    local px = math.floor(1.35 * 8 + 34 * 1.35 * (bar_fx and bar_fx.size or 1) + 6 + 0.5)
+    local bu = 1.35 * (bar_fx and bar_fx.size or 1)
     if anchor == "left" or anchor == "right" then
-        local bottom = fact.cdk_corner == 1 or fact.cdk_corner == true
-        if (c and bottom) or (a and not bottom) then r.bottom = px end
-        if (c and not bottom) or (a and bottom) then r.top = px end
+        local n = math.max(c and dock_fx.nc or 0, a and dock_fx.na or 0)
+        r[anchor == "left" and "right" or "left"] = math.floor(1.35 * 8 + n * 30 * bu + 8 * bu + 6 + 0.5)
     else
-        r[anchor == "bottom" and "top" or "bottom"] = px
+        r[anchor == "bottom" and "top" or "bottom"] = math.floor(1.35 * 8 + 34 * bu + 6 + 0.5)
     end
     return r
 end
@@ -2767,10 +2767,12 @@ function dock_fx.raise(g)
     local r = dock_fx.room()
     local out = { g[1], g[2], g[3], g[4] }
     if r.top then out[1] = math.max(out[1], r.top) end
+    if r.right then out[2] = math.max(out[2], r.right) end
     if r.bottom then out[3] = math.max(out[3], r.bottom) end
+    if r.left then out[4] = math.max(out[4], r.left) end
     return out
 end
-function dock_fx.on() local r = dock_fx.room(); return r.top ~= nil or r.bottom ~= nil end
+function dock_fx.on() local r = dock_fx.room(); return r.top ~= nil or r.right ~= nil or r.bottom ~= nil or r.left ~= nil end
 function dock_fx.changed()
     if iris_fx and iris_fx.apply_hypr then iris_fx.apply_hypr() end
     if wm_frame_sync then wm_frame_sync() end
