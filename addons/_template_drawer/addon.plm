@@ -11,9 +11,18 @@ import "addon-palette.plm"
 //  (`room_*`), the theme's shape (`look`) and the forecast (`wx_*`).
 //
 //  What this cannot do yet: take text (the shell's drawers hold the keyboard while one is open, an add-on's scene does not), or show on more than one monitor.
+//
+//  The logic is addon.luau beside this file (the scene's name with .luau): it keeps what it must in the scene's own data folder with the `files` services below, and any
+//  program it runs (`run("wl-paste", ...)`, `curl`, a helper of your own) has to be named in `permissions`. Since there is no text field, take text from the clipboard: a button
+//  that runs `wl-paste`. The shell sets `wx_*` texts on a scene that declares them: name your own weather facts something else (the News & Weather add-on uses `nw_*`).
 
 scene MyDrawer {
-    surface { size: full, full; anchor: top_left; margin: 0; level: top }
+    surface { size: full, full; anchor: top_left; margin: 0; level: top; screens: each max 4 }
+
+    permissions {
+        services: "files", "files.write"          // what addon.luau uses to keep `clicks`
+        // run: "wl-paste", "curl"                // the programs the logic may run, by name (this one runs none)
+    }
 
     fact pal_ink_r = 0.9608
     fact pal_ink_g = 0.9686
@@ -59,12 +68,13 @@ scene MyDrawer {
     text wx_desc = ""
 
     fact slot_open = false
+    fact slot_sw = 0                                  // the size of the monitor the panel is on: the scene has a copy on each (`screens: each`, numbered in its own order) and only the copy of that size draws (0: not told yet, every copy does)
+    fact slot_sh = 0
     fact slot_x = 0
     fact slot_y = 0
     fact slot_w = 0
     fact slot_h = 0
-    prop shown = 0 ~calm                              // the content fades in as the drawer comes out
-    follow shown = if(slot_open, 1, 0)
+    let shown = if(slot_open and (slot_sw == 0 or (screen.width == slot_sw and screen.height == slot_sh)), 1, 0)       // 1 on the copy that is on the panel's monitor, while the panel is out
 
     fact clicks = 0
     let left = slot_x - slot_w / 2
@@ -74,7 +84,7 @@ scene MyDrawer {
     text wx_temp { at: left + 24, top + 56; anchor: left center; size: 16; color: faint; opacity: shown; family: "Space Grotesk" }
     box { at: left + 70, top + 104; size: 124, 36; corner: 18; color: mint; opacity: 80% * shown }
     text "Press me" { at: left + 70, top + 104; anchor: center; size: 15; weight: 700; color: onmint; opacity: shown; family: "Space Grotesk" }
-    zone box press_me { at: left + 70, top + 104; size: 124, 36; corner: 18; cursor: pointer; active: slot_open }
+    zone box press_me { at: left + 70, top + 104; size: 124, 36; corner: 18; cursor: pointer; active: shown > 0.5 }
     on press press_me { clicks = clicks + 1 }
     repeat i in 0..8 {
         ellipse { at: left + 150 + i * 16, top + 104; radius: 5; color: mint; opacity: if(clicks > i, 1, 0.2) * shown }

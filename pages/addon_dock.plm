@@ -23,18 +23,35 @@ part AddonDock {
         opacity: clamp(dax0 * 2 - 1, 0, 1)
         let axb.cx = mix(dax.ex, screen.width - dax.ex, rt)
         let axb.top = mix(dax.ey, yo + vb - dax.ey, bt) - dax.eh / 2
-        let axb.y = axb.top + 20
-        group { scale: rs; pivot: floor(axb.cx - dax.ew / 2 + 18 + 0.5), floor(axb.y + 0.5); text ax_title { at: floor(axb.cx - dax.ew / 2 + 18 + 0.5), floor(axb.y + 0.5); anchor: left center; size: 17; weight: 700; width: (dax.ew - 90) / rs; lines: 1; color: ink; family: "Space Grotesk" } }
-        box { at: axb.cx, axb.top + 7; size: 34, 4; corner: 2; color: ink; opacity: 20% + 35% * max(ax_grip.hover, if(ax_hold, 1, 0)) }
-        zone box ax_grip { at: if(ax_hold, ax_hx, axb.cx - 20), if(ax_hold, ax_hy, axb.y); size: dax.ew - 74, 34; cursor: pointer; label: "Move the add-on panel" }
+        let axb.y = axb.top + 40 * cu                      // as the Desk's tab row: a tall bar, the grip near its top and the title and X level with the middle
+        group { scale: rs; pivot: floor(axb.cx - dax.ew / 2 + 26 * cu + 0.5), floor(axb.y + 0.5); text ax_title { at: floor(axb.cx - dax.ew / 2 + 26 * cu + 0.5), floor(axb.y + 0.5); anchor: left center; size: 17; weight: 700; width: (dax.ew - 90) / rs; lines: 1; color: ink; family: "Space Grotesk" } }
+        box { at: axb.cx, axb.top + 11 * cu; size: 34 * cu, 4 * cu; corner: 2 * cu; color: ink; opacity: 20% + 35% * max(ax_grip.hover, if(ax_hold, 1, 0)) }
+        zone box ax_grip { at: if(ax_hold, ax_hx, axb.cx - 20), if(ax_hold, ax_hy, axb.top + 22 * cu); size: dax.ew - 74, 44 * cu; cursor: pointer; label: "Move the add-on panel" }
         on press ax_grip { ax_hold = true; ax_bx = ax_gx; ax_by = ax_gy; ax_hx = pointer.x; ax_hy = pointer.y }
         on drag ax_grip while ax_hold { ax_gx = clamp(ax_bx + drag.dx * (1 - 2 * rt), axs.xmin, axs.xmax); ax_gy = clamp(ax_by + drag.dy * (1 - 2 * bt), axs.ymin, axs.ymax) }
         on release ax_grip while length(ax_gx, ax_gy) < 60 { ax_gx = 0; ax_gy = 0 }
         on release ax_grip { ax_hold = false }
-        ellipse { at: axb.cx + dax.ew / 2 - 24, axb.y; radius: 13; color: ink; opacity: 8% + 12% * ax_x_z.hover }
-        path { at: axb.cx + dax.ew / 2 - 24, axb.y; stroke: 1.5; color: ink; opacity: 70% + 30% * ax_x_z.hover; move -3.4, -3.4; line 3.4, 3.4 }
-        path { at: axb.cx + dax.ew / 2 - 24, axb.y; stroke: 1.5; color: ink; opacity: 70% + 30% * ax_x_z.hover; move 3.4, -3.4; line -3.4, 3.4 }
-        zone box ax_x_z { at: axb.cx + dax.ew / 2 - 24, axb.y; size: 28, 28; cursor: pointer; label: "Close the add-on panel" }
+        //  The handles in the four corners (invisible; the cursor shows them): pull one to make the panel smaller or bigger, the corner across from it stays where it is. The panel
+        //  keeps within the frame, and the size is kept for the next time (logic/addons.luau).
+        repeat i in 0..4 {
+            let axr.sx = if(i == 1 or i == 3, 1, -1)
+            let axr.sy = if(i >= 2, 1, -1)
+            let axr.zx = dax.ex + axr.sx * (dax.ew / 2 - 14 * cu)
+            let axr.zy = dax.ey + axr.sy * (dax.eh / 2 - 14 * cu)
+            zone box ax_rz.$i { at: mix(axr.zx, screen.width - axr.zx, rt), mix(axr.zy, yo + vb - axr.zy, bt); size: 28 * cu, 28 * cu; cursor: grab; active: dax0 > 0.9 and not ax_hold and (not ax_rsz or ax_rk == i); label: "Resize the add-on panel" }
+            on press ax_rz.$i { ax_rsz = true; ax_rk = i; ax_bw = axs.w; ax_bh = axs.h; ax_fxd = axs.fx + ax_gx - axr.sx * axs.w / 2; ax_fyd = axs.fy + ax_gy - axr.sy * axs.h / 2 }
+            on drag ax_rz.$i while ax_rsz and ax_rk == i {
+                ax_w = clamp(ax_bw + axr.sx * drag.dx * (1 - 2 * rt), 240, max(240, if(axr.sx > 0, cdk.xe - ax_fxd, ax_fxd - cdk.xs)))
+                ax_h = clamp(ax_bh + axr.sy * drag.dy * (1 - 2 * bt), 160, max(160, if(axr.sy > 0, cdk.ye - ax_fyd, ax_fyd - axs.top)))
+                ax_gx = ax_fxd + axr.sx * ax_w / 2 - mix(axs.x0 + ax_w / 2, axs.x1 - ax_w / 2, adk.sr)
+                ax_gy = ax_fyd + axr.sy * ax_h / 2 - mix(axs.y0 + ax_h / 2, axs.y1 - ax_h / 2, adk.sb)
+            }
+            on release ax_rz.$i { ax_rsz = false; ax_rk = -1; emit ax_resized }
+        }
+        ellipse { at: axb.cx + dax.ew / 2 - 28 * cu, axb.y; radius: 13 * cu; color: ink; opacity: 8% + 12% * ax_x_z.hover }
+        path { at: axb.cx + dax.ew / 2 - 28 * cu, axb.y; stroke: 1.5 * cu; color: ink; opacity: 70% + 30% * ax_x_z.hover; move -3.4 * cu, -3.4 * cu; line 3.4 * cu, 3.4 * cu }
+        path { at: axb.cx + dax.ew / 2 - 28 * cu, axb.y; stroke: 1.5 * cu; color: ink; opacity: 70% + 30% * ax_x_z.hover; move 3.4 * cu, -3.4 * cu; line -3.4 * cu, 3.4 * cu }
+        zone box ax_x_z { at: axb.cx + dax.ew / 2 - 28 * cu, axb.y; size: 28 * cu, 28 * cu; cursor: pointer; label: "Close the add-on panel" }
         on press ax_x_z { ax_open = false }
     }
 }

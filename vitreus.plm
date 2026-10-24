@@ -3668,6 +3668,76 @@ scene Vitreus {
         }
     }
 
+    //  Small pencil icons for the Desk's toggle cards (the same drawings as the control center's bell and mug, sized by `k` and drawn in `col`, `o` as strong).
+    component PMBell(cx: number, cy: number, k: number, o: number, col: color) {
+        let a = 0                                          // still: these small ones do not boil
+        let fr = 0
+                group {
+            group {
+                pivot: cx, cy - 11 * k
+                //  The body, a flared dome: two turns of the pencil, the second fainter and a little off.
+                repeat bp in 0..2 {
+                    let bo = bp * 0.7 * k
+                    let bj = 0.3 * k * sin(fr * 53 + bp * 137)
+                    let bk = 0.3 * k * sin(fr * 61 + bp * 71 + 40)
+                    path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * k; color: col; opacity: if(bp == 0, 90%, 34%) * o
+                           move -10 * k + bj, 6 * k + bk
+                           curve -5.5 * k + bk, -6 * k + bj via -6.5 * k, 2 * k
+                           curve 5.5 * k + bj, -6 * k + bk via 0, -15 * k + bj
+                           curve 10 * k + bk, 6 * k + bj via 6.5 * k, 2 * k
+                           line -10 * k + bj, 6 * k + bk }
+                }
+                //  A wash in the accent inside it.
+                path { at: cx, cy; color: mint; opacity: 30% * o; move -10 * k, 6 * k; curve -5.5 * k, -6 * k via -6.5 * k, 2 * k; curve 5.5 * k, -6 * k via 0, -15 * k; curve 10 * k, 6 * k via 6.5 * k, 2 * k; close }
+                //  The knob on top, and the shading: two short strokes on the left of the dome.
+                ellipse { at: cx + 0.3 * k * sin(fr * 67), cy - 12.3 * k; radius: 1.5 * k; color: col; opacity: o }
+                repeat bc in 0..2 {
+                    line { from: cx - 6 * k + bc * 2 * k, cy - 3 * k + bc * 1.5 * k + 0.3 * k * sin(fr * 47 + bc * 60); to: cx - 5 * k + bc * 2 * k, cy + 2 * k + 0.3 * k * sin(fr * 53 + bc * 70); width: 1.1 * k; color: mint; opacity: 65% * o }
+                }
+                //  The clapper.
+                ellipse { at: cx + 0.3 * k * sin(fr * 59), cy + 10 * k; radius: 2.2 * k; color: mint; opacity: o }
+            }
+        }
+    }
+
+    component PMCup(cx: number, cy: number, k: number, o: number, col: color) {
+        let a = 0                                          // still: these small ones do not boil
+        let fr = 0
+                group {
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * k
+                let bj = 0.3 * k * sin(fr * 53 + bp * 137 + 11)
+                let bk = 0.3 * k * sin(fr * 61 + bp * 71 + 51)
+                //  The mug.
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * k; color: col; opacity: if(bp == 0, 90%, 34%) * o
+                       move -9 * k + bj, -6 * k + bk
+                       line -8 * k + bk, 3 * k + bj
+                       curve -4 * k + bj, 7 * k + bk via -7.5 * k, 6.5 * k
+                       line 3 * k + bk, 7 * k + bj
+                       curve 7 * k + bj, 3 * k + bk via 7.5 * k, 6.5 * k
+                       line 8 * k + bk, -6 * k + bj }
+                //  The handle.
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * k; color: col; opacity: if(bp == 0, 90%, 34%) * o
+                       move 8 * k + bj, -3.5 * k + bk
+                       curve 8 * k + bk, 2.5 * k + bj via 14 * k, -3.5 * k
+                       }
+                //  The saucer.
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.5, 1.1) * k; color: col; opacity: if(bp == 0, 80%, 30%) * o
+                       move -11.5 * k + bk, 10 * k + bj
+                       line 10.5 * k + bj, 10 * k + bk }
+            }
+            //  The rim: a flat lens, with the coffee's surface in the accent.
+            path { at: cx, cy; color: mint; opacity: 55% * o; move -9 * k, -6 * k; curve 8 * k, -6 * k via -0.5 * k, -8.5 * k; curve -9 * k, -6 * k via -0.5 * k, -3.5 * k; close }
+            path { at: cx, cy; stroke: 1.2 * k; color: col; opacity: 70% * o; move -9 * k, -6 * k; curve 8 * k, -6 * k via -0.5 * k, -8.5 * k; curve -9 * k, -6 * k via -0.5 * k, -3.5 * k; close }
+            //  A wash in the accent inside the mug, below the coffee.
+            path { at: cx, cy; color: mint; opacity: 22% * o; move -9 * k, -6 * k; line -8 * k, 3 * k; curve -4 * k, 7 * k via -7.5 * k, 6.5 * k; line 3 * k, 7 * k; curve 7 * k, 3 * k via 7.5 * k, 6.5 * k; line 8 * k, -6 * k; close }
+            //  The shading: two short strokes on the left of the mug.
+            repeat bc in 0..2 {
+                line { from: cx - 5.5 * k + bc * 2 * k, cy - 1 * k + bc * 1.5 * k + 0.3 * k * sin(fr * 47 + bc * 60); to: cx - 5 * k + bc * 2 * k, cy + 4 * k + 0.3 * k * sin(fr * 53 + bc * 70); width: 1.1 * k; color: mint; opacity: 65% * o }
+            }
+        }
+    }
+
     //  The Capture window's icons in pencil, like the rest: the region's four corner brackets and the screen's monitor, each stroke drawn twice, a hair off, and redrawn about five times a second under the pointer.
     component PRegion(cx: number, cy: number, hot: number, o: number) {
         prop a = 0 ~calm
@@ -3977,7 +4047,7 @@ scene Vitreus {
         on leave touch { adk_hot = 0 }
         on press touch { adk_down = 1; adk_drag = 0; adk_hx = pointer.x - adk.rcx; adk_hy = pointer.y - adk.rcy }
         on drag touch while adk_down > 0.5 { adk_px = clamp(pointer.x - adk_hx, 0, screen.width); adk_py = clamp(pointer.y - adk_hy, 0, screen.height); adk_drag = if(adk_drag > 0.5 or abs(drag.dx) + abs(drag.dy) > 8, 1, 0) }
-        on release touch while adk_down > 0.5 and adk_drag < 0.5 { ax_scr = screen.index; emit adk_go(t.index) }
+        on release touch while adk_down > 0.5 and adk_drag < 0.5 { ax_scr = screen.index; ax_sw = screen.width; ax_sh = screen.height; emit adk_go(t.index) }
         on release touch while adk_down > 0.5 { cdk_corner = if(adk_drag > 0.5, 1 - adk.pick, cdk_corner); adk_down = 0; adk_drag = 0 }
     }
 
@@ -4223,6 +4293,15 @@ scene Vitreus {
     fact ax_cur = -1
     fact ax_open = false                                   // the drawer is out: like the Desk it stays until its X (or its icon) shuts it, and no other panel closes it
     fact ax_scr = 0                                        // the monitor it is on
+    fact ax_rsz = false                                    // a corner is held: the panel is being resized (the content waits, as while it is pulled)
+    fact ax_rk = -1
+    fact ax_bw = 0                                         // its size when a corner was pressed, and the opposite corner, which stays where it is
+    fact ax_bh = 0
+    fact ax_fxd = 0
+    fact ax_fyd = 0
+    event ax_resized ->                                    // a resize ended (logic/addons.luau keeps the size)
+    fact ax_sw = 0                                         // and that monitor's size: an add-on's scene numbers its copies of itself in its own order, so it is told the size, not the number
+    fact ax_sh = 0
     fact ax_gx = 0                                         // pulled by its title bar: where it is being taken to (an offset from its place; in the glass's drawing)
     fact ax_gy = 0
     fact ax_bx = 0                                         // where it was when the bar was pressed
@@ -5054,8 +5133,8 @@ scene Vitreus {
     let axs.x0 = cdk.xs                                    // flush with the frame, as the Desk is: it is part of it until it is pulled away
     let axs.x1 = cdk.xe
     let axs.w = clamp(if(ax_w > 0, ax_w, 300 * cu), 240, max(240, axs.x1 - axs.x0))
-    let axs.y0 = mix(yo + max(th.ts, sg.hc * sg) + 24 * u, cdk.yt, 1 - adk.sb)
-    let axs.y1 = mix(vb - th.b - 24 * u, cdk.ye, adk.sb)
+    let axs.y0 = cdk.yt                                    // against the frame's bottom edge, as the Desk's top is (not under the pieces that hang from it)
+    let axs.y1 = mix(vb - th.b, cdk.ye, adk.sb)
     let axs.h = clamp(if(ax_h > 0, ax_h, 280 * cu), 160, max(160, axs.y1 - axs.y0))
     let axs.fx = mix(axs.x0 + axs.w / 2, axs.x1 - axs.w / 2, adk.sr)
     let axs.fy = mix(axs.y0 + axs.h / 2, axs.y1 - axs.h / 2, adk.sb)
@@ -5066,17 +5145,19 @@ scene Vitreus {
     let dax.ey = mix(adk.resty, axs.fy, dax.lf) + ax_oy * dax.lf
     //  Like the control centre and the Desk, it is one piece with a frame it stands against: wherever one of its edges is within a hand of the frame's, the glass runs on into the
     //  frame (`dax.bl`, `dax.br`, `dax.bt`, `dax.bb`) so the two melt and the join is a fillet. It lets go of the frame as it is pulled away, and takes hold of another it comes to.
-    let axs.top = yo + mix(th.t, sg.hc, sg) * fm              // the top of the room: the frame, or the bottom of the pieces that hang from it
-    let dax.nl = clamp(1 - (dax.ex - dax.ew / 2 - cdk.xs) / (30 * u), 0, 1)
-    let dax.nr = clamp(1 - (cdk.xe - dax.ex - dax.ew / 2) / (30 * u), 0, 1)
-    let dax.nt = clamp(1 - (dax.ey - dax.eh / 2 - axs.top) / (30 * u), 0, 1)
-    let dax.nb = clamp(1 - (cdk.ye - dax.ey - dax.eh / 2) / (30 * u), 0, 1)
-    let dax.k = 14 * u * min(1, dax0 * 3)
-    let dax.bl = dax.k * dax.nl
-    let dax.br = dax.k * dax.nr
-    let dax.bt = dax.k * dax.nt
-    let dax.bb = dax.k * dax.nb
-    let axs.hh = 40                                        // the shell's title bar across the top of the panel (title, grip, X): the content is below it
+    let axs.top = cdk.yt                                    // the top of the room: the frame, as for the Desk
+    //  As the Desk's: a side within 64 of the frame's inner edge (`dax.n*` 1 against it, 0 once it is 64 away) reaches on into the frame, up to 26 past the screen's edge, instead of
+    //  ending, and the blend makes the wings. The reach (`dax.b*`) is how far that side moves out.
+    let dax.nl = clamp(1 - (dax.ex - dax.ew / 2 - cdk.xs - 14 * cu) / (50 * cu), 0, 1)
+    let dax.nr = clamp(1 - (cdk.xe - dax.ex - dax.ew / 2 - 14 * cu) / (50 * cu), 0, 1)
+    let dax.nt = clamp(1 - (dax.ey - dax.eh / 2 - axs.top - 14 * cu) / (50 * cu), 0, 1)
+    let dax.nb = clamp(1 - (cdk.ye - dax.ey - dax.eh / 2 - 14 * cu) / (50 * cu), 0, 1)
+    let dax.k = min(1, dax0 * 3)
+    let dax.bl = dax.k * dax.nl * max(0, dax.ex - dax.ew / 2 + 26 * cu)
+    let dax.br = dax.k * dax.nr * max(0, screen.width - dax.ex - dax.ew / 2 + 26 * cu)
+    let dax.bt = dax.k * dax.nt * max(0, dax.ey - dax.eh / 2 - yo + 26 * cu)
+    let dax.bb = dax.k * dax.nb * max(0, vb - dax.ey - dax.eh / 2 + 26 * cu)
+    let axs.hh = 66 * cu                                   // the shell's title bar across the top of the panel (title, grip, X): the content is below it
     let axs.rt = axs.hh + cdk.t * (1 - adk.sb)             // what the content leaves free: the title bar, and the pill's strip when the pill is at the top
     let axs.rb = cdk.t * adk.sb                            // ... and the pill's strip along the bottom (the pill is in the panel's corner, its icons showing)
     //  How far it may be pulled (offsets from its place, in the glass's drawing): anywhere inside the frame, right up against it, as the Desk can be.
@@ -5088,6 +5169,7 @@ scene Vitreus {
     on change ax_open { ax_rx = mix(axs.fx + ax_gx, screen.width - (axs.fx + ax_gx), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w; ax_rh = axs.h - axs.rt - axs.rb }
     on change ax_cur { ax_rx = mix(axs.fx + ax_gx, screen.width - (axs.fx + ax_gx), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w; ax_rh = axs.h - axs.rt - axs.rb }
     on change ax_hold { ax_rx = mix(axs.fx + ax_gx, screen.width - (axs.fx + ax_gx), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w; ax_rh = axs.h - axs.rt - axs.rb }
+    on change ax_rsz { ax_rx = mix(axs.fx + ax_gx, screen.width - (axs.fx + ax_gx), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w; ax_rh = axs.h - axs.rt - axs.rb }
     //  The right notch opens the desk: a panel out of the right frame with a few small tools, in tabs. It is not one of the values of `panel`, so it
     //  stays open while the calendar, the controls, the volume or a notification come and go. It is drawn like the volume's and the title panel's
     //  drawers (`dz.*`: the same springs and shape) but with its own geometry, which does not depend on whichever of those is out.

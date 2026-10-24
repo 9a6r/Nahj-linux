@@ -23,6 +23,7 @@ return function()
     -- panel out of the pill if it asked for one (`[drawer]`: the shell draws the glass, the add-on its content, told where by `slot_x`, `slot_y` the middle, `slot_w`,
     -- `slot_h` and whether it is out by `slot_open`), or, for an add-on that is only a window, flips its `slot_open`. One drawer is out at a time (`ax_cur`, the pill's place).
     local pins = {}
+    local sizes = {}            -- the size each add-on's panel was left at (by id): used when it opens again
     local winopen = {}
     local function say_one(sock, cmds)
         local args = { "--say", sock }
@@ -33,12 +34,12 @@ return function()
     local told_open = false
     local function push_slot()
         local cur = cur_pin()
-        local open = fact.ax_open == true and fact.ax_hold ~= true       -- (the content waits while the panel is pulled, and goes to where it lands)
+        local open = fact.ax_open == true and fact.ax_hold ~= true and fact.ax_rsz ~= true       -- (the content waits while the panel is pulled or resized, and goes to where it lands)
         told_open = fact.ax_open == true
         for _, a in ipairs(pins) do
             if a.drawer then
                 local mine = open and cur == a
-                say_one(a.sock, { "fact slot_open " .. tostring(mine), "fact slot_x " .. string.format("%.1f", fact.ax_rx or 0), "fact slot_y " .. string.format("%.1f", fact.ax_ry or 0),
+                say_one(a.sock, { "fact slot_open " .. tostring(mine), "fact slot_sw " .. tostring(tonumber(fact.ax_sw) or 0), "fact slot_sh " .. tostring(tonumber(fact.ax_sh) or 0), "fact slot_x " .. string.format("%.1f", fact.ax_rx or 0), "fact slot_y " .. string.format("%.1f", fact.ax_ry or 0),
                     "fact slot_w " .. string.format("%.1f", fact.ax_rw or 0), "fact slot_h " .. string.format("%.1f", fact.ax_rh or 0) })
             else
                 say_one(a.sock, { "fact slot_open " .. tostring(winopen[a.id] == true) })
@@ -68,7 +69,8 @@ return function()
         if not a then return end
         if a.drawer then
             if fact.ax_open == true and tonumber(fact.ax_cur) == i then fact.ax_open = false; return end
-            fact.ax_w, fact.ax_h = a.drawer.width, a.drawer.height       -- (before `ax_cur`: the content's place is worked out when that changes)
+            local sz = sizes[a.id]
+            fact.ax_w, fact.ax_h = (sz and sz.w or a.drawer.width), (sz and sz.h or a.drawer.height)       -- (before `ax_cur`: the content's place is worked out when that changes)
             text.ax_title = a.name
             fact.ax_cur = i
             fact.ax_open = true
@@ -89,6 +91,8 @@ return function()
     on("fact:ax_open", function(v) after(150, push_slot) end)
     on("fact:ax_hold", function(v) after(150, push_slot) end)
     on("fact:ax_cur", function(v) after(150, push_slot) end)
+    on("fact:ax_sw", function(v) after(150, push_slot) end)
+    on("fact:ax_rsz", function(v) after(150, push_slot) end)
 
     local function push_wx()
         if #addon_scenes == 0 then return end
@@ -118,12 +122,21 @@ return function()
     end
 
     local function save()
-        pcall(sys.call, "files.write", "addons-state.json", { enabled = enabled })
+        pcall(sys.call, "files.write", "addons-state.json", { enabled = enabled, sizes = sizes })
     end
+    on("ax_resized", function()       -- a panel was resized: kept for the next time it opens
+        local a = cur_pin()
+        if not a then return end
+        sizes[a.id] = { w = math.floor((tonumber(fact.ax_w) or 0) + 0.5), h = math.floor((tonumber(fact.ax_h) or 0) + 0.5) }
+        save()
+    end)
     do
         local ok, saved = pcall(sys.ask, "files.read", "addons-state.json", "json")
         if ok and type(saved) == "table" and type(saved.enabled) == "table" then
             for id, v in pairs(saved.enabled) do if v == true then enabled[id] = true end end
+        end
+        if ok and type(saved) == "table" and type(saved.sizes) == "table" then
+            for id, z in pairs(saved.sizes) do if type(z) == "table" and type(z.w) == "number" and type(z.h) == "number" then sizes[id] = { w = z.w, h = z.h } end end
         end
     end
 

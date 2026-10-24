@@ -438,12 +438,7 @@ part Desk {
                 //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
                 body { color: mix(obsidian, ink, (7% + 5% * ft_sw.0.hover) * 1.6); opacity: obs; shadow: 0, 2 * du, 7 * du, 40%, #000000; show: obs > 0.004; box { at: sx0, fs_y; size: 150 * du, 34 * du; corner: 13 * du } }
                 box { at: sx0, fs_y; size: 150 * du, 34 * du; corner: 13 * du; color: ink; opacity: (7% + 5% * ft_sw.0.hover) * (1 - obs) }
-                group {
-                    opacity: 45% + 55% * clamp(sp0, 0, 1)
-                    ellipse { at: (sx0 - 58 * du), fs_y - 1 * du; radius: 3 * du; color: ink }
-                    box { at: (sx0 - 58 * du), fs_y + 2.2 * du; size: 8 * du, 1.8 * du; corner: 0.9 * du; color: ink }
-                    ellipse { at: (sx0 - 58 * du), fs_y + 4 * du; radius: 0.9 * du; color: ink }
-                }
+                PMBell(sx0 - 58 * du, fs_y - 0.5 * du, 0.7 * du, 0.45 + 0.55 * clamp(sp0, 0, 1), ink)
                 group { scale: rs; pivot: floor(sx0 - 46 * du + 0.5), floor(fs_y + 0.5); text "Silence alerts" { at: floor(sx0 - 46 * du + 0.5), floor(fs_y + 0.5); anchor: left center; size: 11.5; weight: 600; color: ink; opacity: 70% + 30% * clamp(sp0, 0, 1); family: "Space Grotesk" } }
                 body {
                     color: mix(off, mint, clamp(sp0, 0, 1))
@@ -459,12 +454,7 @@ part Desk {
                     box { at: sk0, fs_y; size: (17 + 9 * sm0 + 4 * ft_press) * du, (17 - 3 * sm0) * du; corner: (8.5 - 2 * clamp(sp0, 0, 1) - 1.5 * sm0) * du }
                 }
                 CatPawKnob(sk0, fs_y, (17 + 9 * sm0 + 4 * ft_press) * du, du)
-                group {
-                    opacity: glyph_a
-                    ellipse { at: sk0, fs_y - 1.2 * du; radius: 3.4 * du; color: off }
-                    box { at: sk0, fs_y + 2.2 * du; size: 9 * du, 2 * du; corner: 1 * du; color: off }
-                    ellipse { at: sk0, fs_y + 4.6 * du; radius: 1 * du; color: off }
-                }
+                PMBell(sk0, fs_y, 0.55 * du, glyph_a * 2, off)
                 line { from: sk0 - 5.5 * du, fs_y - 5.5 * du; to: sk0 + 5.5 * du, fs_y + 5.5 * du; width: 1.5 * du; color: off; opacity: glyph_a * sp0 }
                 zone box ft_sw.0 { at: sx0, fs_y; size: 152 * du, 36 * du; corner: 14 * du; cursor: pointer }
                 //  Keep awake: a card with a toggle like the tiles'.
@@ -478,11 +468,7 @@ part Desk {
                 //  Obsidian: a solid plate a step lighter than the shell, with a small tight shadow, in place of the veil.
                 body { color: mix(obsidian, ink, (7% + 5% * ft_sw.1.hover) * 1.6); opacity: obs; shadow: 0, 2 * du, 7 * du, 40%, #000000; show: obs > 0.004; box { at: sx1, fs_y; size: 150 * du, 34 * du; corner: 13 * du } }
                 box { at: sx1, fs_y; size: 150 * du, 34 * du; corner: 13 * du; color: ink; opacity: (7% + 5% * ft_sw.1.hover) * (1 - obs) }
-                group {
-                    opacity: 45% + 55% * clamp(sp1, 0, 1)
-                    box { at: (sx1 - 58 * du) - 0.8 * du, fs_y + 0.5 * du; size: 7 * du, 6 * du; corner: 1.8 * du; color: ink }
-                    ellipse { at: (sx1 - 58 * du) + 3.4 * du, fs_y + 0.5 * du; radius: 1.9 * du; stroke: 1.1 * du; color: ink }
-                }
+                PMCup(sx1 - 58 * du, fs_y, 0.7 * du, 0.45 + 0.55 * clamp(sp1, 0, 1), ink)
                 group { scale: rs; pivot: floor(sx1 - 46 * du + 0.5), floor(fs_y + 0.5); text "Keep awake" { at: floor(sx1 - 46 * du + 0.5), floor(fs_y + 0.5); anchor: left center; size: 11.5; weight: 600; color: ink; opacity: 70% + 30% * clamp(sp1, 0, 1); family: "Space Grotesk" } }
                 body {
                     color: mix(off, mint, clamp(sp1, 0, 1))
@@ -498,16 +484,7 @@ part Desk {
                     box { at: sk1, fs_y; size: (17 + 9 * sm1 + 4 * ft_press) * du, (17 - 3 * sm1) * du; corner: (8.5 - 2 * clamp(sp1, 0, 1) - 1.5 * sm1) * du }
                 }
                 CatPawKnob(sk1, fs_y, (17 + 9 * sm1 + 4 * ft_press) * du, du)
-                group {
-                    opacity: glyph_a * sp1
-                    box { at: sk1 - 1 * du, fs_y + 0.5 * du; size: 8 * du, 7 * du; corner: 2 * du; color: off }
-                    ellipse { at: sk1 + 4 * du, fs_y + 0.5 * du; radius: 2.2 * du; stroke: 1.2 * du; color: off }
-                }
-                group {
-                    opacity: glyph_a * (0.7 * (1 - clamp(sp1, 0, 1)))
-                    box { at: sk1 - 1 * du, fs_y + 0.5 * du; size: 8 * du, 7 * du; corner: 2 * du; stroke: 1.1 * du; color: off }
-                    ellipse { at: sk1 + 4 * du, fs_y + 0.5 * du; radius: 2.2 * du; stroke: 1.1 * du; color: off }
-                }
+                PMCup(sk1, fs_y, 0.55 * du, glyph_a * 2 * (0.6 + 0.4 * clamp(sp1, 0, 1)), off)
                 zone box ft_sw.1 { at: sx1, fs_y; size: 152 * du, 36 * du; corner: 14 * du; cursor: pointer }
                 on press ft_sw.0 { ft_dnd = not ft_dnd }
                 on press ft_sw.1 { ft_caf = not ft_caf }

@@ -169,6 +169,17 @@ While it runs, Vitreus tells it, as facts and texts of its scene, the palette (s
 have them, so read someone else's before you do. A folder that cannot be read is named in the line under the rows and left out. `bin/vitreus-addons`
 reads the folders and leaves `addons.json` in the data folder; which are on is kept in `addons-state.json` there.
 
+**Logic, data and programs.** A scene's logic is the `.luau` file with the scene's name beside it (`addon.plm` and `addon.luau`; the drawer template has one). It keeps what it must in the
+scene's own data folder, `~/.local/share/pleamar/<scene's name>/`, with the `files` and `files.write` services (`sys.ask("files.folder")` is the folder's path, `files.read` and `files.write`
+work by file name), and runs programs with `run(...)`: each one has to be named in the scene's `permissions { run: ... }`, and a program that is not on every machine (a helper like
+`bin/vitreus-feedfetch`) is linked into `~/.local/bin` by `install.sh`. A panel cannot take text, so an add-on takes what it needs from the clipboard instead: `run("wl-paste", ...)`
+behind a button that says so. The shell tells an add-on the forecast as `wx_*` texts and facts when the scene declares them; an add-on that fetches its own weather should not name its
+own `wx_*` or they would be overwritten (the News & Weather one uses `nw_*`). Give the scene file a name of its own: two add-ons whose scene files share a name cannot both run.
+
+**News & Weather** (`addons/news-weather/`, from jaslrobinson's drawer, issue #22) is a panel add-on built this way: an RSS/Atom reader and an Open-Meteo forecast (48-hour graphs, 16 days, saved places).
+To use it, run `./install.sh` once (it links `vitreus-feedfetch`), copy the folder to `~/.config/pleamar/vitreus-addons/news-weather/`, and turn it on in Settings > Add-ons; its icon
+appears on the add-on pill. Feeds and places are added from the clipboard, and the feed manager lists popular feeds to pick from.
+
 ---
 
 ## 📦 Requirements
