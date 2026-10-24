@@ -4676,10 +4676,11 @@ scene Vitreus {
     let tray_top = tasks_bot + 8
     let tray_list = tray_top + 26
     let panel_bot = if(trays.count > 0, tray_list + tray_rows * 40 - 4, tasks_bot)
+    let dm_foot = 11.5                              // the room under the last row: the same as at its sides (about 19.5), not 16, which came out a few more
     //  The tray menu: the app's plate (8..60), Open and Alt (66..92), then its menu from 100 (or a line saying it has none).
     let tm.list = min(tm_h, 224)
     let tm_bot = 100 + if(tm_has_menu, tm.list, 30) + 8
-    let dm.hh = bar.h / 2 + (if(dm_mode == dmm_tray, tm_bot, panel_bot) + 16) * cu * dm0 + 13 * cu * tm * dm0 + max(0, sag)
+    let dm.hh = bar.h / 2 + (if(dm_mode == dmm_tray, tm_bot + 16, panel_bot + dm_foot)) * cu * dm0 + 13 * cu * tm * dm0 + max(0, sag)
     let mdx = pcx
     //  Down the left, where the open panel is (`lp_k`: which was opened last), in its own coordinates: it ends up in the middle of the screen,
     //  except the volume, which is low, and the notification, which is high. It leaves the strip at the height of its button (`lp.btn`; the volume
@@ -4690,7 +4691,7 @@ scene Vitreus {
     let lpm = max(lmk, tm * att)                  // the corrections apply to the strip's own panels on a top or bottom frame as well as on a side one
     let lp.dy = if(lp_k == 1, 4.5, if(lp_k == 2 or lp_k == 3 or lp_k == 7 or lp_k == 8, 6.5, if(lp_k == 4, -0.5, 0))) * ku * lpm
     let lp.dd = if(lp_k == 1, 11, if(lp_k == 2, 11, if(lp_k == 3 or lp_k == 7 or lp_k == 8, 13, if(lp_k == 4, 6, 0)))) * ku * lpm
-    let lp.hd = (if(lp_k == 1, (8 + 36 + 8 + set.h + 16) * pu, if(lp_k == 2, (172 + lr * 44) * pu, if(lp_k == 3, (content_bot + 16) * cu, if(lp_k == 4, 373 * cu, if(lp_k == 5 or lp_k == 6, (if(dm_mode == dmm_tray, tm_bot, panel_bot) + 16) * cu, if(lp_k == 9, dsk_h, (8 + osd_h + 16) * u))))))) + lp.dd
+    let lp.hd = (if(lp_k == 1, (8 + 36 + 8 + set.h + 16) * pu, if(lp_k == 2, (172 + lr * 44) * pu, if(lp_k == 3, (content_bot + 16) * cu, if(lp_k == 4, 373 * cu, if(lp_k == 5 or lp_k == 6, (if(dm_mode == dmm_tray, tm_bot + 16, panel_bot + dm_foot)) * cu, if(lp_k == 9, dsk_h, (8 + osd_h + 16) * u))))))) + lp.dd
     //  Where it settles, as drawn (`ty`): Settings low, the launcher high, a good way from the middle, and clear of the frame; then back to the panel's
     //  own coordinates (the contents are scaled about the middle of the screen).
     let lp.ty = if(lp_k == 1, mix(min(vc + 190 * u, vb - th.b - 24 * u - lp.hd / 2), vcc, ssd), mix(mix(max(vc - 210 * u, yo + th.t + 24 * u + lp.hd / 2), vcc, lside), vb - th.b - 24 * u - lp.hd / 2, lbot))
@@ -4836,9 +4837,9 @@ scene Vitreus {
     let dm.lf = min(1, dm.gl * 1.6) + max(0, dm.gl - 1) * 0.6
     let dm.rt = mix(2 * (164 + 6.5) * cu, (lf.w - lf.x) + 341 * cu, att)
     let dm.gw = max(0.1, dm.rt * dm.lf)
-    let dm.gh = (((if(dm_mode == dmm_tray, tm_bot, panel_bot) + 16) * cu) + lp.dd + max(0, sag)) * dm.lf
+    let dm.gh = (((if(dm_mode == dmm_tray, tm_bot + 16, panel_bot + dm_foot)) * cu) + lp.dd + max(0, sag)) * dm.lf
     let dm.gx = mix(lp.xl + dm.gw / 2, ccx, edg)
-    let dm.tR = bar.h / 2 + (if(dm_mode == dmm_tray, tm_bot, panel_bot) + 16) * cu + 13 * cu * tm + max(0, sag)
+    let dm.tR = bar.h / 2 + (if(dm_mode == dmm_tray, tm_bot + 16, panel_bot + dm_foot)) * cu + 13 * cu * tm + max(0, sag)
     let dm.teh = dm.tR * dm.lf
     let dm.tey = bar.y + dm.teh / 2
     let dm.tew = 328 * cu * dm.lf
