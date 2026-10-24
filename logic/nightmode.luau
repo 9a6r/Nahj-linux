@@ -90,7 +90,7 @@ void main() {
     end
 
     -- niri has no night light of its own, but it lets a client set the gamma (wlr-gamma-control), which is what `wlsunset` does: here it is started at a
-    -- fixed temperature (both its temperatures the same, and times it needs and never uses) and stopped by the arguments it was started with, so another
+    -- fixed temperature (its two temperatures one kelvin apart: it refuses them equal; and times it needs and never uses) and stopped by the arguments it was started with, so another
     -- wlsunset of the user's is left alone. Without wlsunset installed, nothing happens (the page says so).
     local WLS = "wlsunset -t %d -T %d -S 06:00 -s 18:00 -g 1.0000"
     local WLS_KILL = "wlsunset -t [0-9]+ -T [0-9]+ -S 06:00 -s 18:00 -g 1.0000"
@@ -98,7 +98,7 @@ void main() {
         run("pkill", { "-f", WLS_KILL }, function()
             if N.on then
                 local k = temp()
-                run("setsid", { "-f", "sh", "-c", "exec " .. string.format(WLS, k, k) .. " >/dev/null 2>&1 </dev/null" }, function() N.applied = true end)
+                run("setsid", { "-f", "sh", "-c", "exec " .. string.format(WLS, k, k + 1) .. " >/dev/null 2>&1 </dev/null" }, function() N.applied = true end)
             else
                 N.applied = false
             end
