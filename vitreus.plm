@@ -3300,31 +3300,64 @@ scene Vitreus {
     //  The controls drawer's icons, drawn in pencil like the gear's, Search's and the notification banner's bell. Each line is drawn twice, the second time fainter, thinner and a hair
     //  off, and every point of it sits a little crooked. `hot` (0 to 1: it is on, or the pointer is over it) makes the icon swell and the lines redraw about five times a second
     //  (`fr`, which stays 0 while it is cold, so a cold icon is still). `cx`, `cy` is the icon's own middle (the slider ones, their origin); the rest is what the icon says.
+    //  Signal bars in the bell's manner: each bar twice in pencil with a rounded top, a wash of the accent inside and a shading stroke on its left. `o1` to `o3` are how
+    //  much of each bar is lit.
     component PWifi(cx: number, cy: number, hot: number, o1: number, o2: number, o3: number) {
         prop a = 0 ~calm
         follow a = hot
         let fr = if(a > 0.02, floor(time * 5), 0)
+        let kw = 0.8 * cu
         group {
             pivot: cx, cy
             scale: 1 + 0.10 * a
-            path { at: cx, cy; stroke: 2.8 * cu; color: ink; opacity: (o1); move -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 60 + 530), 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 65 + 590); line -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 627), -1 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 72 + 687); }
-            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.96 * cu; color: ink; opacity: (o1) * 0.28; move -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 44 + 901), 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 49 + 961); line -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 51 + 998), -1 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 56 + 1058); }
-            path { at: cx, cy; stroke: 2.8 * cu; color: ink; opacity: (o2); move 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 583), 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 45 + 643); line 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 47 + 680), -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 52 + 740); }
-            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.96 * cu; color: ink; opacity: (o2) * 0.28; move 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 55 + 954), 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 60 + 1014); line 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 1051), -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 1111); }
-            path { at: cx, cy; stroke: 2.8 * cu; color: ink; opacity: (o3); move 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 51 + 636), 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 56 + 696); line 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 58 + 733), -9 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 63 + 793); }
-            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.96 * cu; color: ink; opacity: (o3) * 0.28; move 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 66 + 1007), 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 1067); line 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 73 + 1104), -9 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 47 + 1164); }
+            repeat br in 0..3 {
+                let bx = (br - 1) * 6.5 * kw
+                let bt = (1 - br * 5.5) * kw                      // its top: 1, -4.5, -10
+                let bo1 = if(br == 0, o1, if(br == 1, o2, o3))
+                repeat bp in 0..2 {
+                    let bo = bp * 0.7 * kw
+                    let bj = (0.18 + 0.25 * a) * cu * sin(fr * 53 + bp * 137 + br * 29)
+                    let bk = (0.18 + 0.25 * a) * cu * sin(fr * 61 + bp * 71 + br * 43 + 40)
+                    path { at: cx + bx + bo, cy + 3 * kw + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kw; color: ink; opacity: if(bp == 0, 90%, 34%) * bo1
+                           move -2.4 * kw + bj, 6 * kw + bk
+                           line -2.4 * kw + bk, bt + 2 * kw + bj
+                           curve 2.4 * kw + bj, bt + 2 * kw + bk via 0, bt - 1.6 * kw + bj
+                           line 2.4 * kw + bk, 6 * kw + bj
+                           close }
+                }
+                path { at: cx + bx, cy + 3 * kw; color: mint; opacity: 35% * bo1; move -2.4 * kw, 6 * kw; line -2.4 * kw, bt + 2 * kw; curve 2.4 * kw, bt + 2 * kw via 0, bt - 1.6 * kw; line 2.4 * kw, 6 * kw; close }
+                line { from: cx + bx - 0.9 * kw, cy + 3 * kw + bt + 3.5 * kw + 0.3 * cu * sin(fr * 47 + br * 60); to: cx + bx - 0.9 * kw, cy + 3 * kw + 4.5 * kw + 0.3 * cu * sin(fr * 53 + br * 70); width: 1.0 * kw; color: mint; opacity: 65% * bo1 }
+            }
         }
     }
 
+    //  The Bluetooth rune in the bell's manner: the rune twice in pencil inside a ring with an accent wash, and two shading strokes on the left.
     component PBt(cx: number, cy: number, hot: number, o: number) {
         prop a = 0 ~calm
         follow a = hot
         let fr = if(a > 0.02, floor(time * 5), 0)
+        let kt = 0.8 * cu
         group {
             pivot: cx, cy
             scale: 1 + 0.10 * a
-            path { at: cx, cy; stroke: 1.5 * cu; color: ink; opacity: (o); move -4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 46 + 1060), -4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 51 + 1120); line 4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 53 + 1157), 4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 58 + 1217); line 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 60 + 1254), 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 65 + 1314); line 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 1351), -8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 72 + 1411); line 4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 43 + 1448), -4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 48 + 1508); line -4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 50 + 1545), 4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 55 + 1605); }
-            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: ink; opacity: (o) * 0.28; move -4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 61 + 1431), -4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 66 + 1491); line 4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 1528), 4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 73 + 1588); line 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 44 + 1625), 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 49 + 1685); line 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 51 + 1722), -8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 56 + 1782); line 4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 58 + 1819), -4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 63 + 1879); line -4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 65 + 1916), 4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 70 + 1976); }
+            ellipse { at: cx, cy; radius: 11.5 * kt; color: mint; opacity: 22% * o }
+            ellipse { at: cx + 0.3 * cu * sin(fr * 49), cy + 0.3 * cu * sin(fr * 57); radius: 11.5 * kt; stroke: 1.6 * kt; color: ink; opacity: 85% * o }
+            ellipse { at: cx + 0.7 * kt, cy + 0.5 * kt; radius: 11.5 * kt; stroke: 1.2 * kt; color: ink; opacity: 30% * o }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kt
+                let bj = (0.18 + 0.25 * a) * cu * sin(fr * 53 + bp * 137 + 17)
+                let bk = (0.18 + 0.25 * a) * cu * sin(fr * 61 + bp * 71 + 57)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kt; color: ink; opacity: if(bp == 0, 90%, 34%) * o
+                       move -4.5 * kt + bj, -4.5 * kt + bk
+                       line 4.5 * kt + bk, 4.5 * kt + bj
+                       line 0 + bj, 9 * kt + bk
+                       line 0 + bk, -9 * kt + bj
+                       line 4.5 * kt + bj, -4.5 * kt + bk
+                       line -4.5 * kt + bk, 4.5 * kt + bj }
+            }
+            repeat bc in 0..2 {
+                line { from: cx - 9.5 * kt + bc * 1.5 * kt, cy - 3 * kt + bc * 1.5 * kt + 0.3 * cu * sin(fr * 47 + bc * 60); to: cx - 9 * kt + bc * 1.5 * kt, cy + 3 * kt + 0.3 * cu * sin(fr * 53 + bc * 70); width: 1.0 * kt; color: mint; opacity: 65% * o }
+            }
         }
     }
 
@@ -3332,53 +3365,125 @@ scene Vitreus {
         prop a = 0 ~calm
         follow a = hot
         let fr = if(a > 0.02, floor(time * 5), 0)
+        let kbell = 0.8 * cu                                  // the notification banner's bell (osd_drawer.plm), scaled to this tile
         group {
             pivot: cx, cy
             scale: 1 + 0.10 * a
             group {
-                pivot: cx, cy - 6 * cu
+                pivot: cx, cy - 11 * kbell
                 rotate: wob * 14deg
-                path { at: cx, cy; stroke: 1.5 * cu; color: ink; opacity: (o); move -6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 63 + 1590), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 1650); curve -3.74 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 70 + 1687), -4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 44 + 1747) via -4.42 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 48 + 6537), 1.36 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 53 + 6597); curve 3.74 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 46 + 1784), -4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 51 + 1844) via 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 55 + 6634), -10.2 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 60 + 6694); curve 6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 53 + 1881), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 58 + 1941) via 4.42 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 6731), 1.36 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 6791); line -6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 60 + 1978), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 65 + 2038); }
-                path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: ink; opacity: (o) * 0.28; move -6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 47 + 1961), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 52 + 2021); curve -3.74 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 54 + 2058), -4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 59 + 2118) via -4.42 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 63 + 6908), 1.36 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 6968); curve 3.74 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 61 + 2155), -4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 66 + 2215) via 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 70 + 7005), -10.2 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 44 + 7065); curve 6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 2252), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 73 + 2312) via 4.42 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 46 + 7102), 1.36 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 51 + 7162); line -6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 44 + 2349), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 49 + 2409); }
-                path { at: cx, cy; color: ink; opacity: (0.30 * o); move -6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 65 + 1749), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 70 + 1809); curve -3.74 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 72 + 1846), -4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 46 + 1906) via -4.42 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 50 + 6696), 1.36 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 55 + 6756); curve 3.74 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 48 + 1943), -4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 53 + 2003) via 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 6793), -10.2 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 6853); curve 6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 55 + 2040), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 60 + 2100) via 4.42 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 64 + 6890), 1.36 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 69 + 6950); line -6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 2137), 4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 2197); close }
-                ellipse { at: cx + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 52 + 1899), cy + -8.364 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 64 + 2056); radius: 1 * cu * (1 + 0.04 * sin(fr * 47 + 1054)); color: ink; opacity: (o) }
-                ellipse { at: cx + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 2270) + 0.35 * cu, cy + -8.364 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 48 + 2427) + 0.28 * cu; radius: 1 * cu * (1 + 0.04 * sin(fr * 47 + 1124)); color: ink; opacity: (o) * 0.28 }
-                path { at: cx, cy; stroke: 1.1 * cu; color: ink; opacity: (0.65 * o); move -4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 56 + 1855), -2.04 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 61 + 1915); line -3.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 63 + 1952), 1.36 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 2012); }
-                path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 0.77 * cu; color: ink; opacity: (0.65 * o) * 0.28; move -4.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 2226), -2.04 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 45 + 2286); line -3.4 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 47 + 2323), 1.36 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 52 + 2383); }
-                ellipse { at: cx + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 43 + 2005), cy + 6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 55 + 2162); radius: 1.5 * cu * (1 + 0.04 * sin(fr * 47 + 1116)); color: ink; opacity: (o) }
-                ellipse { at: cx + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 58 + 2376) + 0.35 * cu, cy + 6.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 70 + 2533) + 0.28 * cu; radius: 1.5 * cu * (1 + 0.04 * sin(fr * 47 + 1186)); color: ink; opacity: (o) * 0.28 }
+                //  The body, a flared dome: two turns of the pencil, the second fainter and a little off.
+                repeat bp in 0..2 {
+                    let bo = bp * 0.7 * kbell
+                    let bj = (0.18 + 0.25 * a) * cu * sin(fr * 53 + bp * 137)
+                    let bk = (0.18 + 0.25 * a) * cu * sin(fr * 61 + bp * 71 + 40)
+                    path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kbell; color: ink; opacity: if(bp == 0, 90%, 34%) * o
+                           move -10 * kbell + bj, 6 * kbell + bk
+                           curve -5.5 * kbell + bk, -6 * kbell + bj via -6.5 * kbell, 2 * kbell
+                           curve 5.5 * kbell + bj, -6 * kbell + bk via 0, -15 * kbell + bj
+                           curve 10 * kbell + bk, 6 * kbell + bj via 6.5 * kbell, 2 * kbell
+                           line -10 * kbell + bj, 6 * kbell + bk }
+                }
+                //  A wash in the accent inside it.
+                path { at: cx, cy; color: mint; opacity: 30% * o; move -10 * kbell, 6 * kbell; curve -5.5 * kbell, -6 * kbell via -6.5 * kbell, 2 * kbell; curve 5.5 * kbell, -6 * kbell via 0, -15 * kbell; curve 10 * kbell, 6 * kbell via 6.5 * kbell, 2 * kbell; close }
+                //  The knob on top, and the shading: two short strokes on the left of the dome.
+                ellipse { at: cx + 0.3 * cu * sin(fr * 67), cy - 12.3 * kbell; radius: 1.5 * kbell; color: ink; opacity: o }
+                repeat bc in 0..2 {
+                    line { from: cx - 6 * kbell + bc * 2 * kbell, cy - 3 * kbell + bc * 1.5 * kbell + 0.3 * cu * sin(fr * 47 + bc * 60); to: cx - 5 * kbell + bc * 2 * kbell, cy + 2 * kbell + 0.3 * cu * sin(fr * 53 + bc * 70); width: 1.1 * kbell; color: mint; opacity: 65% * o }
+                }
+                //  The clapper.
+                ellipse { at: cx + 0.3 * cu * sin(fr * 59), cy + 10 * kbell; radius: 2.2 * kbell; color: mint; opacity: o }
             }
+            //  Struck through while Do Not Disturb is on.
             path { at: cx, cy; stroke: 1.5 * cu; color: alert; opacity: (slo); move -8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 47 + 1961), -8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 52 + 2021); line 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 54 + 2058), 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 59 + 2118); }
-            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: alert; opacity: (slo) * 0.28; move -8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 2332), -8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 2392); line 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 69 + 2429), 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 43 + 2489); }
+            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: alert; opacity: (slo) * 0.28; move -8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 2332), -8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 2392); line 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 69 + 2429), 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 74 + 2489); }
         }
     }
 
+    //  The coffee mug, in the bell's manner: the body twice in pencil, the coffee's surface and a wash of the accent, a handle, shading strokes and a saucer.
     component PCup(cx: number, cy: number, hot: number, o: number) {
         prop a = 0 ~calm
         follow a = hot
         let fr = if(a > 0.02, floor(time * 5), 0)
+        let kc = 0.8 * cu
         group {
             pivot: cx, cy
             scale: 1 + 0.10 * a
-            path { at: cx, cy; color: ink; opacity: (0.30 * o); move -9 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 60 + 2173), -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 65 + 2233); line -8.3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 2270), 2.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 72 + 2330); line -6.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 43 + 2367), 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 48 + 2427); line 0.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 50 + 2464), 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 55 + 2524); line 2.3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 2561), 2.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 2621); line 3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 64 + 2658), -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 69 + 2718); close }
-            path { at: cx, cy; stroke: 1.5 * cu; color: ink; opacity: (o); move -9 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 2226), -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 45 + 2286); line -8.3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 47 + 2323), 2.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 52 + 2383); line -6.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 54 + 2420), 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 59 + 2480); line 0.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 61 + 2517), 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 66 + 2577); line 2.3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 2614), 2.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 73 + 2674); line 3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 44 + 2711), -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 49 + 2771); close }
-            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: ink; opacity: (o) * 0.28; move -9 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 55 + 2597), -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 60 + 2657); line -8.3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 2694), 2.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 2754); line -6.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 69 + 2791), 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 43 + 2851); line 0.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 45 + 2888), 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 50 + 2948); line 2.3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 52 + 2985), 2.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 3045); line 3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 59 + 3082), -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 64 + 3142); close }
-            ellipse { at: cx + 4.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 58 + 2376), cy + -0.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 70 + 2533); radius: 2.8 * cu * (1 + 0.04 * sin(fr * 47 + 1333)); stroke: 1.5 * cu; color: ink; opacity: (o) }
-            ellipse { at: cx + 4.8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 73 + 2747) + 0.35 * cu, cy + -0.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 54 + 2904) + 0.28 * cu; radius: 2.8 * cu * (1 + 0.04 * sin(fr * 47 + 1403)); stroke: 1.05 * cu; color: ink; opacity: (o) * 0.28 }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kc
+                let bj = (0.18 + 0.25 * a) * cu * sin(fr * 53 + bp * 137 + 11)
+                let bk = (0.18 + 0.25 * a) * cu * sin(fr * 61 + bp * 71 + 51)
+                //  The mug.
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kc; color: ink; opacity: if(bp == 0, 90%, 34%) * o
+                       move -9 * kc + bj, -6 * kc + bk
+                       line -8 * kc + bk, 3 * kc + bj
+                       curve -4 * kc + bj, 7 * kc + bk via -7.5 * kc, 6.5 * kc
+                       line 3 * kc + bk, 7 * kc + bj
+                       curve 7 * kc + bj, 3 * kc + bk via 7.5 * kc, 6.5 * kc
+                       line 8 * kc + bk, -6 * kc + bj }
+                //  The handle.
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kc; color: ink; opacity: if(bp == 0, 90%, 34%) * o
+                       move 8 * kc + bj, -3.5 * kc + bk
+                       curve 8 * kc + bk, 2.5 * kc + bj via 14 * kc, -3.5 * kc
+                       }
+                //  The saucer.
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.5, 1.1) * kc; color: ink; opacity: if(bp == 0, 80%, 30%) * o
+                       move -11.5 * kc + bk, 10 * kc + bj
+                       line 10.5 * kc + bj, 10 * kc + bk }
+            }
+            //  The rim: a flat lens, with the coffee's surface in the accent.
+            path { at: cx, cy; color: mint; opacity: 55% * o; move -9 * kc, -6 * kc; curve 8 * kc, -6 * kc via -0.5 * kc, -8.5 * kc; curve -9 * kc, -6 * kc via -0.5 * kc, -3.5 * kc; close }
+            path { at: cx, cy; stroke: 1.2 * kc; color: ink; opacity: 70% * o; move -9 * kc, -6 * kc; curve 8 * kc, -6 * kc via -0.5 * kc, -8.5 * kc; curve -9 * kc, -6 * kc via -0.5 * kc, -3.5 * kc; close }
+            //  A wash in the accent inside the mug, below the coffee.
+            path { at: cx, cy; color: mint; opacity: 22% * o; move -9 * kc, -6 * kc; line -8 * kc, 3 * kc; curve -4 * kc, 7 * kc via -7.5 * kc, 6.5 * kc; line 3 * kc, 7 * kc; curve 7 * kc, 3 * kc via 7.5 * kc, 6.5 * kc; line 8 * kc, -6 * kc; close }
+            //  The shading: two short strokes on the left of the mug.
+            repeat bc in 0..2 {
+                line { from: cx - 5.5 * kc + bc * 2 * kc, cy - 1 * kc + bc * 1.5 * kc + 0.3 * cu * sin(fr * 47 + bc * 60); to: cx - 5 * kc + bc * 2 * kc, cy + 4 * kc + 0.3 * cu * sin(fr * 53 + bc * 70); width: 1.1 * kc; color: mint; opacity: 65% * o }
+            }
         }
     }
 
+    //  The camera, in the bell's manner: the body twice in pencil with its viewfinder bump, a lens of two rings with the accent at its heart, a flash and a wash.
     component PCam(cx: number, cy: number, hot: number, o: number) {
         prop a = 0 ~calm
         follow a = hot
         let fr = if(a > 0.02, floor(time * 5), 0)
+        let kc = 0.8 * cu
         group {
             pivot: cx, cy
             scale: 1 + 0.10 * a
-            path { at: cx, cy; stroke: 1.5 * cu; color: ink; opacity: (o); move -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 66 + 2650), -6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 2710); line 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 73 + 2747), -6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 47 + 2807); line 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 49 + 2844), -3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 54 + 2904); line 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 56 + 2941), 3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 61 + 3001); line 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 63 + 3038), 6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 3098); line -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 70 + 3135), 6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 44 + 3195); line -8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 46 + 3232), 3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 51 + 3292); line -8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 53 + 3329), -3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 58 + 3389); close }
-            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: ink; opacity: (o) * 0.28; move -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 50 + 3021), -6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 55 + 3081); line 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 3118), -6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 3178); line 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 64 + 3215), -3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 69 + 3275); line 8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 3312), 3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 45 + 3372); line 5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 47 + 3409), 6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 52 + 3469); line -5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 54 + 3506), 6 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 59 + 3566); line -8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 61 + 3603), 3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 66 + 3663); line -8 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 3700), -3 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 73 + 3760); close }
-            ellipse { at: cx + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 53 + 2800), cy + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 65 + 2957); radius: 2.6 * cu * (1 + 0.04 * sin(fr * 47 + 1581)); stroke: 1.5 * cu; color: ink; opacity: (o) }
-            ellipse { at: cx + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 3171) + 0.35 * cu, cy + 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 49 + 3328) + 0.28 * cu; radius: 2.6 * cu * (1 + 0.04 * sin(fr * 47 + 1651)); stroke: 1.05 * cu; color: ink; opacity: (o) * 0.28 }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kc
+                let bj = (0.18 + 0.25 * a) * cu * sin(fr * 53 + bp * 137 + 23)
+                let bk = (0.18 + 0.25 * a) * cu * sin(fr * 61 + bp * 71 + 67)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kc; color: ink; opacity: if(bp == 0, 90%, 34%) * o
+                       move -7 * kc + bj, -5 * kc + bk
+                       line -4 * kc + bk, -5 * kc + bj
+                       line -2.5 * kc + bj, -8 * kc + bk
+                       line 3 * kc + bk, -8 * kc + bj
+                       line 4.5 * kc + bj, -5 * kc + bk
+                       line 7 * kc + bk, -5 * kc + bj
+                       curve 10 * kc + bj, -2 * kc + bk via 10 * kc, -5 * kc
+                       line 10 * kc + bk, 5 * kc + bj
+                       curve 7 * kc + bj, 8 * kc + bk via 10 * kc, 8 * kc
+                       line -7 * kc + bk, 8 * kc + bj
+                       curve -10 * kc + bj, 5 * kc + bk via -10 * kc, 8 * kc
+                       line -10 * kc + bk, -2 * kc + bj
+                       curve -7 * kc + bj, -5 * kc + bk via -10 * kc, -5 * kc }
+            }
+            //  A wash in the accent inside the body.
+            path { at: cx, cy; color: mint; opacity: 22% * o; move -7 * kc, -5 * kc; line -4 * kc, -5 * kc; line -2.5 * kc, -8 * kc; line 3 * kc, -8 * kc; line 4.5 * kc, -5 * kc; line 7 * kc, -5 * kc; curve 10 * kc, -2 * kc via 10 * kc, -5 * kc; line 10 * kc, 5 * kc; curve 7 * kc, 8 * kc via 10 * kc, 8 * kc; line -7 * kc, 8 * kc; curve -10 * kc, 5 * kc via -10 * kc, 8 * kc; line -10 * kc, -2 * kc; curve -7 * kc, -5 * kc via -10 * kc, -5 * kc; close }
+            //  The lens: an outer ring twice, an inner ring, the accent at its heart and a glint.
+            ellipse { at: cx + 0.3 * cu * sin(fr * 49), cy + 1.5 * kc + 0.3 * cu * sin(fr * 57); radius: 4.8 * kc; stroke: 1.8 * kc; color: ink; opacity: 90% * o }
+            ellipse { at: cx + 0.7 * kc, cy + 2.2 * kc; radius: 4.8 * kc; stroke: 1.3 * kc; color: ink; opacity: 34% * o }
+            ellipse { at: cx, cy + 1.5 * kc; radius: 2.6 * kc; stroke: 1.1 * kc; color: ink; opacity: 65% * o }
+            ellipse { at: cx, cy + 1.5 * kc; radius: 2.2 * kc; color: mint; opacity: 70% * o }
+            ellipse { at: cx - 1.0 * kc, cy + 0.5 * kc; radius: 0.7 * kc; color: ink; opacity: o }
+            //  The flash, and the shading: two short strokes on the left of the body.
+            ellipse { at: cx + 7 * kc, cy - 2.5 * kc; radius: 1.1 * kc; color: ink; opacity: o }
+            repeat bc in 0..2 {
+                line { from: cx - 8 * kc + bc * 1.5 * kc, cy - 1 * kc + bc * 1.5 * kc + 0.3 * cu * sin(fr * 47 + bc * 60); to: cx - 7.5 * kc + bc * 1.5 * kc, cy + 4 * kc + 0.3 * cu * sin(fr * 53 + bc * 70); width: 1.1 * kc; color: mint; opacity: 65% * o }
+            }
         }
     }
 
@@ -3446,17 +3551,46 @@ scene Vitreus {
         }
     }
 
+    //  The power button in the bell's manner: the ring and its bar twice in pencil, an accent wash inside and two shading strokes on the left.
     component PPower(cx: number, cy: number, hot: number, o: number) {
         prop a = 0 ~calm
         follow a = hot
         let fr = if(a > 0.02, floor(time * 5), 0)
+        let kp = 0.8 * cu
         group {
             pivot: cx, cy
             scale: 1 + 0.10 * a
-            path { at: cx, cy; stroke: 1.5 * cu; color: ink; opacity: (o); move 3.728 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 69 + 3710), -5.324 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 43 + 3770); line 5.371 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 45 + 3807), -3.662 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 50 + 3867); line 6.319 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 52 + 3904), -1.525 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 3964); line 6.45 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 59 + 4001), 0.808 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 64 + 4061); line 5.747 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 66 + 4098), 3.037 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 4158); line 4.301 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 73 + 4195), 4.874 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 47 + 4255); line 2.299 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 49 + 4292), 6.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 54 + 4352); line 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 56 + 4389), 6.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 61 + 4449); line -2.299 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 63 + 4486), 6.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 4546); line -4.301 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 70 + 4583), 4.874 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 44 + 4643); line -5.747 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 46 + 4680), 3.037 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 51 + 4740); line -6.45 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 53 + 4777), 0.808 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 58 + 4837); line -6.319 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 60 + 4874), -1.525 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 65 + 4934); line -5.371 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 4971), -3.662 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 72 + 5031); line -3.728 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 43 + 5068), -5.324 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 48 + 5128); }
-            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.05 * cu; color: ink; opacity: (o) * 0.28; move 3.728 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 53 + 4081), -5.324 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 58 + 4141); line 5.371 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 60 + 4178), -3.662 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 65 + 4238); line 6.319 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 67 + 4275), -1.525 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 72 + 4335); line 6.45 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 43 + 4372), 0.808 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 48 + 4432); line 5.747 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 50 + 4469), 3.037 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 55 + 4529); line 4.301 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 57 + 4566), 4.874 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 62 + 4626); line 2.299 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 64 + 4663), 6.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 69 + 4723); line 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 4760), 6.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 45 + 4820); line -2.299 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 47 + 4857), 6.08 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 52 + 4917); line -4.301 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 54 + 4954), 4.874 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 59 + 5014); line -5.747 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 61 + 5051), 3.037 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 66 + 5111); line -6.45 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 68 + 5148), 0.808 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 73 + 5208); line -6.319 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 44 + 5245), -1.525 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 49 + 5305); line -5.371 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 51 + 5342), -3.662 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 56 + 5402); line -3.728 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 58 + 5439), -5.324 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 63 + 5499); }
-            path { at: cx, cy; stroke: 1.8 * cu; color: ink; opacity: (o); move 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 49 + 3763), -8.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 54 + 3823); line 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 56 + 3860), -0.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 61 + 3920); }
-            path { at: cx + 0.35 * cu, cy + 0.28 * cu; stroke: 1.26 * cu; color: ink; opacity: (o) * 0.28; move 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 64 + 4134), -8.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 69 + 4194); line 0 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 71 + 4231), -0.5 * cu + (0.18 + 0.25 * a) * cu * sin(fr * 45 + 4291); }
+            ellipse { at: cx, cy + 0.8 * kp; radius: 8.4 * kp; color: mint; opacity: 22% * o }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kp
+                let bj = (0.18 + 0.25 * a) * cu * sin(fr * 53 + bp * 137 + 31)
+                let bk = (0.18 + 0.25 * a) * cu * sin(fr * 61 + bp * 71 + 71)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kp; color: ink; opacity: if(bp == 0, 90%, 34%) * o
+                       move 4.818 * kp + bj, -6.081 * kp + bk
+                       line 6.720 * kp + bk, -4.241 * kp + bj
+                       line 7.954 * kp + bj, -1.900 * kp + bk
+                       line 8.400 * kp + bk, 0.708 * kp + bj
+                       line 8.011 * kp + bj, 3.326 * kp + bk
+                       line 6.828 * kp + bk, 5.693 * kp + bj
+                       line 4.967 * kp + bj, 7.574 * kp + bk
+                       line 2.613 * kp + bk, 8.783 * kp + bj
+                       line 0.000 * kp + bj, 9.200 * kp + bk
+                       line -2.613 * kp + bk, 8.783 * kp + bj
+                       line -4.967 * kp + bj, 7.574 * kp + bk
+                       line -6.828 * kp + bk, 5.693 * kp + bj
+                       line -8.011 * kp + bj, 3.326 * kp + bk
+                       line -8.400 * kp + bk, 0.708 * kp + bj
+                       line -7.954 * kp + bj, -1.900 * kp + bk
+                       line -6.720 * kp + bk, -4.241 * kp + bj
+                       line -4.818 * kp + bj, -6.081 * kp + bk }
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 2.0, 1.4) * kp; color: ink; opacity: if(bp == 0, 90%, 34%) * o
+                       move 0 + bj, -10.5 * kp + bk
+                       line 0 + bk, -1.5 * kp + bj }
+            }
+            repeat bc in 0..2 {
+                line { from: cx - 5 * kp + bc * 1.5 * kp, cy + 1 * kp + bc * 1.5 * kp + 0.3 * cu * sin(fr * 47 + bc * 60); to: cx - 4.5 * kp + bc * 1.5 * kp, cy + 5 * kp + 0.3 * cu * sin(fr * 53 + bc * 70); width: 1.0 * kp; color: mint; opacity: 65% * o }
+            }
+            ellipse { at: cx, cy + 5.5 * kp; radius: 1.1 * kp; color: mint; opacity: o }
         }
     }
 
