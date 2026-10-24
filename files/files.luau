@@ -1663,6 +1663,8 @@ local function run_custom(i, ctx)
     local a = CUSTOM[i]
     if not a then return end
     local list = ctx.menu == "bg" and {} or picked_list()
+    -- only on what the menu offered it for: a key sent from outside (`emit act`) with something else picked does nothing
+    if not custom_fits(a, ctx.menu == "bg" and "bg" or "item", list) then return end
     local cur = s.path or s.home
     local f = list[1] and list[1].path or cur
     local all = {}
