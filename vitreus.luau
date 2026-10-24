@@ -2742,7 +2742,7 @@ end
 -- take round the windows (gaps_out: the layer's own reserved zone is not moved when the surface changes edge). It is sent at once and kept in
 -- vitreus_colors.lua, which hyprland.lua loads last (the installer adds the line). Up on the top, the gaps go back to what they were (bar_fx.orig, read once).
 -- Which docks are out (set by logic/dock.luau and logic/addons.luau): the windows keep clear of them (`wm_frame_sync`).
-dock_fx = { c = false, a = false, nc = 0, na = 0 }
+dock_fx = { c = false, a = false, nc = 0, na = 0, enabled = true }     -- `enabled`: Settings > Bar > "Corner docks overlap windows" (off)
 -- The corner dock and the add-on pill stand over the windows' area, against the edge opposite the bar (the bottom for the Island and the top frame, the top for the
 -- bottom frame; down a side strip it is the far edge, the right one for the strip on the left and the left one for the strip on the right, where each pill lies along the top
 -- or the bottom corner and reaches in as far as its icons). While one is out, that edge keeps the room for it: how far from the screen's edge the windows start, in pixels:
@@ -2751,7 +2751,7 @@ dock_fx = { c = false, a = false, nc = 0, na = 0 }
 function dock_fx.room()
     local r = {}
     local c, a = dock_fx.c, dock_fx.a
-    if not (c or a) then return r end
+    if not dock_fx.enabled or not (c or a) then return r end
     local anchor = fact.bar_anchor
     local bu = 1.35 * (bar_fx and bar_fx.size or 1)
     if anchor == "left" or anchor == "right" then

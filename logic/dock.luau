@@ -6,10 +6,11 @@ return function()
     local MAX = 8
     local pins = {}
     local shown = true
+    local room_on = true               -- Settings > Bar: windows keep clear of the docks (kept here and only written to `dock_fx`: a handler reads that table as it was when it was made)
     local known = {}                  -- id -> the app as the apps service reports it, to keep the icons right
 
     local function save()
-        pcall(sys.call, "files.write", "dock-pins.json", { pins = pins, corner = (fact.cdk_corner == 1 or fact.cdk_corner == true) and 1 or 0, on = shown })
+        pcall(sys.call, "files.write", "dock-pins.json", { pins = pins, corner = (fact.cdk_corner == 1 or fact.cdk_corner == true) and 1 or 0, on = shown, room = room_on })
     end
     local was = 0                 -- whether the dock was out at the last `render`, for the room the windows keep clear of it (`dock_fx`, vitreus.luau)
     local function render()
@@ -36,6 +37,7 @@ return function()
         take(saved.a)                 -- an earlier file had one list for each corner
         take(saved.b)
         if saved.on == false then shown = false end
+        if saved.room == false then room_on = false; dock_fx.enabled = false end
         fact.cdk_corner = saved.corner == 1 and 1 or 0
     end
     render()
@@ -73,6 +75,14 @@ return function()
         save(); render()
     end)
     on("fact:cdk_corner", function() save() end)
+    fact.bar_dockroom = room_on
+    on("bar_dockroom_toggle", function()       -- Settings > Bar: windows keep clear of the docks, or go under them
+        room_on = not room_on
+        dock_fx.enabled = room_on
+        fact.bar_dockroom = room_on
+        save()
+        dock_fx.changed()
+    end)
     on("fact:cdk_on", function(v) local b = v == true or v == 1; if b ~= shown then shown = b; save(); render() end end)
 
     -- An icon theme change or an app that came later: refresh the pins' icons from what the apps service says.

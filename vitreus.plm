@@ -607,6 +607,8 @@ scene Vitreus {
     text bar_msg = ""
     event bar_pick_scr ->
     event bar_others_toggle ->       // Settings > Bar: the frame on the monitors without the bar, or nothing there (logic/bar_monitors.luau)
+    event bar_dockroom_toggle ->     // Settings > Bar > "Corner docks overlap windows": windows keep clear of the docks, or go under them (logic/dock.luau)
+    fact bar_dockroom = true
     //  The bar's layout (Settings > Bar): each piece's place in the row, 0 leftmost, and whether it is shown. The
     //  title is the stretch: what comes before it hugs the left, what comes after it the right.
     fact bo.ws = 0
@@ -1643,6 +1645,8 @@ scene Vitreus {
     follow night_pill = if(night_on, 1, 0)
     prop bar_oth_pill = 0 ~pop
     follow bar_oth_pill = if(bar_others, 1, 0)
+    prop bar_dr_pill = 0 ~pop
+    follow bar_dr_pill = if(bar_dockroom, 0, 1)         // the switch says "Corner docks overlap windows": on when there is no room
     follow night_auto_pill = if(night_auto, 1, 0)
     //  Settings > Lock screen: what the lock screen scene holds. The logic asks it when the page opens (`lk_ok` is false if it did not
     //  answer) and tells it what is changed; the lock screen keeps them in its own lockscreen.json.
