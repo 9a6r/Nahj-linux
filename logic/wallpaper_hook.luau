@@ -43,8 +43,10 @@ return function(wp_apply, wp_cur)
         run("test", { "-s", out }, function(_, code)
             if code ~= 0 then finish(w, w.src) return end
             if waiting == w and out ~= w.src then
-                wph.rec = { out = out, src = w.path }
-                pcall(sys.call, "files.write", "wallpaper-frame.json", wph.rec)
+                -- (a local, written from: a handler reads the global table `wph.rec` as it was when this module loaded, so reading it back here would give the old record)
+                local rec = { out = out, src = w.path }
+                wph.rec = rec
+                pcall(sys.call, "files.write", "wallpaper-frame.json", rec)
             end
             finish(w, out)
         end)

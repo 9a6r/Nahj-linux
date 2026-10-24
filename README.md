@@ -183,7 +183,7 @@ appears on the add-on pill. Feeds and places are added from the clipboard, and t
 **Add-ons that frame wallpapers.** An add-on can declare `[wallpaper] frames = true` in its `addon.toml` (see `addons/_template_drawer/addon.toml`). Whenever Vitreus sets a wallpaper (a pick, Random, the slideshow, the picker; not a card's
 quick try) it first asks that add-on, the first one that is on, for the picture awww should show, and keeps the old wallpaper on screen while it waits (30 s, again from each `wph_busy`). The shell stays the only one that calls awww, and it
 remembers which wallpaper a made picture came from, so Iris and the gallery always read the real wallpaper, never the frame. The messages (`logic/wallpaper_hook.luau`): the shell sends `text wph_path`, `text wph_src` and `emit wph_frame <n>`
-(and `text wph_cur`, the wallpaper in use, when it changes and every 10 s); the add-on answers with `pleamar --say vitreus "text wph_out <path>"` and `"emit wph_done <n>"` (the made picture, or `wph_src` itself for none), `"emit wph_busy <n>"`
+(and `text wph_cur`, the wallpaper in use, when it changes and every 10 s: it is the same path again each time, and a text fires its handler on every set, so an add-on acts only when the path differs from the last one it saw); the add-on answers with `pleamar --say vitreus "text wph_out <path>"` and `"emit wph_done <n>"` (the made picture, or `wph_src` itself for none), `"emit wph_busy <n>"`
 while a slow render goes on, or `"emit wph_again"` to apply the current wallpaper again. Idea and first version: jaslrobinson (issue #26).
 
 ---
