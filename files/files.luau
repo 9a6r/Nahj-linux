@@ -1597,7 +1597,94 @@ end
 local function menu_row(rows, label, k, on, ic, key, sep, danger, chk)
     rows[#rows + 1] = { label = label, k = k, on = on, ic = ic, key = key or "", sep = sep == true, danger = danger == true, chk = chk == true }
 end
+-- ── custom actions (local) ──
+-- Your own commands in the right-click menu, from ~/.config/pleamar/vitreus-files-actions.json (files/actions.example.json is a model; outside the shell's folder: updating Vitreus
+-- never touches it). Each: { "name", "command", "group" (optional, shown as "Group › Name"), "on": "files" | "folders" | "both" |
+-- "background" (a click on the empty part of a folder), "patterns": ["*.jpg", …] (optional, files only), "many": true (optional: also with
+-- several picked) }. In the command %f is the item (or the folder, for background), %F every one picked, %d the folder in view, %n the
+-- item's name; each comes quoted. The file is read again each time a menu opens (what changed shows from the next one). Commands run
+-- through `sh`, as you wrote them: the menu is yours, it is not sandboxed.
+local CUSTOM = {}
+local SHOWN = {}               -- the actions the open menu was built from (the file may be read again before a click: its places must not move under it)
+local CUSTOM_K = 200            -- their keys in the menu: 200 + their place
+local function load_custom()
+    run("sh", { "-c", 'cat "${XDG_CONFIG_HOME:-$HOME/.config}/pleamar/vitreus-files-actions.json" 2>/dev/null' }, function(out, code)
+        if code ~= 0 or not out or out == "" then CUSTOM = {} return end
+        local ok, d = pcall(json.decode, out)
+        if not ok or type(d) ~= "table" or type(d.actions) ~= "table" then CUSTOM = {} return end
+        local list = {}
+        for _, a in ipairs(d.actions) do
+            if type(a) == "table" and type(a.name) == "string" and a.name ~= "" and type(a.command) == "string" and a.command ~= "" then
+                local on = (a.on == "folders" or a.on == "both" or a.on == "background") and a.on or "files"
+                local pats = {}
+                if type(a.patterns) == "table" then
+                    for _, p in ipairs(a.patterns) do
+                        if type(p) == "string" and p ~= "" then
+                            -- a shell pattern (* and ?) made into a Lua one, compared without case
+                            pats[#pats + 1] = "^" .. p:lower():gsub("[%^%$%(%)%%%.%[%]%+%-]", "%%%0"):gsub("%*", ".*"):gsub("%?", ".") .. "$"
+                        end
+                    end
+                end
+                list[#list + 1] = { name = a.name, group = type(a.group) == "string" and a.group or "", command = a.command, on = on, pats = pats, many = a.many == true }
+            end
+            if #list >= 8 then break end
+        end
+        CUSTOM = list
+    end)
+end
+load_custom()
+local function custom_fits(a, kind, list)
+    if kind == "bg" then return a.on == "background" end
+    if a.on == "background" or #list == 0 or (#list > 1 and not a.many) then return false end
+    for _, e in ipairs(list) do
+        if e.dir then
+            if a.on ~= "folders" and a.on ~= "both" then return false end
+        else
+            if a.on ~= "files" and a.on ~= "both" then return false end
+            if #a.pats > 0 then
+                local nm, hit = basename(e.path):lower(), false
+                for _, pat in ipairs(a.pats) do if nm:match(pat) then hit = true break end end
+                if not hit then return false end
+            end
+        end
+    end
+    return true
+end
+local function add_custom(rows, kind, list)
+    local first = true
+    SHOWN = CUSTOM
+    for i, a in ipairs(CUSTOM) do
+        if custom_fits(a, kind, list) then
+            menu_row(rows, a.group ~= "" and (a.group .. " › " .. a.name) or a.name, CUSTOM_K + i, true, 30, "", first)
+            first = false
+        end
+    end
+end
+local function shq(p) return "'" .. tostring(p):gsub("'", "'\\''") .. "'" end
+local function run_custom(i, ctx)
+    local a = SHOWN[i]
+    if not a then return end
+    local list = ctx.menu == "bg" and {} or picked_list()
+    -- only on what the menu offered it for: a key sent from outside (`emit act`) with something else picked does nothing
+    if not custom_fits(a, ctx.menu == "bg" and "bg" or "item", list) then return end
+    local cur = s.path or s.home
+    local f = list[1] and list[1].path or cur
+    local all = {}
+    for _, e in ipairs(list) do all[#all + 1] = shq(e.path) end
+    if #all == 0 then all[1] = shq(cur) end
+    local cmd = (a.command:gsub("%%(.)", function(c)
+        if c == "f" then return shq(f) elseif c == "F" then return table.concat(all, " ")
+        elseif c == "d" then return shq(cur) elseif c == "n" then return shq(basename(f)) elseif c == "%" then return "%" end
+        return "%" .. c
+    end))
+    -- in the folder in view, on its own (setsid: it outlives this window)
+    run("sh", { "-c", "cd " .. shq(cur) .. " && setsid -f sh -c " .. shq(cmd) .. " >/dev/null 2>&1" }, function(_, code)
+        if code ~= 0 then say("“" .. a.name .. "” did not start") end
+    end)
+end
+
 function F.open_menu(kind)
+    load_custom()                   -- (for the next menu: an edit to the file shows from then on)
     local rows = {}
     local list = picked_list()
     local n = #list
@@ -1632,6 +1719,7 @@ function F.open_menu(kind)
             add(n >= 1 and s.stars[e.path] and "Remove from Starred" or "Add to Starred", 38, n >= 1, 24, "")
             if n == 1 and e.ik == 1 then add("Set as Wallpaper", 39, true, 29, "") end
             if n == 1 and in_list then add("Show in Folder", 63, true, 8, "") end
+            add_custom(rows, "item", list)
             add("Properties", 16, n >= 1, 16, "Alt+Enter", true)
         end
         set_menu("item", rows)
@@ -1651,6 +1739,7 @@ function F.open_menu(kind)
             add("Open in Terminal", 29, true, 17, "", true)
             add("Pin This Folder", 49, true, 36, "Ctrl+D")
         end
+        if not in_trash then add_custom(rows, "bg", {}) end
         add("Sort and Zoom…", 15, true, 31, "", true)
         add("Properties", 16, not in_list, 16, "Alt+Enter")
         set_menu("bg", rows)
@@ -3507,6 +3596,7 @@ on("act", function(k)
     local ctx = { menu = s.menu, place = s.menu_place }
     if k == 10 then F.escape() return end
     if s.menu then F.close_menu() end
+    if k > CUSTOM_K and k <= CUSTOM_K + 8 then run_custom(k - CUSTOM_K, ctx) return end
     local fn = ACT[k]
     if fn then fn(ctx) end
 end)
