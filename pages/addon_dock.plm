@@ -26,7 +26,8 @@ part AddonDock {
         let axb.y = axb.top + 40 * cu                      // as the Desk's tab row: a tall bar, the grip near its top and the title and X level with the middle
         group { scale: rs; pivot: floor(axb.cx - dax.ew / 2 + 26 * cu + 0.5), floor(axb.y + 0.5); text ax_title { at: floor(axb.cx - dax.ew / 2 + 26 * cu + 0.5), floor(axb.y + 0.5); anchor: left center; size: 17; weight: 700; width: (dax.ew - 90) / rs; lines: 1; color: ink; family: "Space Grotesk" } }
         box { at: axb.cx, axb.top + 11 * cu; size: 34 * cu, 4 * cu; corner: 2 * cu; color: ink; opacity: 20% + 35% * max(ax_grip.hover, if(ax_hold, 1, 0)) }
-        zone box ax_grip { at: if(ax_hold, ax_hx, axb.cx - 20), if(ax_hold, ax_hy, axb.top + 22 * cu); size: dax.ew - 74, 44 * cu; cursor: pointer; label: "Move the add-on panel" }
+        //  While it is held (or resized) the zone is the whole screen: the surface takes input only where a zone is, so a pull upward, off the panel, would be lost.
+        zone box ax_grip { at: if(ax_hold, screen.width / 2, axb.cx - 20), if(ax_hold, vc, axb.top + 22 * cu); size: if(ax_hold, screen.width, dax.ew - 74), if(ax_hold, screen.height, 44 * cu); cursor: pointer; label: "Move the add-on panel" }
         on press ax_grip { ax_hold = true; ax_bx = ax_gx; ax_by = ax_gy; ax_hx = pointer.x; ax_hy = pointer.y }
         on drag ax_grip while ax_hold { ax_gx = clamp(ax_bx + drag.dx * (1 - 2 * rt), axs.xmin, axs.xmax); ax_gy = clamp(ax_by + drag.dy * (1 - 2 * bt), axs.ymin, axs.ymax) }
         on release ax_grip while length(ax_gx, ax_gy) < 60 { ax_gx = 0; ax_gy = 0 }
@@ -38,7 +39,7 @@ part AddonDock {
             let axr.sy = if(i >= 2, 1, -1)
             let axr.zx = dax.ex + axr.sx * (dax.ew / 2 - 14 * cu)
             let axr.zy = dax.ey + axr.sy * (dax.eh / 2 - 14 * cu)
-            zone box ax_rz.$i { at: mix(axr.zx, screen.width - axr.zx, rt), mix(axr.zy, yo + vb - axr.zy, bt); size: 28 * cu, 28 * cu; cursor: grab; active: dax0 > 0.9 and not ax_hold and (not ax_rsz or ax_rk == i); label: "Resize the add-on panel" }
+            zone box ax_rz.$i { at: if(ax_rsz and ax_rk == i, screen.width / 2, mix(axr.zx, screen.width - axr.zx, rt)), if(ax_rsz and ax_rk == i, vc, mix(axr.zy, yo + vb - axr.zy, bt)); size: if(ax_rsz and ax_rk == i, screen.width, 28 * cu), if(ax_rsz and ax_rk == i, screen.height, 28 * cu); cursor: grab; active: dax0 > 0.9 and not ax_hold and (not ax_rsz or ax_rk == i); label: "Resize the add-on panel" }
             on press ax_rz.$i { ax_rsz = true; ax_rk = i; ax_bw = axs.w; ax_bh = axs.h; ax_fxd = axs.fx + ax_gx - axr.sx * axs.w / 2; ax_fyd = axs.fy + ax_gy - axr.sy * axs.h / 2 }
             on drag ax_rz.$i while ax_rsz and ax_rk == i {
                 ax_w = clamp(ax_bw + axr.sx * drag.dx * (1 - 2 * rt), 240, max(240, if(axr.sx > 0, cdk.xe - ax_fxd, ax_fxd - cdk.xs)))
