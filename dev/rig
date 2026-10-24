@@ -42,6 +42,7 @@ start)
     if alive; then echo "the rig is already running (dev/rig stop first)"; exit 1; fi
     rm -rf "$RIG"; mkdir -p "$COPY" "$DATA" "$CACHE" "$RIG/run"; chmod 700 "$RIG/run"
     copy_tree
+    mkdir -p "$RIG/conf/niri"; : > "$RIG/conf/niri/vitreus.kdl"        # (what a niri config in the copy may include: the shell writes the room round the windows there)
     [ -d "$HOME/.local/share/pleamar/vitreus" ] && cp -a "$HOME/.local/share/pleamar/vitreus/." "$DATA/"
     [ -d "$HOME/.cache/pleamar/vitreus" ] && cp -a "$HOME/.cache/pleamar/vitreus/." "$CACHE/"
     rm -f "$DATA/addons-state.json"

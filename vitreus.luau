@@ -2869,7 +2869,62 @@ function iris_fx.gaps_code(left, nodock)
     end
     return table.concat(parts, " ")
 end
+-- niri: the same room round the windows, as `struts` in a KDL file of its own (niri reloads its config when a file it includes changes), and the palette's accent as
+-- the focus ring. The user's config.kdl has `include "vitreus.kdl"` at the end (the installer adds it). A strut is what the windows keep clear of on top of niri's own
+-- `gaps` (read from the config; 16 is niri's default), so it is the room Hyprland would be given, less that gap. Each monitor the bar is on gets its own `output` block.
+function iris_fx.niri_code(gap)
+    local px = math.floor(1.35 * 8 + 0.5) + 13
+    local bz = bar_fx.size or 1
+    local lp = math.floor(1.35 * 46 * bz + 0.5) + 14
+    local WIDE = { top = { lp, px, px, px }, right = { px, lp, px, px }, bottom = { px, px, lp, px }, left = { px, px, px, lp } }
+    local bar_gaps = WIDE[bar_fx.edge] or WIDE.left
+    if bar_fx.seg then bar_gaps = { math.floor(1.35 * 36 * bz + 0.5) + 10, px, px, px } end
+    local isl = iris_fx.island_min()
+    local everywhere = (bar_fx.on or "all") == "all"
+    local function struts(g)
+        local t = {}
+        for i = 1, 4 do t[i] = math.max(0, math.floor(g[i] - gap + 0.5)) end
+        return string.format("struts {\n            top %d\n            right %d\n            bottom %d\n            left %d\n        }", t[1], t[2], t[3], t[4])
+    end
+    local function room(has_bar)
+        local g
+        if has_bar then
+            g = bar_fx.left and bar_gaps or { isl and iris_fx.island_room() or 0, 0, 0, 0 }
+            g = dock_fx.raise(g)
+        else
+            g = (bar_fx.left and bar_fx.thin) and { px, px, px, px } or { 0, 0, 0, 0 }
+        end
+        return g
+    end
+    local parts = { "// Written by Vitreus (the room round the windows, and the focus ring from the palette); edits here are overwritten.\n// config.kdl includes it: include \"vitreus.kdl\"\n" }
+    local pal = iris_fx.last_pal
+    local ring = pal and string.format("\n        focus-ring {\n            active-color \"%s\"\n            inactive-color \"%s\"\n        }", pal.mint, pal.off) or ""
+    parts[#parts + 1] = "layout {" .. ring .. "\n        " .. struts(room(everywhere)) .. "\n}\n"
+    for _, name in ipairs(bar_fx.mons or {}) do
+        if name:match("^[%w%._%-]+$") then
+            local has_bar = everywhere or (bar_fx.sel ~= nil and bar_fx.sel[name] == true)
+            if not everywhere then
+                parts[#parts + 1] = string.format('output "%s" {\n    layout {\n        %s\n    }\n}\n', name, struts(room(has_bar)))
+            end
+        end
+    end
+    return table.concat(parts, "")
+end
+function iris_fx.apply_niri()
+    with_dirs(function(d)
+        local cfg = d.conf:gsub("/pleamar/shells/vitreus$", "/niri")
+        run("grep", { "-m1", "-E", "^[[:space:]]*gaps[[:space:]]+[0-9.]+", cfg .. "/config.kdl" }, function(out)
+            local gap = tonumber((out or ""):match("gaps%s+([%d%.]+)")) or 16
+            local code = iris_fx.niri_code(gap)
+            pcall(sys.call, "files.write", "vitreus.kdl", code)
+            run("mkdir", { "-p", cfg }, function()
+                run("cp", { "-f", d.data .. "/vitreus.kdl", cfg .. "/vitreus.kdl" }, function() end)
+            end)
+        end)
+    end)
+end
 function iris_fx.apply_hypr()
+    if on_niri then return iris_fx.apply_niri() end
     local pal = iris_fx.last_pal
     local parts, keep = {}, {}
     if pal then local c = iris_fx.border_code(pal); parts[#parts + 1] = c; keep[#keep + 1] = c end

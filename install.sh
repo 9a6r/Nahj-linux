@@ -30,6 +30,7 @@
 #   5b. the helpers                  (bin/vitreus-clipimg, vitreus-polkit-agent, vitreus-sysmon, vitreus-term, vitreus-files and vitreus-report, linked into ~/.local/bin)
 #   6. its Hyprland key binds         (hypr_vitreus.lua linked into ~/.config/hypr, and loaded from hyprland.lua)
 #   6b. the daemons                   (awww, hypridle and the clipboard history: lines in ~/.config/pleamar/autostart, run on any compositor)
+#   6c. niri                        (config.kdl includes vitreus.kdl, the room round the windows the shell writes, and niri_vitreus.kdl, its key binds; with niri installed)
 #   7. pleamar-wm, as a session       (pleamar-wm/: its keys, window scene, hyprctl shim, and, with sudo,
 #                                      its entry in the login screen; only if pleamar-wm is installed)
 #   8. the login screen               (sddm/: the lock screen's look as an SDDM theme, with sudo, asked for; where SDDM already has a theme it asks
@@ -191,6 +192,13 @@ if [ "$action" = uninstall ]; then
     if [ -f "$hyprlua" ] && grep -q '^-- >>> vitreus' "$hyprlua"; then
         run sed -i '/^-- >>> vitreus/,/^-- <<< vitreus/d' "$hyprlua"
         say "removed Vitreus's lines from $hyprlua (SUPER + L and SUPER + Space go back to what hypr_style.lua binds)"
+    fi
+    nirikdl="$conf/niri/config.kdl"
+    if [ -f "$nirikdl" ] && grep -q '^// >>> vitreus' "$nirikdl"; then
+        tmp=$(mktemp)
+        sed '/^\/\/ >>> vitreus/,/^\/\/ <<< vitreus/d' "$nirikdl" > "$tmp" && run sh -c "cat '$tmp' > '$nirikdl'"
+        rm -f "$tmp" "$conf/niri/niri_vitreus.kdl" "$conf/niri/vitreus.kdl"
+        say "removed Vitreus's lines from $nirikdl"
     fi
     if [ -f "$autostart" ] && grep -q -E '^# >>> vitreus \((pleamar-wm|session)\)' "$autostart"; then
         run sed -i -E '/^# >>> vitreus \((pleamar-wm|session)\)/,/^# <<< vitreus/d' "$autostart"
@@ -693,6 +701,42 @@ if $do_binds; then
                 echo "-- <<< vitreus"
             } >> "$hyprlua"
             say "added to $hyprlua (the old one is $hyprlua.before-vitreus); Hyprland reloads it by itself"
+        fi
+    fi
+fi
+
+# ── 6c. niri ───────────────────────────────────────────────────────────────
+# On niri the shell asks `hyprctl` (pleamar-wm/hyprctl, which hands over to hyprctl-niri) for the monitors, windows and workspaces, and keeps the room round the
+# windows (the frame, the docks) and the focus ring in vitreus.kdl, which it writes next to config.kdl. So config.kdl includes that file and the key binds, and starts
+# the shell with the desktop. It is the end of the file: a strut or a key set there is the shell's.
+niridir="$conf/niri"
+nirikdl="$niridir/config.kdl"
+if have niri && $do_binds; then
+    if [ ! -f "$nirikdl" ]; then
+        say "niri is installed but there is no $nirikdl yet: run niri once (it writes one), then ./install.sh again to add Vitreus's lines"
+    elif grep -q 'include "vitreus.kdl"' "$nirikdl"; then
+        say "niri's config already includes vitreus.kdl"
+        run ln -sf "$dest/niri_vitreus.kdl" "$niridir/niri_vitreus.kdl"
+    elif ask "add Vitreus's lines to $nirikdl (start with niri, the room round the windows, its key binds)?"; then
+        run mkdir -p "$HOME/.local/bin"
+        if [ ! -e "$HOME/.local/bin/hyprctl" ] || [ -L "$HOME/.local/bin/hyprctl" ] || grep -q 'hyprctl. for a desktop that is not Hyprland' "$HOME/.local/bin/hyprctl" 2> /dev/null; then
+            run ln -sf "$dest/pleamar-wm/hyprctl" "$HOME/.local/bin/hyprctl"
+        fi
+        run ln -sf "$dest/niri_vitreus.kdl" "$niridir/niri_vitreus.kdl"
+        if $dry; then
+            echo "    would back up $nirikdl and add the include lines (and a spawn-at-startup for pleamar --autostart) to its end"
+        else
+            : >> "$niridir/vitreus.kdl"
+            cp "$nirikdl" "$nirikdl.before-vitreus"
+            {
+                echo ""
+                echo "// >>> vitreus (added by its installer; ./install.sh --uninstall takes it out)"
+                grep -q 'pleamar.*--autostart' "$nirikdl" || echo 'spawn-at-startup "pleamar" "--autostart"'
+                echo 'include "niri_vitreus.kdl"'
+                echo 'include "vitreus.kdl"'
+                echo "// <<< vitreus"
+            } >> "$nirikdl"
+            say "added to $nirikdl (the old one is $nirikdl.before-vitreus); niri reloads it by itself"
         fi
     fi
 fi
