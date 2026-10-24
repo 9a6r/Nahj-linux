@@ -2,15 +2,25 @@ language 0.1
 import "addon-palette.plm"
 
 //  A Vitreus add-on with a PANEL: the shell puts the add-on's icon on the add-on pill (the pill of icons in the corner the app dock is not in) and draws a panel out of it
-//  (the same glass as its own drawers) with a title bar of its own (the add-on's name, a grip to pull it by and an X), and this scene draws what is below the bar. `icon`
-//  and `[drawer]` in addon.toml ask for it. A click on the icon opens the panel (or `pleamar --say vitreus "emit ax_toggle"`, which a key can run). Like the Desk it stays
-//  until its X or its icon shuts it, and it can be pulled away from the pill and left anywhere.
+//  (the same glass as its own drawers) and this scene draws what is in it. A click on the icon opens the panel (or `pleamar --say vitreus "emit ax_toggle"`, which a key can run).
 //
-//  Vitreus tells this scene where the content goes, as the panel settles: `slot_x`, `slot_y` the middle of it, `slot_w`, `slot_h` its size, in pixels of the screen
-//  (below the title bar), and `slot_open` (true while the panel is out and not being pulled). Draw inside that rectangle only. It also tells it, as in the other template, the palette (`pal_*`), the bar's room
-//  (`room_*`), the theme's shape (`look`) and the forecast (`wx_*`).
+//  What the shell does, and an add-on cannot change or leave out:
+//    - The icon: a panel needs one (`icon` in addon.toml, with `[drawer]`); without it the add-on is left out of the list, with that said under it.
+//    - The title bar across the top: the add-on's name (`name` in addon.toml), a grip to pull the panel by (it can be pulled away from the pill and left anywhere) and the X in
+//      the top corner that shuts it. The panel also shuts with its icon. This scene draws only below the bar.
+//    - The glass, which stands against the frame like the Desk does: wherever a side is within a hand of the frame it reaches on into it, and lets go as it is pulled away.
+//    - Resizing: a handle in each corner (the cursor shows it). The size in addon.toml is the first one (width 240 to 1600, height 160 to 1600; 0 for the shell's choice); once
+//      the panel has been resized the new size is kept for the next time it opens. It cannot get smaller than 240 x 160 or bigger than the room inside the frame.
 //
-//  What this cannot do yet: take text (the shell's drawers hold the keyboard while one is open, an add-on's scene does not), or show on more than one monitor.
+//  What it tells this scene, as facts, as the panel settles: `slot_x`, `slot_y` the middle of the content, `slot_w`, `slot_h` its size, in pixels of the screen (below the
+//  title bar), and `slot_open` (true while the panel is out and not being pulled or resized: the content waits and appears at its new place and size). Draw inside that
+//  rectangle only, and work everything out from `slot_w` and `slot_h`, never from a fixed size: the user can change it. It also tells it the palette (`pal_*`), the bar's room
+//  (`room_*`), the theme's shape (`look`) and the forecast (`wx_*`), and the size of the monitor the panel is on (`slot_sw`, `slot_sh`).
+//
+//  One monitor: the scene has a copy on each monitor (`screens: each`), and only the copy on the panel's monitor should draw; `shown` below is 1 only there. A copy is told
+//  apart by its monitor's size, not its number (a scene numbers its monitors in its own order, not the shell's). Hide with `shown`, and make zones `active: shown > 0.5`.
+//
+//  What this cannot do yet: take text (the shell's drawers hold the keyboard while one is open, an add-on's scene does not).
 //
 //  The logic is addon.luau beside this file (the scene's name with .luau): it keeps what it must in the scene's own data folder with the `files` services below, and any
 //  program it runs (`run("wl-paste", ...)`, `curl`, a helper of your own) has to be named in `permissions`. Since there is no text field, take text from the clipboard: a button
@@ -80,6 +90,8 @@ scene MyDrawer {
     let left = slot_x - slot_w / 2
     let top = slot_y - slot_h / 2
 
+    //  The content follows the panel's size: this bar is as wide as the panel, and the dots keep to its right edge.
+    box { at: left + slot_w / 2, top + slot_h - 24; size: slot_w - 48, 4; corner: 2; color: mint; opacity: 40% * shown }
     text "Your panel goes here" { at: left + 24, top + 28; anchor: left center; size: 18; weight: 700; color: ink; opacity: shown; family: "Space Grotesk" }
     text wx_temp { at: left + 24, top + 56; anchor: left center; size: 16; color: faint; opacity: shown; family: "Space Grotesk" }
     box { at: left + 70, top + 104; size: 124, 36; corner: 18; color: mint; opacity: 80% * shown }
@@ -87,6 +99,6 @@ scene MyDrawer {
     zone box press_me { at: left + 70, top + 104; size: 124, 36; corner: 18; cursor: pointer; active: shown > 0.5 }
     on press press_me { clicks = clicks + 1 }
     repeat i in 0..8 {
-        ellipse { at: left + 150 + i * 16, top + 104; radius: 5; color: mint; opacity: if(clicks > i, 1, 0.2) * shown }
+        ellipse { at: left + slot_w - 24 - (7 - i) * 16, top + 104; radius: 5; color: mint; opacity: if(clicks > i, 1, 0.2) * shown }
     }
 }

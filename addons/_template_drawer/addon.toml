@@ -19,10 +19,12 @@ version     = "0.1"
 scene = "addon.plm"
 
 # The icon on the add-on pill, the pill of icons in the corner the app dock is not in (an .svg or .png in this folder, about 24 px: a single colour that suits dark and light
-# themes, like #f5f7f5 on white, is the safest, since the shell does not recolour it). A click on it opens the panel below.
+# themes, like #f5f7f5 on white, is the safest, since the shell does not recolour it). A click on it opens the panel below. A panel needs it: without one the add-on is left out.
 icon = "icon.svg"
 
-# A panel out of that pill (see the scene for what it is and what it cannot do yet). The size is in pixels; 0 leaves it to the shell (about the size of the control centre). Take this section out for an add-on that is only a window: its icon then switches the window on and off (`slot_open`).
+# A panel out of that pill (see the scene for what the shell gives it and what it cannot do yet: the title bar with its X, the glass that stands against the frame, the
+# corner handles that resize it, one monitor). The size is the first one, in pixels: width 240 to 1600, height 160 to 1600, or 0 to leave it to the shell (about the size of the
+# control centre); the user can resize the panel and the new size is kept. Take this section out for an add-on that is only a window: its icon then switches the window on and off (`slot_open`).
 [drawer]
 width  = 0
 height = 0
