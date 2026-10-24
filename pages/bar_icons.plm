@@ -53,6 +53,31 @@ part BarIcons {
         let wg5 = ws.urg.5 * (1 - ws.act.5)
         let bw5 = (8 + 4.5 * ws.tall.5) * ws.U * (1 + 0.35 * wsp.5.$screen) * ws.vis.5
         let bh5 = (8 + 4.5 * ws.tall.5) * ws.U * (1 + 0.35 * wsp.5.$screen) * ws.vis.5
+        let cx6 = mix(ws.a6, lf.x, lm)
+        let cy6 = mix(bar.y, ws.a6, lm)
+        let wg6 = ws.urg.6 * (1 - ws.act.6)
+        let bw6 = (8 + 4.5 * ws.tall.6) * ws.U * (1 + 0.35 * wsp.6.$screen) * ws.vis.6
+        let bh6 = (8 + 4.5 * ws.tall.6) * ws.U * (1 + 0.35 * wsp.6.$screen) * ws.vis.6
+        let cx7 = mix(ws.a7, lf.x, lm)
+        let cy7 = mix(bar.y, ws.a7, lm)
+        let wg7 = ws.urg.7 * (1 - ws.act.7)
+        let bw7 = (8 + 4.5 * ws.tall.7) * ws.U * (1 + 0.35 * wsp.7.$screen) * ws.vis.7
+        let bh7 = (8 + 4.5 * ws.tall.7) * ws.U * (1 + 0.35 * wsp.7.$screen) * ws.vis.7
+        let cx8 = mix(ws.a8, lf.x, lm)
+        let cy8 = mix(bar.y, ws.a8, lm)
+        let wg8 = ws.urg.8 * (1 - ws.act.8)
+        let bw8 = (8 + 4.5 * ws.tall.8) * ws.U * (1 + 0.35 * wsp.8.$screen) * ws.vis.8
+        let bh8 = (8 + 4.5 * ws.tall.8) * ws.U * (1 + 0.35 * wsp.8.$screen) * ws.vis.8
+        let cx9 = mix(ws.a9, lf.x, lm)
+        let cy9 = mix(bar.y, ws.a9, lm)
+        let wg9 = ws.urg.9 * (1 - ws.act.9)
+        let bw9 = (8 + 4.5 * ws.tall.9) * ws.U * (1 + 0.35 * wsp.9.$screen) * ws.vis.9
+        let bh9 = (8 + 4.5 * ws.tall.9) * ws.U * (1 + 0.35 * wsp.9.$screen) * ws.vis.9
+        let cx10 = mix(ws.a10, lf.x, lm)
+        let cy10 = mix(bar.y, ws.a10, lm)
+        let wg10 = ws.urg.10 * (1 - ws.act.10)
+        let bw10 = (8 + 4.5 * ws.tall.10) * ws.U * (1 + 0.35 * wsp.10.$screen) * ws.vis.10
+        let bh10 = (8 + 4.5 * ws.tall.10) * ws.U * (1 + 0.35 * wsp.10.$screen) * ws.vis.10
         body ws.sq1 {
             color: mix(ink, warm, wg1)
             opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.1, 100%, wg1) + 35% * wsh.1.$screen) * (1 - ws.act.1) * ws.vis.1 * bs.ws)
@@ -88,8 +113,43 @@ part BarIcons {
             box { at: cx5, cy5; size: bw5, bh5; corner: 0.3 * min(bw5, bh5) }
         }
         PWsOutline(cx5, cy5, bw5, bh5, min(100%, mix(30% + 55% * ws.tall.5, 100%, wg5) + 35% * wsh.5.$screen) * (1 - ws.act.5) * ws.vis.5 * bs.ws, wg5, 0, wsh.5.$screen)
-        let pl.h1 = ws.c1 + clamp(pl.head - 1, 0, 1) * (ws.c2 - ws.c1) + clamp(pl.head - 2, 0, 1) * (ws.c3 - ws.c2) + clamp(pl.head - 3, 0, 1) * (ws.c4 - ws.c3) + clamp(pl.head - 4, 0, 1) * (ws.c5 - ws.c4)
-        let pl.h2 = ws.c1 + clamp(pl.tail - 1, 0, 1) * (ws.c2 - ws.c1) + clamp(pl.tail - 2, 0, 1) * (ws.c3 - ws.c2) + clamp(pl.tail - 3, 0, 1) * (ws.c4 - ws.c3) + clamp(pl.tail - 4, 0, 1) * (ws.c5 - ws.c4)
+        body ws.sq6 {
+            color: mix(ink, warm, wg6)
+            opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.6, 100%, wg6) + 35% * wsh.6.$screen) * (1 - ws.act.6) * ws.vis.6 * bs.ws)
+            rim: 40%
+            box { at: cx6, cy6; size: bw6, bh6; corner: 0.3 * min(bw6, bh6) }
+        }
+        PWsOutline(cx6, cy6, bw6, bh6, min(100%, mix(30% + 55% * ws.tall.6, 100%, wg6) + 35% * wsh.6.$screen) * (1 - ws.act.6) * ws.vis.6 * bs.ws, wg6, 0, wsh.6.$screen)
+        body ws.sq7 {
+            color: mix(ink, warm, wg7)
+            opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.7, 100%, wg7) + 35% * wsh.7.$screen) * (1 - ws.act.7) * ws.vis.7 * bs.ws)
+            rim: 40%
+            box { at: cx7, cy7; size: bw7, bh7; corner: 0.3 * min(bw7, bh7) }
+        }
+        PWsOutline(cx7, cy7, bw7, bh7, min(100%, mix(30% + 55% * ws.tall.7, 100%, wg7) + 35% * wsh.7.$screen) * (1 - ws.act.7) * ws.vis.7 * bs.ws, wg7, 0, wsh.7.$screen)
+        body ws.sq8 {
+            color: mix(ink, warm, wg8)
+            opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.8, 100%, wg8) + 35% * wsh.8.$screen) * (1 - ws.act.8) * ws.vis.8 * bs.ws)
+            rim: 40%
+            box { at: cx8, cy8; size: bw8, bh8; corner: 0.3 * min(bw8, bh8) }
+        }
+        PWsOutline(cx8, cy8, bw8, bh8, min(100%, mix(30% + 55% * ws.tall.8, 100%, wg8) + 35% * wsh.8.$screen) * (1 - ws.act.8) * ws.vis.8 * bs.ws, wg8, 0, wsh.8.$screen)
+        body ws.sq9 {
+            color: mix(ink, warm, wg9)
+            opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.9, 100%, wg9) + 35% * wsh.9.$screen) * (1 - ws.act.9) * ws.vis.9 * bs.ws)
+            rim: 40%
+            box { at: cx9, cy9; size: bw9, bh9; corner: 0.3 * min(bw9, bh9) }
+        }
+        PWsOutline(cx9, cy9, bw9, bh9, min(100%, mix(30% + 55% * ws.tall.9, 100%, wg9) + 35% * wsh.9.$screen) * (1 - ws.act.9) * ws.vis.9 * bs.ws, wg9, 0, wsh.9.$screen)
+        body ws.sq10 {
+            color: mix(ink, warm, wg10)
+            opacity: 0.55 * (min(100%, mix(30% + 55% * ws.tall.10, 100%, wg10) + 35% * wsh.10.$screen) * (1 - ws.act.10) * ws.vis.10 * bs.ws)
+            rim: 40%
+            box { at: cx10, cy10; size: bw10, bh10; corner: 0.3 * min(bw10, bh10) }
+        }
+        PWsOutline(cx10, cy10, bw10, bh10, min(100%, mix(30% + 55% * ws.tall.10, 100%, wg10) + 35% * wsh.10.$screen) * (1 - ws.act.10) * ws.vis.10 * bs.ws, wg10, 0, wsh.10.$screen)
+        let pl.h1 = ws.c1 + clamp(pl.head - 1, 0, 1) * (ws.c2 - ws.c1) + clamp(pl.head - 2, 0, 1) * (ws.c3 - ws.c2) + clamp(pl.head - 3, 0, 1) * (ws.c4 - ws.c3) + clamp(pl.head - 4, 0, 1) * (ws.c5 - ws.c4) + clamp(pl.head - 5, 0, 1) * (ws.c6 - ws.c5) + clamp(pl.head - 6, 0, 1) * (ws.c7 - ws.c6) + clamp(pl.head - 7, 0, 1) * (ws.c8 - ws.c7) + clamp(pl.head - 8, 0, 1) * (ws.c9 - ws.c8) + clamp(pl.head - 9, 0, 1) * (ws.c10 - ws.c9)
+        let pl.h2 = ws.c1 + clamp(pl.tail - 1, 0, 1) * (ws.c2 - ws.c1) + clamp(pl.tail - 2, 0, 1) * (ws.c3 - ws.c2) + clamp(pl.tail - 3, 0, 1) * (ws.c4 - ws.c3) + clamp(pl.tail - 4, 0, 1) * (ws.c5 - ws.c4) + clamp(pl.tail - 5, 0, 1) * (ws.c6 - ws.c5) + clamp(pl.tail - 6, 0, 1) * (ws.c7 - ws.c6) + clamp(pl.tail - 7, 0, 1) * (ws.c8 - ws.c7) + clamp(pl.tail - 8, 0, 1) * (ws.c9 - ws.c8) + clamp(pl.tail - 9, 0, 1) * (ws.c10 - ws.c9)
         let pl.s = min(1, abs(pl.head - pl.tail))
         let pl.t = ws.pb * (1 - 0.18 * pl.s)
         let pl.len = abs(pl.h1 - pl.h2) + ws.pl
@@ -104,7 +164,7 @@ part BarIcons {
                 opacity: 0.55 * bs.ws * (1 - ws.sp)
                 box { at: mix(pl.m, lf.x, lm), mix(bar.y, pl.m, lm); size: pl.w, pl.h; corner: 0.3 * min(pl.w, pl.h) }
             }
-            PWsOutline(mix(pl.m, lf.x, lm), mix(bar.y, pl.m, lm), pl.w, pl.h, bs.ws * (1 - ws.sp), 0, 1, max(max(max(wsh.1.$screen, wsh.2.$screen), max(wsh.3.$screen, wsh.4.$screen)), wsh.5.$screen))
+            PWsOutline(mix(pl.m, lf.x, lm), mix(bar.y, pl.m, lm), pl.w, pl.h, bs.ws * (1 - ws.sp), 0, 1, max(max(max(wsh.1.$screen, wsh.2.$screen), max(wsh.3.$screen, wsh.4.$screen)), max(max(max(wsh.5.$screen, wsh.6.$screen), max(wsh.7.$screen, wsh.8.$screen)), max(wsh.9.$screen, wsh.10.$screen))))
         }
         //  A special workspace in view: a pencil mark where the marks were, coming up from nothing: the sparkle (magic, and any other), a pair of notes (music) or an eye
         //  crossed out (private). Their lines are redrawn about five times a second the whole time they are there, the way a workspace mark's are under the pointer.
@@ -114,8 +174,8 @@ part BarIcons {
         PBNote(sk.x, sk.y, 9 * ws.U * max(ws.spm, 0.01), ws.spm * bs.ws)
         PBHide(sk.x, sk.y, 9 * ws.U * max(ws.spp, 0.01), ws.spp * bs.ws)
         //  The plus: two strokes, there while the workspace in view has a window.
-        let wpl.x = mix(ws.a6, lf.x, lm)
-        let wpl.y = mix(bar.y, ws.a6, lm)
+        let wpl.x = mix(ws.a11, lf.x, lm)
+        let wpl.y = mix(bar.y, ws.a11, lm)
         let wpl.d = ws.ps * 0.62 * (1 + 0.3 * wspl.$screen)
         body ws_plus_icon {
             color: ink

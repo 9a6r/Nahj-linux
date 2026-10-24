@@ -10,7 +10,7 @@ ws_urgent = {}
 sys.watch("workspaces", function(w)
     local busy = {}
     for _, d in ipairs(w.list) do busy[d.id] = d.windows > 0 end
-    for i = 1, 5 do fact["ws." .. i .. ".busy"] = busy[i] or false end
+    for i = 1, 10 do fact["ws." .. i .. ".busy"] = busy[i] or false end
     fact["ws.active"] = w.active
     -- No window on the workspace in view (one that is not in the list at all is empty too): see `ws_empty` in the scene.
     local here = false
@@ -129,7 +129,7 @@ function wm_workspaces()
                     if w then busy[w] = true end
                 end
             end
-            for k = 1, 5 do
+            for k = 1, 10 do
                 local v = busy[k] or false
                 if fact["ws." .. k .. ".busy"] ~= v then fact["ws." .. k .. ".busy"] = v end
             end
@@ -1970,7 +1970,7 @@ function window_urgent(addr)
         for _, w in ipairs(parse_clients(out)) do
             if w.addr == addr then
                 local n = tonumber((w.workspace or ""):match("^(-?%d+)"))
-                if n and n >= 1 and n <= 5 and n ~= tonumber(fact["ws.active"]) then
+                if n and n >= 1 and n <= 10 and n ~= tonumber(fact["ws.active"]) then
                     ws_urgent[n] = true
                     fact["ws." .. n .. ".urgent"] = true
                 end
@@ -6587,6 +6587,9 @@ require("logic/nightmode")(with_dirs)
 
 -- the audio visualiser (the bottom edge rising into the music): see logic/visualizer.luau
 require("logic/visualizer")()
+
+-- add-ons people write (Settings > Widgets > Add-ons): see logic/addons.luau
+require("logic/addons")()
 
 -- how big a notification is (Settings > Notifications): see logic/notif_size.luau
 require("logic/notif_size")()

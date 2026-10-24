@@ -1,0 +1,18 @@
+# ── A Vitreus add-on ─────────────────────────────────────────────────────────────────────
+# Copy this whole folder to  ~/.config/pleamar/vitreus-addons/<id>/  (the id is the folder's
+# name: lowercase letters, digits and dashes) and change it. It appears under
+# Settings > Add-ons as a card of its own, with a switch; updating Vitreus never touches that folder.
+# A folder there that starts with "_" is ignored, and so is this one where it stands.
+#
+# An add-on is a pleamar scene of its own, started and kept running by Vitreus while its
+# switch is on. It draws its own surface and declares its own `permissions` (every program
+# it runs, every service it reads): read them before turning someone else's add-on on, it
+# is not sandboxed. A mistake in this file is shown under the list and the add-on is left out.
+
+name        = "Hello"                    # the title of the card (up to ~28 characters)
+description = "A small card on the desktop"      # the line under the title (up to ~80 characters; one line is shown)
+author      = "Your Name <you@example.com>"      # shown small, with the version, under the description
+version     = "0.1"
+
+# The scene to run, in this folder. Leave it out and it is <id>.plm.
+scene = "addon.plm"

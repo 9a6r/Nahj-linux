@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+"""vitreus-addons DATADIR: reads every add-on folder and writes DATADIR/addons.json for Settings > Widgets > Add-ons.
+
+An add-on is a folder in ~/.config/pleamar/vitreus-addons/<id>/ (the model is <shell>/addons/_template/) with an addon.toml and the scene it names.
+It lives outside the shell's own folder, so updating Vitreus never touches it. A folder that starts with "_" is skipped. A broken add-on is left out
+and named in "errors", so one bad add-on never costs the others. Prints nothing; exit 1 only when it cannot write the result."""
+import json, os, re, sys, tomllib
+
+data = sys.argv[1]
+user = os.path.join(os.path.expanduser("~"), ".config", "pleamar", "vitreus-addons")
+
+def read(folder, name):
+    toml = os.path.join(folder, "addon.toml")
+    if not os.path.isfile(toml):
+        raise ValueError("%s: no addon.toml" % name)
+    with open(toml, "rb") as f:
+        t = tomllib.load(f)
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", name):
+        raise ValueError("%s: the folder's name has to be lowercase letters, digits and dashes" % name)
+    scene = str(t.get("scene", name + ".plm"))
+    path = os.path.realpath(os.path.join(folder, scene))
+    if not path.startswith(os.path.realpath(folder) + os.sep) or not path.endswith(".plm"):
+        raise ValueError("%s: scene has to be a .plm file inside the add-on's folder" % name)
+    if not os.path.isfile(path):
+        raise ValueError("%s: the scene %s is not there" % (name, scene))
+    return {"id": name, "name": str(t.get("name", name))[:28], "author": str(t.get("author", ""))[:40],
+            "version": str(t.get("version", ""))[:12], "description": str(t.get("description", ""))[:80], "scene": path}
+
+found, errors = [], []
+if os.path.isdir(user):
+    for name in sorted(os.listdir(user)):
+        folder = os.path.join(user, name)
+        if name.startswith("_") or name.startswith(".") or not os.path.isdir(folder):
+            continue
+        try:
+            found.append(read(folder, name))
+        except Exception as e:
+            errors.append(str(e) if isinstance(e, ValueError) else "%s: %s" % (name, e))
+
+try:
+    os.makedirs(data, exist_ok=True)
+    tmp = os.path.join(data, "addons.json.tmp")
+    with open(tmp, "w") as f:
+        json.dump({"folder": user, "addons": found, "errors": errors}, f)
+    os.replace(tmp, os.path.join(data, "addons.json"))
+except OSError:
+    sys.exit(1)

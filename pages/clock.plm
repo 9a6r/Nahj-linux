@@ -401,7 +401,6 @@ part Clock {
                 zone box fw_mn.$k { at: fwmx, sby + 1180 * pu; size: 50 * pu, 24 * pu; corner: 8 * pu; cursor: pointer; label: "Audio visualiser: show on this monitor"; active: (cv_m.$k.on) and (sby + 1180 * pu) - ck.off > sby and (sby + 1180 * pu) - ck.off < sby + set.h * pu }
                 on press fw_mn.$k { emit fw_mon_set(k + 1) }
             }
-
             }
 
             let ck.thh = set.h * set.h / max(set.h, ck.h)

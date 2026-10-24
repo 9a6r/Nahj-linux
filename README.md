@@ -149,6 +149,19 @@ A file that cannot be read is named in the line under the cards and left out; th
 are worn on (`glass`, `retro`, `uwu` or `cyber`); a theme cannot add shapes of its own. `bin/vitreus-themes` reads the files and leaves the
 list in `themes.json` in the data folder, which the shell, its font setup and the window-corner code all read.
 
+### Making your own add-on
+
+An add-on is a pleamar scene of your own, a small widget or panel, that Vitreus starts when you turn its switch on and starts
+again if it stops. It lives in its own folder, outside Vitreus's, so updating Vitreus never touches it.
+
+1. Copy the `addons/_template/` folder to `~/.config/pleamar/vitreus-addons/<id>/` (the id is the folder's name: lowercase letters, digits and
+   dashes) and change `addon.toml` and the scene it names.
+2. Open **Settings > Add-ons**: your add-on is a card there, with the title and description from `addon.toml` and its own switch. Turn it on.
+
+An add-on is not sandboxed: its scene declares the programs it runs and the services it reads in its own `permissions`, and turning it on lets it
+have them, so read someone else's before you do. A folder that cannot be read is named in the line under the rows and left out. `bin/vitreus-addons`
+reads the folders and leaves `addons.json` in the data folder; which are on is kept in `addons-state.json` there.
+
 ---
 
 ## 📦 Requirements

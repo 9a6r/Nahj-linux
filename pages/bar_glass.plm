@@ -1253,16 +1253,16 @@ part BarGlass {
         //  pointer is over the bar, in the gaps between them.
         zone box bar_hover { at: cx, bar.y; size: bar.w, bar.h; active: lm < 0.5 }
         zone box lf_hover { at: lf.x, vc; size: lf.w, vh; active: lm > 0.5 }
-        repeat i in 1..6 {
+        repeat i in 1..11 {
             //  A zone as long as the slot and its share of the gap, so the zones touch.
-            let wa = if(i == 1, ws.a1, if(i == 2, ws.a2, if(i == 3, ws.a3, if(i == 4, ws.a4, ws.a5))))
-            let wsz = (if(i == 1, ws.s1, if(i == 2, ws.s2, if(i == 3, ws.s3, if(i == 4, ws.s4, ws.s5)))) + ws.g) * ws.vis.$i
+            let wa = if(i == 1, ws.a1, if(i == 2, ws.a2, if(i == 3, ws.a3, if(i == 4, ws.a4, if(i == 5, ws.a5, if(i == 6, ws.a6, if(i == 7, ws.a7, if(i == 8, ws.a8, if(i == 9, ws.a9, ws.a10)))))))))
+            let wsz = (if(i == 1, ws.s1, if(i == 2, ws.s2, if(i == 3, ws.s3, if(i == 4, ws.s4, if(i == 5, ws.s5, if(i == 6, ws.s6, if(i == 7, ws.s7, if(i == 8, ws.s8, if(i == 9, ws.s9, ws.s10))))))))) + ws.g) * ws.vis.$i
             zone box ws.hit.$i { at: mix(wa, lf.x, lm), mix(bar.y, wa, lm); size: mix(wsz, 40 * bu, lm), mix(bar.h, wsz, lm); cursor: pointer; active: bs.ws > 0.5 and ws.vis.$i > 0.5 }
             on press ws.hit.$i { emit go(i) }
             follow wsh.$i.$screen = ws.hit.$i.hover
             follow wsp.$i.$screen = ws.hit.$i.hover
         }
-        zone box ws_plus { at: mix(ws.a6, lf.x, lm), mix(bar.y, ws.a6, lm); size: mix(ws.sv6 + ws.g, 40 * bu, lm), mix(bar.h, ws.sv6 + ws.g, lm); cursor: pointer; active: bs.ws > 0.5 and ws.pv > 0.5 }
+        zone box ws_plus { at: mix(ws.a11, lf.x, lm), mix(bar.y, ws.a11, lm); size: mix(ws.sv11 + ws.g, 40 * bu, lm), mix(bar.h, ws.sv11 + ws.g, lm); cursor: pointer; active: bs.ws > 0.5 and ws.pv > 0.5 }
         on press ws_plus { emit go(ws.new) }
         follow wspl.$screen = ws_plus.hover
         zone box ov_btn { at: ob.x, ob.y; size: ob.s + 8 * bu, ob.s + 8 * bu; cursor: pointer; active: bs.ws > 0.5 }
@@ -1336,6 +1336,6 @@ part BarGlass {
         on press right bar_hit { panel = none }
         }
         //  How open the battery gauge is (see `batt_open.$screen`): it lives here, where the bar's zones are, to read their hover.
-        follow batt_open.$screen = if(max(max(max(max(max(max(max(max(max(max(max(max(max(max(bar_hover.hover, wsh.1.$screen), wsh.2.$screen), wsh.3.$screen), wsh.4.$screen), wsh.5.$screen), win_hit.hover), bp.prev.hover), bp.play.hover), bp.next.hover), set_hit.hover), sr_hit.hover), ctl_hit.hover), bar_hit.hover), lf_hover.hover) > 0.15 or (pwr.percent < 20 and pwr.present), 1, 0)
+        follow batt_open.$screen = if(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(bar_hover.hover, wsh.1.$screen), wsh.2.$screen), wsh.3.$screen), wsh.4.$screen), wsh.5.$screen), wsh.6.$screen), wsh.7.$screen), wsh.8.$screen), wsh.9.$screen), wsh.10.$screen), win_hit.hover), bp.prev.hover), bp.play.hover), bp.next.hover), set_hit.hover), sr_hit.hover), ctl_hit.hover), bar_hit.hover), lf_hover.hover) > 0.15 or (pwr.percent < 20 and pwr.present), 1, 0)
     }
 }
