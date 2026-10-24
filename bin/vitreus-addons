@@ -2,13 +2,14 @@
 """vitreus-addons DATADIR: reads every add-on folder and writes DATADIR/addons.json for Settings > Widgets > Add-ons.
 
 An add-on is a folder in ~/.config/pleamar/vitreus-addons/<id>/ (the model is <shell>/addons/_template/) with an addon.toml and the scene it names.
-It lives outside the shell's own folder, so updating Vitreus never touches it. A folder that starts with "_" is skipped. A broken add-on is left out
+It lives outside the shell's own folder, so updating Vitreus never touches it. The add-ons that ship with the shell (<shell>/addons/, except the "_" templates) are listed too; one of the same name in the user's folder wins. A folder that starts with "_" is skipped. A broken add-on is left out
 and named in "errors", so one bad add-on never costs the others. Prints nothing; exit 1 only when it cannot write the result."""
 import json, os, re, sys, tomllib
 
 data = sys.argv[1]
 here = os.path.dirname(os.path.realpath(__file__))
 template = os.path.realpath(os.path.join(here, "..", "addons", "_template"))
+bundled = os.path.realpath(os.path.join(here, "..", "addons"))
 user = os.path.join(os.path.expanduser("~"), ".config", "pleamar", "vitreus-addons")
 
 def read(folder, name):
@@ -48,10 +49,14 @@ def read(folder, name):
 
 RESERVED = {"vitreus", "desktopclock", "desktopsysmon", "desktopnotes", "desktopmenu", "desktopmenu_hypr", "desktopedit", "desktopcards", "webcam", "lockscreen", "wptrans", "files", "cursortrail", "dashboard", "snap", "wm"}
 found, errors = [], []
-if os.path.isdir(user):
-    for name in sorted(os.listdir(user)):
-        folder = os.path.join(user, name)
+for root in (user, bundled):      # the user's folder first: an add-on there wins over a bundled one of the same name
+    if not os.path.isdir(root):
+        continue
+    for name in sorted(os.listdir(root)):
+        folder = os.path.join(root, name)
         if name.startswith("_") or name.startswith(".") or not os.path.isdir(folder):
+            continue
+        if any(o["id"] == name for o in found):
             continue
         try:
             a = read(folder, name)
