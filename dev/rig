@@ -29,7 +29,7 @@ LOG=$RIG/log
 rig_env() {
     export XDG_RUNTIME_DIR=$RIG/run XDG_CONFIG_HOME=$RIG/conf XDG_DATA_HOME=$RIG/data XDG_CACHE_HOME=$RIG/cache
     unset HYPRLAND_INSTANCE_SIGNATURE WAYLAND_DISPLAY DISPLAY
-    export PATH="$COPY/bin:$PATH"
+    export PATH="$COPY/pleamar-wm:$COPY/bin:$PATH"       # (pleamar-wm/hyprctl first: the one installed in ~/.local/bin may be an older copy)
 }
 alive() { [ -f "$PIDF" ] && kill -0 "$(cat "$PIDF")" 2> /dev/null; }
 copy_tree() {

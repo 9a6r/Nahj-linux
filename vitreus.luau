@@ -29,7 +29,16 @@ run("printenv", { "HYPRLAND_INSTANCE_SIGNATURE" }, function(out, code)
     -- The Settings show the Hyprland page on Hyprland and the Pleamar-WM one anywhere else (as the rest of this file takes it: no Hyprland means pleamar-wm).
     fact.wm_hypr = on_hyprland
     fact.wm_pwm = not on_hyprland
+    -- niri: its environment says so (NIRI_SOCKET). Neither the Hyprland page nor the Pleamar-WM one is in the Settings there, and the windows and workspaces are asked of
+    -- `hyprctl`, which is pleamar-wm/hyprctl-niri's answer in Hyprland's words (see below).
+    if not on_hyprland then
+        run("printenv", { "NIRI_SOCKET" }, function(o, c)
+            on_niri = c == 0 and (o or "") ~= ""
+            if on_niri then fact.wm_pwm = false end
+        end)
+    end
 end)
+on_niri = false
 -- Asking one of our other scenes (the lock screen, the desktop clock and system monitor) for several of its values at once. `pleamar --say`
 -- answers one question per command, and starting a command from this shell costs about 30 ms, so a settings page that asked ten questions froze
 -- the shell for a third of a second each time it opened. A scene listens on a socket and answers one line per line it is sent, in order: one
@@ -153,11 +162,37 @@ function wm_workspaces()
         end)
     end)
 end
+-- niri: its workspaces (one list on each monitor, numbered from 1) are asked of `hyprctl workspaces -j`, which pleamar-wm/hyprctl-niri answers from `niri msg`. The
+-- one on the bar's monitor (or the focused one when the bar is on all of them) is the one shown; a workspace is busy when a window is on it.
+function niri_workspaces()
+    run("hyprctl", { "workspaces", "-j" }, function(out, code)
+        if code ~= 0 or not out then return end
+        local ok, list = pcall(json.decode, out)
+        if not ok or type(list) ~= "table" then return end
+        local want = bar_mon.name
+        local mine = false
+        if want ~= nil and want ~= "all" then for _, w in ipairs(list) do if w.monitor == want then mine = true end end end      -- (a name that is not plugged in: the focused monitor's)
+        local active, busy = nil, {}
+        for _, w in ipairs(list) do
+            if (not mine or w.monitor == want) and (w.windows or 0) > 0 then busy[w.id] = true end
+            if w.active and ((mine and w.monitor == want) or (not mine and w.focused)) then active = w.id end
+        end
+        if active and fact["ws.active"] ~= active then fact["ws.active"] = active end
+        for k = 1, 10 do
+            local v = busy[k] or false
+            if fact["ws." .. k .. ".busy"] ~= v then fact["ws." .. k .. ".busy"] = v end
+        end
+        local empty = not (active and busy[active])
+        if fact.ws_empty ~= empty then fact.ws_empty = empty end
+    end)
+end
 after(1500, function()
-    if not on_hyprland then every(500, wm_workspaces) end
+    if on_niri then every(1000, niri_workspaces)
+    elseif not on_hyprland then every(500, wm_workspaces) end
 end)
 function goto_workspace(i)
     if on_hyprland then sys.call("workspaces.focus", i)
+    elseif on_niri then run("hyprctl", { "dispatch", "hl.dsp.focus({ workspace = " .. tonumber(i) .. " })" }, function() niri_workspaces() end)
     else run("pleamar", { "--say", "wm", "emit workspace " .. tonumber(i) }, function() wm_workspaces() end) end
 end
 on("go", goto_workspace)
@@ -1919,7 +1954,7 @@ function refresh_tasks_wm()
 end
 
 local function refresh_tasks()
-    if not on_hyprland then return refresh_tasks_wm() end
+    if not on_hyprland and not on_niri then return refresh_tasks_wm() end
     run("hyprctl", { "clients" }, function(out, code)
         if code ~= 0 then return end
         local list = {}

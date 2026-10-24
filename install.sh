@@ -838,7 +838,8 @@ if $do_wm && [ -d "$wmdir" ] && { have pleamar-wm || [ -x "$HOME/.local/bin/plea
         fi
     fi
     # hyprctl for a desktop that is not Hyprland (ahead of /usr/bin; on Hyprland it hands over to the real one).
-    if [ ! -e "$HOME/.local/bin/hyprctl" ] || [ -L "$HOME/.local/bin/hyprctl" ]; then
+    # (An older copy of this file, from before it was linked, is replaced by the link: it would never learn the desktops added since, such as niri.)
+    if [ ! -e "$HOME/.local/bin/hyprctl" ] || [ -L "$HOME/.local/bin/hyprctl" ] || grep -q 'hyprctl. for a desktop that is not Hyprland' "$HOME/.local/bin/hyprctl" 2> /dev/null; then
         run mkdir -p "$HOME/.local/bin"
         run ln -sf "$wmdir/hyprctl" "$HOME/.local/bin/hyprctl"
     fi
