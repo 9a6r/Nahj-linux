@@ -1561,6 +1561,7 @@ scene Vitreus {
     //  input lines go to session.conf and apply at the next login.
     fact wm_hypr = false             // the session is Hyprland: the Hyprland page is in the Settings (set by the logic)
     fact wm_pwm = false              // the session is pleamar-wm: the Pleamar-WM page is in the Settings
+    fact wm_niri = false             // the session is niri: neither of those pages is, and the Keybinds and Night mode pages work on niri's files (set by the logic)
     fact wm_layout = 0                // the layout of the monitor picked below it
     fact wm_mon_sel = 0               // which monitor's layout the chips set: its slot, 0 and up
     repeat i in 0..4 {

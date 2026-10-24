@@ -89,8 +89,25 @@ void main() {
         end)
     end
 
+    -- niri has no night light of its own, but it lets a client set the gamma (wlr-gamma-control), which is what `wlsunset` does: here it is started at a
+    -- fixed temperature (both its temperatures the same, and times it needs and never uses) and stopped by the arguments it was started with, so another
+    -- wlsunset of the user's is left alone. Without wlsunset installed, nothing happens (the page says so).
+    local WLS = "wlsunset -t %d -T %d -S 06:00 -s 18:00 -g 1.0000"
+    local WLS_KILL = "wlsunset -t [0-9]+ -T [0-9]+ -S 06:00 -s 18:00 -g 1.0000"
+    local function apply_niri()
+        run("pkill", { "-f", WLS_KILL }, function()
+            if N.on then
+                local k = temp()
+                run("setsid", { "-f", "sh", "-c", "exec " .. string.format(WLS, k, k) .. " >/dev/null 2>&1 </dev/null" }, function() N.applied = true end)
+            else
+                N.applied = false
+            end
+        end)
+    end
+
     -- Make the screen agree with `N.on`.
     local function apply()
+        if N.niri then return apply_niri() end
         if N.sun == nil then return end                     -- not known yet: init calls this again
         if N.sun then
             if N.on then
@@ -174,7 +191,9 @@ void main() {
     sys.watch("clock", function(c)
         evaluate(c.hour * 60 + c.minute, false)
         if N.on and N.applied then
-            if N.sun then
+            if N.niri then
+                run("pgrep", { "-f", WLS_KILL }, function(_, code) if code ~= 0 then apply() end end)
+            elseif N.sun then
                 -- the daemon was stopped (it crashed, or somebody killed it): start it again with the tint
                 run("pgrep", { "-x", "hyprsunset" }, function(_, code) if code ~= 0 then apply() end end)
             else
@@ -194,6 +213,15 @@ void main() {
         if type(saved.stop) == "number" then N.stop = math.floor(saved.stop) % 48 end
     end
     show()
+    run("printenv", { "NIRI_SOCKET" }, function(o, c)       -- (asked here: a module sees the globals as they were when it was required)
+        if c == 0 and (o or "") ~= "" then
+            N.niri = true
+            run("which", { "wlsunset" }, function(_, code)
+                if code ~= 0 then text.night_status = "Needs wlsunset (pacman -S wlsunset)" return end
+                if N.on then apply() end
+            end)
+        end
+    end)
     run("which", { "hyprsunset" }, function(_, code)
         N.sun = code == 0
         -- A shader this file left behind (the shell died with night mode on, or an earlier version used one) is taken

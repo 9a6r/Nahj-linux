@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""hyprctl for niri: `hyprctl [-j] monitors | activewindow | clients | workspaces | dispatch ...`, answered from `niri msg --json` in Hyprland's words (the ones Vitreus reads:
+"""hyprctl for niri: `hyprctl [-j] monitors | activewindow | clients | workspaces | dispatch ... | eval hl.monitor(...)`, answered from `niri msg --json` in Hyprland's words (the ones Vitreus reads:
 monitors with name, id, size, scale, transform, focused; the focused window; the windows as Hyprland's text lists them; the workspaces; and the dispatchers that focus, close and move a window). Anything else
 fails (exit 1), which is what a program asking hyprctl has to be ready for on a desktop that is not Hyprland. Reached through pleamar-wm/hyprctl."""
 import json, re, subprocess, sys
@@ -77,6 +77,43 @@ def dispatch(arg):
         act("move-window-to-workspace", "--window-id", str(int(m.group(2), 16)), "--focus", "false", m.group(1))
     sys.exit(1)
 
+TRANSFORM_NAME = ["normal", "90", "180", "270", "flipped", "flipped-90", "flipped-180", "flipped-270"]
+
+def evaluate(code):
+    """`hyprctl eval` with hl.monitor({ output, mode, position, scale, transform }) lines (the Display page's): each as `niri msg output` commands.
+    Answers `ok` when every command was taken, the way Hyprland does."""
+    def out(name, *a):
+        r = subprocess.run(["niri", "msg", "output", name, *a], capture_output=True, text=True, timeout=10)
+        if r.returncode != 0:
+            print((r.stderr or r.stdout).strip() or "niri did not take it")
+            sys.exit(1)
+    found = False
+    for line in code.splitlines():
+        m = re.search(r'hl\.monitor\(\{(.*)\}\)', line)
+        if not m:
+            continue
+        found = True
+        body = m.group(1)
+        name = re.search(r'output\s*=\s*"([^"]+)"', body)
+        if not name:
+            continue
+        name = name.group(1)
+        mode = re.search(r'mode\s*=\s*"(\d+x\d+)(?:@(\d+(?:\.\d+)?))?"', body)
+        if mode:
+            out(name, "mode", mode.group(1) + ("@" + mode.group(2) if mode.group(2) else ""))
+        scale = re.search(r'scale\s*=\s*("auto"|[\d.]+)', body)
+        if scale and scale.group(1) != '"auto"':
+            out(name, "scale", scale.group(1))
+        tr = re.search(r'transform\s*=\s*(\d)', body)
+        if tr:
+            out(name, "transform", TRANSFORM_NAME[int(tr.group(1)) % 8])
+        pos = re.search(r'position\s*=\s*"(-?\d+)x(-?\d+)"', body)
+        if pos:
+            out(name, "position", "set", pos.group(1), pos.group(2))
+    if not found:
+        sys.exit(1)
+    print("ok")
+
 def addr(w):
     return "%x" % w["id"]
 
@@ -98,6 +135,8 @@ def main():
                 print()
     elif cmd == "workspaces":
         print(json.dumps(workspaces()))
+    elif cmd == "eval" and len(args) > 1:
+        evaluate("\n".join(args[1:]))
     elif cmd == "dispatch" and len(args) > 1:
         dispatch(" ".join(args[1:]))
     elif cmd == "activewindow":

@@ -34,7 +34,7 @@ run("printenv", { "HYPRLAND_INSTANCE_SIGNATURE" }, function(out, code)
     if not on_hyprland then
         run("printenv", { "NIRI_SOCKET" }, function(o, c)
             on_niri = c == 0 and (o or "") ~= ""
-            if on_niri then fact.wm_pwm = false end
+            if on_niri then fact.wm_pwm = false; fact.wm_niri = true end
         end)
     end
 end)
@@ -2900,12 +2900,30 @@ function iris_fx.niri_code(gap)
     local pal = iris_fx.last_pal
     local ring = pal and string.format("\n        focus-ring {\n            active-color \"%s\"\n            inactive-color \"%s\"\n        }", pal.mint, pal.off) or ""
     parts[#parts + 1] = "layout {" .. ring .. "\n        " .. struts(room(everywhere)) .. "\n}\n"
-    for _, name in ipairs(bar_fx.mons or {}) do
+    -- What Settings > Display kept for each monitor (display.json, `saved`: mode, scale, transform, position), in niri's words.
+    local TRANSFORM = { [0] = "normal", "90", "180", "270", "flipped", "flipped-90", "flipped-180", "flipped-270" }
+    local disp = {}
+    local okd, fd = pcall(sys.ask, "files.read", "display.json", "json")
+    if okd and type(fd) == "table" and type(fd.saved) == "table" then disp = fd.saved end
+    local names, seen, is_mon = {}, {}, {}
+    for _, name in ipairs(bar_fx.mons or {}) do is_mon[name] = true; if not seen[name] then seen[name] = true; names[#names + 1] = name end end
+    local extra = {}
+    for name in pairs(disp) do if not seen[name] then seen[name] = true; extra[#extra + 1] = name end end
+    table.sort(extra)
+    for _, name in ipairs(extra) do names[#names + 1] = name end
+    for _, name in ipairs(names) do
         if name:match("^[%w%._%-]+$") then
+            local lines = {}
+            local d = disp[name]
+            if type(d) == "table" and d.res and d.hz then lines[#lines + 1] = string.format('    mode "%s@%d.000"', d.res, d.hz) end
+            if type(d) == "table" and type(d.scale) == "number" then lines[#lines + 1] = string.format("    scale %s", (string.format("%.6f", d.scale):gsub("0+$", ""):gsub("%.$", ""))) end
+            if type(d) == "table" and TRANSFORM[d.transform or 0] then lines[#lines + 1] = string.format('    transform "%s"', TRANSFORM[d.transform or 0]) end
+            if type(d) == "table" and d.x and d.y then lines[#lines + 1] = string.format("    position x=%d y=%d", d.x, d.y) end
             local has_bar = everywhere or (bar_fx.sel ~= nil and bar_fx.sel[name] == true)
-            if not everywhere then
-                parts[#parts + 1] = string.format('output "%s" {\n    layout {\n        %s\n    }\n}\n', name, struts(room(has_bar)))
+            if not everywhere and is_mon[name] then
+                lines[#lines + 1] = string.format("    layout {\n        %s\n    }", struts(room(has_bar)))
             end
+            if #lines > 0 then parts[#parts + 1] = string.format('output "%s" {\n%s\n}\n', name, table.concat(lines, "\n")) end
         end
     end
     return table.concat(parts, "")
@@ -4619,6 +4637,7 @@ local function disp_write_file()
         local hypr = d.conf:gsub("/pleamar/shells/vitreus$", "/hypr")
         run("cp", { "-f", d.data .. "/vitreus_monitors.lua", hypr .. "/vitreus_monitors.lua" }, function() end)
         pcall(sys.call, "files.write", "display.json", { saved = disp_saved })
+        if on_niri then iris_fx.apply_niri() end           -- niri keeps them in vitreus.kdl, beside the room round the windows
     end)
 end
 

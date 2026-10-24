@@ -19,6 +19,7 @@
 # Not reproducible here: the glass's blur (no compositor to ask) and anything that needs Hyprland's own state (the Hyprland page, gaps, borders).
 set -eu
 RIG=${RIG:-/tmp/vrig}
+REAL_HOME=$HOME
 SRC=$(cd "$(dirname "$0")/.." && pwd)
 COPY=$RIG/conf/pleamar/shells/vitreus
 DATA=$RIG/data/pleamar/vitreus
@@ -29,6 +30,11 @@ LOG=$RIG/log
 rig_env() {
     export XDG_RUNTIME_DIR=$RIG/run XDG_CONFIG_HOME=$RIG/conf XDG_DATA_HOME=$RIG/data XDG_CACHE_HOME=$RIG/cache
     unset HYPRLAND_INSTANCE_SIGNATURE WAYLAND_DISPLAY DISPLAY
+    # a home of its own too (the shell reads and writes files in it: ~/.face, ~/.config/niri, the keys' files); the fonts are the real ones
+    mkdir -p "$RIG/home/.local/share" "$RIG/home/.config"
+    [ -e "$RIG/home/.local/share/fonts" ] || ln -s "$REAL_HOME/.local/share/fonts" "$RIG/home/.local/share/fonts"
+    [ -e "$RIG/home/.config/fontconfig" ] || { [ -d "$REAL_HOME/.config/fontconfig" ] && ln -s "$REAL_HOME/.config/fontconfig" "$RIG/home/.config/fontconfig"; } || true
+    export HOME=$RIG/home
     export PATH="$COPY/pleamar-wm:$COPY/bin:$PATH"       # (pleamar-wm/hyprctl first: the one installed in ~/.local/bin may be an older copy)
 }
 alive() { [ -f "$PIDF" ] && kill -0 "$(cat "$PIDF")" 2> /dev/null; }
@@ -42,7 +48,7 @@ start)
     if alive; then echo "the rig is already running (dev/rig stop first)"; exit 1; fi
     rm -rf "$RIG"; mkdir -p "$COPY" "$DATA" "$CACHE" "$RIG/run"; chmod 700 "$RIG/run"
     copy_tree
-    mkdir -p "$RIG/conf/niri"; : > "$RIG/conf/niri/vitreus.kdl"        # (what a niri config in the copy may include: the shell writes the room round the windows there)
+    mkdir -p "$RIG/conf/niri" "$RIG/home/.config/niri"; : > "$RIG/conf/niri/vitreus.kdl"; cp "$COPY/niri_vitreus.kdl" "$RIG/home/.config/niri/niri_vitreus.kdl"        # (what a niri config in the copy may include: the shell writes the room round the windows there)
     [ -d "$HOME/.local/share/pleamar/vitreus" ] && cp -a "$HOME/.local/share/pleamar/vitreus/." "$DATA/"
     [ -d "$HOME/.cache/pleamar/vitreus" ] && cp -a "$HOME/.cache/pleamar/vitreus/." "$CACHE/"
     rm -f "$DATA/addons-state.json"

@@ -357,6 +357,7 @@ if $deps; then
     brightnessctl   the brightness slider
     hypridle        Caffeine
     hyprsunset      Night mode (REQUIRED on Hyprland: https://github.com/hyprwm/hyprsunset)
+    wlsunset        Night mode on niri (https://sr.ht/~kennylevinsen/wlsunset/)
     libnotify       calendar reminders (notify-send)
     xdg-user-dirs   finding your Pictures folder, and the places in Files' sidebar
     git, fontconfig
@@ -373,7 +374,11 @@ LIST
         fi
         warn "hyprsunset is not installed: Night mode (Hyprland only) will not work"
     fi
-    have hyprctl || warn "Hyprland was not found. Vitreus needs a Wayland compositor with layer-shell; the list of running windows needs Hyprland."
+    # niri has no night light of its own: Night mode there is wlsunset (it sets the gamma through the compositor).
+    if have niri && ! have wlsunset; then
+        warn "niri is installed but wlsunset is not: Night mode on niri needs it (sudo pacman -S wlsunset on Arch)"
+    fi
+    have hyprctl || have niri || warn "Neither Hyprland nor niri was found. Vitreus needs a Wayland compositor with layer-shell; the list of running windows needs Hyprland or niri."
 
     # ── 1b. a Vulkan driver for the graphics card ──
     # pleamar draws with Vulkan. Its own installer brings the loader (vulkan-icd-loader), but the driver is the card's own package, which a minimal install does not have: with none,
