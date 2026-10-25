@@ -4090,6 +4090,8 @@ scene Vitreus {
             image t.icon { at: 0.9 * bu + 0.6 * bu * sin(apf * 47 + t.index * 70) * touch.hover, -0.6 * bu + 0.6 * bu * sin(apf * 43 + t.index * 110) * touch.hover; size: floor(18 * bu + 0.5), floor(18 * bu + 0.5); opacity: (10% + 22% * touch.hover) * bs.ax }
         }
         zone box touch { at: 9 * bu, 9 * bu; size: 24 * bu, 30 * bu; cursor: pointer; active: bs.ax > 0.5; label: t.name }
+        on enter touch { adk_hot = adk_hot + 1 }       // (the pencil clock runs while an add-on's icon is under the pointer: `need_clock`)
+        on leave touch { adk_hot = max(0, adk_hot - 1) }
         on press touch { ax_scr = screen.index; ax_sw = screen.width; ax_sh = screen.height; emit adk_go(t.index) }
     }
 
@@ -4803,7 +4805,7 @@ scene Vitreus {
     //  lands, with the liquid neck of the other drawers while it is narrower (see `dc.bell`). It starts at the bar's
     //  middle, as they do, so the blend has the bar to melt into; as tall as the bar's lower half plus its content.
     let dc.w = (120 + 330 * (min(1, dc0 * 1.6) + max(0, dc0 - 1) * 0.6)) * cu
-    let dc.neck = 0.5 + 0.5 * sg                // how much of the others' liquid neck the calendar's join to the bar has: 0 is a sharp angle, 1 the same as Settings (it sticks out less, so all of it is too soft; in the top frame in pieces it hangs from the middle piece like the title panel, and has all of it)
+    let dc.neck = if(bar_frame, 1, 0.5 + 0.5 * sg)                // (a frame's, along the top or the bottom, has all of it: half left its corners and its join to the frame sharp, as the side strips never were) how much of the others' liquid neck the calendar's join to the bar has: 0 is a sharp angle, 1 the same as Settings (it sticks out less, so all of it is too soft; in the top frame in pieces it hangs from the middle piece like the title panel, and has all of it)
     let dc.hh = bar.h / 2 + card.h + 6 * cu * tm * dc0 + max(0, sag)
     //  Once it is as wide as the bar (`f` 1) it must be a straight continuation of the bar's sides, so it moves its top up to
     //  the bar's top edge and stops blending: a blend there would puff the join out at the bar's corners.
