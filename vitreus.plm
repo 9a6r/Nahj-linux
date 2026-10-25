@@ -5201,17 +5201,17 @@ scene Vitreus {
     let adk.bw = adk.L * adk.g + cdk.r * abs(pick(screen.index, adk_ax.0, adk_ax.1))
     let adk.bh = cdk.t + cdk.r * abs(pick(screen.index, adk_ay.0, adk_ay.1))
     //  The add-on drawer (`ax_open`): out of the add-on pill, standing in its corner, as wide and tall as the add-on asked, against the frame and on the pill. It grows from the pill as it opens.
-    //  With the add-ons on the Island (`axb`, Settings > Bar) it drops from the bar instead, as the bar's own panels do: under its icon (`ax.ix`), just below the bar,
-    //  so the glass melts into it, and it grows out of the icon.
+    //  With the add-ons on the Island (`axb`, Settings > Bar) it drops from the bar instead, as the bar's own panels do: centred on the bar, against it so the glass
+    //  melts into it, and it grows out of the icon (`ax.ix`).
     let axb = if(bv.ax and not bar_frame, sb, 0)
     let ax.ix = ax.x - fw.ax / 2 + (max(0, ax_cur) * 24 + 9) * bu
     let axs.x0 = cdk.xs                                    // flush with the frame, as the Desk is: it is part of it until it is pulled away
     let axs.x1 = cdk.xe
     let axs.w = clamp(if(ax_w > 0, ax_w, 300 * cu), 240, max(240, axs.x1 - axs.x0))
-    let axs.y0 = mix(cdk.yt, bar.y + bar.h / 2 + 10 * bu, axb)     // against the frame's bottom edge, as the Desk's top is (not under the pieces that hang from it); on the Island, under the bar
+    let axs.y0 = mix(cdk.yt, bar.y + bar.h / 2 - 2 * bu, axb)     // against the frame's bottom edge, as the Desk's top is (not under the pieces that hang from it); on the Island, under the bar
     let axs.y1 = mix(mix(vb - th.b, cdk.ye, adk.sb), vb - 12 * bu, axb)
     let axs.h = clamp(if(ax_h > 0, ax_h, 280 * cu), 160, max(160, axs.y1 - axs.y0))
-    let axs.fx = mix(mix(axs.x0 + axs.w / 2, axs.x1 - axs.w / 2, adk.sr), clamp(ax.ix, axs.x0 + 12 * bu + axs.w / 2, max(axs.x0 + 12 * bu + axs.w / 2, axs.x1 - 12 * bu - axs.w / 2)), axb)
+    let axs.fx = mix(mix(axs.x0 + axs.w / 2, axs.x1 - axs.w / 2, adk.sr), clamp((bar.l + bar.r) / 2, axs.x0 + 12 * bu + axs.w / 2, max(axs.x0 + 12 * bu + axs.w / 2, axs.x1 - 12 * bu - axs.w / 2)), axb)
     let axs.fy = mix(mix(axs.y0 + axs.h / 2, axs.y1 - axs.h / 2, adk.sb), axs.y0 + axs.h / 2, axb)
     let dax.lf = min(1, dax0 * 1.6) + max(0, dax0 - 1) * 0.6
     let dax.ew = max(0.1, axs.w * dax.lf)
