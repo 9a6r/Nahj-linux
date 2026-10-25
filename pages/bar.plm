@@ -128,7 +128,7 @@ part Bar {
             zone box blay_area { from: mbx - 8 * pu, mby - 8 * pu; size: 426 * pu, 104 * pu; active: bar_fm < 0.5 }     // the small bar and the tray, not Reset
             on drag blay_area { bdx = ((pointer.x - tx.pnl) - mbx) / pu; bdy = ((pointer.y - ty.set) - mby) / pu; emit bar_lay_drag }
             //  The chips' zones, apart from their drawing: pressing one takes it.
-            repeat i in 0..8 {
+            repeat i in 0..9 {
                 let zx = mbx + if(bdrag == i, bdx - bgx, bcx.$i) * pu
                 let zy = mby + if(bdrag == i, bdy - bgy, bcy.$i) * pu
                 zone box bchip.$i { from: zx, zy; size: bcw.$i * pu, 28 * pu; corner: 9 * pu; cursor: if(bchip.$i.pressed > 0.5, grabbing, grab); active: bar_fm < 0.5 }
@@ -136,7 +136,7 @@ part Bar {
                 on release bchip.$i { emit bar_lay_drop }
             }
             repeat pass in 0..2 {
-            repeat i in 0..8 {
+            repeat i in 0..9 {
                 let dragging = bdrag == i
               group {
                 show: (pass == 0 and not dragging) or (pass == 1 and dragging)
@@ -187,6 +187,14 @@ part Bar {
                     box { at: ccx, ccy + 3.5 * pu; size: 13 * pu, 1.5 * pu; corner: 0.75 * pu; color: ink2 }
                     ellipse { at: ccx + 2.5 * pu, ccy - 3.5 * pu; radius: 2.4 * pu; color: ink2 }
                     ellipse { at: ccx - 2.5 * pu, ccy + 3.5 * pu; radius: 2.4 * pu; color: ink2 }
+                }
+                group {
+                    show: i == 8
+                    //  the add-ons: four small tiles, one of them the accent
+                    box { at: ccx - 3.6 * pu, ccy - 3.6 * pu; size: 5.6 * pu, 5.6 * pu; corner: 1.8 * pu; color: ink2 }
+                    box { at: ccx + 3.6 * pu, ccy - 3.6 * pu; size: 5.6 * pu, 5.6 * pu; corner: 1.8 * pu; color: ink2; opacity: 60% }
+                    box { at: ccx - 3.6 * pu, ccy + 3.6 * pu; size: 5.6 * pu, 5.6 * pu; corner: 1.8 * pu; color: ink2; opacity: 60% }
+                    box { at: ccx + 3.6 * pu, ccy + 3.6 * pu; size: 5.6 * pu, 5.6 * pu; corner: 1.8 * pu; color: mix(mint, ink2, lit) }
                 }
                 group {
                     show: i == 7

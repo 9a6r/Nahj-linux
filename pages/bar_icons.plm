@@ -25,6 +25,13 @@ part BarIcons {
             BarRec(rec_stop) { show: rec_on }
             for t in bartrays { BarTray(t, click: bar_tray_click, menu: bar_tray_menu) { show: bs.tray > 0.02 } }
         }
+        //  The add-ons piece (only on the Island): the add-on pill's icons.
+        row ax_bar_row {
+            at: floor(ax.x - fw.ax / 2 + 0.5), floor(bar.y - 9 * bu + 0.5)
+            gap: floor(6 * bu + 0.5)
+            show: fm < 0.5 and bs.ax > 0.02
+            for t in adk_pins { BarAddon(t) }
+        }
         //  Every workspace is a soft square. The one in view stretches into a rectangle (along the bar; down the strip, down) and turns
         //  to the accent, one square becoming the other with nothing travelling; one with a window in it is a little more solid; one calling for
         //  attention is coral, still, until you go there. Under the pointer a mark swells by a third, popping a little past, and brightens.

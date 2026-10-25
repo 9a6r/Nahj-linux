@@ -59,7 +59,8 @@ return function()
         end
         model.adk_pins = rows
         fact.ax_on = any
-        if #rows ~= pill_out then pill_out = #rows; dock_fx.na = pill_out; dock_fx.a = pill_out > 0; dock_fx.changed() end
+        local out = (fact["bv.ax"] == true and fact.bar_frame ~= true) and 0 or #rows      -- (none while the icons are on the Island: Settings > Bar, the add-ons piece)
+        if out ~= pill_out then pill_out = out; dock_fx.na = pill_out; dock_fx.a = pill_out > 0; dock_fx.changed() end
         local cur = cur_pin()
         if (tonumber(fact.ax_cur) or -1) >= 0 and not (cur and cur.drawer) then
             fact.ax_cur = -1
@@ -84,6 +85,12 @@ return function()
         end
     end
     on("adk_go", pin_go)
+    -- The add-ons piece put on the Island or taken off it (or the frame switched on or off): the pill comes or goes, and so does the room the windows keep for it.
+    local on_bar = false
+    every(1000, function()
+        local b = fact["bv.ax"] == true and fact.bar_frame ~= true
+        if b ~= on_bar then on_bar = b; show_slot() end
+    end)
     -- The shell's scene can be read again (a saved edit) and start with its panel shut without anyone telling the add-on, which would keep its content on the screen: while the
     -- panel was last told to be out, it is told again every two seconds, and once a few seconds after this starts.
     every(2000, function() if told_open then push_slot() end end)

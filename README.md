@@ -165,6 +165,8 @@ is not in. Pull either pill across the middle of the screen and the two swap cor
 the panel's title bar (the add-on's name, a grip and an X); your scene draws what is below it, in the place the shell tells it (`slot_x`, `slot_y`, `slot_w`, `slot_h`, `slot_open`). Like the
 Desk, the panel stays until its X (or its icon) shuts it, and it can be pulled away from the pill and left anywhere. An add-on with an icon and no `[drawer]` gets a button that flips
 `slot_open`, so it can show and hide its own window. A panel cannot take text yet, and shows on one monitor. A key can open the first panel with `pleamar --say vitreus "emit ax_toggle"`.
+On the Island the icons can live on the bar instead: drag the **add-ons** piece (four small tiles) from the hidden row of Settings > Bar > Island layout onto the bar, anywhere
+along it. The pill goes, its icons sit on the bar, and each panel drops from the bar under its icon, melted into it like the bar's own panels. With a frame they go back to the pill.
 
 While it runs, Vitreus tells it, as facts and texts of its scene, the palette (so a theme restyles it at once), the room the bar takes, the theme's shape and the forecast; the template declares them all and says what each is. An add-on is not sandboxed: its scene declares the programs it runs and the services it reads in its own `permissions`, and turning it on lets it
 have them, so read someone else's before you do. A folder that cannot be read is named in the line under the rows and left out. `bin/vitreus-addons`

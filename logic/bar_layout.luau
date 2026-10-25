@@ -1,20 +1,21 @@
 -- The Bar page's layout: the order of the bar's pieces and which are hidden, edited by dragging chips on a small copy
 -- of the bar (see the Bar page in vitreus.plm). The bar reads `bo.<piece>` (its place) and `bv.<piece>` (shown); the
 -- editor reads `bc.<n>` (where each chip is). Kept in bar-layout.json. The settings gear cannot be hidden: it is the way
--- back to this page.
+-- back to this page. The add-ons piece (`ax`) holds the icons of the add-on pill: shown, they leave the pill and sit on the
+-- Island, and their panels drop from it. It starts hidden, so a layout from before it keeps the pill.
 return function()
-    local KEYS = { "ws", "title", "media", "set", "sr", "ctl", "clock", "tray" }   -- chip n is KEYS[n + 1]
+    local KEYS = { "ws", "title", "media", "set", "sr", "ctl", "clock", "tray", "ax" }   -- chip n is KEYS[n + 1]
     local INDEX = {}
     for n, k in ipairs(KEYS) do INDEX[k] = n - 1 end
-    local CHIP_W = { ws = 64, title = 110, media = 52, set = 34, sr = 34, ctl = 34, clock = 62, tray = 34 }
+    local CHIP_W = { ws = 64, title = 110, media = 52, set = 34, sr = 34, ctl = 34, clock = 62, tray = 34, ax = 34 }
     local BAR_W, PAD, GAP = 410, 4, 4          -- the small bar, the room at its ends, and between chips
     local ROW_BAR, ROW_TRAY = 4, 56            -- the chips' top in the bar and in the tray
     local L = { order = {}, hidden = {} }      -- every piece in order, hidden ones too (they keep their place)
     local drag = nil                           -- { key, to_tray, slot }
 
     local function defaults()
-        L.order = { "ws", "title", "media", "tray", "sr", "set", "ctl", "clock" }
-        L.hidden = {}
+        L.order = { "ws", "title", "media", "tray", "ax", "sr", "set", "ctl", "clock" }
+        L.hidden = { ax = true }
     end
 
     local function save()
@@ -165,11 +166,21 @@ return function()
             table.insert(order, at, "tray")
             seen.tray = true
         end
+        -- ... or before the add-ons piece: it goes after the tray, hidden (the add-ons stay in their pill)
+        local new_ax = not seen.ax
+        if new_ax then
+            local at = #order + 1
+            for n, k in ipairs(order) do if k == "tray" then at = n + 1; break end end
+            table.insert(order, at, "ax")
+            seen.ax = true
+        end
         if #order == #KEYS then
             L.order = order
+            L.hidden = {}           -- (what was saved, not the defaults' hidden add-ons piece)
             if type(saved.hidden) == "table" then
                 for _, k in ipairs(saved.hidden) do if INDEX[k] ~= nil and k ~= "set" then L.hidden[k] = true end end
             end
+            if new_ax then L.hidden.ax = true end
         end
     end
     place()
