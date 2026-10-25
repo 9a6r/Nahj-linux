@@ -28,6 +28,9 @@ import "addon-palette.plm"
 //
 //  The logic is addon.luau beside this file (the scene's name with .luau): it keeps what it must in the scene's own data folder with the `files` services below, and any
 //  program it runs (`run("wl-paste", ...)`, `curl`, a helper of your own) has to be named in `permissions` (`pleamar`, to talk to the shell about the field). The shell sets `wx_*` texts on a scene that declares them: name your own weather facts something else (the News & Weather add-on uses `nw_*`).
+//
+//  Style: the boiled pencil is preferred for an add-on's icons and graphics (hand-drawn lines, each drawn twice, the second fainter and a hair off, an accent wash inside, strokes
+//  redrawn about eight times a second with `floor(time * 8)`: see PCup, PBell and PEnvelope in vitreus.plm). SVGs or images of your own are allowed in its place.
 
 scene MyDrawer {
     surface { size: full, full; anchor: top_left; margin: 0; level: top, overlay while slot_open; screens: each max 4 }

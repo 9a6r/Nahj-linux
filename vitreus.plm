@@ -3603,21 +3603,20 @@ scene Vitreus {
         }
     }
 
-    //  The coffee mug, in the bell's manner: the body twice in pencil, the coffee's surface and a wash of the accent, a handle, shading strokes and a saucer.
-    component PCup(cx: number, cy: number, hot: number, o: number) {
+    //  The coffee mug, in the bell's manner (`kc` the size of its unit, `lw` the weight of its lines: the tile's are 0.8 * cu; the Caffeine page's hero draws it bigger at real size, so it stays crisp): the body twice in pencil, the coffee's surface and a wash of the accent, a handle, shading strokes and a saucer.
+    component PCupK(cx: number, cy: number, hot: number, o: number, kc: number, lw: number) {
         prop a = 0 ~calm
         follow a = hot
         let fr = if(a > 0.02, floor(time * 5), 0)
-        let kc = 0.8 * cu
         group {
             pivot: cx, cy
             scale: 1 + 0.10 * a
             repeat bp in 0..2 {
                 let bo = bp * 0.7 * kc
-                let bj = (0.18 + 0.25 * a) * cu * sin(fr * 53 + bp * 137 + 11)
-                let bk = (0.18 + 0.25 * a) * cu * sin(fr * 61 + bp * 71 + 51)
+                let bj = (0.18 + 0.25 * a) * kc / 0.8 * sin(fr * 53 + bp * 137 + 11)
+                let bk = (0.18 + 0.25 * a) * kc / 0.8 * sin(fr * 61 + bp * 71 + 51)
                 //  The mug.
-                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kc; color: ink; opacity: if(bp == 0, 90%, 34%) * o
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * lw; color: ink; opacity: if(bp == 0, 90%, 34%) * o
                        move -9 * kc + bj, -6 * kc + bk
                        line -8 * kc + bk, 3 * kc + bj
                        curve -4 * kc + bj, 7 * kc + bk via -7.5 * kc, 6.5 * kc
@@ -3625,25 +3624,67 @@ scene Vitreus {
                        curve 7 * kc + bj, 3 * kc + bk via 7.5 * kc, 6.5 * kc
                        line 8 * kc + bk, -6 * kc + bj }
                 //  The handle.
-                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kc; color: ink; opacity: if(bp == 0, 90%, 34%) * o
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * lw; color: ink; opacity: if(bp == 0, 90%, 34%) * o
                        move 8 * kc + bj, -3.5 * kc + bk
                        curve 8 * kc + bk, 2.5 * kc + bj via 14 * kc, -3.5 * kc
                        }
                 //  The saucer.
-                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.5, 1.1) * kc; color: ink; opacity: if(bp == 0, 80%, 30%) * o
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.5, 1.1) * lw; color: ink; opacity: if(bp == 0, 80%, 30%) * o
                        move -11.5 * kc + bk, 10 * kc + bj
                        line 10.5 * kc + bj, 10 * kc + bk }
             }
             //  The rim: a flat lens, with the coffee's surface in the accent.
             path { at: cx, cy; color: mint; opacity: 55% * o; move -9 * kc, -6 * kc; curve 8 * kc, -6 * kc via -0.5 * kc, -8.5 * kc; curve -9 * kc, -6 * kc via -0.5 * kc, -3.5 * kc; close }
-            path { at: cx, cy; stroke: 1.2 * kc; color: ink; opacity: 70% * o; move -9 * kc, -6 * kc; curve 8 * kc, -6 * kc via -0.5 * kc, -8.5 * kc; curve -9 * kc, -6 * kc via -0.5 * kc, -3.5 * kc; close }
+            path { at: cx, cy; stroke: 1.2 * lw; color: ink; opacity: 70% * o; move -9 * kc, -6 * kc; curve 8 * kc, -6 * kc via -0.5 * kc, -8.5 * kc; curve -9 * kc, -6 * kc via -0.5 * kc, -3.5 * kc; close }
             //  A wash in the accent inside the mug, below the coffee.
             path { at: cx, cy; color: mint; opacity: 22% * o; move -9 * kc, -6 * kc; line -8 * kc, 3 * kc; curve -4 * kc, 7 * kc via -7.5 * kc, 6.5 * kc; line 3 * kc, 7 * kc; curve 7 * kc, 3 * kc via 7.5 * kc, 6.5 * kc; line 8 * kc, -6 * kc; close }
             //  The shading: two short strokes on the left of the mug.
             repeat bc in 0..2 {
-                line { from: cx - 5.5 * kc + bc * 2 * kc, cy - 1 * kc + bc * 1.5 * kc + 0.3 * cu * sin(fr * 47 + bc * 60); to: cx - 5 * kc + bc * 2 * kc, cy + 4 * kc + 0.3 * cu * sin(fr * 53 + bc * 70); width: 1.1 * kc; color: mint; opacity: 65% * o }
+                line { from: cx - 5.5 * kc + bc * 2 * kc, cy - 1 * kc + bc * 1.5 * kc + 0.3 * kc / 0.8 * sin(fr * 47 + bc * 60); to: cx - 5 * kc + bc * 2 * kc, cy + 4 * kc + 0.3 * kc / 0.8 * sin(fr * 53 + bc * 70); width: 1.1 * lw; color: mint; opacity: 65% * o }
             }
         }
+    }
+
+    //  The envelope, in the mug's manner (the notifications' hero and header badge; same arguments as `Envelope`, which is no longer used): the body and the V of its flap each twice in pencil
+    //  (the second pass fainter and a hair off), an accent wash inside, the flap standing open behind when `o` is 1, a letter drawn in pencil when `letter` is 1, and two shading strokes. The lines
+    //  are drawn again about eight times a second, like the bell's.
+    component PEnvelope(ex: number, ey: number, s: number, o: number, letter: number, op: number) {
+        let fr = floor(time * 8)
+        let jt = max(0.2 * cu, 0.13 * s)
+        group {
+            opacity: op
+            //  The flap standing open behind, and the letter that comes up out of it.
+            path { at: ex, ey; stroke: max(1.3 * cu, 0.5 * s); color: ink; opacity: 80% * o; move -13 * s, -9 * s; line jt * sin(fr * 47 + 5), -22 * s + jt * sin(fr * 59 + 9); line 13 * s, -9 * s }
+            path { at: ex, ey + (2 - 12 * o) * s; color: mint; opacity: 30% * letter * (0.25 + 0.75 * o); move -10 * s, -8 * s; line 10 * s, -8 * s; line 10 * s, 8 * s; line -10 * s, 8 * s; close }
+            path { at: ex, ey + (2 - 12 * o) * s; stroke: max(1.2 * cu, 0.42 * s); color: ink; opacity: 85% * letter * (0.25 + 0.75 * o); move -10 * s + jt * sin(fr * 53 + 3), -8 * s; line 10 * s, -8 * s + jt * sin(fr * 61 + 7); line 10 * s + jt * sin(fr * 43 + 1), 8 * s; line -10 * s, 8 * s + jt * sin(fr * 41 + 2); line -10 * s, -8 * s }
+            path { at: ex, ey + (2 - 12 * o) * s; stroke: max(1.1 * cu, 0.36 * s); color: ink; opacity: 50% * letter * o; move -6 * s, -3.5 * s; line 6 * s, -3.5 * s }
+            path { at: ex, ey + (2 - 12 * o) * s; stroke: max(1.1 * cu, 0.36 * s); color: ink; opacity: 50% * letter * o; move -6 * s, 0.5 * s; line 3.5 * s, 0.5 * s }
+            //  The body: a wash, then the outline and the V twice.
+            path { at: ex, ey; color: mint; opacity: 22%; move -13 * s, -9 * s; line 13 * s, -9 * s; line 13 * s, 9 * s; line -13 * s, 9 * s; close }
+            repeat bp in 0..2 {
+                let bo = bp * 0.9 * s * 0.5
+                let bj = jt * sin(fr * 53 + bp * 137 + 11)
+                let bk = jt * sin(fr * 61 + bp * 71 + 51)
+                path { at: ex + bo, ey + bo * 0.5; stroke: if(bp == 0, 1, 0.7) * max(1.4 * cu, 0.62 * s); color: ink; opacity: if(bp == 0, 92%, 34%)
+                       move -13 * s + bj, -9 * s + bk
+                       line 13 * s + bk, -9 * s + bj
+                       line 13 * s + bj, 9 * s + bk
+                       line -13 * s + bk, 9 * s + bj
+                       line -13 * s + bj, -9 * s + bk }
+                path { at: ex + bo, ey + bo * 0.5; stroke: if(bp == 0, 1, 0.7) * max(1.3 * cu, 0.5 * s); color: ink; opacity: if(bp == 0, 80%, 30%)
+                       move -13 * s + bk, -9 * s + bj
+                       line bj, 3 * s + bk
+                       line 13 * s + bj, -9 * s + bk }
+            }
+            //  The shading: two short strokes in the accent at the foot.
+            repeat bc in 0..2 {
+                line { from: ex - 9 * s + bc * 2.2 * s, ey + 6 * s + jt * sin(fr * 47 + bc * 60); to: ex - 6 * s + bc * 2.2 * s, ey + 3 * s + jt * sin(fr * 53 + bc * 70); width: max(1 * cu, 0.34 * s); color: mint; opacity: 60% }
+            }
+        }
+    }
+
+    component PCup(cx: number, cy: number, hot: number, o: number) {
+        PCupK(cx, cy, hot, o, 0.8 * cu, 0.8 * cu)
     }
 
     //  The camera, in the bell's manner: the body twice in pencil with its viewfinder bump, a lens of two rings with the accent at its heart, a flash and a wash.
@@ -4043,7 +4084,10 @@ scene Vitreus {
         group {
             pivot: 9 * bu, 9 * bu
             scale: 1 + 0.14 * touch.hover
-            image t.icon { at: 0, 0; size: floor(18 * bu + 0.5), floor(18 * bu + 0.5); opacity: (82% + 18% * touch.hover) * bs.ax }
+            //  Pencil: the icon twice, a hair off, jumping about eight times a second under the pointer (the clock only runs then: `need_clock`), the second fainter.
+            let apf = floor(time * 8)
+            image t.icon { at: 0.6 * bu * sin(apf * 61 + t.index * 50) * touch.hover, 0.6 * bu * sin(apf * 67 + t.index * 30) * touch.hover; size: floor(18 * bu + 0.5), floor(18 * bu + 0.5); opacity: (82% + 18% * touch.hover) * bs.ax }
+            image t.icon { at: 0.9 * bu + 0.6 * bu * sin(apf * 47 + t.index * 70) * touch.hover, -0.6 * bu + 0.6 * bu * sin(apf * 43 + t.index * 110) * touch.hover; size: floor(18 * bu + 0.5), floor(18 * bu + 0.5); opacity: (10% + 22% * touch.hover) * bs.ax }
         }
         zone box touch { at: 9 * bu, 9 * bu; size: 24 * bu, 30 * bu; cursor: pointer; active: bs.ax > 0.5; label: t.name }
         on press touch { ax_scr = screen.index; ax_sw = screen.width; ax_sh = screen.height; emit adk_go(t.index) }
@@ -4075,11 +4119,14 @@ scene Vitreus {
         group {
             pivot: 12 * bu, 12 * bu
             scale: 1 + 0.16 * touch.hover * (1 - adk_drag)
-            image t.icon { at: 0, 0; size: floor(24 * bu + 0.5), floor(24 * bu + 0.5); opacity: 88% + 12% * touch.hover }
+            //  Pencil: the icon twice, a hair off, jumping about eight times a second under the pointer (the clock only runs then: `need_clock`), the second fainter.
+            let apf = floor(time * 8)
+            image t.icon { at: 0.7 * bu * sin(apf * 61 + t.index * 50) * touch.hover, 0.7 * bu * sin(apf * 67 + t.index * 30) * touch.hover; size: floor(24 * bu + 0.5), floor(24 * bu + 0.5); opacity: 88% + 12% * touch.hover }
+            image t.icon { at: 1.1 * bu + 0.7 * bu * sin(apf * 47 + t.index * 70) * touch.hover, -0.8 * bu + 0.7 * bu * sin(apf * 43 + t.index * 110) * touch.hover; size: floor(24 * bu + 0.5), floor(24 * bu + 0.5); opacity: 12% + 24% * touch.hover }
         }
         zone box touch { at: 12 * bu, 12 * bu; size: 31 * bu, 33 * bu; cursor: pointer; active: adk.g > 0.6 }
-        on enter touch { adk_hot = 1 }
-        on leave touch { adk_hot = 0 }
+        on enter touch { adk_hot = adk_hot + 1 }
+        on leave touch { adk_hot = max(0, adk_hot - 1) }
         on press touch { adk_down = 1; adk_drag = 0; adk_hx = pointer.x - adk.rcx; adk_hy = pointer.y - adk.rcy }
         on drag touch while adk_down > 0.5 { adk_px = clamp(pointer.x - adk_hx, 0, screen.width); adk_py = clamp(pointer.y - adk_hy, 0, screen.height); adk_drag = if(adk_drag > 0.5 or abs(drag.dx) + abs(drag.dy) > 8, 1, 0) }
         on release touch while adk_down > 0.5 and adk_drag < 0.5 { ax_scr = screen.index; ax_sw = screen.width; ax_sh = screen.height; emit adk_go(t.index) }
@@ -4929,12 +4976,12 @@ scene Vitreus {
     let dk.teh = dk.tR * dk.lf
     let dk.tey = bar.y + dk.teh / 2
     let dk.tew = (312 * cu + (13 * cu + 14 * u * if(lp_k == 3, 1, 0)) * tm) * dk.lf
-    let dk.tex = pcx + 7 * u * if(lp_k == 3, 1, 0) * dk.lf * tm
+    let dk.tex = mix(if(bar_frame, ctl.x, pcx), pcx, dk.lf) + 7 * u * if(lp_k == 3, 1, 0) * dk.lf * tm     // along a frame's top or bottom it comes out of its own button and slides to its place as it grows (as an add-on's drawer does out of its pill); the Island's drops straight, from the middle
     let dk.er = if(lp_k == 3, 14 * u * lm * clamp((dk.gx + dk.gw / 2 - (screen.width - th.r - 14 * u)) / (14 * u), 0, 1), 0) * dk.lf
     let dk.ew = mix(mix(dk.w, dk.gw + dk.er, lm), dk.tew, tu)
     let dk.eh = mix(mix(dk.hh, dk.gh + if(lp_k == 3, lp.ext * dk.lf, 0), lm), dk.teh, tu)
     let dk.ex = mix(mix(pcx, dk.gx + dk.er / 2, lm), dk.tex, tu)
-    let dk.ey = mix(mix(bar.y + dk.hh / 2, lp.cy + if(lp_k == 3, lp.ext * dk.lf, 0) / 2, lm), dk.tey, tu)
+    let dk.ey = mix(mix(bar.y + dk.hh / 2, mix(if(lp_k == 3, lv.ctl, lp.cy), lp.cy, dk.lf) + if(lp_k == 3, lp.ext * dk.lf, 0) / 2, lm), dk.tey, tu)     // down a side strip it starts level with its own button and slides to its place as it grows
     let dc.gl = mix(min(dtrav, dc0), dc0, att)
     let dc.lf = min(1, dc.gl * 1.6) + max(0, dc.gl - 1) * 0.6
     let dc.rt = mix(2 * (225 + 6.5) * cu, (lf.w - lf.x) + 463 * cu, att)
@@ -6357,7 +6404,7 @@ scene Vitreus {
         move: rt * (screen.width - 2 * lf.x), bt * (yo + vb - 2 * bar.y)
     include "pages/bar_icons.plm"
     //  The clock runs while something needs it. It is here, after the bar's zones, because it reads their hover: the bar's icons only boil under the pointer.
-    let need_clock = (cy_on > 0.01) or bar_hit.hover > 0.01 or wsh.1.$screen > 0.01 or wsh.2.$screen > 0.01 or wsh.3.$screen > 0.01 or wsh.4.$screen > 0.01 or wsh.5.$screen > 0.01 or wsh.6.$screen > 0.01 or wsh.7.$screen > 0.01 or wsh.8.$screen > 0.01 or wsh.9.$screen > 0.01 or wsh.10.$screen > 0.01 or ws.sp > 0.01 or set_hit.hover > 0.01 or sr_hit.hover > 0.01 or ctl_hit.hover > 0.01 or ov_btn.hover > 0.01 or bp.prev.hover > 0.01 or bp.play.hover > 0.01 or bp.next.hover > 0.01 or vm_prev.hover > 0.01 or vm_play.hover > 0.01 or vm_next.hover > 0.01 or ds > 0.01 or dl > 0.01 or dk > 0.01 or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or osd_kind == note or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or time - pw_b0 < 1.5 or time - pw_b1 < 1.5 or time - pw_b2 < 1.5 or time - pw_b3 < 1.5 or time - pw_b4 < 1.5 or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
+    let need_clock = (cy_on > 0.01) or bar_hit.hover > 0.01 or adk_hot > 0.5 or wsh.1.$screen > 0.01 or wsh.2.$screen > 0.01 or wsh.3.$screen > 0.01 or wsh.4.$screen > 0.01 or wsh.5.$screen > 0.01 or wsh.6.$screen > 0.01 or wsh.7.$screen > 0.01 or wsh.8.$screen > 0.01 or wsh.9.$screen > 0.01 or wsh.10.$screen > 0.01 or ws.sp > 0.01 or set_hit.hover > 0.01 or sr_hit.hover > 0.01 or ctl_hit.hover > 0.01 or ov_btn.hover > 0.01 or bp.prev.hover > 0.01 or bp.play.hover > 0.01 or bp.next.hover > 0.01 or vm_prev.hover > 0.01 or vm_play.hover > 0.01 or vm_next.hover > 0.01 or ds > 0.01 or dl > 0.01 or dk > 0.01 or ((wifi_scanning or bt_scanning or bt_working or caf_on or pw_d0 or pw_d1 or pw_d2 or pw_d3 or pw_d4) and dk > 0.01) or (do > 0.01 and (osd_kind == vol or osd_kind == note or nt_urgent)) or (set_pgd > 0.01 and disp.h > set.h) or time - pw_b0 < 1.5 or time - pw_b1 < 1.5 or time - pw_b2 < 1.5 or time - pw_b3 < 1.5 or time - pw_b4 < 1.5 or rec_on or dsh_rise > 0.01 or (mf.vis > 0.01 and media.playing)
     spin time by if(need_clock, 1, 0)
 
 

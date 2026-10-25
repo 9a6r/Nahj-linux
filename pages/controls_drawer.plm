@@ -553,7 +553,7 @@ part ControlsDrawer {
             text "NOTIFICATIONS" { at: floor(pcx - 102 * cu + 0.5), floor(nx_cy + 0.5); anchor: left center; size: 17; weight: 700; color: ink; family: "Space Grotesk" }
             //  An envelope beside the title: sealed when there is nothing (or while Do Not Disturb is on), open with a letter coming up out of it
             //  and the count when there is history, and it hops when something comes in.
-            Envelope(pcx + 0 * cu, nx_cy + 5.5 * cu * env_o - 3 * cu * env_pop, (0.8 + 0.12 * env_pop) * cu, env_o, 1, 55% + 45% * clamp(env_o + env_pop, 0, 1))
+            PEnvelope(pcx + 0 * cu, nx_cy + 5.5 * cu * env_o - 3 * cu * env_pop, (0.8 + 0.12 * env_pop) * cu, env_o, 1, 55% + 45% * clamp(env_o + env_pop, 0, 1))
             ellipse { at: pcx + 13.5 * cu, nx_cy - 4 * cu; radius: 6.5 * cu; color: mint; opacity: if(nt_hist.count > 0 and not dnd_on, 100%, 0%) }
             text number(min(99, nt_hist.count), 0, "") { at: floor(pcx + 13.5 * cu + 0.5), floor(nx_cy - 4 * cu + 0.5); anchor: center; align: center; size: 9.5; weight: 700; width: 14 * cu; lines: 1; color: onmint; family: "Space Grotesk"; show: nt_hist.count > 0 and not dnd_on }
             //  Where it stands, beside the title: how long is left, or that it is on until turned off.
@@ -627,7 +627,7 @@ part ControlsDrawer {
                 ellipse { at: pcx, en_y; radius: (34 * cu) * 1.3; color: mint; opacity: (10% + 5% * (0.5 + 0.5 * sin(time * 100)) + en_on * 14%) * 0.28 }
                 ellipse { at: pcx, en_y; radius: (34 * cu) * 0.95; color: mint; opacity: (10% + 5% * (0.5 + 0.5 * sin(time * 100)) + en_on * 14%) * 0.34 }
                 ellipse { at: pcx, en_y; radius: (34 * cu) * 0.62; color: mint; opacity: (10% + 5% * (0.5 + 0.5 * sin(time * 100)) + en_on * 14%) * 0.4 }
-                Envelope(pcx, en_y, 2.4 * cu, 1 - en_on, 0, 100%)
+                PEnvelope(pcx, en_y, 2.4 * cu, 1 - en_on, 0, 100%)
                 let ne0 = fract(time * 0.38)
                 let ne1 = fract(time * 0.38 + 0.33)
                 let ne2 = fract(time * 0.38 + 0.66)
@@ -667,17 +667,14 @@ part ControlsDrawer {
                 let cf_s = if(caf_len > 0, max(0.004, caf_fr), 1)
                 arc { at: cf_x, cf_y; radius: cf_r; span: cf_s * 360deg; width: 11 * cu; rotate: cf_s * 180deg; color: mint; opacity: 0.22 * caf_pill * if(caf_len > 0, 100%, 55% + 35% * cf_p) }
                 arc { at: cf_x, cf_y; radius: cf_r; span: cf_s * 360deg; width: 5 * cu; rotate: cf_s * 180deg; color: mint; opacity: caf_pill * if(caf_len > 0, 100%, 55% + 35% * cf_p) }
+                //  The cup, in pencil: the tile's mug (PCup) drawn bigger, and always boiling (the page is open, so the clock runs).
                 group {
                     opacity: 55% + 45% * caf_pill
-                    move: 0, -5 * cu
-                    ellipse { at: cf_x + 13.5 * cu, cf_y + 7 * cu; radius: 6.5 * cu; stroke: 3 * cu; color: ink }
-                    box { at: cf_x, cf_y + 22.5 * cu; size: 40 * cu, 3.5 * cu; corner: 1.75 * cu; color: ink; opacity: 70% }
-                    box { at: cf_x - 2 * cu, cf_y + 8 * cu; size: 28 * cu, 24 * cu; corner: 9 * cu; color: ink }
-                    box { at: cf_x - 2 * cu, cf_y - 2.5 * cu; size: 22 * cu, 3 * cu; corner: 1.5 * cu; color: mix(deep, mint, 0.55 * caf_pill) }
+                    PCupK(cf_x - 1.2 * cu, cf_y - 5 * cu, 1, 1, 2.1 * cu, 0.95 * cu)
                 }
                 group {
                     particles steam {
-                        at: cf_x - 2 * cu, cf_y - 13 * cu; count: 24
+                        at: cf_x - 1.5 * cu, cf_y - 25 * cu; count: 24
                         life: 1.8s .. 3.2s; speed: 9 .. 20
                         direction: -90deg; spread: 16deg; gravity: 0, -4
                         size: 5, 15; colors: ink; opacity: 70%, 0%

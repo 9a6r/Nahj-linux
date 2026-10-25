@@ -9,6 +9,9 @@ import "addon-palette.plm"
 //    - the room the bar takes round the screen, `room_t/r/b/l` (keep clear of it), and the theme's shape, `look` (0 Glass, 1 Retro, 2 UwU, 3 Cyber, 4 Milk);
 //    - the forecast the shell already has, `wx_*` (the days: `wx_d0_label`, `wx_d0_hi`, `wx_d0_lo`, `wx_d0_kind` .. `wx_d6_*`).
 //  A scene says what else it needs in `permissions` (every program it runs, every service it reads); this one needs nothing.
+//
+//  Style: the boiled pencil is preferred for an add-on's icons and graphics (hand-drawn lines, each drawn twice, the second fainter and a hair off, an accent wash inside, strokes
+//  redrawn about eight times a second with `floor(time * 8)`: see PCup, PBell and PEnvelope in vitreus.plm). SVGs or images of your own are allowed in its place.
 
 scene MyAddon {
     surface { size: 260, 90; anchor: top_right; margin: 32; level: bottom }

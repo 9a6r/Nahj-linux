@@ -18,6 +18,10 @@ version     = "0.1"
 # put it here: two add-ons whose scene files have the same name cannot both run.
 scene = "addon.plm"
 
+# Style: Vitreus prefers the boiled pencil for an add-on's icon and graphics: hand-drawn, slightly crooked lines, each drawn twice (the second pass fainter and a hair off) with a wash
+# of the accent colour inside, and, in the scene, strokes redrawn about eight times a second (`floor(time * 8)`; see PCup, PBell and PEnvelope in vitreus.plm, and the pencil
+# components of the Home Assistant add-on). The shell wobbles the pill icon itself under the pointer. An add-on may instead use its own SVG or PNG icons and artwork: that is allowed.
+#
 # The icon on the add-on pill, the pill of icons in the corner the app dock is not in (an .svg or .png in this folder, about 24 px: a single colour that suits dark and light
 # themes, like #f5f7f5 on white, is the safest, since the shell does not recolour it). A click on it opens the panel below. A panel needs it: without one the add-on is left out.
 icon = "icon.svg"
