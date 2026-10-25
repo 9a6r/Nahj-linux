@@ -19,8 +19,21 @@ local function say_shell(cmds)
     for _, c in ipairs(cmds) do args[#args + 1] = c end
     run("pleamar", args, function() end)
 end
+-- Which copy of this scene is on the panel's monitor: the one whose `screen.K.name` is the name the shell sent (`slot_mon`). None matching (the name not known
+-- yet): the scene falls back to the monitor's size.
+local function find_monitor()
+    local name = text.slot_mon or ""
+    local any = false
+    for k = 0, 3 do
+        local here = name ~= "" and text["screen." .. k .. ".name"] == name
+        if fact["mon_c" .. k] ~= here then fact["mon_c" .. k] = here end
+        any = any or here
+    end
+    if fact.mon_known ~= any then fact.mon_known = any end
+end
 local was_open = false
 on("fact:slot_open", function(v)       -- (the shell says it again every two seconds while the panel is out: only its coming out counts)
+    find_monitor()
     local now = v == true
     if now == was_open then return end
     was_open = now

@@ -3,7 +3,7 @@
 
 An add-on is a folder in ~/.config/pleamar/vitreus-addons/<id>/ (the model is <shell>/addons/_template/) with an addon.toml and the scene it names.
 It lives outside the shell's own folder, so updating Vitreus never touches it. The add-ons that ship with the shell (<shell>/addons/, except the "_" templates) are listed too; one of the same name in the user's folder wins. A folder that starts with "_" is skipped. A broken add-on is left out
-and named in "errors", so one bad add-on never costs the others. Prints nothing; exit 1 only when it cannot write the result."""
+and named in "errors", so one bad add-on never costs the others. Each add-on's data folder (~/.local/share/pleamar/<scene>/) is made private (0700), since an add-on may keep a token there. Prints nothing; exit 1 only when it cannot write the result."""
 import json, os, re, sys, tomllib
 
 data = sys.argv[1]
@@ -79,3 +79,13 @@ try:
     os.replace(tmp, os.path.join(data, "addons.json"))
 except OSError:
     sys.exit(1)
+
+# An add-on's data folder holds what it keeps, perhaps a token: only its owner gets in (until pleamar makes the folders private itself).
+base = os.path.join(os.environ.get("XDG_DATA_HOME") or os.path.join(os.path.expanduser("~"), ".local", "share"), "pleamar")
+for a in found:
+    folder = os.path.join(base, a["sock"])
+    try:
+        os.makedirs(folder, mode=0o700, exist_ok=True)
+        os.chmod(folder, 0o700)
+    except OSError:
+        pass
