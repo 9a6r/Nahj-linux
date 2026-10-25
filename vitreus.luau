@@ -907,18 +907,10 @@ local function caf_refresh()
 end
 
 local function caf_poll(after_poll)
-    run("pgrep", { "-x", "hypridle" }, function(_, code)
-        caf_on = code ~= 0
-        -- Under pleamar-wm it is the compositor's own idle timer that darkens the screens, and hypridle has no say in it:
-        -- Caffeine on holds an idle inhibitor (vitreus-inhibit) too, which the compositor honours like a video playing.
-        if caf_on then
-            run("pgrep", { "-x", "vitreus-inhibit" }, function(_, found)
-                if found ~= 0 then run("setsid", { "-f", "vitreus-inhibit" }, function() end) end
-            end)
-        else
-            run("pkill", { "-x", "vitreus-inhibit" }, function() end)
-        end
-        -- hypridle is back on its own (or was never stopped): whatever timer was running has no meaning
+    -- Awake is the idle inhibitor (vitreus-inhibit) running: it is what keeps pleamar-wm's screens on, and what the tile shows.
+    run("pgrep", { "-x", "vitreus-inhibit" }, function(_, code)
+        caf_on = code == 0
+        -- the helper is gone on its own (or was never started): whatever timer was running has no meaning
         if not caf_on and caf_until > 0 and not caf_busy then
             caf_until, caf_len = 0, 0
             caf_save()
@@ -928,22 +920,29 @@ local function caf_poll(after_poll)
     end)
 end
 
--- Keep the machine awake (stop hypridle), or let it sleep again (start it), then read what happened.
+-- Keep the machine awake (the inhibitor runs, and hypridle, where there is one, is stopped), or let it sleep again (the
+-- inhibitor ends and hypridle is started), then read what happened.
 local function caf_set(awake)
     caf_busy = true
     local done = function() caf_poll(function() caf_busy = false end) end
     if awake then
         run("pkill", { "-x", "hypridle" }, function()
-            run("systemctl", { "--user", "stop", "hypridle.service" }, done)
+            run("systemctl", { "--user", "stop", "hypridle.service" }, function()
+                -- the helper is looked for first: a second press must not start a second one
+                run("pgrep", { "-x", "vitreus-inhibit" }, function(_, found)
+                    if found ~= 0 then run("setsid", { "-f", "vitreus-inhibit" }, function() after(400, done) end) else done() end
+                end)
+            end)
         end)
     else
-        -- systemctl returns before the daemon is there to be found: looked for at once, it was not, and Awake stayed lit until a
-        -- second press. A moment's wait first.
-        run("systemctl", { "--user", "start", "hypridle.service" }, function() after(400, done) end)
+        run("pkill", { "-x", "vitreus-inhibit" }, function()
+            -- systemctl returns before the daemon is there to be found: a moment's wait before reading.
+            run("systemctl", { "--user", "start", "hypridle.service" }, function() after(400, done) end)
+        end)
     end
 end
 
-run("which", { "hypridle" }, function(_, code)
+run("which", { "vitreus-inhibit" }, function(_, code)
     caf_avail = code == 0
     fact.caf_avail = caf_avail
     if code == 0 then
@@ -963,7 +962,7 @@ run("which", { "hypridle" }, function(_, code)
                 end
             end
         end)
-        -- Whether hypridle is running: every five seconds while the Controls panel (where the Caffeine tile is) is open, every thirty otherwise.
+        -- Whether the inhibitor is running: every five seconds while the Controls panel (where the Caffeine tile is) is open, every thirty otherwise.
         caf_ticks = 0
         every(5000, function()
             caf_ticks = caf_ticks + 1

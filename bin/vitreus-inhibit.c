@@ -4,6 +4,8 @@
 #include <wayland-client.h>
 #include <string.h>
 #include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include "idle-inhibit.h"
 static struct wl_compositor *comp; static struct zwp_idle_inhibit_manager_v1 *mgr;
 static void reg(void *d, struct wl_registry *r, uint32_t n, const char *i, uint32_t v) {
@@ -13,6 +15,9 @@ static void reg(void *d, struct wl_registry *r, uint32_t n, const char *i, uint3
 static void rem(void *d, struct wl_registry *r, uint32_t n) {}
 static const struct wl_registry_listener rl = { reg, rem };
 int main(void) {
+    // Not holding on to whoever started it: the shell waits for its output to close before it hears the command is done.
+    int null = open("/dev/null", O_RDWR);
+    if (null >= 0) { dup2(null, 0); dup2(null, 1); dup2(null, 2); }
     struct wl_display *d = wl_display_connect(NULL);
     if (!d) { fprintf(stderr, "no display\n"); return 1; }
     struct wl_registry *r = wl_display_get_registry(d);
