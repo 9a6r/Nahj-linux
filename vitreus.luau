@@ -909,6 +909,15 @@ end
 local function caf_poll(after_poll)
     run("pgrep", { "-x", "hypridle" }, function(_, code)
         caf_on = code ~= 0
+        -- Under pleamar-wm it is the compositor's own idle timer that darkens the screens, and hypridle has no say in it:
+        -- Caffeine on holds an idle inhibitor (vitreus-inhibit) too, which the compositor honours like a video playing.
+        if caf_on then
+            run("pgrep", { "-x", "vitreus-inhibit" }, function(_, found)
+                if found ~= 0 then run("setsid", { "-f", "vitreus-inhibit" }, function() end) end
+            end)
+        else
+            run("pkill", { "-x", "vitreus-inhibit" }, function() end)
+        end
         -- hypridle is back on its own (or was never stopped): whatever timer was running has no meaning
         if not caf_on and caf_until > 0 and not caf_busy then
             caf_until, caf_len = 0, 0
