@@ -27,7 +27,7 @@
 #                                      into ~/.local/share/fonts, no sudo)
 #   4. the shell                      (into ~/.config/pleamar/shells/vitreus: cloned, or updated)
 #   5. your palette, autostart entry  (made once and never written over)
-#   5b. the helpers                  (bin/vitreus-clipimg, vitreus-polkit-agent, vitreus-sysmon, vitreus-term, vitreus-files and vitreus-report, linked into ~/.local/bin)
+#   5b. the helpers                  (bin/vitreus-clipimg, vitreus-polkit-agent, vitreus-sysmon, vitreus-term, vitreus-files and vitreus-report, linked into ~/.local/bin; vitreus-inhibit, built there)
 #   6. its Hyprland key binds         (hypr_vitreus.lua linked into ~/.config/hypr, and loaded from hyprland.lua)
 #   6b. the daemons                   (awww, hypridle and the clipboard history: lines in ~/.config/pleamar/autostart, run on any compositor)
 #   6c. niri                        (config.kdl includes vitreus.kdl, the room round the windows the shell writes, and niri_vitreus.kdl, its key binds; with niri installed)
@@ -65,7 +65,7 @@ fonts_orbitron="$data/fonts/Orbitron"
 fonts_kurenaido="$data/fonts/ZenKurenaido"
 
 # Official-repo packages, then AUR ones: what each is for is in the README.
-pacman_pkgs="git curl jq python fontconfig socat glib2 file imagemagick cava playerctl networkmanager bluez bluez-utils brightnessctl hypridle hyprsunset libnotify xdg-user-dirs xdg-utils wl-clipboard cliphist awww ffmpeg grim slurp wf-recorder power-profiles-daemon polkit python-gobject python-pyte ttf-space-mono-nerd pipewire-audio sound-theme-freedesktop tesseract tesseract-data-eng"
+pacman_pkgs="gcc pkgconf wayland wayland-protocols git curl jq python fontconfig socat glib2 file imagemagick cava playerctl networkmanager bluez bluez-utils brightnessctl hypridle hyprsunset libnotify xdg-user-dirs xdg-utils wl-clipboard cliphist awww ffmpeg grim slurp wf-recorder power-profiles-daemon polkit python-gobject python-pyte ttf-space-mono-nerd pipewire-audio sound-theme-freedesktop tesseract tesseract-data-eng"
 aur_pkgs="iris-colors mpvpaper"
 
 assume_yes=false
@@ -239,6 +239,7 @@ if [ "$action" = uninstall ]; then
     if [ -L "$HOME/.local/bin/vitreus-addons" ]; then run rm -f "$HOME/.local/bin/vitreus-addons"; fi
     if [ -L "$HOME/.local/bin/vitreus-feedfetch" ]; then run rm -f "$HOME/.local/bin/vitreus-feedfetch"; fi
     if [ -L "$HOME/.local/bin/vitreus-report" ]; then run rm -f "$HOME/.local/bin/vitreus-report"; fi
+    if [ -f "$HOME/.local/bin/vitreus-inhibit" ]; then run rm -f "$HOME/.local/bin/vitreus-inhibit"; fi
     if [ -L "$conf/hypr/hypr_vitreus.lua" ]; then run rm -f "$conf/hypr/hypr_vitreus.lua"; fi
     run rm -f "$conf/hypr/vitreus_monitors.lua" "$conf/hypr/vitreus_hypr.lua" "$conf/hypr/vitreus_colors.lua"
     if [ -d "$dest" ] && ask_no "delete $dest?"; then run rm -rf "$dest"; fi
@@ -658,6 +659,25 @@ if [ -x "$dest/bin/vitreus-clipimg" ] || $dry; then
     [ -x "$dest/bin/vitreus-feedfetch" ] && run ln -sf "$dest/bin/vitreus-feedfetch" "$HOME/.local/bin/vitreus-feedfetch"       # the News & Weather add-on (addons/news-weather) reads its feeds through it
     # For a problem report that does not need the shell to be running: `vitreus-report` writes one text file to read and send.
     [ -x "$dest/bin/vitreus-report" ] && run ln -sf "$dest/bin/vitreus-report" "$HOME/.local/bin/vitreus-report"
+    # Caffeine's idle inhibitor (a few lines of C: the compositor's own idle timer, pleamar-wm's, only listens to a Wayland client). Built here.
+    if [ -f "$dest/bin/vitreus-inhibit.c" ]; then
+        if $dry; then
+            printf '    would build: vitreus-inhibit into %s\n' "$HOME/.local/bin"
+        elif command -v gcc > /dev/null 2>&1 && command -v wayland-scanner > /dev/null 2>&1 && pkg-config --exists wayland-client 2> /dev/null; then
+            inhibit_proto=/usr/share/wayland-protocols/unstable/idle-inhibit/idle-inhibit-unstable-v1.xml
+            inhibit_tmp=$(mktemp -d)
+            if wayland-scanner client-header "$inhibit_proto" "$inhibit_tmp/idle-inhibit.h" \
+                && wayland-scanner private-code "$inhibit_proto" "$inhibit_tmp/idle-inhibit.c" \
+                && gcc -O2 -I"$inhibit_tmp" -o "$HOME/.local/bin/vitreus-inhibit" "$dest/bin/vitreus-inhibit.c" "$inhibit_tmp/idle-inhibit.c" $(pkg-config --cflags --libs wayland-client); then
+                :
+            else
+                log "vitreus-inhibit did not build: Caffeine will not keep pleamar-wm's screens on"
+            fi
+            rm -rf "$inhibit_tmp"
+        else
+            log "vitreus-inhibit not built (needs gcc, wayland-scanner and the wayland headers): Caffeine will not keep pleamar-wm's screens on"
+        fi
+    fi
     case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) warn "$HOME/.local/bin is not in your PATH: the launcher's clipboard pictures need it" ;; esac
 # Hyprland does not read ~/.bashrc: if ~/.local/bin is only added there, its binds and exec-once lines never find
 # `pleamar`. hypr_vitreus.lua adds it to PATH itself; whatever you start from hyprland.lua has to do the same.
