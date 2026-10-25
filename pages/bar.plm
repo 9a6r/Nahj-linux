@@ -121,7 +121,7 @@ part Bar {
             box { from: mbx, mby + 52 * pu; size: 410 * pu, 36 * pu; corner: 12 * pu; color: ink; opacity: 3% }
             box { from: mbx, mby + 52 * pu; size: 410 * pu, 36 * pu; corner: 12 * pu; stroke: 1 * pu; color: mix(ink, mint, if(bdrop_tray, 1, 0)); opacity: if(bdrag >= 0 and bdrop_tray, 60%, 10%) }
             group { scale: rs; pivot: floor(mbx + 205 * pu + 0.5), floor(mby + 70 * pu + 0.5); text "Hidden: drag a piece here to take it off the bar" { at: floor(mbx + 205 * pu + 0.5), floor(mby + 70 * pu + 0.5); anchor: center; align: center; size: 15; width: (400 * pu) / rs; lines: 1; color: faint; opacity: if(btray_n < 1 and not bdrop_tray, 70%, 0%); family: "Space Grotesk" } }
-            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 296 * pu + 0.5); text "Drag a piece along the bar to move it. The window title stretches: what is left of it hugs the left end." { at: floor(spx + 14 * pu + 0.5), floor(sby + 296 * pu + 0.5); anchor: left center; size: 14.5; width: (410 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
+            group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + 296 * pu + 0.5); text "Drag to move. The window title stretches and holds the media buttons." { at: floor(spx + 14 * pu + 0.5), floor(sby + 296 * pu + 0.5); anchor: left center; size: 14; width: (410 * pu) / rs; lines: 1; color: faint; family: "Space Grotesk" } }
 
             //  The drag is followed by a zone that stays still, under the chips: a drag reaches every zone that was
             //  under the press, and one that moves itself (a chip following the pointer) loses it at the first jump.
@@ -131,7 +131,7 @@ part Bar {
             repeat i in 0..9 {
                 let zx = mbx + if(bdrag == i, bdx - bgx, bcx.$i) * pu
                 let zy = mby + if(bdrag == i, bdy - bgy, bcy.$i) * pu
-                zone box bchip.$i { from: zx, zy; size: bcw.$i * pu, 28 * pu; corner: 9 * pu; cursor: if(bchip.$i.pressed > 0.5, grabbing, grab); active: bar_fm < 0.5 }
+                zone box bchip.$i { from: zx, zy; size: bcw.$i * pu, 28 * pu; corner: 9 * pu; cursor: if(bchip.$i.pressed > 0.5, grabbing, grab); active: bar_fm < 0.5 and i != 2 }
                 on press bchip.$i { bgx = ((pointer.x - tx.pnl) - zx) / pu; bgy = ((pointer.y - ty.set) - zy) / pu; bdx = ((pointer.x - tx.pnl) - mbx) / pu; bdy = ((pointer.y - ty.set) - mby) / pu; bdrag = i; emit bar_lay_grab }
                 on release bchip.$i { emit bar_lay_drop }
             }
@@ -139,7 +139,7 @@ part Bar {
             repeat i in 0..9 {
                 let dragging = bdrag == i
               group {
-                show: (pass == 0 and not dragging) or (pass == 1 and dragging)
+                show: i != 2 and ((pass == 0 and not dragging) or (pass == 1 and dragging))
                 let chx = mbx + if(dragging, bdx - bgx, bcx.$i) * pu     // the chip's top-left and size
                 let chy = mby + if(dragging, bdy - bgy, bcy.$i) * pu
                 let chw = bcw.$i * pu

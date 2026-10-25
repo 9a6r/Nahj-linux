@@ -9,12 +9,13 @@ return function()
     for n, k in ipairs(KEYS) do INDEX[k] = n - 1 end
     local CHIP_W = { ws = 64, title = 110, media = 52, set = 34, sr = 34, ctl = 34, clock = 62, tray = 34, ax = 34 }
     local BAR_W, PAD, GAP = 410, 4, 4          -- the small bar, the room at its ends, and between chips
+    local TITLE_MIN = 40                       -- the least the title keeps in the small bar
     local ROW_BAR, ROW_TRAY = 4, 56            -- the chips' top in the bar and in the tray
     local L = { order = {}, hidden = {} }      -- every piece in order, hidden ones too (they keep their place)
     local drag = nil                           -- { key, to_tray, slot }
 
     local function defaults()
-        L.order = { "ws", "title", "media", "tray", "ax", "sr", "set", "ctl", "clock" }
+        L.order = { "ws", "title", "tray", "ax", "sr", "set", "ctl", "clock" }
         L.hidden = { ax = true }
     end
 
@@ -30,6 +31,9 @@ return function()
             fact["bo." .. k] = n - 1
             if k ~= "set" then fact["bv." .. k] = not L.hidden[k] end
         end
+        -- the player's buttons are not a piece: they sit inside the window title's chip, wherever that is
+        fact["bv.media"] = true
+        fact["bo.media"] = (fact["bo.title"] or 0) + 0.5
     end
 
     -- Where the chips go: the shown ones along the small bar (the title takes what is left), the hidden ones along the
@@ -45,15 +49,19 @@ return function()
             local gap = { gap = true, w = CHIP_W[drag.key] }
             if drag.to_tray then tray[#tray + 1] = gap else table.insert(bar, math.min(drag.slot + 1, #bar + 1), gap) end
         end
-        -- the title stretches over what the others leave
+        -- the title stretches over what the others leave; when even its least (TITLE_MIN) does not fit, the others
+        -- narrow together, so the row always ends inside the small bar
         local fixed, n = 0, #bar
         for _, k in ipairs(bar) do
             if k ~= "title" then fixed = fixed + (type(k) == "table" and k.w or CHIP_W[k]) end
         end
-        local title_w = math.max(60, BAR_W - 2 * PAD - fixed - GAP * math.max(0, n - 1))
+        local room = BAR_W - 2 * PAD - GAP * math.max(0, n - 1)
+        local shrink = math.min(1, (room - TITLE_MIN) / math.max(1, fixed))
+        local function wide(k) return math.floor((type(k) == "table" and k.w or CHIP_W[k]) * shrink) end
+        local title_w = math.max(TITLE_MIN, room - fixed * shrink)
         local x = PAD
         for _, k in ipairs(bar) do
-            local w = (type(k) == "table") and k.w or (k == "title" and title_w or CHIP_W[k])
+            local w = (k == "title") and title_w or wide(k)
             if type(k) == "string" then
                 local c = "bc." .. INDEX[k]
                 fact[c .. ".x"], fact[c .. ".y"], fact[c .. ".w"] = x, ROW_BAR, w
@@ -157,7 +165,7 @@ return function()
     if ok and type(saved) == "table" and type(saved.order) == "table" then
         local seen, order = {}, {}
         for _, k in ipairs(saved.order) do
-            if INDEX[k] ~= nil and not seen[k] then seen[k] = true; order[#order + 1] = k end
+            if INDEX[k] ~= nil and k ~= "media" and not seen[k] then seen[k] = true; order[#order + 1] = k end
         end
         -- a layout saved before the tray piece existed: it goes just before the search and the gear, where it is by default
         if not seen.tray then
@@ -174,7 +182,7 @@ return function()
             table.insert(order, at, "ax")
             seen.ax = true
         end
-        if #order == #KEYS then
+        if #order == #KEYS - 1 then          -- (every piece but the player's buttons, which have no chip)
             L.order = order
             L.hidden = {}           -- (what was saved, not the defaults' hidden add-ons piece)
             if type(saved.hidden) == "table" then

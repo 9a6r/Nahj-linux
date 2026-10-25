@@ -4326,7 +4326,9 @@ scene Vitreus {
     //  The add-on drawer: out of the add-on pill (the corner dock's twin, in the other corner), the glass drawn here and the content by the add-on's own scene, which is told
     //  where to draw (`ax_r*`, below). `ax_cur` is the add-on in the pill that holds it (logic/addons.luau).
     fact ax_cur = -1
-    fact ax_open = false                                   // the drawer is out: like the Desk it stays until its X (or its icon) shuts it, and no other panel closes it
+    fact ax_open = false                                   // the drawer is out: like the Desk it stays until its X (or its icon) shuts it, and no other panel closes it (on the Island, until it is pulled away from the bar it is one of the bar's panels: `ax_free`)
+    fact ax_chime = 0                                      // counts the drawer's openings, for the panel sound (vitreus.luau: the logic opens it, and a fact the logic sets is not heard)
+    on change ax_open while ax_open and bv.ax and not bar_frame { ax_chime = ax_chime + 1 }       // (only out of the Island: the pill's drawer, like the Desk, is silent)
     fact ax_scr = 0                                        // the monitor it is on
     fact ax_rsz = false                                    // a corner is held: the panel is being resized (the content waits, as while it is pulled)
     fact ax_rk = -1
@@ -4349,7 +4351,11 @@ scene Vitreus {
     prop ax_oy = 0 ~ax_sp
     follow ax_ox = ax_gx
     follow ax_oy = ax_gy
-    on change ax_open while not ax_open { ax_gx = 0; ax_gy = 0; ax_hold = false }
+    fact ax_free = false                                   // on the Island: it has been pulled (or resized) away from the bar, and from then on it stays like the Desk, until its X or its icon
+    on change ax_gx while ax_gx != 0 { ax_free = true }
+    on change ax_gy while ax_gy != 0 { ax_free = true }
+    on change ax_rsz while ax_rsz { ax_free = true }
+    on change ax_open while not ax_open { ax_gx = 0; ax_gy = 0; ax_hold = false; ax_free = false }
     fact ax_on = false                                     // an add-on that asked for a drawer is on
     fact ax_w = 0                                          // its size (0: about 40 % of the room wide, and all of its height; the manifest can say)
     fact ax_h = 0
@@ -4413,9 +4419,13 @@ scene Vitreus {
     //  Click away. The surface is the whole screen (its input region is only what has a zone, so the rest lets clicks through), and this
     //  zone, declared before everything else so that everything else wins over it, closes the panel on a press anywhere that is not
     //  the panel or the bar. A second surface for this would take Escape away from the panel, so it is done here.
-    zone box away_z { at: screen.width / 2, screen.height / 2; size: screen.width, screen.height; active: (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or dash_open }
-    on press away_z { panel = none; wp_picker_open = false; ov_open = false; dash_open = false }
-    on press right away_z { panel = none; wp_picker_open = false; ov_open = false; dash_open = false }
+    zone box away_z { at: screen.width / 2, screen.height / 2; size: screen.width, screen.height; active: (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or dash_open or (ax_open and axb > 0.5 and not ax_free) }
+    //  On the Island the add-on's drawer is one of the bar's panels until it is pulled away from the bar (`ax_free`): a press away shuts it, and so does another
+    //  panel opening, and it shuts the bar's panel when it opens, so that they never stack. Once pulled away it stays, like the Desk.
+    on press away_z { panel = none; wp_picker_open = false; ov_open = false; dash_open = false; ax_open = ax_open and (axb < 0.5 or ax_free) }
+    on press right away_z { panel = none; wp_picker_open = false; ov_open = false; dash_open = false; ax_open = ax_open and (axb < 0.5 or ax_free) }
+    on change panel while panel != none and panel != volume and panel != notif and axb > 0.5 and not ax_free { ax_open = false }
+    on change ax_open while ax_open and axb > 0.5 { panel = none }
     //  The marks are laid out along one line with the SAME empty space between every neighbouring pair, whatever their sizes: each one has a slot as long
     //  as itself (a dot, a larger square if it has windows, or the pill while it is the active one, and in between while it morphs), and the slots follow
     //  each other `ws.g` apart, the whole row centred on its place. `ws.cN` is where slot N's middle is, from the row's middle.

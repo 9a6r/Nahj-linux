@@ -8421,4 +8421,5 @@ do
     local quiet = { none = true, volume = true, notif = true }
     on("fact:panel", function(v) if not quiet[tostring(v)] then chime() end end)
     on("fact:desk_open", function(v) if v == true then chime() end end)   -- the Desk is not one of the panels: it has its own fact
+    on("fact:ax_chime", function() chime() end)   -- an add-on's drawer: the logic opens it, so the scene counts its openings
 end
