@@ -4180,7 +4180,7 @@ wp_load()
 -- lives in the Hyprland section below (it puts its setter in `glass.set_blur`).
 -- `clear` (0 clear glass .. 1 frosted, pleamar's `frost:`) and `auto` (frost only where what is behind is busy) are the glass that bends's own
 -- frost, and only show with `bend`. (There was once a "glass amount" slider, the scene's `glass:`: it overlapped Opacity and the Glass switch, and is always 100 % now.)
-local glass = { opacity = 1, rim = 1, refr = 1, disp = 1, dome = 0, milk = 0, bend = false, live = false, bend_mon = nil, obsidian = false, clear = 1, auto = false }
+local glass = { opacity = 1, rim = 1, refr = 1, disp = 1, dome = 0, milk = 0, bend = false, live = false, bend_mon = nil, obsidian = false, clear = 1, auto = false, cap_ms = 300 }
 local GLASS_OP_MIN = 0.3
 local glass_save_waiting = false
 
@@ -4207,6 +4207,7 @@ local function glass_refresh()
     fact.glass_bend = glass.bend or glass.live      -- the lens: either switch turns it on (Live bend does not need X-Bend)
     fact.glass_x = glass.bend
     fact.glass_live = glass.live
+    fact.lens_interval_ms = glass.cap_ms             -- pleamar reads this one: the least time between two captures for Live bend
     fact.glass_clear = glass.clear
     fact.glass_auto = glass.auto
     text.glass_clear_text = string.format("%d%%", math.floor(glass.clear * 100 + 0.5))
@@ -4216,6 +4217,7 @@ local function glass_refresh()
     text.glass_disp_text = string.format("%d%%", math.floor(glass.disp * 100 + 0.5))
     text.glass_dome_text = string.format("%d%%", math.floor(glass.dome * 100 + 0.5))
     text.glass_milk_text = string.format("%d%%", math.floor(glass.milk * 100 + 0.5))
+    text.glass_cap_text = string.format("%d ms", glass.cap_ms)
 end
 -- The desktop clock and system monitor are scenes of their own: they are told when the glass goes off or on (they ask for it themselves when they start).
 function glass.push_obs()
@@ -4232,7 +4234,7 @@ local function glass_save_soon()
     glass_save_waiting = true
     after(500, function()
         glass_save_waiting = false
-        pcall(sys.call, "files.write", "glass.json", { opacity = glass.opacity, rim = glass.rim, refr = glass.refr, disp = glass.disp, dome = glass.dome, milk = glass.milk, bend = glass.bend, live = glass.live, bend_mon = glass.bend_mon, obsidian = glass.obsidian, clear = glass.clear, auto = glass.auto })
+        pcall(sys.call, "files.write", "glass.json", { opacity = glass.opacity, rim = glass.rim, refr = glass.refr, disp = glass.disp, dome = glass.dome, milk = glass.milk, bend = glass.bend, live = glass.live, bend_mon = glass.bend_mon, obsidian = glass.obsidian, clear = glass.clear, auto = glass.auto, cap_ms = glass.cap_ms })
     end)
 end
 
@@ -4251,6 +4253,7 @@ do
         if type(saved.obsidian) == "boolean" then glass.obsidian = saved.obsidian end
         if type(saved.clear) == "number" then glass.clear = math.max(0, math.min(1, saved.clear)) end
         if type(saved.auto) == "boolean" then glass.auto = saved.auto end
+        if type(saved.cap_ms) == "number" then glass.cap_ms = math.max(50, math.min(1000, saved.cap_ms)) end
     end
     glass_refresh()
 end
@@ -4268,6 +4271,7 @@ on("glass_rim_set", function(t) glass.rim = glass.step(t, 2); glass_refresh(); g
 on("glass_refr_set", function(t) glass.refr = glass.step(t, 3); glass_refresh(); glass_save_soon() end)
 on("glass_disp_set", function(t) glass.disp = glass.step(t, 2.5); glass_refresh(); glass_save_soon() end)
 on("glass_dome_set", function(t) glass.dome = glass.step(t, 1.5); glass_refresh(); glass_save_soon() end)
+on("glass_cap_set", function(t) glass.cap_ms = 50 + math.floor(math.max(0, math.min(1, t)) * 19 + 0.5) * 50; glass_refresh(); glass_save_soon() end)
 on("glass_milk_set", function(t) glass.milk = glass.step(t, 1); glass_refresh(); glass_save_soon() end)
 on("glass_obs_toggle", function() glass.obsidian = not glass.obsidian; glass_refresh(); glass_save_soon() end)
 on("glass_bend_mon", function(i)

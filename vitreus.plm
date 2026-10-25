@@ -393,6 +393,7 @@ scene Vitreus {
     fact glass_milk = 0              // pleamar's `milk:` (a milky veil inside the glass), 0 to 100 %: a test knob
     fact glass_bend = false           // the lens is on: X-Bend or Live bend (either one; the switches' own states are `glass_x` and `glass_live`)
     fact glass_x = false              // the Glass page's "X-Bend" switch: the glass bends the wallpaper copy
+    fact lens_interval_ms = 300      // the least time between two captures of Live bend (pleamar reads this fact by name)
     fact glass_live = false           // the Glass page's "Live bend": the glass bends the live windows (a capture) instead of the wallpaper copy
     //  Which monitors bend (the Glass page's "Bend on"): `glass_b0` to `glass_b3` by copy number, all true while no monitor is picked (vitreus.luau). `glass_bm.i` lights the page's tile i.
     fact glass_b0 = true
@@ -449,12 +450,14 @@ scene Vitreus {
     text glass_disp_text = "100%"
     text glass_dome_text = "0%"
     text glass_milk_text = "0%"
+    text glass_cap_text = "300 ms"
     text hy_blur_text = "3"
     event glass_rim_set ->
     event glass_refr_set ->
     event glass_disp_set ->
     event glass_dome_set ->
     event glass_milk_set ->
+    event glass_cap_set ->
     event glass_bend_toggle ->
     event glass_live_toggle ->
     event glass_blur_set ->
@@ -1139,6 +1142,8 @@ scene Vitreus {
     prop mshow = 0 ~calm          // the bar's player controls: there while a player exists, paused or not
 
     follow drop = if(panel != none, 1, 0)
+    prop lens_hold = 0                 // pleamar reads this one by name: above one half, Live bend takes no captures (a panel is moving)
+    follow lens_hold = if(drop > 0.01 and drop < 0.99, 1, 0)
     follow dtrav = if(panel != none, 1, 0)
     follow hot  = if(panel != none, 1, 0)
     follow dc   = if(panel == calendar, 1, 0)
@@ -4799,7 +4804,7 @@ scene Vitreus {
     let wm.h = 946                     // the Pleamar-WM page: to the bottom of its last card
     let ad.h = 36 + max(1, addons.count) * 92 + 52                 // the Add-ons page: a card each (92 apart), and the line under them
     let ck.h = 1208                    // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
-    let gl.h = 862                     // the Glass page: to the bottom of its last card
+    let gl.h = 935                     // the Glass page: to the bottom of its last card
     let lk.h = 806                     // the Lock screen page: its cards, to the bottom of the last
     //  The Notifications page: the apps card has a row for each app (up to 14), and the rules card is there while one is open.
     let nt.ds = (14 - clamp(nta_count, 1, 14)) * 36
