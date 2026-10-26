@@ -5303,8 +5303,9 @@ scene Vitreus {
     let dax.br = dax.k * dax.nr * max(0, screen.width - dax.ex - dax.ew / 2 + 26 * cu)
     let dax.bt = dax.k * dax.nt * max(0, dax.ey - dax.eh / 2 - yo + 26 * cu)
     let dax.bb = dax.k * dax.nb * max(0, vb - dax.ey - dax.eh / 2 + 26 * cu)
-    let axs.hh = 66 * cu                                   // the shell's title bar across the top of the panel (title, grip, X): the content is below it
+    let axs.hh = 38 * cu                                   // the shell's title bar across the top of the panel (title, grip, X): the content is below it
     let axs.m = 14 * cu                                    // the margin all round the content: the rectangle an add-on is given is this much inside the glass on every side (below the title bar, and clear of the pill's strip)
+    let axs.mt = 0 * cu                                    // the margin above the content, under the title bar: none (the add-ons keep a little room of their own at their tops)
     let axs.rt = max(axs.hh, cdk.t * (1 - adk.sb) * (1 - axb) * (1 - lm))   // what the content leaves free: the title bar, or the pill's strip when the pill is at the top, whichever is taller (the strip is inside the title bar's height: added together they left a gap as tall as the pill's strip)
     let axs.rr = cdk.t * lm * (1 - axb)                    // down a side strip the pill stands upright against the frame's edge, in the panel's side: its strip is taken from the panel's width (on the side of the frame, mirrored with `rt`)
     let axs.rb = cdk.t * adk.sb * (1 - axb) * (1 - lm)     // ... and the pill's strip along the bottom (the pill is in the panel's corner, its icons showing)
@@ -5317,11 +5318,11 @@ scene Vitreus {
     //  Where the add-on's content goes, as it settles, on the screen (the glass is drawn unmirrored; the screen is not): kept for the logic, which tells the add-on.
     //  Worked out on the copy the panel is on only (`axo`): a rule runs on every copy, and with two monitors the last copy's own width won, so the content was
     //  told a place on the other monitor's terms (beside the panel, or off it).
-    on change ax_open while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx - axs.rr / 2, screen.width - (axs.fx + ax_gx - axs.rr / 2), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w - 2 * axs.m - axs.rr; ax_rh = axs.h - axs.rt - axs.rb - 2 * axs.m; ax_yoff = ax.yoff }
-    on change ax_cur while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx - axs.rr / 2, screen.width - (axs.fx + ax_gx - axs.rr / 2), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w - 2 * axs.m - axs.rr; ax_rh = axs.h - axs.rt - axs.rb - 2 * axs.m; ax_yoff = ax.yoff }
-    on change ax_hold while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx - axs.rr / 2, screen.width - (axs.fx + ax_gx - axs.rr / 2), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w - 2 * axs.m - axs.rr; ax_rh = axs.h - axs.rt - axs.rb - 2 * axs.m; ax_yoff = ax.yoff }
+    on change ax_open while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx - axs.rr / 2, screen.width - (axs.fx + ax_gx - axs.rr / 2), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + ((axs.rt + axs.mt) - (axs.rb + axs.m)) / 2; ax_rw = axs.w - 2 * axs.m - axs.rr; ax_rh = axs.h - axs.rt - axs.rb - axs.m - axs.mt; ax_yoff = ax.yoff }
+    on change ax_cur while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx - axs.rr / 2, screen.width - (axs.fx + ax_gx - axs.rr / 2), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + ((axs.rt + axs.mt) - (axs.rb + axs.m)) / 2; ax_rw = axs.w - 2 * axs.m - axs.rr; ax_rh = axs.h - axs.rt - axs.rb - axs.m - axs.mt; ax_yoff = ax.yoff }
+    on change ax_hold while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx - axs.rr / 2, screen.width - (axs.fx + ax_gx - axs.rr / 2), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + ((axs.rt + axs.mt) - (axs.rb + axs.m)) / 2; ax_rw = axs.w - 2 * axs.m - axs.rr; ax_rh = axs.h - axs.rt - axs.rb - axs.m - axs.mt; ax_yoff = ax.yoff }
     on change ax.yoff while axo > 0.5 { ax_yoff = ax.yoff }
-    on change ax_rsz while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx - axs.rr / 2, screen.width - (axs.fx + ax_gx - axs.rr / 2), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w - 2 * axs.m - axs.rr; ax_rh = axs.h - axs.rt - axs.rb - 2 * axs.m; ax_yoff = ax.yoff }
+    on change ax_rsz while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx - axs.rr / 2, screen.width - (axs.fx + ax_gx - axs.rr / 2), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + ((axs.rt + axs.mt) - (axs.rb + axs.m)) / 2; ax_rw = axs.w - 2 * axs.m - axs.rr; ax_rh = axs.h - axs.rt - axs.rb - axs.m - axs.mt; ax_yoff = ax.yoff }
     //  The right notch opens the desk: a panel out of the right frame with a few small tools, in tabs. It is not one of the values of `panel`, so it
     //  stays open while the calendar, the controls, the volume or a notification come and go. It is drawn like the volume's and the title panel's
     //  drawers (`dz.*`: the same springs and shape) but with its own geometry, which does not depend on whichever of those is out.
