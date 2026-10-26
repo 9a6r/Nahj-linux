@@ -795,6 +795,17 @@ scene Vitreus {
     event addon_toggle ->
     repeat i in 0..12 { prop ad_pill.$i = 0 ~pop }          // each add-on's switch
     repeat i in 0..12 { follow ad_pill.$i = if(addons.$i.on, 1, 0) }
+    //  The cards are dragged to change the order of the add-on pill (logic/addons.luau; the same way as the Island layout's chips): the logic works out the slot each card stands in.
+    fact adr_drag = -1               // the card being dragged, -1 none
+    fact adr_py = 0                  // the pointer, in the list's units (from the page's top)
+    fact adr_gy = 0                  // where in the card it was taken
+    fact adr_ok = false              // the logic has said where each card goes (until then they stand in the order they were found)
+    repeat i in 0..12 { fact adr.$i = 0 }      // the slot (0, 1, ...) card i stands in
+    repeat i in 0..12 { prop adry.$i = 0 ~quick }
+    repeat i in 0..12 { follow adry.$i = if(adr_ok, adr.$i, i) }
+    event adr_grab ->
+    event adr_move ->
+    event adr_drop ->
     fact iris_int = 1                // how strongly the wallpaper's accent is pushed: 0 subtle, 1 medium, 2 bold
     event theme_pick ->
     fact snd_on = true               // Settings > Theme: the little sound when a panel opens

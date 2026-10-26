@@ -23,6 +23,22 @@ return function()
     -- panel out of the pill if it asked for one (`[drawer]`: the shell draws the glass, the add-on its content, told where by `slot_x`, `slot_y` the middle, `slot_w`,
     -- `slot_h` and whether it is out by `slot_open`), or, for an add-on that is only a window, flips its `slot_open`. One drawer is out at a time (`ax_cur`, the pill's place).
     local pins = {}
+    local order = {}            -- the ids of the add-ons in the order the cards are in, which is the order of the add-on pill (dragging a card changes it; kept in addons-state.json)
+    local function norm_order()   -- every add-on found once: the ones saved in their places, the new ones after them
+        local have, seen, out = {}, {}, {}
+        for _, a in ipairs(list) do have[a.id] = true end
+        for _, id in ipairs(order) do if have[id] and not seen[id] then seen[id] = true; out[#out + 1] = id end end
+        for _, a in ipairs(list) do if not seen[a.id] then seen[a.id] = true; out[#out + 1] = a.id end end
+        order = out
+    end
+    local function ordered()      -- the add-ons, in that order
+        norm_order()
+        local by = {}
+        for _, a in ipairs(list) do by[a.id] = a end
+        local out = {}
+        for _, id in ipairs(order) do out[#out + 1] = by[id] end
+        return out
+    end
     local sizes = {}            -- the size each add-on's panel was left at (by id): used when it opens again
     local winopen = {}
     local function say_one(sock, cmds)
@@ -49,9 +65,10 @@ return function()
     end
     local pill_out = 0            -- whether the add-on pill was out at the last `show_slot`, for the room the windows keep clear of it (`dock_fx`, vitreus.luau)
     local function show_slot()
+        local was = (tonumber(fact.ax_cur) or -1) >= 0 and pins[(tonumber(fact.ax_cur) or -1) + 1] or nil       -- (the open panel stays on its add-on when the pill's order changes)
         pins = {}
         local rows, any = {}, false
-        for _, a in ipairs(list) do
+        for _, a in ipairs(ordered()) do
             if enabled[a.id] and a.icon and #rows < 12 then
                 pins[#pins + 1] = a
                 rows[#rows + 1] = { icon = a.icon, name = a.name }
@@ -59,6 +76,7 @@ return function()
             end
         end
         model.adk_pins = rows
+        if was then for i, a in ipairs(pins) do if a.id == was.id then fact.ax_cur = i - 1 break end end end
         fact.ax_on = any
         local out = (fact["bv.ax"] == true and fact.bar_frame ~= true) and 0 or #rows      -- (none while the icons are on the Island: Settings > Bar, the add-ons piece)
         if out ~= pill_out then pill_out = out; dock_fx.na = pill_out; dock_fx.a = pill_out > 0; dock_fx.changed() end
@@ -189,7 +207,7 @@ return function()
     end
 
     local function save()
-        pcall(sys.call, "files.write", "addons-state.json", { enabled = enabled, sizes = sizes })
+        pcall(sys.call, "files.write", "addons-state.json", { enabled = enabled, sizes = sizes, order = order })
     end
     on("ax_resized", function()       -- a panel was resized: kept for the next time it opens
         local a = cur_pin()
@@ -202,10 +220,69 @@ return function()
         if ok and type(saved) == "table" and type(saved.enabled) == "table" then
             for id, v in pairs(saved.enabled) do if v == true then enabled[id] = true end end
         end
+        if ok and type(saved) == "table" and type(saved.order) == "table" then
+            for _, id in ipairs(saved.order) do if type(id) == "string" then order[#order + 1] = id end end
+        end
         if ok and type(saved) == "table" and type(saved.sizes) == "table" then
             for id, z in pairs(saved.sizes) do if type(z) == "table" and type(z.w) == "number" and type(z.h) == "number" then sizes[id] = { w = z.w, h = z.h } end end
         end
     end
+
+    -- Dragging a card (Settings > Add-ons; the scene is pages/addons.plm, the way the Island layout's chips are dragged): the cards stand in slots (`adr.<n>`, card n's slot, 0 first) that
+    -- follow `order`; while one is held, the others close the gap it left and open one where it would land (the slot the pointer is nearest), and the held one follows the pointer.
+    -- Letting go keeps the order, which is the order of the add-on pill.
+    local CARD_TOP, CARD_STEP = 36, 92          -- as the page lays the cards out
+    local dragc = nil                            -- { id, slot, float } while a card is held
+    local function place_cards(drag)
+        norm_order()
+        local arr = {}
+        for _, id in ipairs(order) do if not (drag and drag.id == id) then arr[#arr + 1] = id end end
+        if drag then table.insert(arr, math.min(drag.slot + 1, #arr + 1), drag.id) end
+        local slot = {}
+        for n, id in ipairs(arr) do slot[id] = n - 1 end
+        for k, a in ipairs(list) do
+            if k <= MAX then
+                local v = slot[a.id] or (k - 1)
+                if drag and drag.id == a.id and drag.float then v = drag.float end
+                fact["adr." .. (k - 1)] = v
+            end
+        end
+        fact.adr_ok = true
+    end
+    on("adr_grab", function()
+        local a = list[math.floor((tonumber(fact.adr_drag) or -1) + 0.5) + 1]
+        if not a then return end
+        norm_order()
+        local at = 0
+        for n, id in ipairs(order) do if id == a.id then at = n - 1 end end
+        dragc = { id = a.id, slot = at, float = at }
+        place_cards(dragc)
+    end)
+    on("adr_move", function()
+        if not dragc then return end
+        local f = ((tonumber(fact.adr_py) or 0) - (tonumber(fact.adr_gy) or 0) - CARD_TOP) / CARD_STEP      -- the held card's place, in slots
+        local last = math.max(0, math.min(#list, MAX) - 1)
+        dragc.float = math.max(0, math.min(last, f))
+        dragc.slot = math.max(0, math.min(last, math.floor(f + 0.5)))
+        place_cards(dragc)
+    end)
+    on("adr_drop", function()
+        if not dragc then return end
+        local d = dragc
+        dragc = nil
+        local arr = {}
+        for _, id in ipairs(order) do if id ~= d.id then arr[#arr + 1] = id end end
+        table.insert(arr, math.min(d.slot + 1, #arr + 1), d.id)
+        local changed = false
+        for n, id in ipairs(order) do if arr[n] ~= id then changed = true end end
+        order = arr
+        fact.adr_drag = -1
+        place_cards(nil)
+        if changed then
+            save()
+            show_slot()
+        end
+    end)
 
     local function show()
         local rows = {}
@@ -216,6 +293,7 @@ return function()
             rows[#rows + 1] = { name = a.name, desc = a.description ~= "" and a.description or "No description", by = by, on = enabled[a.id] == true }
         end
         model.addons = rows
+        place_cards(nil)
         if #errors > 0 then
             text.ad_note = errors[1] .. (#errors > 1 and ("  (+" .. (#errors - 1) .. " more)") or "")
         elseif #list > MAX then
