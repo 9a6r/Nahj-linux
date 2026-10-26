@@ -12,7 +12,7 @@ What a panel should look and feel like, so that an add-on sits beside the Contro
 - Its zones are gated on `shown`, its text fields go through the shell, and it stays well under the scene's size limit (`pleamar --check` prints it).
 - It keeps secrets as described under Secrets, says in its README how, and does not send anything anywhere the user did not set up.
 - The `author` in `addon.toml` and the README credit whoever the idea or the code came from, and its licence is compatible with this repository's (MIT).
-- It runs without an account or a device the reviewer may not have, or it has a way to try it (a demo mode, as the Home Assistant add-on has).
+- It runs without an account or a device the reviewer may not have, or it has a way to try it (a demo mode, for example).
 - It has a README with screenshots, and says if an AI assistant helped.
 
 A proposal that follows the style but is not quite there is a conversation, not a rejection: the aim is that it is right, not that it is perfect first time.
