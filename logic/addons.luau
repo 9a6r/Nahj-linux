@@ -40,7 +40,7 @@ return function()
             if a.drawer then
                 local mine = open and cur == a
                 local mon = text["screen." .. (tonumber(fact.ax_scr) or 0) .. ".name"] or ""       -- the monitor's name, to tell two of the same size apart
-                say_one(a.sock, { "text slot_mon " .. mon, "fact slot_open " .. tostring(mine), "fact slot_sw " .. tostring(tonumber(fact.ax_sw) or 0), "fact slot_sh " .. tostring(tonumber(fact.ax_sh) or 0), "fact slot_x " .. string.format("%.1f", fact.ax_rx or 0), "fact slot_y " .. string.format("%.1f", fact.ax_ry or 0),
+                say_one(a.sock, { "text slot_mon " .. mon, "fact slot_open " .. tostring(mine), "fact slot_sw " .. tostring(tonumber(fact.ax_sw) or 0), "fact slot_sh " .. tostring(tonumber(fact.ax_sh) or 0), "fact slot_x " .. string.format("%.1f", fact.ax_rx or 0), "fact slot_y " .. string.format("%.1f", (fact.ax_ry or 0) - (fact.ax_yoff or 0)),
                     "fact slot_w " .. string.format("%.1f", fact.ax_rw or 0), "fact slot_h " .. string.format("%.1f", fact.ax_rh or 0) })
             else
                 say_one(a.sock, { "fact slot_open " .. tostring(winopen[a.id] == true) })

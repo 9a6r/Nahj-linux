@@ -4097,7 +4097,7 @@ scene Vitreus {
 
     //  A pinned app in the corner dock. Pressed and let go it starts; pressed and pulled (more than a few pixels) it takes the whole dock with it, which settles in
     //  the nearer of the two corners when let go. A right click unpins it.
-    component CdkIcon(t: record) {
+    component CdkIcon(t: record, vert: number) {
         size: floor(24 * bu + 0.5), floor(24 * bu + 0.5)
         box { at: 12 * bu, 12 * bu; size: 33 * bu, 33 * bu; corner: 10 * bu * (1 - 0.5 * sq); color: ink; opacity: 16% * touch.hover * (1 - cdk_drag) }
         group {
@@ -4105,7 +4105,7 @@ scene Vitreus {
             scale: 1 + 0.16 * touch.hover * (1 - cdk_drag)
             image t.icon { at: 0, 0; size: floor(24 * bu + 0.5), floor(24 * bu + 0.5); opacity: 88% + 12% * touch.hover }
         }
-        zone box touch { at: 12 * bu, 12 * bu; size: 31 * bu, 33 * bu; cursor: pointer; active: cdk.g > 0.6 }
+        zone box touch { at: 12 * bu, 12 * bu; size: 31 * bu, 33 * bu; cursor: pointer; active: cdk.g > 0.6 and ((vert > 0.5) == (lm > 0.5)) }
         on enter touch { cdk_hot = 1 }
         on leave touch { cdk_hot = 0 }
         on press touch { cdk_down = 1; cdk_drag = 0; cdk_hx = pointer.x - cdk.rcx; cdk_hy = pointer.y - cdk.rcy }
@@ -4115,7 +4115,7 @@ scene Vitreus {
         on press right touch { emit cdk_unpin(t.index) }
     }
 
-    component AdkIcon(t: record) {
+    component AdkIcon(t: record, vert: number) {
         size: floor(24 * bu + 0.5), floor(24 * bu + 0.5)
         box { at: 12 * bu, 12 * bu; size: 33 * bu, 33 * bu; corner: 10 * bu * (1 - 0.5 * sq); color: ink; opacity: 16% * touch.hover * (1 - adk_drag) }
         group {
@@ -4126,7 +4126,7 @@ scene Vitreus {
             image t.icon { at: 0.7 * bu * sin(apf * 61 + t.index * 50) * touch.hover, 0.7 * bu * sin(apf * 67 + t.index * 30) * touch.hover; size: floor(24 * bu + 0.5), floor(24 * bu + 0.5); opacity: 88% + 12% * touch.hover }
             image t.icon { at: 1.1 * bu + 0.7 * bu * sin(apf * 47 + t.index * 70) * touch.hover, -0.8 * bu + 0.7 * bu * sin(apf * 43 + t.index * 110) * touch.hover; size: floor(24 * bu + 0.5), floor(24 * bu + 0.5); opacity: 12% + 24% * touch.hover }
         }
-        zone box touch { at: 12 * bu, 12 * bu; size: 31 * bu, 33 * bu; cursor: pointer; active: adk.g > 0.6 }
+        zone box touch { at: 12 * bu, 12 * bu; size: 31 * bu, 33 * bu; cursor: pointer; active: adk.g > 0.6 and ((vert > 0.5) == (lm > 0.5)) }
         on enter touch { adk_hot = adk_hot + 1 }
         on leave touch { adk_hot = max(0, adk_hot - 1) }
         on press touch { adk_down = 1; adk_drag = 0; adk_hx = pointer.x - adk.rcx; adk_hy = pointer.y - adk.rcy }
@@ -4447,6 +4447,7 @@ scene Vitreus {
     fact ax_rx = 0                                         // where its content goes, once out: the middle and the size (the add-on is told when the drawer opens)
     fact ax_ry = 0
     fact ax_rw = 0
+    fact ax_yoff = 0                                       // how far down the add-on scenes' surfaces start: the bar reserves its 62 at the top of the Island, and the compositor puts them in what is left (see `ax.yoff`)
     fact ax_rh = 0
     event ax_toggle ->
     //  Where the add-on's content goes, as the drawer settles: kept up to date for the logic, which tells the add-on when the drawer opens.
@@ -5223,6 +5224,10 @@ scene Vitreus {
     let cdk.t = cdk.s + 10 * bu
     let cdk.r = 12 * bu
     let cdk.L = cdk_pins.count * cdk.p + 8 * bu
+    //  Along the top or the bottom the pills are a row, `cdk.L` wide and `cdk.t` high; down a side strip (`lm`) they stand upright, `cdk.t` wide and `cdk.L` high: `*.W` and `*.H` are the
+    //  size as it is drawn (a blend while the layout changes).
+    let cdk.W = mix(cdk.L, cdk.t, lm)
+    let cdk.H = mix(cdk.t, cdk.L, lm)
     let cdk.ye = vb - th.b * fm
     let cdk.yt = yo + th.t * fm
     let cdk.xe = screen.width - th.r * fm
@@ -5236,8 +5241,8 @@ scene Vitreus {
     let adk.cor = if(cdk_drag > 0.5, 1 - cdk.pick, 1 - cdk_corner)
     let cdk.sr = if(lm > 0.5, 1, cdk.cor)                       // against the right edge (1) or the left (0)
     let cdk.sb = if(lm > 0.5, cdk.cor, 1)                       // against the bottom (1) or the top (0)
-    let cdk.restx = mix(cdk.xs + cdk.L / 2, cdk.xe - cdk.L / 2, cdk.sr)
-    let cdk.resty = mix(cdk.yt + cdk.t / 2, cdk.ye - cdk.t / 2, cdk.sb)
+    let cdk.restx = mix(cdk.xs + cdk.W / 2, cdk.xe - cdk.W / 2, cdk.sr)
+    let cdk.resty = mix(cdk.yt + cdk.H / 2, cdk.ye - cdk.H / 2, cdk.sb)
     let cdk.rcx = mix(pick(screen.index, cdk_cx.0, cdk_cx.1), screen.width - pick(screen.index, cdk_cx.0, cdk_cx.1), rt)           // where its middle is on the screen
     let cdk.rcy = mix(pick(screen.index, cdk_cy.0, cdk_cy.1), yo + vb - pick(screen.index, cdk_cy.0, cdk_cy.1), bt)
     follow cdk_cx.$screen = if(cdk_drag > 0.5, mix(cdk_px, screen.width - cdk_px, rt), cdk.restx)
@@ -5246,14 +5251,16 @@ scene Vitreus {
     follow cdk_ay.$screen = if(cdk_drag > 0.5, 0, cdk.sb * 2 - 1)
     let cdk.bx = pick(screen.index, cdk_cx.0, cdk_cx.1) + pick(screen.index, cdk_ax.0, cdk_ax.1) * cdk.r / 2
     let cdk.by = pick(screen.index, cdk_cy.0, cdk_cy.1) + pick(screen.index, cdk_ay.0, cdk_ay.1) * cdk.r / 2
-    let cdk.bw = cdk.L * cdk.g + cdk.r * abs(pick(screen.index, cdk_ax.0, cdk_ax.1))
-    let cdk.bh = cdk.t + cdk.r * abs(pick(screen.index, cdk_ay.0, cdk_ay.1))
+    let cdk.bw = mix(cdk.L * cdk.g, cdk.t, lm) + cdk.r * abs(pick(screen.index, cdk_ax.0, cdk_ax.1))
+    let cdk.bh = mix(cdk.t, cdk.L * cdk.g, lm) + cdk.r * abs(pick(screen.index, cdk_ay.0, cdk_ay.1))
     let cdk.cr = min(cdk.t / 2, rc)
     let adk.L = adk_pins.count * cdk.p + 8 * bu
+    let adk.W = mix(adk.L, cdk.t, lm)
+    let adk.H = mix(cdk.t, adk.L, lm)
     let adk.sr = if(lm > 0.5, 1, adk.cor)
     let adk.sb = if(lm > 0.5, adk.cor, 1)
-    let adk.restx = mix(cdk.xs + adk.L / 2, cdk.xe - adk.L / 2, adk.sr)
-    let adk.resty = mix(cdk.yt + cdk.t / 2, cdk.ye - cdk.t / 2, adk.sb)
+    let adk.restx = mix(cdk.xs + adk.W / 2, cdk.xe - adk.W / 2, adk.sr)
+    let adk.resty = mix(cdk.yt + adk.H / 2, cdk.ye - adk.H / 2, adk.sb)
     let adk.rcx = mix(pick(screen.index, adk_cx.0, adk_cx.1), screen.width - pick(screen.index, adk_cx.0, adk_cx.1), rt)
     let adk.rcy = mix(pick(screen.index, adk_cy.0, adk_cy.1), yo + vb - pick(screen.index, adk_cy.0, adk_cy.1), bt)
     follow adk_cx.$screen = if(adk_drag > 0.5, mix(adk_px, screen.width - adk_px, rt), adk.restx)
@@ -5262,8 +5269,8 @@ scene Vitreus {
     follow adk_ay.$screen = if(adk_drag > 0.5, 0, adk.sb * 2 - 1)
     let adk.bx = pick(screen.index, adk_cx.0, adk_cx.1) + pick(screen.index, adk_ax.0, adk_ax.1) * cdk.r / 2
     let adk.by = pick(screen.index, adk_cy.0, adk_cy.1) + pick(screen.index, adk_ay.0, adk_ay.1) * cdk.r / 2
-    let adk.bw = adk.L * adk.g + cdk.r * abs(pick(screen.index, adk_ax.0, adk_ax.1))
-    let adk.bh = cdk.t + cdk.r * abs(pick(screen.index, adk_ay.0, adk_ay.1))
+    let adk.bw = mix(adk.L * adk.g, cdk.t, lm) + cdk.r * abs(pick(screen.index, adk_ax.0, adk_ax.1))
+    let adk.bh = mix(cdk.t, adk.L * adk.g, lm) + cdk.r * abs(pick(screen.index, adk_ay.0, adk_ay.1))
     //  The add-on drawer (`ax_open`): out of the add-on pill, standing in its corner, as wide and tall as the add-on asked, against the frame and on the pill. It grows from the pill as it opens.
     //  With the add-ons on the Island (`axb`, Settings > Bar) it drops from the bar instead, as the bar's own panels do: centred on the bar, against it so the glass
     //  melts into it, and it grows out of the icon (`ax.ix`).
@@ -5297,8 +5304,11 @@ scene Vitreus {
     let dax.bt = dax.k * dax.nt * max(0, dax.ey - dax.eh / 2 - yo + 26 * cu)
     let dax.bb = dax.k * dax.nb * max(0, vb - dax.ey - dax.eh / 2 + 26 * cu)
     let axs.hh = 66 * cu                                   // the shell's title bar across the top of the panel (title, grip, X): the content is below it
-    let axs.rt = axs.hh + cdk.t * (1 - adk.sb) * (1 - axb)   // what the content leaves free: the title bar, and the pill's strip when the pill is at the top
-    let axs.rb = cdk.t * adk.sb * (1 - axb)                // ... and the pill's strip along the bottom (the pill is in the panel's corner, its icons showing)
+    let axs.m = 14 * cu                                    // the margin all round the content: the rectangle an add-on is given is this much inside the glass on every side (below the title bar, and clear of the pill's strip)
+    let axs.rt = max(axs.hh, cdk.t * (1 - adk.sb) * (1 - axb) * (1 - lm))   // what the content leaves free: the title bar, or the pill's strip when the pill is at the top, whichever is taller (the strip is inside the title bar's height: added together they left a gap as tall as the pill's strip)
+    let axs.rr = cdk.t * lm * (1 - axb)                    // down a side strip the pill stands upright against the frame's edge, in the panel's side: its strip is taken from the panel's width (on the side of the frame, mirrored with `rt`)
+    let axs.rb = cdk.t * adk.sb * (1 - axb) * (1 - lm)     // ... and the pill's strip along the bottom (the pill is in the panel's corner, its icons showing)
+    let ax.yoff = if(bar_anchor == top and not bar_frame and bar_size > 0.995, 62, 0)       // as the shell's own surface reserves (`reserve:` on it): an add-on's scene is laid out below it, so what it is told is moved up by this
     //  How far it may be pulled (offsets from its place, in the glass's drawing): anywhere inside the frame, right up against it, as the Desk can be.
     let axs.xmin = cdk.xs - (axs.fx - axs.w / 2)
     let axs.xmax = cdk.xe - (axs.fx + axs.w / 2)
@@ -5307,10 +5317,11 @@ scene Vitreus {
     //  Where the add-on's content goes, as it settles, on the screen (the glass is drawn unmirrored; the screen is not): kept for the logic, which tells the add-on.
     //  Worked out on the copy the panel is on only (`axo`): a rule runs on every copy, and with two monitors the last copy's own width won, so the content was
     //  told a place on the other monitor's terms (beside the panel, or off it).
-    on change ax_open while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx, screen.width - (axs.fx + ax_gx), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w; ax_rh = axs.h - axs.rt - axs.rb }
-    on change ax_cur while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx, screen.width - (axs.fx + ax_gx), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w; ax_rh = axs.h - axs.rt - axs.rb }
-    on change ax_hold while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx, screen.width - (axs.fx + ax_gx), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w; ax_rh = axs.h - axs.rt - axs.rb }
-    on change ax_rsz while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx, screen.width - (axs.fx + ax_gx), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w; ax_rh = axs.h - axs.rt - axs.rb }
+    on change ax_open while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx - axs.rr / 2, screen.width - (axs.fx + ax_gx - axs.rr / 2), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w - 2 * axs.m - axs.rr; ax_rh = axs.h - axs.rt - axs.rb - 2 * axs.m; ax_yoff = ax.yoff }
+    on change ax_cur while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx - axs.rr / 2, screen.width - (axs.fx + ax_gx - axs.rr / 2), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w - 2 * axs.m - axs.rr; ax_rh = axs.h - axs.rt - axs.rb - 2 * axs.m; ax_yoff = ax.yoff }
+    on change ax_hold while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx - axs.rr / 2, screen.width - (axs.fx + ax_gx - axs.rr / 2), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w - 2 * axs.m - axs.rr; ax_rh = axs.h - axs.rt - axs.rb - 2 * axs.m; ax_yoff = ax.yoff }
+    on change ax.yoff while axo > 0.5 { ax_yoff = ax.yoff }
+    on change ax_rsz while axo > 0.5 { ax_rx = mix(axs.fx + ax_gx - axs.rr / 2, screen.width - (axs.fx + ax_gx - axs.rr / 2), rt); ax_ry = mix(axs.fy + ax_gy, yo + vb - (axs.fy + ax_gy), bt) + (axs.rt - axs.rb) / 2; ax_rw = axs.w - 2 * axs.m - axs.rr; ax_rh = axs.h - axs.rt - axs.rb - 2 * axs.m; ax_yoff = ax.yoff }
     //  The right notch opens the desk: a panel out of the right frame with a few small tools, in tabs. It is not one of the values of `panel`, so it
     //  stays open while the calendar, the controls, the volume or a notification come and go. It is drawn like the volume's and the title panel's
     //  drawers (`dz.*`: the same springs and shape) but with its own geometry, which does not depend on whichever of those is out.

@@ -99,6 +99,17 @@ scene MyDrawer {
     let mon_here = if(screen.index == 0, if(mon_c0, 1, 0), if(screen.index == 1, if(mon_c1, 1, 0), if(screen.index == 2, if(mon_c2, 1, 0), if(mon_c3, 1, 0))))
     let shown = if(slot_open and (if(mon_known, mon_here > 0.5, slot_sw == 0 or (screen.width == slot_sw and screen.height == slot_sh))), 1, 0)       // 1 on the copy that is on the panel's monitor, while the panel is out
 
+    //  What is inside arrives as the Control Center's does: one piece after another (each its own spring, the later ones slower), each rising a little as it
+    //  fades in (they start 200 ms after the panel is out: a scene that was shut draws nothing, so its first frame is a long one and a spring started in it would be over at once; they go out at once). `shown` goes down while the panel is pulled or resized and comes back where it lands, so the content arrives again there. Give the pieces of
+    //  your own content `opacity: en1` and `move: 0, (1 - en1) * 12` (and `en2`, `en3` for the ones that come after).
+    prop wk = 0 ~700ms                                // (moves while the content waits to arrive, so the scene keeps drawing frames: it draws none while shut)
+    prop en1 = 0 ~200ms
+    prop en2 = 0 ~380ms
+    prop en3 = 0 ~520ms
+    on change shown while shown > 0.5 { wk: 1; en1: 1 after 200ms; en2: 1 after 200ms; en3: 1 after 200ms }
+    on change shown while shown < 0.5 { wk: 0 ~80ms; en1: 0 ~80ms; en2: 0 ~80ms; en3: 0 ~80ms; en1: 0 ~80ms after 205ms; en2: 0 ~80ms after 205ms; en3: 0 ~80ms after 205ms }
+    every 500ms while shown > 0.5 and en1 < 0.002 { en1: 1 after 200ms; en2: 1 after 200ms; en3: 1 after 200ms }     // (a scene that starts, or is saved, with its panel already out has no change to wait for)
+
     fact clicks = 0
     text field_q = ""                                 // the field: what is written in it (the shell sends it), whether it is being typed in, and its Enter and Escape
     fact field_kb = false
@@ -108,22 +119,26 @@ scene MyDrawer {
     measure fq
     let left = slot_x - slot_w / 2
     let top = slot_y - slot_h / 2
+    group {
+        opacity: en1
+        move: 0, (1 - en1) * 12
 
-    //  The content follows the panel's size: this bar is as wide as the panel, and the dots keep to its right edge.
-    box { at: left + slot_w / 2, top + slot_h - 24; size: slot_w - 48, 4; corner: 2; color: mint; opacity: 40% * shown }
-    text "Your panel goes here" { at: left + 24, top + 28; anchor: left center; size: 18; weight: 700; color: ink; opacity: shown; family: "Space Grotesk" }
-    text wx_temp { at: left + 24, top + 56; anchor: left center; size: 16; color: faint; opacity: shown; family: "Space Grotesk" }
-    box { at: left + 70, top + 104; size: 124, 36; corner: 18; color: mint; opacity: 80% * shown }
-    text "Press me" { at: left + 70, top + 104; anchor: center; size: 15; weight: 700; color: onmint; opacity: shown; family: "Space Grotesk" }
-    zone box press_me { at: left + 70, top + 104; size: 124, 36; corner: 18; cursor: pointer; active: shown > 0.5 }
-    on press press_me { clicks = clicks + 1 }
-    repeat i in 0..8 {
-        ellipse { at: left + slot_w - 24 - (7 - i) * 16, top + 104; radius: 5; color: mint; opacity: if(clicks > i, 1, 0.2) * shown }
+        //  The content follows the panel's size: this bar is as wide as the panel, and the dots keep to its right edge.
+        box { at: left + slot_w / 2, top + slot_h - 24; size: slot_w - 48, 4; corner: 2; color: mint; opacity: 40% * shown }
+        text "Your panel goes here" { at: left + 24, top + 28; anchor: left center; size: 18; weight: 700; color: ink; opacity: shown; family: "Space Grotesk" }
+        text wx_temp { at: left + 24, top + 56; anchor: left center; size: 16; color: faint; opacity: shown; family: "Space Grotesk" }
+        box { at: left + 70, top + 104; size: 124, 36; corner: 18; color: mint; opacity: 80% * shown }
+        text "Press me" { at: left + 70, top + 104; anchor: center; size: 15; weight: 700; color: onmint; opacity: shown; family: "Space Grotesk" }
+        zone box press_me { at: left + 70, top + 104; size: 124, 36; corner: 18; cursor: pointer; active: shown > 0.5 }
+        on press press_me { clicks = clicks + 1 }
+        repeat i in 0..8 {
+            ellipse { at: left + slot_w - 24 - (7 - i) * 16, top + 104; radius: 5; color: mint; opacity: if(clicks > i, 1, 0.2) * shown }
+        }
+        //  The field: 24 from the content's left and right edges, 140 down, 36 tall (what addon.luau tells the shell). Drawn here; no zone over it, so the click is the shell's.
+        box { at: left + slot_w / 2, top + 158; size: slot_w - 48, 36; corner: 18; color: ink; opacity: (8% + 6% * if(field_kb, 1, 0)) * shown }
+        text "Type your name, then Enter" { at: left + 42, top + 158; anchor: left center; size: 15; color: faint; opacity: 70% * shown * if(fq.width < 1, 1, 0); family: "Space Grotesk" }
+        text field_q { at: left + 42, top + 158; anchor: left center; size: 15; color: ink; opacity: shown; family: "Space Grotesk"; measure: fq }
+        box { at: left + 43 + fq.width, top + 158; size: 2, 20; color: mint; opacity: shown * if(field_kb, 1, 0) }
+        text hello { at: left + 24, top + 196; anchor: left center; size: 15; weight: 700; color: mint; opacity: shown; family: "Space Grotesk" }
     }
-    //  The field: 24 from the content's left and right edges, 140 down, 36 tall (what addon.luau tells the shell). Drawn here; no zone over it, so the click is the shell's.
-    box { at: left + slot_w / 2, top + 158; size: slot_w - 48, 36; corner: 18; color: ink; opacity: (8% + 6% * if(field_kb, 1, 0)) * shown }
-    text "Type your name, then Enter" { at: left + 42, top + 158; anchor: left center; size: 15; color: faint; opacity: 70% * shown * if(fq.width < 1, 1, 0); family: "Space Grotesk" }
-    text field_q { at: left + 42, top + 158; anchor: left center; size: 15; color: ink; opacity: shown; family: "Space Grotesk"; measure: fq }
-    box { at: left + 43 + fq.width, top + 158; size: 2, 20; color: mint; opacity: shown * if(field_kb, 1, 0) }
-    text hello { at: left + 24, top + 196; anchor: left center; size: 15; weight: 700; color: mint; opacity: shown; family: "Space Grotesk" }
 }
