@@ -22,3 +22,7 @@ It has no Hyprland: gaps, borders, the Hyprland page and glass blur cannot be se
 - `vitreus.luau` is at Luau's limit of 200 locals: new top-level state is a global table (`bar_fx`, `dock_fx`, `wph`), not a `local`.
 - The gaps Vitreus sends to Hyprland are kept in `vitreus_colors.lua`; the room for the docks is deliberately not written there (it would be read back as the original gaps).
 - `hyprctl` is the real one only on Hyprland; under pleamar-wm it is `pleamar-wm/hyprctl` and answers `monitors` and `activewindow` only.
+- **An add-on scene is laid out below what the bar reserves** (62 at the top of the Island): the shell sends `slot_y` minus `ax.yoff`. Its rectangle is also inset by `axs.m` on every side.
+- **A scene that draws nothing while shut gets a long first frame when it wakes**, and a spring started in it is over at once: start the content's springs 200 ms later and keep a prop moving meanwhile
+  (`wk` in `addons/_template_drawer/addon.plm`). The rules for an add-on's look are in `addons/_template_drawer/STYLE.md`.
+- **A scene may hold 65 536 properties, and a model's copies are built for its `max`** (not for its rows): an icon set is one table of strokes, not one drawing per icon.

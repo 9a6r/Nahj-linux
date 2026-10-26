@@ -1,5 +1,6 @@
 language 0.1
 import "addon-palette.plm"
+import "addon-pencil.plm"                          // the pencil components (see STYLE.md): PLn, PCir, PRound, PSwitch, PFill, PSlider, PSliderMini, PIcon
 
 //  A Vitreus add-on with a PANEL: the shell puts the add-on's icon on the add-on pill (the pill of icons in the corner the app dock is not in) and draws a panel out of it
 //  (the same glass as its own drawers) and this scene draws what is in it. A click on the icon opens the panel (or `pleamar --say vitreus "emit ax_toggle"`, which a key can run).
@@ -29,7 +30,8 @@ import "addon-palette.plm"
 //  The logic is addon.luau beside this file (the scene's name with .luau): it keeps what it must in the scene's own data folder with the `files` services below, and any
 //  program it runs (`run("wl-paste", ...)`, `curl`, a helper of your own) has to be named in `permissions` (`pleamar`, to talk to the shell about the field). The shell sets `wx_*` texts on a scene that declares them: name your own weather facts something else (the News & Weather add-on uses `nw_*`).
 //
-//  Style: the boiled pencil is preferred for an add-on's icons and graphics (hand-drawn lines, each drawn twice, the second fainter and a hair off, an accent wash inside, strokes
+//  Style: read STYLE.md beside this file (an add-on included in Vitreus itself has to follow it; one you write on your own is free to look as you like). It says how a panel should look and move (the boiled pencil, the Control Center's switches and sliders, even margins, how the content arrives, how
+//  input is stacked), and addon-pencil.plm holds the drawing, imported above; the sample card below uses every piece. The boiled pencil is preferred for an add-on's icons and graphics (hand-drawn lines, each drawn twice, the second fainter and a hair off, an accent wash inside, strokes
 //  redrawn about eight times a second with `floor(time * 8)`: see PCup, PBell and PEnvelope in vitreus.plm). SVGs or images of your own are allowed in its place.
 
 scene MyDrawer {
@@ -99,6 +101,10 @@ scene MyDrawer {
     let mon_here = if(screen.index == 0, if(mon_c0, 1, 0), if(screen.index == 1, if(mon_c1, 1, 0), if(screen.index == 2, if(mon_c2, 1, 0), if(mon_c3, 1, 0))))
     let shown = if(slot_open and (if(mon_known, mon_here > 0.5, slot_sw == 0 or (screen.width == slot_sw and screen.height == slot_sh))), 1, 0)       // 1 on the copy that is on the panel's monitor, while the panel is out
 
+    //  What the pencil library (addon-pencil.plm) expects of the scene: the unit, and the frame its lines are drawn on (it rests while the panel is shut).
+    let u = 1.1
+    let fr = if(shown > 0.5, floor(time * 8), 0)
+
     //  What is inside arrives as the Control Center's does: one piece after another (each its own spring, the later ones slower), each rising a little as it
     //  fades in (they start 200 ms after the panel is out: a scene that was shut draws nothing, so its first frame is a long one and a spring started in it would be over at once; they go out at once). `shown` goes down while the panel is pulled or resized and comes back where it lands, so the content arrives again there. Give the pieces of
     //  your own content `opacity: en1` and `move: 0, (1 - en1) * 12` (and `en2`, `en3` for the ones that come after).
@@ -111,6 +117,8 @@ scene MyDrawer {
     every 500ms while shown > 0.5 and en1 < 0.002 { en1: 1 after 200ms; en2: 1 after 200ms; en3: 1 after 200ms }     // (a scene that starts, or is saved, with its panel already out has no change to wait for)
 
     fact clicks = 0
+    fact sw_on = 1                                    // the sample card's switch, and its level (a drag on the card's foot)
+    fact lvl = 0.6
     text field_q = ""                                 // the field: what is written in it (the shell sends it), whether it is being typed in, and its Enter and Escape
     fact field_kb = false
     event field_enter ->
@@ -127,18 +135,40 @@ scene MyDrawer {
         box { at: left + slot_w / 2, top + slot_h - 24; size: slot_w - 48, 4; corner: 2; color: mint; opacity: 40% * shown }
         text "Your panel goes here" { at: left + 24, top + 28; anchor: left center; size: 18; weight: 700; color: ink; opacity: shown; family: "Space Grotesk" }
         text wx_temp { at: left + 24, top + 56; anchor: left center; size: 16; color: faint; opacity: shown; family: "Space Grotesk" }
-        box { at: left + 70, top + 104; size: 124, 36; corner: 18; color: mint; opacity: 80% * shown }
-        text "Press me" { at: left + 70, top + 104; anchor: center; size: 15; weight: 700; color: onmint; opacity: shown; family: "Space Grotesk" }
-        zone box press_me { at: left + 70, top + 104; size: 124, 36; corner: 18; cursor: pointer; active: shown > 0.5 }
+        //  ── A card in the shell's style ──  Its outline is in pencil (inside the card by half its stroke and its wobble, so the wobble is never cut by a clip), its switch and its slider are the
+        //  Control Center's, the fill rises from the switch, the icon is drawn from a shared set of strokes, and the text is centred on the card. Each piece of drawing rests (`f: 0`) unless the card
+        //  is on or under the pointer, which is the shell's rule: only what is being used moves.
+        let cx0 = left + 24
+        let cy0 = top + 76
+        let cw0 = slot_w - 48
+        let ch0 = 88 * u
+        let con = sw_on
+        let chot = if(con > 0.5 or card_z.hover > 0.5, 1, 0)
+        box { from: cx0, cy0; size: cw0, ch0; corner: 12 * u; color: mint; opacity: 5% * card_z.hover * shown }
+        PFill(tx: cx0, ty: cy0, tw: cw0, th: ch0, sx: cx0 + cw0 - 26 * u, sy: cy0 + 17 * u, on: con, av: shown)
+        PRound(x: cx0 + 2.6 * u, y: cy0 + 2.6 * u, w: cw0 - 5.2 * u, h: ch0 - 5.2 * u, r: 9.7 * u, s: 1, wd: 1.7 * u, c: mix(faint, mint, con), a: (0.5 + 0.45 * con) * shown, f: chot * fr)
+        PSwitch(sx: cx0 + cw0 - 26 * u, sy: cy0 + 17 * u, on: con, av: shown, s: 7, f: chot * fr)
+        PIcon(k: 0, cx: cx0 + 32 * u, cy: cy0 + ch0 / 2, lit: con, c: mix(faint, mint, con), a: shown, s: 3, f: chot * fr, z: 1.35)
+        text "Lamp" { at: cx0 + 62 * u, cy0 + ch0 / 2 - 8.5 * u; anchor: left center; size: 13.5 * u; weight: 700; width: cw0 - 110 * u; lines: 1; color: ink; opacity: shown; family: "Space Grotesk" }
+        text pick(con, "Off", "On") { at: cx0 + 62 * u, cy0 + ch0 / 2 + 8.5 * u; anchor: left center; size: 11 * u; weight: 600; color: mix(faint, mint, con); opacity: shown; family: "Space Grotesk" }
+        PSliderMini(x0: cx0 + 16 * u, y: cy0 + ch0 - 15 * u, w: cw0 - 32 * u, lv: lvl, h: 10 * u, f: if(sl_z.hover > 0.5, fr, 0))
+        zone box card_z { from: cx0, cy0; size: cw0, ch0; corner: 12 * u; cursor: pointer; label: "Lamp"; active: shown > 0.5 }
+        on press card_z { sw_on = 1 - sw_on }
+        zone box sl_z { from: cx0 + 8 * u, cy0 + ch0 - 30 * u; size: cw0 - 16 * u, 26 * u; cursor: pointer; label: "Level"; active: shown > 0.5 }
+        on press sl_z { lvl = clamp((pointer.x - (cx0 + 16 * u)) / (cw0 - 32 * u), 0, 1) }
+        on drag sl_z { lvl = clamp((pointer.x - (cx0 + 16 * u)) / (cw0 - 32 * u), 0, 1) }
+        box { at: left + 70, top + 210; size: 124, 36; corner: 18; color: mint; opacity: 80% * shown }
+        text "Press me" { at: left + 70, top + 210; anchor: center; size: 15; weight: 700; color: onmint; opacity: shown; family: "Space Grotesk" }
+        zone box press_me { at: left + 70, top + 210; size: 124, 36; corner: 18; cursor: pointer; active: shown > 0.5 }
         on press press_me { clicks = clicks + 1 }
         repeat i in 0..8 {
-            ellipse { at: left + slot_w - 24 - (7 - i) * 16, top + 104; radius: 5; color: mint; opacity: if(clicks > i, 1, 0.2) * shown }
+            ellipse { at: left + slot_w - 24 - (7 - i) * 16, top + 210; radius: 5; color: mint; opacity: if(clicks > i, 1, 0.2) * shown }
         }
-        //  The field: 24 from the content's left and right edges, 140 down, 36 tall (what addon.luau tells the shell). Drawn here; no zone over it, so the click is the shell's.
-        box { at: left + slot_w / 2, top + 158; size: slot_w - 48, 36; corner: 18; color: ink; opacity: (8% + 6% * if(field_kb, 1, 0)) * shown }
-        text "Type your name, then Enter" { at: left + 42, top + 158; anchor: left center; size: 15; color: faint; opacity: 70% * shown * if(fq.width < 1, 1, 0); family: "Space Grotesk" }
-        text field_q { at: left + 42, top + 158; anchor: left center; size: 15; color: ink; opacity: shown; family: "Space Grotesk"; measure: fq }
-        box { at: left + 43 + fq.width, top + 158; size: 2, 20; color: mint; opacity: shown * if(field_kb, 1, 0) }
-        text hello { at: left + 24, top + 196; anchor: left center; size: 15; weight: 700; color: mint; opacity: shown; family: "Space Grotesk" }
+        //  The field: 24 from the content's left and right edges, 246 down, 36 tall (what addon.luau tells the shell). Drawn here; no zone over it, so the click is the shell's.
+        box { at: left + slot_w / 2, top + 264; size: slot_w - 48, 36; corner: 18; color: ink; opacity: (8% + 6% * if(field_kb, 1, 0)) * shown }
+        text "Type your name, then Enter" { at: left + 42, top + 264; anchor: left center; size: 15; color: faint; opacity: 70% * shown * if(fq.width < 1, 1, 0); family: "Space Grotesk" }
+        text field_q { at: left + 42, top + 264; anchor: left center; size: 15; color: ink; opacity: shown; family: "Space Grotesk"; measure: fq }
+        box { at: left + 43 + fq.width, top + 264; size: 2, 20; color: mint; opacity: shown * if(field_kb, 1, 0) }
+        text hello { at: left + 24, top + 302; anchor: left center; size: 15; weight: 700; color: mint; opacity: shown; family: "Space Grotesk" }
     }
 }
