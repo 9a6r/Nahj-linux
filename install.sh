@@ -67,6 +67,10 @@ fonts_kurenaido="$data/fonts/ZenKurenaido"
 # Official-repo packages, then AUR ones: what each is for is in the README.
 pacman_pkgs="gcc pkgconf wayland wayland-protocols git curl jq python fontconfig socat glib2 file imagemagick cava playerctl networkmanager bluez bluez-utils brightnessctl hypridle hyprsunset libnotify xdg-user-dirs xdg-utils wl-clipboard cliphist awww ffmpeg grim slurp wf-recorder power-profiles-daemon polkit python-gobject python-pyte ttf-space-mono-nerd pipewire-audio sound-theme-freedesktop tesseract tesseract-data-eng"
 aur_pkgs="iris-colors mpvpaper"
+# Debian and Ubuntu: the same list by their names. UNTESTED (written without a Debian machine to try it on), and some of these are
+# not in every release (hypridle, cliphist, wf-recorder...): each is looked up and installed on its own, and a missing one is only said.
+# Not here, because Debian has no package: awww, mpvpaper, hyprsunset, iris, the Space Mono Nerd Font (listed below for hand install).
+apt_pkgs="gcc pkgconf libwayland-dev wayland-protocols git curl jq python3 fontconfig socat libglib2.0-bin file imagemagick cava playerctl network-manager bluez brightnessctl hypridle libnotify-bin xdg-user-dirs xdg-utils wl-clipboard cliphist ffmpeg grim slurp wf-recorder power-profiles-daemon polkitd python3-gi python3-pyte pipewire-bin sound-theme-freedesktop tesseract-ocr tesseract-ocr-eng"
 
 assume_yes=false
 dry=false
@@ -336,7 +340,31 @@ if $deps; then
             fi
         fi
     else
-        say "this is not an Arch-family system, so nothing is installed for you. Vitreus uses these programs"
+        if have apt-get; then
+            # Debian, Ubuntu and relatives (best effort, untested): each package on its own, so one that this release lacks costs only itself.
+            apt_missing=""
+            apt_absent=""
+            for p in $apt_pkgs; do
+                dpkg -s "$p" > /dev/null 2>&1 && continue
+                if apt-cache show "$p" > /dev/null 2>&1; then apt_missing="$apt_missing $p"; else apt_absent="$apt_absent $p"; fi
+            done
+            if [ -n "$apt_missing" ] && $refresh; then
+                printf 'vitreus-missing:%s\n' "$apt_missing"
+            elif [ -n "$apt_missing" ]; then
+                say "packages to install:$apt_missing"
+                if ask "install them with sudo apt?"; then
+                    for p in $apt_missing; do
+                        run sudo apt-get install -y "$p" || warn "could not install $p: run  sudo apt install $p  yourself"
+                    done
+                else
+                    warn "skipped: parts of Vitreus will stay quiet without them"
+                fi
+            else
+                say "the packages Debian has are all there"
+            fi
+            [ -z "$apt_absent" ] || warn "this release has no package for:$apt_absent (the feature each is for will be missing; see the list below)"
+        fi
+        say "Vitreus uses these programs. On a system that is not Arch-based, anything not installed above you add by hand"
         say "(all optional except pleamar, and hyprsunset on Hyprland: each of the others only enables one feature):"
         cat <<'LIST'
     cava            the bass pulse and the equalizer
@@ -382,7 +410,7 @@ LIST
     fi
     # niri has no night light of its own: Night mode there is wlsunset (it sets the gamma through the compositor).
     if have niri && ! have wlsunset; then
-        warn "niri is installed but wlsunset is not: Night mode on niri needs it (sudo pacman -S wlsunset on Arch)"
+        warn "niri is installed but wlsunset is not: Night mode on niri needs it (sudo pacman -S wlsunset on Arch, sudo apt install wlsunset on Debian)"
     fi
     have hyprctl || have niri || warn "Neither Hyprland nor niri was found. Vitreus needs a Wayland compositor with layer-shell; the list of running windows needs Hyprland or niri."
 
@@ -425,6 +453,13 @@ LIST
                             run sudo pacman -S --needed --noconfirm "$gpkg" || warn "could not install $gpkg: run  sudo pacman -S $gpkg  yourself, then start Vitreus again"
                         else
                             warn "skipped: without $gpkg the shell will not start. Install it with: sudo pacman -S $gpkg"
+                        fi
+                    elif have apt-get; then
+                        warn "an $gname graphics card was found with no Vulkan driver (mesa-vulkan-drivers): the shell cannot draw without one"
+                        if ask "install mesa-vulkan-drivers with sudo apt?"; then
+                            run sudo apt-get install -y mesa-vulkan-drivers || warn "could not install mesa-vulkan-drivers: run  sudo apt install mesa-vulkan-drivers  yourself, then start Vitreus again"
+                        else
+                            warn "skipped: without mesa-vulkan-drivers the shell will not start. Install it with: sudo apt install mesa-vulkan-drivers"
                         fi
                     else
                         warn "an $gname graphics card was found with no Vulkan driver: install your distribution's Mesa Vulkan driver (Debian, Ubuntu and Fedora: mesa-vulkan-drivers; openSUSE: libvulkan_radeon or libvulkan_intel). Without it the shell will not start."

@@ -242,6 +242,12 @@ The packages `install.sh` installs (pacman, and the AUR for the last two):
 start it with your desktop. On Arch and its relatives it does everything; on other distributions it installs the shell
 and lists what to add by hand.
 
+> **Debian and Ubuntu support is experimental and untested.** The installer has an `apt` path that installs what those releases package, one
+> package at a time so a missing one costs only itself, and lists the rest to add by hand: `awww`, `mpvpaper`,
+> `hyprsunset` (needed on Hyprland), `iris` and the Space Mono Nerd Font have no Debian package. Hyprland itself needs a
+> recent release (Debian 13 or Ubuntu 25.04 or later, or build it). If you try it, `vitreus-report` collects what is
+> needed to see what went wrong, and a report is very welcome.
+
 ```sh
 curl -fsSL https://raw.githubusercontent.com/natepayn3/Vitreus/main/install.sh | sh
 ```
