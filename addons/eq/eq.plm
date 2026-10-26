@@ -101,6 +101,11 @@ scene Equalizer {
     follow ea = eq_on
     let dim = 0.45 + 0.55 * ea
 
+    prop psel = 0 ~calm                                // the preset thumb: where it is, and whether it shows at all (your own curve lights none)
+    prop pa = 0 ~calm
+    follow psel = max(cur, 0)
+    follow pa = if(cur >= 0, 1, 0)
+
     //  The spectrum eq.luau gets from vitreus-eq while the panel is out: a level and a peak for each band, 0 to 1. Each goes through a spring so the bars move like light, not like numbers.
     //  `fl` is the flash that runs along the bands when the switch goes on.
     repeat i in 0..10 {
@@ -183,15 +188,29 @@ scene Equalizer {
         move: 0, (1 - en2) * 12
 
         //  ── presets ──
+        //  The Desk's tab strip: a veil pill, a hairline between the tabs and the chosen one a mint thumb that slides and glows. With your own curve (nothing lit) the thumb fades out.
         let py = top + 6 + 58 * u + 14 * u
-        let pg = 8
-        let pw = (wd - 4 * pg) / 5
-        let ph = 28 * u
+        let ph = 34 * u
+        let pw = wd / 5
+        let pcy = py + ph / 2
+        box { at: x0 + wd / 2, pcy; size: wd, ph; corner: ph / 2; color: ink; opacity: 8% * shown * dim }
+        group {
+            clip inset 0 box { at: x0 + wd / 2, pcy; size: wd, ph; corner: ph / 2 }
+            repeat k in 0..4 {
+                box { at: x0 + (k + 1) * pw, pcy; size: 1 * u, 10 * u; corner: 0.5 * u; color: ink; opacity: 12% * shown * dim }
+            }
+        }
+        body {
+            color: mint
+            shadow: 0, 0, 10 * u, 48% * pa, mint
+            rim: 16%
+            opacity: pa * shown * dim
+            box { at: x0 + (psel + 0.5) * pw, pcy; size: pw - 8 * u, 26 * u; corner: 10 * u }
+        }
         repeat k in 0..5 {
-            let on_k = if(cur == k, 1, 0)
-            box { from: x0 + k * (pw + pg), py; size: pw, ph; corner: ph / 2; color: if(on_k > 0.5, mint, ink); glass: 100%; lens: bend > 0.5; refraction: 60%; frost: 0%; tint: if(on_k > 0.5, 62%, 10% + 8% * chip.$k.hover); highlight: 80%; opacity: shown * dim }
-            text pick(k, "Flat", "Bass", "Vocal", "Treble", "Loud") { at: x0 + k * (pw + pg) + pw / 2, py + ph / 2; anchor: center; size: 11.5 * u; weight: 700; color: if(on_k > 0.5, onmint, ink); opacity: shown; family: "Space Grotesk" }
-            zone box chip.$k { from: x0 + k * (pw + pg), py; size: pw, ph; corner: ph / 2; cursor: pointer; label: "Preset"; active: shown > 0.5 }
+            let tsl = clamp(1 - abs(psel - k), 0, 1) * pa
+            text pick(k, "Flat", "Bass", "Vocal", "Treble", "Loud") { at: x0 + (k + 0.5) * pw, pcy; anchor: center; align: center; size: 12.5 * u; weight: 600; color: mix(ink, off, tsl); opacity: shown * dim * (62% + 38% * tsl + 30% * chip.$k.hover); family: "Space Grotesk" }
+            zone box chip.$k { from: x0 + k * pw, py; size: pw, ph; cursor: pointer; label: "Preset"; active: shown > 0.5 }
             on press chip.$k { emit preset(k) }
         }
     }
