@@ -887,6 +887,8 @@ scene Vitreus {
     fact bat_n = 0                 // connected devices that report a charge (the Power window lists them)
     fact bt_set_h = 0
     fact bt_trusted = false
+    fact wifi_hw = true                 // there is a Wi-Fi adapter at all (vitreus.luau asks NetworkManager); without one the Control Center's Wi-Fi tile is greyed out and does nothing
+    prop wifi_hw_k = 1 ~calm
     fact bt_discoverable = false
     text bt_rename = ""
     text bt_adapter = ""
@@ -1348,6 +1350,7 @@ scene Vitreus {
     on change osd_on while osd_on { fo: 1 after 140ms }
     on change osd_on while not osd_on { fo: 0 ~80ms }
     follow wifi_on = if(net.wifi, 1, 0)
+    follow wifi_hw_k = if(wifi_hw, 1, 0)
     follow wf_fill = if(net.wifi, 1, 0)
     follow bt_fill = if(bt.powered, 1, 0)
     follow dnd_fill = if(dnd_on, 1, 0)
@@ -3087,8 +3090,7 @@ scene Vitreus {
                     zone box renbtn { at: 234 * cu, 92 * cu; size: 56 * cu, 26 * cu; corner: 8 * cu; cursor: pointer }
                     on press renbtn { emit bt_rename_go }
                     text "Reconnect automatically" { at: floor(14 * cu + 0.5), floor(130 * cu + 0.5); anchor: left center; size: 12.5; color: ink; opacity: 90%; family: "Space Grotesk" }
-                    box { at: 250 * cu, 130 * cu; size: 34 * cu, 18 * cu; corner: 9 * cu; color: mix(ink, mint, bt_trust_t); opacity: 16% + 64% * bt_trust_t }
-                    ellipse { at: (241 + 18 * bt_trust_t) * cu, 130 * cu; radius: 6.5 * cu; color: mix(ink, onmint, bt_trust_t) }
+                    SettingsSwitch(267 * cu, 130 * cu, bt_trust_t, trustbtn.pressed, trustbtn.hover, mint)
                     zone box trustbtn { at: 138 * cu, 130 * cu; size: 248 * cu, 24 * cu; corner: 8 * cu; cursor: pointer; label: "Reconnect automatically" }
                     on press trustbtn { emit bt_trust_toggle }
                 }

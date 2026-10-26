@@ -213,9 +213,12 @@ part ControlsDrawer {
             arc { at: wf_kx, wf_gy; radius: 7.2 * cu; span: 92deg; width: 1.1 * cu; color: wf_dk; opacity: glyph_a * (0.7 * (1 - wifi_on)) }
             line { from: wf_kx - 5 * cu, wf_cy - 5 * cu; to: wf_kx + 5 * cu, wf_cy + 5 * cu; width: 1.4 * cu; color: wf_dk; opacity: glyph_a * (0.8 * (1 - wifi_on)) }
 
-            zone box wifi_tile_hit { at: tb1 - 21 * cu, tile_cy; size: 94 * cu, tiles_h * cu; cursor: pointer }
+            //  No Wi-Fi adapter (a desktop with only a cable): the tile is greyed out, says so, and does nothing.
+            box { at: tb1 - 21 * cu, tile_cy; size: 94 * cu, tiles_h * cu; corner: pr; color: deep; opacity: 60% * (1 - wifi_hw_k) }
+            text "No adapter" { at: floor(tb1 - 58 * cu + 0.5), floor(tile_cy + 19 * cu + 0.5); anchor: left center; size: 11.5; color: faint; opacity: 1 - wifi_hw_k; family: "Space Grotesk" }
+            zone box wifi_tile_hit { at: tb1 - 21 * cu, tile_cy; size: 94 * cu, tiles_h * cu; cursor: pointer; active: wifi_hw }
             on press wifi_tile_hit { panel_sub = if(panel_sub == netview, none, netview) }
-            zone box wifi_toggle_hit { at: wf_cx, wf_cy; size: wf_w + 8 * cu, 30 * cu; cursor: pointer }
+            zone box wifi_toggle_hit { at: wf_cx, wf_cy; size: wf_w + 8 * cu, 30 * cu; cursor: pointer; active: wifi_hw }
             //  Press: squish, ring from the finger. Hold: the pill becomes a signal meter. Release flips the radio unless it was a hold.
             on press wifi_toggle_hit { wf_press: 1; wf_rx = (pointer.x - tx.pnl); wf_ry = (pointer.y - ty.att); wf_rip: 0 ~0ms; wf_rip: 1 ~700ms after 40ms }
             on hold wifi_toggle_hit for 450ms { wf_held = true; wf_hold: 1 }
@@ -519,8 +522,10 @@ part ControlsDrawer {
             text bt_adapter { at: floor(pcx - 134 * cu + 0.5), floor(ex2_top + 56 * cu + 0.5); anchor: left center; size: 13; weight: 600; width: 120 * cu; lines: 1; color: ink; family: "Space Grotesk"; show: bt.powered }
             text bt_adapter_addr { at: floor(pcx - 134 * cu + 0.5), floor(ex2_top + 71 * cu + 0.5); anchor: left center; size: 10.5; color: faint; family: "Space Grotesk"; show: bt.powered }
             text "Discoverable" { at: floor(pcx + 96 * cu + 0.5), floor(ex2_top + 63 * cu + 0.5); anchor: right center; align: right; size: 12; color: if(bt_discoverable, mint, faint); family: "Space Grotesk"; show: bt.powered }
-            box { at: pcx + 117 * cu, ex2_top + 63 * cu; size: 34 * cu, 18 * cu; corner: 9 * cu; color: mix(ink, mint, bt_disc_t); opacity: 16% + 64% * bt_disc_t; show: bt.powered }
-            ellipse { at: pcx + (108 + 18 * bt_disc_t) * cu, ex2_top + 63 * cu; radius: 6.5 * cu; color: mix(ink, onmint, bt_disc_t); show: bt.powered }
+            group {
+                show: bt.powered
+                SettingsSwitch(pcx + 134 * cu, ex2_top + 63 * cu, bt_disc_t, bt_disc_hit.pressed, bt_disc_hit.hover, mint)
+            }
             box { at: pcx, ex2_top + 86 * cu; size: 276 * cu, 1 * cu; color: ink; opacity: 8% }
             column bt_list_col ~quick {
                 at: floor(pcx - 138 * cu + 0.5), floor(ex2_top + 94 * cu + 0.5)

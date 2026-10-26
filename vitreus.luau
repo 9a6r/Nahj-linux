@@ -1568,6 +1568,23 @@ wf_details = function()
     end)
 end
 
+-- Whether this machine has a Wi-Fi adapter at all (a desktop with only a cable does not): the Control Center's Wi-Fi tile is greyed out without one. Asked of NetworkManager now and every
+-- half minute (a USB adapter can be plugged in); if it does not answer, the tile is left as it was.
+do
+    local function wifi_hw_check()
+        run("nmcli", { "-t", "-f", "DEVICE,TYPE", "device" }, function(out, code)
+            if code ~= 0 or type(out) ~= "string" or out == "" then return end
+            local has = false
+            for line in out:gmatch("[^\n]+") do
+                if nm_fields(line)[2] == "wifi" then has = true break end
+            end
+            if fact.wifi_hw ~= has then fact.wifi_hw = has end
+        end)
+    end
+    wifi_hw_check()
+    every(30000, wifi_hw_check)
+end
+
 on("fact:wifi_open_row", function(i)
     local r = i >= 0 and WF.rows[i + 1] or nil
     WF.open = r and r.ssid or nil
