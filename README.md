@@ -186,6 +186,11 @@ To use it, run `./install.sh` once (it links `vitreus-feedfetch`) and turn it on
 appears on the add-on pill. Feeds and places are typed (the feed manager narrows the popular feeds as you write, and finds the feed of an address or `r/subreddit`; the place
 search looks places up), or pasted from the clipboard.
 
+**TV Remote** (`addons/tvremote/`) is a panel add-on that controls a Google TV or Android TV over the network: a d-pad, back, home, settings, volume, mute, play, a few streaming apps, power, and a field whose text is typed into the TV.
+It finds the TVs on the network by itself (mDNS), and the name in its header opens a switcher for several of them (up to five, each paired once: the TV shows a six-character code, which is typed into the panel's field).
+It speaks the protocol of the Google TV phone app through `bin/vitreus-tvremote` (Python standard library and `openssl`; `install.sh` links it into `~/.local/bin`). The certificate the TVs remember as paired is kept in the add-on's data
+folder (`~/.local/share/pleamar/tvremote/`, mode 600): anyone who can read it can control those TVs. The panel scales with its size. Written with the help of an AI assistant (Claude).
+
 **Add-ons that frame wallpapers.** An add-on can declare `[wallpaper] frames = true` in its `addon.toml` (see `addons/_template_drawer/addon.toml`). Whenever Vitreus sets a wallpaper (a pick, Random, the slideshow, the picker; not a card's
 quick try) it first asks that add-on, the first one that is on, for the picture awww should show, and keeps the old wallpaper on screen while it waits (30 s, again from each `wph_busy`). The shell stays the only one that calls awww, and it
 remembers which wallpaper a made picture came from, so Iris and the gallery always read the real wallpaper, never the frame. The messages (`logic/wallpaper_hook.luau`): the shell sends `text wph_path`, `text wph_src` and `emit wph_frame <n>`
