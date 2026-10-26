@@ -5,6 +5,9 @@
 -- scene afresh (after the pull, `install.sh --refresh` sets up what the new version needs). ssh is told not to ask for anything, so a fetch that needs a passphrase fails instead of hanging.
 return function(key, with_dirs)
     local A = { busy = false, dir = nil, src = nil, shell_behind = 0, pl_behind = 0 }
+    -- A reload of this logic (an update rewrites it) leaves the scene's facts as they were: a check cut off in the middle would stay "Checking…" for good.
+    fact.about_busy = false
+    text.about_msg = ""
     -- pleamar's source folders that matter to this shell: pleamar itself, and pleamar-wm when it is installed (a pleamar-alone install has no pleamar-wm, and nothing to tell about it). (The
     -- installer, `pleamar-update`, also keeps Marea's source, another shell: nothing of Vitreus's to be told about.)
     local RESTART = [[
