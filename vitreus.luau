@@ -2173,10 +2173,12 @@ local nt_now = nil           -- the notification on screen: { id, keys }
 local nt_queue = {}
 local nt_seen = {}
 local nt_first = true
+local nt_boot = os.time()   -- the notifications that turn up in the first seconds are the backlog from before login: never announced
 -- The drawer's own state ("volume", "notif" or "none", in `nt_queue.osd`), mirrored into the scene's `osd_on`. It is not a value of `panel`,
 -- so it shows beside Settings, the search, the desk... and never takes the place of a panel the user opened. (Kept on `nt_queue`, not in
 -- locals of their own: a chunk may only have 200 of those, and this file is at the limit.)
 nt_queue.osd = "none"
+fact.osd_on = false         -- a reload of the logic leaves the scene's drawer out with nothing in it to close it: start from shut
 function nt_queue.set_osd(name)
     nt_queue.osd = name
     fact.osd_on = name ~= "none"
@@ -2499,7 +2501,10 @@ sys.watch("notifications", function(list)
         local n = list[i]
         if not nt_seen[n.id] then
             nt_seen[n.id] = true
-            if not nt_first then
+            local crit = tostring(n.urgency) == "critical" or tostring(n.urgency) == "2"
+            if (nt_first or os.time() - nt_boot < 10) and not crit then
+                pcall(sys.call, "notifications.dismiss", n.id)   -- already there at login (or replayed just after): not announced, and gone for good; only a critical one (the update notice) survives it
+            else
                 local d = NTR.decide(n)
                 n._d = d
                 if d.record then nt_add(n) end
@@ -2517,6 +2522,7 @@ end)
 
 on("nt_close", function()
     finish_notification()
+    nt_queue.set_osd("none")   -- the cross always closes, even when the logic no longer knows what is on screen
     after(400, pump)
 end)
 on("nt_act", function(i)
