@@ -1,0 +1,410 @@
+#!/usr/bin/env python3
+"""Equalizer helper for the Vitreus Equalizer add-on.
+
+Runs PipeWire's own filter-chain (ten biquad bands) as a child `pipewire -c` process, so the EQ is a virtual
+sink called "Vitreus EQ" and goes away with the process. While it is on, the default output is that sink and
+its sound is passed on to the output that was the default; turning it off (or this helper dying) puts the
+default back. Band changes are sent to the running filter, so nothing restarts and nothing clicks.
+Python standard library, pipewire, pw-cli, pw-dump and pactl; the spectrum also wants parec and numpy (without
+them the panel just has no spectrum).
+
+The panel talks to it in JSON lines: one command per line on stdin, one event per line on stdout.
+  in : {"cmd":"apply","on":true,"gains":[0,0,0,0,0,0,0,0,0,0]}   {"cmd":"spectrum","on":true}   {"cmd":"stop"}
+       {"cmd":"claim"}   (make the EQ the default output again after the output was changed)
+  out: {"ev":"state","on":true,"active":true,"target":"alsa_output...","error":""}   (active: the EQ is the default output, not bypassed)
+       {"ev":"spec","b":[ten levels 0..1],"p":[their peaks]}   (only while the spectrum is on and something is playing)
+argv[1] is the add-on's data folder, where the generated chain.conf is kept.
+"""
+import ctypes
+import json
+import math
+import os
+import signal
+import subprocess
+import sys
+import threading
+import time
+
+try:
+    import numpy as np
+except Exception:
+    np = None
+
+DATA = sys.argv[1] if len(sys.argv) > 1 else os.path.expanduser("~/.local/share/pleamar/vitreus-eq")
+CONF = os.path.join(DATA, "chain.conf")
+SINK = "vitreus_eq"
+
+# (type, Hz, Q): the ends are shelves, the eight in between bells about an octave wide.
+BANDS = [("bq_lowshelf", 32, 0.7), ("bq_peaking", 64, 1.41), ("bq_peaking", 125, 1.41), ("bq_peaking", 250, 1.41),
+         ("bq_peaking", 500, 1.41), ("bq_peaking", 1000, 1.41), ("bq_peaking", 2000, 1.41), ("bq_peaking", 4000, 1.41),
+         ("bq_peaking", 8000, 1.41), ("bq_highshelf", 16000, 0.7)]
+MAXDB = 12.0
+
+lock = threading.Lock()
+want_on = False
+gains = [0.0] * len(BANDS)
+chain = None            # the child pipewire process
+target = ""             # the output it plays into
+node_id = None
+error = ""
+claim = False           # make the EQ the default output the next time there is a chance (switched on, or restored at start)
+
+
+def emit(**kw):
+    sys.stdout.write(json.dumps(dict(ev="state", **kw)) + "\n")
+    sys.stdout.flush()
+
+
+def out(*args):
+    try:
+        return subprocess.run(args, capture_output=True, text=True, timeout=5).stdout
+    except Exception:
+        return ""
+
+
+def default_sink():
+    return out("pactl", "get-default-sink").strip()
+
+
+def set_default(name):
+    subprocess.run(["pactl", "set-default-sink", name], capture_output=True, timeout=5)
+
+
+def sink_exists(name):
+    return any(line.split("\t")[1:2] == [name] for line in out("pactl", "list", "short", "sinks").splitlines())
+
+
+def preamp(gs):
+    """Take off as much as the loudest boost adds, so a boost does not clip."""
+    return 10 ** (-max(0.0, max(gs)) / 20)
+
+
+def write_conf(tgt):
+    nodes = ['{ type = builtin name = pre label = linear control = { "Mult" = %.5f "Add" = 0.0 } }' % preamp(gains)]
+    links = []
+    prev = "pre"
+    for i, (kind, hz, q) in enumerate(BANDS):
+        nodes.append('{ type = builtin name = eq%d label = %s control = { "Freq" = %d "Q" = %.2f "Gain" = %.2f } }' % (i, kind, hz, q, gains[i]))
+        links.append('{ output = "%s:Out" input = "eq%d:In" }' % (prev, i))
+        prev = "eq%d" % i
+    text = """context.properties = { log.level = 1 }
+context.spa-libs = { audio.convert.* = audioconvert/libspa-audioconvert  support.* = support/libspa-support }
+context.modules = [
+  { name = libpipewire-module-rt args = { nice.level = -11 } flags = [ ifexists nofail ] }
+  { name = libpipewire-module-protocol-native }
+  { name = libpipewire-module-client-node }
+  { name = libpipewire-module-adapter }
+  { name = libpipewire-module-metadata }
+  { name = libpipewire-module-filter-chain
+    args = {
+      node.description = "Vitreus EQ"
+      media.name = "Vitreus EQ"
+      filter.graph = {
+        nodes = [ %s ]
+        links = [ %s ]
+        inputs = [ "pre:In" ]
+        outputs = [ "%s:Out" ]
+      }
+      audio.channels = 2
+      audio.position = [ FL FR ]
+      capture.props = { node.name = "%s" media.class = Audio/Sink priority.session = 10 }
+      playback.props = { node.name = "%s_out" node.passive = true target.object = "%s" stream.dont-remix = true }
+    } }
+]
+""" % ("\n          ".join(nodes), " ".join(links), prev, SINK, SINK, tgt)
+    os.makedirs(DATA, exist_ok=True)
+    with open(CONF, "w") as f:
+        f.write(text)
+
+
+def die_with_parent():
+    try:
+        ctypes.CDLL("libc.so.6").prctl(1, signal.SIGTERM)       # PR_SET_PDEATHSIG
+    except Exception:
+        pass
+
+
+def find_node():
+    global node_id
+    try:
+        for o in json.loads(out("pw-dump") or "[]"):
+            if o.get("info", {}).get("props", {}).get("node.name") == SINK:
+                node_id = o["id"]
+                return node_id
+    except Exception:
+        pass
+    node_id = None
+    return None
+
+
+def push_params():
+    """Send every band to the running filter: the filter recomputes its coefficients, no restart."""
+    for _ in range(2):
+        if node_id is None and find_node() is None:
+            return False
+        params = ['"pre:Mult"', "%.5f" % preamp(gains)]
+        for i, g in enumerate(gains):
+            params += ['"eq%d:Gain"' % i, "%.2f" % g]
+        r = subprocess.run(["pw-cli", "s", str(node_id), "Props", "{ params = [ %s ] }" % " ".join(params)], capture_output=True, text=True, timeout=5)
+        if r.returncode == 0 and "rror" not in r.stderr + r.stdout:
+            return True
+        find_node()
+    return False
+
+
+def start_chain(tgt):
+    global chain, target, error
+    write_conf(tgt)
+    chain = subprocess.Popen(["pipewire", "-c", CONF], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, preexec_fn=die_with_parent)
+    target = tgt
+    for _ in range(40):
+        if chain.poll() is not None:
+            lines = chain.stderr.read().decode(errors="replace").strip().splitlines()
+            error = lines[-1][:120] if lines else "the filter stopped"
+            chain = None
+            return False
+        if sink_exists(SINK) and find_node() is not None:
+            return True
+        time.sleep(0.1)
+    stop_chain(None)
+    error = "the EQ sink did not appear"
+    return False
+
+
+def stop_chain(restore):
+    """`restore`: the output to make the default again (None: leave the default alone)."""
+    global chain, node_id
+    if restore and default_sink() == SINK and sink_exists(restore):
+        set_default(restore)
+    if chain is not None:
+        chain.terminate()
+        try:
+            chain.wait(timeout=3)
+        except Exception:
+            chain.kill()
+    chain = None
+    node_id = None
+
+
+def real_default():
+    d = default_sink()
+    return d if d and d != SINK else ""
+
+
+def reconcile():
+    """Make what runs match what is wanted. Called on every command and every few seconds.
+    The EQ takes over as the default output when it is switched on (`claim`), and then lets go: if the output is
+    changed afterwards (the shell's output picker) that is the user's choice, the EQ is bypassed, and the filter
+    is just pointed at the output that was picked, so choosing "Vitreus EQ" again goes through it."""
+    global target, error, claim
+    with lock:
+        if want_on:
+            if chain is not None and chain.poll() is not None:
+                stop_chain(target)
+                error = "the filter stopped"
+            d = default_sink()
+            if chain is None:
+                tgt = real_default() or target
+                if not tgt:
+                    error = "no output to play into"
+                elif start_chain(tgt):
+                    error = ""
+                    push_params()
+                    if claim:
+                        set_default(SINK)
+                        claim = False
+            elif claim:
+                if d != SINK:
+                    set_default(SINK)
+                claim = False
+            elif d and d != SINK and d != target:
+                stop_chain(None)                                   # pointed at the output that was picked
+                if start_chain(d):
+                    push_params()
+            elif not sink_exists(target):
+                stop_chain(None)                                   # the output went away (a headset switched off): the next round starts again on the default
+        else:
+            claim = False
+            if chain is not None:
+                stop_chain(target)
+            error = ""
+        up = bool(want_on and chain is not None)
+        emit(on=up, active=bool(up and default_sink() == SINK), target=target if chain is not None else "", error=error)
+
+
+# ── the spectrum ──
+# What is heard, as ten levels: the sound is read from the monitor of the EQ sink (what the apps play, before the filter) or, with the EQ off, of the default output,
+# cut into 2048-sample windows, and each band's energy is the sum of its bins, from half an octave below its centre to half an octave above. With the EQ on the band's gain
+# is added, so the bars show what comes out and not what goes in. Only runs while the panel is open (`spectrum` on): reading a monitor keeps the output awake.
+RATE = 48000
+WIN = 2048
+HOP = 1024
+DB_LO, DB_HI = -78.0, -8.0                 # dB of full scale mapped to 0..1
+spec_on = False
+
+
+def band_edges():
+    edges = []
+    for i, (_, hz, _q) in enumerate(BANDS):
+        lo = 20 if i == 0 else hz / math.sqrt(2)
+        hi = 20000 if i == len(BANDS) - 1 else hz * math.sqrt(2)
+        edges.append((lo, hi))
+    return edges
+
+
+def analyse(window, edges, extra_db):
+    """window: WIN float samples -> ten levels in 0..1 (extra_db: what the EQ adds to each band, in dB)."""
+    win = np.hanning(len(window))
+    mag = np.abs(np.fft.rfft(window * win)) / (len(window) / 4)         # a full-scale sine reads 1 in its bin
+    pw = mag * mag
+    freqs = np.fft.rfftfreq(len(window), 1.0 / RATE)
+    out = []
+    for (lo, hi), add in zip(edges, extra_db):
+        sel = (freqs >= lo) & (freqs < hi)
+        e = float(pw[sel].sum()) if sel.any() else 0.0
+        db = 10 * math.log10(e + 1e-12) + add
+        out.append(max(0.0, min(1.0, (db - DB_LO) / (DB_HI - DB_LO))))
+    return out
+
+
+def spectrum_source():
+    """(source to read, whether it is read before the EQ). VITREUS_EQ_SOURCE overrides it (for testing)."""
+    forced = os.environ.get("VITREUS_EQ_SOURCE")
+    if forced:
+        return forced, False
+    d = default_sink()
+    if d == SINK or (chain is not None and sink_exists(SINK)):
+        return SINK + ".monitor", True
+    return (d + ".monitor", False) if d else ("", False)
+
+
+def spectrum_loop():
+    edges = band_edges()
+    proc = None
+    cur = ("", False)
+    last_check = 0.0
+    ring = np.zeros(WIN, dtype=np.float32)
+    bars = [0.0] * len(BANDS)
+    peaks = [0.0] * len(BANDS)
+    hold = [0] * len(BANDS)
+    quiet_sent = True
+    n = 0
+
+    def drop():
+        nonlocal proc
+        if proc is not None:
+            try:
+                proc.kill()
+                proc.wait(timeout=2)
+            except Exception:
+                pass
+        proc = None
+
+    while True:
+        if not spec_on:
+            drop()
+            time.sleep(0.2)
+            continue
+        now = time.time()
+        if proc is None or proc.poll() is not None or now - last_check > 1.5:
+            last_check = now
+            src = spectrum_source()
+            if src[0] and (proc is None or proc.poll() is not None or src != cur):
+                drop()
+                cur = src
+                try:
+                    proc = subprocess.Popen(["parec", "-d", src[0], "--format=float32le", "--rate=%d" % RATE, "--channels=1", "--latency-msec=25",
+                                             "--client-name=vitreus-eq-spectrum"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, preexec_fn=die_with_parent)
+                except Exception:
+                    proc = None
+            if proc is None:
+                time.sleep(1)
+                continue
+        data = proc.stdout.read(HOP * 4)
+        if len(data) < HOP * 4:
+            drop()
+            time.sleep(0.3)
+            continue
+        ring = np.concatenate((ring[HOP:], np.frombuffer(data, dtype=np.float32)))
+        n += 1
+        if n % 2:                                                       # about 23 windows a second
+            continue
+        extra = [0.0] * len(BANDS)
+        if cur[1]:
+            pre = 20 * math.log10(preamp(gains))
+            extra = [g + pre for g in gains]
+        new = analyse(ring, edges, extra)
+        for i, v in enumerate(new):
+            bars[i] = v if v > bars[i] else bars[i] * 0.8 + v * 0.2
+            if v >= peaks[i]:
+                peaks[i], hold[i] = v, 9
+            elif hold[i] > 0:
+                hold[i] -= 1
+            else:
+                peaks[i] = max(bars[i], peaks[i] - 0.025)
+        quiet = max(bars) < 0.01 and max(peaks) < 0.01
+        if quiet and quiet_sent:
+            continue
+        quiet_sent = quiet
+        sys.stdout.write(json.dumps({"ev": "spec", "b": [round(v, 3) for v in bars], "p": [round(v, 3) for v in peaks]}) + "\n")
+        sys.stdout.flush()
+
+
+def shutdown(*_):
+    with lock:
+        stop_chain(target)
+    sys.exit(0)
+
+
+def main():
+    global want_on, gains, spec_on, claim
+    signal.signal(signal.SIGTERM, shutdown)
+    signal.signal(signal.SIGHUP, shutdown)
+
+    def watch():
+        while True:
+            time.sleep(3)
+            try:
+                reconcile()
+            except Exception:
+                pass
+
+    threading.Thread(target=watch, daemon=True).start()
+    if np is not None:
+        threading.Thread(target=spectrum_loop, daemon=True).start()
+    emit(on=False, active=False, target="", error="")
+    for line in sys.stdin:
+        try:
+            m = json.loads(line)
+        except Exception:
+            continue
+        cmd = m.get("cmd")
+        if cmd == "stop":
+            break
+        if cmd == "spectrum":
+            spec_on = bool(m.get("on"))
+        if cmd == "apply":
+            gs = m.get("gains")
+            if isinstance(gs, list) and len(gs) == len(BANDS):
+                new = [max(-MAXDB, min(MAXDB, float(g))) for g in gs]
+                with lock:
+                    gains = new
+                    live = want_on and chain is not None
+                    if live:
+                        push_params()
+            with lock:
+                changed = bool(m.get("on")) != want_on
+                want_on = bool(m.get("on"))
+                if changed and want_on:
+                    claim = True
+            if changed:
+                reconcile()
+        if cmd == "claim":
+            with lock:
+                claim = True
+            reconcile()
+    shutdown()
+
+
+if __name__ == "__main__":
+    main()

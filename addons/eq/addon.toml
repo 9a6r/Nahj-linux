@@ -1,0 +1,15 @@
+# A system-wide equalizer in a panel out of the add-on pill: ten bands you drag, presets, and one switch. It is PipeWire's own filter-chain (bin/vitreus-eq, Python standard library
+# and pipewire / pw-cli / pw-dump / pactl only; install.sh links it into ~/.local/bin) run as a virtual output called "Vitreus EQ". While it is on, that is the default output and
+# its sound goes on to the output that was the default; switching it off (or closing Vitreus) puts the default back. Band changes reach the running filter, so nothing restarts.
+# The bands and the switch are kept in ~/.local/share/pleamar/eq/state.json.
+
+name        = "Equalizer"
+description = "Ten-band system equalizer with presets"
+author      = "natepayn3"
+version     = "0.1"
+scene       = "eq.plm"
+icon        = "icon.svg"
+
+[drawer]
+width  = 380
+height = 420

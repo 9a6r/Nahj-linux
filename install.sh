@@ -243,6 +243,7 @@ if [ "$action" = uninstall ]; then
     if [ -L "$HOME/.local/bin/vitreus-addons" ]; then run rm -f "$HOME/.local/bin/vitreus-addons"; fi
     if [ -L "$HOME/.local/bin/vitreus-feedfetch" ]; then run rm -f "$HOME/.local/bin/vitreus-feedfetch"; fi
     if [ -L "$HOME/.local/bin/vitreus-tvremote" ]; then run rm -f "$HOME/.local/bin/vitreus-tvremote"; fi
+    if [ -L "$HOME/.local/bin/vitreus-eq" ]; then run rm -f "$HOME/.local/bin/vitreus-eq"; fi
     if [ -L "$HOME/.local/bin/vitreus-report" ]; then run rm -f "$HOME/.local/bin/vitreus-report"; fi
     if [ -f "$HOME/.local/bin/vitreus-inhibit" ]; then run rm -f "$HOME/.local/bin/vitreus-inhibit"; fi
     if [ -L "$conf/hypr/hypr_vitreus.lua" ]; then run rm -f "$conf/hypr/hypr_vitreus.lua"; fi
@@ -694,6 +695,7 @@ if [ -x "$dest/bin/vitreus-clipimg" ] || $dry; then
     [ -x "$dest/bin/vitreus-addons" ] && run ln -sf "$dest/bin/vitreus-addons" "$HOME/.local/bin/vitreus-addons"       # and the add-ons in ~/.config/pleamar/vitreus-addons (never touched here)
     [ -x "$dest/bin/vitreus-feedfetch" ] && run ln -sf "$dest/bin/vitreus-feedfetch" "$HOME/.local/bin/vitreus-feedfetch"       # the News & Weather add-on (addons/news-weather) reads its feeds through it
     [ -x "$dest/bin/vitreus-tvremote" ] && run ln -sf "$dest/bin/vitreus-tvremote" "$HOME/.local/bin/vitreus-tvremote"       # the TV Remote add-on (addons/tvremote) talks to the TV through it
+    [ -x "$dest/bin/vitreus-eq" ] && run ln -sf "$dest/bin/vitreus-eq" "$HOME/.local/bin/vitreus-eq"       # the Equalizer add-on (addons/eq) filters the sound through it
     # For a problem report that does not need the shell to be running: `vitreus-report` writes one text file to read and send.
     [ -x "$dest/bin/vitreus-report" ] && run ln -sf "$dest/bin/vitreus-report" "$HOME/.local/bin/vitreus-report"
     # Caffeine's idle inhibitor (a few lines of C: the compositor's own idle timer, pleamar-wm's, only listens to a Wayland client). Built here.
