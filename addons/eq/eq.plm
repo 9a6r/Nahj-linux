@@ -88,7 +88,7 @@ scene Equalizer {
     fact held = -1
     shader glint = file "glint.wgsl"                   // the band of light that crosses the glass now and then
     prop sw = 0 ~1300ms                                // how far across it is (0 to 1)
-    every 9s while shown > 0.5 { sw: 1 ~1300ms; sw: 0 ~0ms after 1700ms }
+    every 3500ms while shown > 0.5 { sw: 1 ~1300ms; sw: 0 ~0ms after 1700ms }
     fact touched = 0                                  // a band has been dragged this session: the hint goes
     fact bend = 1                                     // 1: the glass bends what is behind it; 0: it only blurs (cheaper): `pleamar --say equalizer "fact bend 0"`
     event eq_toggle ->
@@ -227,9 +227,9 @@ scene Equalizer {
             box { at: x0 + colw * 8.5 + if(clamp((gs.8 + 12) / 24 * bh + bh * (0.1 * ls.8 + 0.08 * fl.8), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.8 + 12) / 24 * bh + bh * (0.1 * ls.8 + 0.08 * fl.8), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.8 + 12) / 24 * bh + bh * (0.1 * ls.8 + 0.08 * fl.8), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
             box { at: x0 + colw * 9.5 + if(clamp((gs.9 + 12) / 24 * bh + bh * (0.1 * ls.9 + 0.08 * fl.9), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.9 + 12) / 24 * bh + bh * (0.1 * ls.9 + 0.08 * fl.9), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.9 + 12) / 24 * bh + bh * (0.1 * ls.9 + 0.08 * fl.9), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
         }
-        //  Now and then a band of light crosses the glass (glint.wgsl): a copy of its silhouette in a light colour, of which the shader keeps a moving diagonal band. Hidden between crossings.
+        //  Every few seconds a band of light crosses the glass (glint.wgsl): a copy of its silhouette in a light colour, of which the shader keeps a moving diagonal band. Hidden between crossings.
         group {
-            shader: glint, sw, 0.6
+            shader: glint, sw, 0.9
             show: sw > 0.002
             body {
                 color: minthi
