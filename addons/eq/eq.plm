@@ -169,9 +169,9 @@ scene Equalizer {
         let con = eq_on
         let chot = if(con > 0.5 or card_z.hover > 0.5, 1, 0)
         box { from: x0, cy0; size: wd, ch0; corner: 12 * u; color: mint; opacity: 5% * card_z.hover * shown }
-        PFill(tx: x0, ty: cy0, tw: wd, th: ch0, sx: x0 + wd - 26 * u, sy: cy0 + ch0 / 2, on: con, av: shown)
+        PFill(tx: x0, ty: cy0, tw: wd, th: ch0, sx: x0 + wd - 35 * u, sy: cy0 + ch0 / 2, on: con, av: shown)
         PRound(x: x0 + 2.6 * u, y: cy0 + 2.6 * u, w: wd - 5.2 * u, h: ch0 - 5.2 * u, r: 9.7 * u, s: 1, wd: 1.7 * u, c: mix(faint, mint, con), a: (0.5 + 0.45 * con) * shown, f: chot * fr)
-        PSwitch(sx: x0 + wd - 26 * u, sy: cy0 + ch0 / 2, on: con, av: shown, s: 7, f: chot * fr)
+        PSwitch(sx: x0 + wd - 35 * u, sy: cy0 + ch0 / 2, on: con, av: shown, s: 7, f: chot * fr)
         //  the icon: three faders
         repeat k in 0..3 {
             PLn(ax: x0 + (24 + k * 8) * u, ay: cy0 + ch0 / 2 - 9 * u, bx: x0 + (24 + k * 8) * u, by: cy0 + ch0 / 2 + 9 * u, s: 20 + k, wd: 1.8 * u, c: mix(faint, mint, con), a: shown, f: chot * fr)
