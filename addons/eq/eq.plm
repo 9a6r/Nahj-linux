@@ -11,7 +11,7 @@ scene Equalizer {
 
     permissions {
         services: "files", "files.write"
-        run: "vitreus-eq"
+        run: "vitreus-eq", "pleamar"
     }
 
     fact pal_ink_r = 0.9608
@@ -86,6 +86,11 @@ scene Equalizer {
     fact cur = 0
     text status = "Off"
     fact held = -1
+    shader glint = file "glint.wgsl"                   // the band of light that crosses the glass now and then
+    prop sw = 0 ~1300ms                                // how far across it is (0 to 1)
+    every 9s while shown > 0.5 { sw: 1 ~1300ms; sw: 0 ~0ms after 1700ms }
+    fact touched = 0                                  // a band has been dragged this session: the hint goes
+    fact bend = 1                                     // 1: the glass bends what is behind it; 0: it only blurs (cheaper): `pleamar --say equalizer "fact bend 0"`
     event eq_toggle ->
     event preset ->
     event bset ->
@@ -104,6 +109,8 @@ scene Equalizer {
         prop ls.$i = 0 ~90ms
         prop ps.$i = 0 ~140ms
         prop fl.$i = 0 ~160ms
+        prop gs.$i = 0 ~140ms
+        follow gs.$i = g.$i
         follow ls.$i = lv.$i
         follow ps.$i = pk.$i
     }
@@ -182,7 +189,7 @@ scene Equalizer {
         let ph = 28 * u
         repeat k in 0..5 {
             let on_k = if(cur == k, 1, 0)
-            box { from: x0 + k * (pw + pg), py; size: pw, ph; corner: ph / 2; color: if(on_k > 0.5, mint, ink); opacity: (if(on_k > 0.5, 85%, 10% + 8% * chip.$k.hover)) * shown * dim }
+            box { from: x0 + k * (pw + pg), py; size: pw, ph; corner: ph / 2; color: if(on_k > 0.5, mint, ink); glass: 100%; lens: bend > 0.5; refraction: 60%; frost: 0%; tint: if(on_k > 0.5, 62%, 10% + 8% * chip.$k.hover); highlight: 80%; opacity: shown * dim }
             text pick(k, "Flat", "Bass", "Vocal", "Treble", "Loud") { at: x0 + k * (pw + pg) + pw / 2, py + ph / 2; anchor: center; size: 11.5 * u; weight: 700; color: if(on_k > 0.5, onmint, ink); opacity: shown; family: "Space Grotesk" }
             zone box chip.$k { from: x0 + k * (pw + pg), py; size: pw, ph; corner: ph / 2; cursor: pointer; label: "Preset"; active: shown > 0.5 }
             on press chip.$k { emit preset(k) }
@@ -194,72 +201,72 @@ scene Equalizer {
         move: 0, (1 - en3) * 12
 
         //  ── the ten bands ──
-        //  A glow behind the bands that breathes with the whole sound.
-        box { at: x0 + wd / 2, bym; size: wd + 16 * u, bh + 10 * u; corner: 16 * u; color: mint; opacity: (3% + 11% * energy) * shown * ea }
-        //  The spectrum: sixteen little lights up each band, lit from the bottom to the level, the top ones warm, a peak that falls slowly. With a glow so it reads as light.
+        //  One piece of glass, drawn as the shell's audio visualiser draws the screen's edge (pages/bar_waves_*.plm): the same tint, rim, light and shadow, a floor and ten wide rounded columns standing on it,
+        //  melted into each other (`blend`). Its silhouette IS the equalizer curve: each column is as tall as its band's gain (12 dB at the top of the area, -12 at the floor), and the live sound ripples on
+        //  top of it. Drag the glass to shape it. A column with no length is moved off the surface, as there.
+        body {
+            color: mix(tint, mintlo, 0.2 * ea)
+            glass: 100%
+            opacity: shown
+            lens: bend > 0.5
+            frost: 0%
+            refraction: 100%
+            dispersion: 40%
+            rim: 12%
+            shine: pointer
+            shadow: 0, 3 * u, 12 * u, 22%, deep
+            box { at: x0 + wd / 2, by1 - 1 * u; size: wd, 4 * u; corner: 2 * u; blend: 14 * u }
+            box { at: x0 + colw * 0.5 + if(clamp((gs.0 + 12) / 24 * bh + bh * (0.1 * ls.0 + 0.08 * fl.0), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.0 + 12) / 24 * bh + bh * (0.1 * ls.0 + 0.08 * fl.0), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.0 + 12) / 24 * bh + bh * (0.1 * ls.0 + 0.08 * fl.0), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 1.5 + if(clamp((gs.1 + 12) / 24 * bh + bh * (0.1 * ls.1 + 0.08 * fl.1), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.1 + 12) / 24 * bh + bh * (0.1 * ls.1 + 0.08 * fl.1), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.1 + 12) / 24 * bh + bh * (0.1 * ls.1 + 0.08 * fl.1), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 2.5 + if(clamp((gs.2 + 12) / 24 * bh + bh * (0.1 * ls.2 + 0.08 * fl.2), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.2 + 12) / 24 * bh + bh * (0.1 * ls.2 + 0.08 * fl.2), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.2 + 12) / 24 * bh + bh * (0.1 * ls.2 + 0.08 * fl.2), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 3.5 + if(clamp((gs.3 + 12) / 24 * bh + bh * (0.1 * ls.3 + 0.08 * fl.3), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.3 + 12) / 24 * bh + bh * (0.1 * ls.3 + 0.08 * fl.3), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.3 + 12) / 24 * bh + bh * (0.1 * ls.3 + 0.08 * fl.3), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 4.5 + if(clamp((gs.4 + 12) / 24 * bh + bh * (0.1 * ls.4 + 0.08 * fl.4), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.4 + 12) / 24 * bh + bh * (0.1 * ls.4 + 0.08 * fl.4), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.4 + 12) / 24 * bh + bh * (0.1 * ls.4 + 0.08 * fl.4), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 5.5 + if(clamp((gs.5 + 12) / 24 * bh + bh * (0.1 * ls.5 + 0.08 * fl.5), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.5 + 12) / 24 * bh + bh * (0.1 * ls.5 + 0.08 * fl.5), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.5 + 12) / 24 * bh + bh * (0.1 * ls.5 + 0.08 * fl.5), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 6.5 + if(clamp((gs.6 + 12) / 24 * bh + bh * (0.1 * ls.6 + 0.08 * fl.6), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.6 + 12) / 24 * bh + bh * (0.1 * ls.6 + 0.08 * fl.6), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.6 + 12) / 24 * bh + bh * (0.1 * ls.6 + 0.08 * fl.6), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 7.5 + if(clamp((gs.7 + 12) / 24 * bh + bh * (0.1 * ls.7 + 0.08 * fl.7), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.7 + 12) / 24 * bh + bh * (0.1 * ls.7 + 0.08 * fl.7), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.7 + 12) / 24 * bh + bh * (0.1 * ls.7 + 0.08 * fl.7), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 8.5 + if(clamp((gs.8 + 12) / 24 * bh + bh * (0.1 * ls.8 + 0.08 * fl.8), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.8 + 12) / 24 * bh + bh * (0.1 * ls.8 + 0.08 * fl.8), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.8 + 12) / 24 * bh + bh * (0.1 * ls.8 + 0.08 * fl.8), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 9.5 + if(clamp((gs.9 + 12) / 24 * bh + bh * (0.1 * ls.9 + 0.08 * fl.9), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.9 + 12) / 24 * bh + bh * (0.1 * ls.9 + 0.08 * fl.9), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.9 + 12) / 24 * bh + bh * (0.1 * ls.9 + 0.08 * fl.9), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+        }
+        //  Now and then a band of light crosses the glass (glint.wgsl): a copy of its silhouette in a light colour, of which the shader keeps a moving diagonal band. Hidden between crossings.
         group {
-            glow: 5, 60%
-            repeat i in 0..10 {
-                repeat k in 0..16 {
-                    box { at: x0 + colw * (i + 0.5), by1 - (k + 0.5) * bh / 16; size: colw * 0.62, bh / 16 * 0.6; corner: 1.5 * u; color: if(k > 12, alert, mix(mintlo, minthi, k / 12)); opacity: clamp(ls.$i * 16 - k, 0, 1) * 0.5 * shown }
-                }
-                box { at: x0 + colw * (i + 0.5), by1 - ps.$i * bh; size: colw * 0.62, 2 * u; corner: 1 * u; color: minthi; opacity: clamp(ps.$i * 25, 0, 1) * 0.9 * shown }
+            shader: glint, sw, 0.6
+            show: sw > 0.002
+            body {
+                color: minthi
+                opacity: shown
+            box { at: x0 + wd / 2, by1 - 1 * u; size: wd, 4 * u; corner: 2 * u; blend: 14 * u }
+            box { at: x0 + colw * 0.5 + if(clamp((gs.0 + 12) / 24 * bh + bh * (0.1 * ls.0 + 0.08 * fl.0), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.0 + 12) / 24 * bh + bh * (0.1 * ls.0 + 0.08 * fl.0), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.0 + 12) / 24 * bh + bh * (0.1 * ls.0 + 0.08 * fl.0), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 1.5 + if(clamp((gs.1 + 12) / 24 * bh + bh * (0.1 * ls.1 + 0.08 * fl.1), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.1 + 12) / 24 * bh + bh * (0.1 * ls.1 + 0.08 * fl.1), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.1 + 12) / 24 * bh + bh * (0.1 * ls.1 + 0.08 * fl.1), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 2.5 + if(clamp((gs.2 + 12) / 24 * bh + bh * (0.1 * ls.2 + 0.08 * fl.2), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.2 + 12) / 24 * bh + bh * (0.1 * ls.2 + 0.08 * fl.2), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.2 + 12) / 24 * bh + bh * (0.1 * ls.2 + 0.08 * fl.2), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 3.5 + if(clamp((gs.3 + 12) / 24 * bh + bh * (0.1 * ls.3 + 0.08 * fl.3), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.3 + 12) / 24 * bh + bh * (0.1 * ls.3 + 0.08 * fl.3), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.3 + 12) / 24 * bh + bh * (0.1 * ls.3 + 0.08 * fl.3), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 4.5 + if(clamp((gs.4 + 12) / 24 * bh + bh * (0.1 * ls.4 + 0.08 * fl.4), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.4 + 12) / 24 * bh + bh * (0.1 * ls.4 + 0.08 * fl.4), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.4 + 12) / 24 * bh + bh * (0.1 * ls.4 + 0.08 * fl.4), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 5.5 + if(clamp((gs.5 + 12) / 24 * bh + bh * (0.1 * ls.5 + 0.08 * fl.5), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.5 + 12) / 24 * bh + bh * (0.1 * ls.5 + 0.08 * fl.5), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.5 + 12) / 24 * bh + bh * (0.1 * ls.5 + 0.08 * fl.5), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 6.5 + if(clamp((gs.6 + 12) / 24 * bh + bh * (0.1 * ls.6 + 0.08 * fl.6), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.6 + 12) / 24 * bh + bh * (0.1 * ls.6 + 0.08 * fl.6), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.6 + 12) / 24 * bh + bh * (0.1 * ls.6 + 0.08 * fl.6), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 7.5 + if(clamp((gs.7 + 12) / 24 * bh + bh * (0.1 * ls.7 + 0.08 * fl.7), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.7 + 12) / 24 * bh + bh * (0.1 * ls.7 + 0.08 * fl.7), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.7 + 12) / 24 * bh + bh * (0.1 * ls.7 + 0.08 * fl.7), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 8.5 + if(clamp((gs.8 + 12) / 24 * bh + bh * (0.1 * ls.8 + 0.08 * fl.8), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.8 + 12) / 24 * bh + bh * (0.1 * ls.8 + 0.08 * fl.8), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.8 + 12) / 24 * bh + bh * (0.1 * ls.8 + 0.08 * fl.8), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
+            box { at: x0 + colw * 9.5 + if(clamp((gs.9 + 12) / 24 * bh + bh * (0.1 * ls.9 + 0.08 * fl.9), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.9 + 12) / 24 * bh + bh * (0.1 * ls.9 + 0.08 * fl.9), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.9 + 12) / 24 * bh + bh * (0.1 * ls.9 + 0.08 * fl.9), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
             }
         }
-        line { from: x0, bym; to: x0 + wd, bym; width: 1; color: ink; opacity: 22% * shown }
-        //  The curve through the knobs and a halo for each that swells with its band (and flashes when the switch goes on): behind the knobs, so each knob is a solid cap on top of them.
-        group {
-            glow: 9 + 9 * energy, 100%, mint
-            path {
-                at: 0, 0
-                stroke: 1.8 * u
-                color: mix(mint, minthi, energy)
-                opacity: 80% * shown * dim
-                move x0 + colw * 0.5, ky[0]
-                line x0 + colw * 1.5, ky[1]
-                line x0 + colw * 2.5, ky[2]
-                line x0 + colw * 3.5, ky[3]
-                line x0 + colw * 4.5, ky[4]
-                line x0 + colw * 5.5, ky[5]
-                line x0 + colw * 6.5, ky[6]
-                line x0 + colw * 7.5, ky[7]
-                line x0 + colw * 8.5, ky[8]
-                line x0 + colw * 9.5, ky[9]
-            }
-            repeat i in 0..10 {
-                ellipse { at: x0 + colw * (i + 0.5), ky[i]; radius: (7 + 9 * ls.$i + 12 * fl.$i) * u; color: mix(mint, minthi, fl.$i); opacity: (14% + 34% * ls.$i + 50% * fl.$i) * shown * dim }
-            }
-        }
+        text "Drag the glass up or down" { at: x0 + wd / 2, by0 + 2 * u; anchor: center; size: 11 * u; weight: 600; color: faint; opacity: 70% * (1 - touched) * shown; family: "Space Grotesk" }
+        //  0 dB.
+        line { from: x0, bym; to: x0 + wd, bym; width: 1; color: ink; opacity: 20% * shown }
         repeat i in 0..10 {
             let cxi = x0 + colw * (i + 0.5)
             let hot = if(band.$i.hover > 0.5 or held == i, 1, 0)
-            //  the track, the stretch from 0 dB to the knob, the knob
-            PLn(ax: cxi, ay: by0, bx: cxi, by: by1, s: 40 + i, wd: 1.4 * u, c: ink, a: 0.4 * shown * dim, f: hot * fr)
-            box { at: cxi, (ky[i] + bym) / 2; size: 5 * u, abs(ky[i] - bym) + 0.01; corner: 2.5 * u; color: mint; opacity: 50% * shown * dim }
-            ellipse { at: cxi, ky[i]; radius: 8 * u; color: deep; opacity: 94% * shown }
-            ellipse { at: cxi, ky[i]; radius: 2.6 * u; color: mix(faint, mint, ea); opacity: (0.55 + 0.45 * ea) * shown }
-            PCir(cx: cxi, cy: ky[i], rad: 8 * u, s: 60 + i, wd: 1.8 * u, c: mix(ink, mint, ea), a: 0.95 * shown, gapk: -1, f: hot * fr)
+            //  What says it can be dragged: a faint lane through the column, the column lit under the pointer, and, under the pointer only, a slim handle riding its crest (it grows when it is the one in hand).
+            let crest = by1 - clamp((gs.$i + 12) / 24 * bh + bh * (0.1 * ls.$i + 0.08 * fl.$i), 0, bh * 1.04)
+            line { from: cxi, by0 - 4 * u; to: cxi, by1; width: 1 * u; color: ink; opacity: (10% + 16% * hot) * shown }
+            box { at: cxi, (by0 + by1) / 2; size: colw * 0.94, bh + 8 * u; corner: colw * 0.4; color: ink; opacity: 8% * hot * shown }
+            box { at: cxi, crest; size: colw * (0.5 + 0.12 * hot), (4.5 + 3 * hot) * u; corner: 3.5 * u; color: ink; opacity: hot * shown * dim }
             //  the dB of the band under the pointer, and the frequency of every band
-            text number(g.$i, 1, " dB") { at: cxi, by0 - 14 * u; anchor: center; size: 10.5 * u; weight: 700; color: mint; opacity: hot * shown; family: "Space Grotesk" }
+            box { at: cxi, crest - 16 * u; size: 38 * u, 15 * u; corner: 7.5 * u; color: deep; opacity: 78% * hot * shown }
+            text number(g.$i, 1, " dB") { at: cxi, crest - 16 * u; anchor: center; size: 10.5 * u; weight: 700; color: ink; opacity: hot * shown; family: "Space Grotesk" }
             text pick(i, "32", "64", "125", "250", "500", "1k", "2k", "4k", "8k", "16k") { at: cxi, by1 + 16 * u; anchor: center; size: 10.5 * u; weight: 600; color: faint; opacity: shown; family: "Space Grotesk" }
-            zone box band.$i { from: x0 + colw * i, by0 - 12 * u; size: colw, bh + 24 * u; cursor: pointer; label: "Band"; active: shown > 0.5 }
-            on press band.$i { held = i; emit bset(i * 1000 + floor((12 - 24 * clamp((pointer.y - by0) / bh, 0, 1)) * 10 + 120.5)) }
+            zone box band.$i { from: x0 + colw * i, by0 - 12 * u; size: colw, bh + 24 * u; cursor: ns_resize; label: "Band (drag up or down)"; active: shown > 0.5 }
+            on press band.$i { held = i; touched = 1; emit bset(i * 1000 + floor((12 - 24 * clamp((pointer.y - by0) / bh, 0, 1)) * 10 + 120.5)) }
             on drag band.$i { emit bset(i * 1000 + floor((12 - 24 * clamp((pointer.y - by0) / bh, 0, 1)) * 10 + 120.5)) }
             on release band.$i { held = -1 }
             on press right band.$i { emit bset(i * 1000 + 120) }
-        }
-        //  Sparks off the bands that are loud, over the knobs.
-        group {
-            glow: 6, 100%, mint
-            repeat i in 0..10 {
-                particles {
-                    at: x0 + colw * (i + 0.5), ky[i]; count: 16
-                    life: 0.5s .. 1.1s; speed: 25 .. 70
-                    direction: -90deg; spread: 40deg; gravity: 0, -25
-                    size: 2.4 * u, 0; colors: mint, minthi
-                    emit: ls.$i > 0.5 and eq_on > 0.5 and shown > 0.5
-                }
-            }
         }
     }
 }

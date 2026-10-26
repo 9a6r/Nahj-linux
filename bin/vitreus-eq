@@ -19,6 +19,7 @@ import ctypes
 import json
 import math
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -32,7 +33,7 @@ except Exception:
 
 DATA = sys.argv[1] if len(sys.argv) > 1 else os.path.expanduser("~/.local/share/pleamar/vitreus-eq")
 CONF = os.path.join(DATA, "chain.conf")
-SINK = "vitreus_eq"
+SINK = os.environ.get("VITREUS_EQ_NAME", "vitreus_eq")
 
 # (type, Hz, Q): the ends are shelves, the eight in between bells about an octave wide.
 BANDS = [("bq_lowshelf", 32, 0.7), ("bq_peaking", 64, 1.41), ("bq_peaking", 125, 1.41), ("bq_peaking", 250, 1.41),
@@ -107,7 +108,7 @@ context.modules = [
       }
       audio.channels = 2
       audio.position = [ FL FR ]
-      capture.props = { node.name = "%s" media.class = Audio/Sink priority.session = 10 }
+      capture.props = { node.name = "%s" media.class = Audio/Sink priority.session = 10 channelmix.min-volume = 1.0 channelmix.max-volume = 1.0 }
       playback.props = { node.name = "%s_out" node.passive = true target.object = "%s" stream.dont-remix = true }
     } }
 ]
@@ -142,7 +143,7 @@ def push_params():
     for _ in range(2):
         if node_id is None and find_node() is None:
             return False
-        params = ['"pre:Mult"', "%.5f" % preamp(gains)]
+        params = ['"channelmix.min-volume"', "1.0", '"channelmix.max-volume"', "1.0", '"pre:Mult"', "%.5f" % preamp(gains)]
         for i, g in enumerate(gains):
             params += ['"eq%d:Gain"' % i, "%.2f" % g]
         r = subprocess.run(["pw-cli", "s", str(node_id), "Props", "{ params = [ %s ] }" % " ".join(params)], capture_output=True, text=True, timeout=5)
@@ -184,6 +185,7 @@ def stop_chain(restore):
             chain.kill()
     chain = None
     node_id = None
+    vol_last["for"] = ""
 
 
 def real_default():
@@ -230,6 +232,91 @@ def reconcile():
             error = ""
         up = bool(want_on and chain is not None)
         emit(on=up, active=bool(up and default_sink() == SINK), target=target if chain is not None else "", error=error)
+
+
+# ── the volume ──
+# The EQ sink is the default output, so the shell's volume slider and the media keys act on IT, while the sound is really played by the output behind it (its own volume, the one you
+# actually hear). The EQ sink's own volume is pinned to unity in the filter (`channelmix.min-volume` = `max-volume` = 1.0: it is only a number to show, it never changes the sound), and
+# this keeps it and the output's volume (and mute) the same: move the slider and the output follows, press the headset's buttons and the slider follows.
+vol_last = {"for": "", "eq": None, "t": None, "eqm": None, "tm": None}
+
+
+def sink_volume(name):
+    m = re.search(r"(\d+)%", out("pactl", "get-sink-volume", name))
+    return int(m.group(1)) if m else None
+
+
+def sink_muted(name):
+    o = out("pactl", "get-sink-mute", name)
+    return True if "yes" in o else (False if "no" in o else None)
+
+
+def set_volume(name, pct):
+    subprocess.run(["pactl", "set-sink-volume", name, "%d%%" % pct], capture_output=True, timeout=5)
+
+
+def set_mute(name, on):
+    subprocess.run(["pactl", "set-sink-mute", name, "1" if on else "0"], capture_output=True, timeout=5)
+
+
+def sync_volumes():
+    with lock:
+        tgt = target if chain is not None else ""
+    if not tgt:
+        vol_last["for"] = ""
+        return
+    eq, t = sink_volume(SINK), sink_volume(tgt)
+    eqm, tm = sink_muted(SINK), sink_muted(tgt)
+    if None in (eq, t, eqm, tm):
+        return
+    if vol_last["for"] != tgt:                         # (just started, or pointed at another output: the slider shows the output's volume)
+        set_volume(SINK, t)
+        set_mute(SINK, tm)
+        vol_last.update({"for": tgt, "eq": t, "t": t, "eqm": tm, "tm": tm})
+        return
+    if eq != vol_last["eq"]:                           # the slider (or a media key) moved: the output follows
+        set_volume(tgt, eq)
+        t2 = sink_volume(tgt)
+        t2 = eq if t2 is None else t2
+        if t2 != eq:
+            set_volume(SINK, t2)                       # (the output rounded it: show what it did)
+        vol_last["eq"] = vol_last["t"] = t2
+    elif t != vol_last["t"]:                           # the output's own volume moved (the headset's buttons)
+        set_volume(SINK, t)
+        vol_last["eq"] = vol_last["t"] = t
+    if eqm != vol_last["eqm"]:
+        set_mute(tgt, eqm)
+        vol_last["eqm"] = vol_last["tm"] = eqm
+    elif tm != vol_last["tm"]:
+        set_mute(SINK, tm)
+        vol_last["eqm"] = vol_last["tm"] = tm
+
+
+def volume_loop():
+    """Wakes on the sound server's sink events (a second at most apart) and mirrors the volume."""
+    wake = threading.Event()
+
+    def listen():
+        while True:
+            try:
+                p = subprocess.Popen(["pactl", "subscribe"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, preexec_fn=die_with_parent)
+                for line in p.stdout:
+                    if "'change' on sink" in line:
+                        wake.set()
+            except Exception:
+                pass
+            time.sleep(2)
+
+    threading.Thread(target=listen, daemon=True).start()
+    while True:
+        wake.wait(1.0)
+        wake.clear()
+        time.sleep(0.04)                               # (a slider drag is many events: one pass for the burst)
+        wake.clear()
+        try:
+            sync_volumes()
+        except Exception:
+            pass
 
 
 # ── the spectrum ──
@@ -370,6 +457,7 @@ def main():
                 pass
 
     threading.Thread(target=watch, daemon=True).start()
+    threading.Thread(target=volume_loop, daemon=True).start()
     if np is not None:
         threading.Thread(target=spectrum_loop, daemon=True).start()
     emit(on=False, active=False, target="", error="")

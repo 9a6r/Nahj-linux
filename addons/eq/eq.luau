@@ -155,3 +155,7 @@ end)
 
 show()
 start_helper()
+
+-- The shell sends its palette to an add-on when it starts and when the theme changes, not when the add-on alone is restarted (a crash, `vitreus-keep`): until then the scene has its built-in
+-- colours. So the add-on asks for it itself once it is up (the shell answers to every add-on, which costs a few facts).
+after(1500, function() run("pleamar", { "--say", "vitreus", "emit pal_push" }, function() end) end)
