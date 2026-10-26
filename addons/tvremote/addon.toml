@@ -8,7 +8,7 @@ description = "Control your Google TV from the panel"
 author      = "natepayn3"
 version     = "0.2"
 scene       = "tvremote.plm"
-icon        = "icon.svg"
+icon        = "remote.svg"
 
 [drawer]
 width  = 330
