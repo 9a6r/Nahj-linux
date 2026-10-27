@@ -13,6 +13,8 @@ import "../palette.plm"
 
 scene Files {
     surface { size: 1100, 720; kind: window; title: "Files"; app_id: "vitreus.files"; keyboard: on_demand }
+    //  The glass bends a copy of the wallpaper (as the shell does), not a capture of the screen: a capture needs a moment to start and the window is clear until it does.
+    lens = image "~/.cache/pleamar/vitreus/lens.png"
 
     permissions {
         services: "files", "files.write"
@@ -60,6 +62,14 @@ scene Files {
     //  Every zone that boils says `leave` before `enter`, and `hover` again a moment after: when the pointer goes straight from one to the next, both fire in one frame and the one declared last stays (so `enter` has to be),
     //  and when it is another zone's `leave` that stays, the `hover` sets it right again in 80 ms. Without them the clock stopped under the pointer and the pencil froze.
     fact obs = false                 // Vitreus has its glass off: flat obsidian (Vitreus says so with `fact obs true`)
+    fact gop = 1                     // the shell's glass settings (Vitreus says so, as with obs): opacity, X-Bend on, edge thickness, rainbow fringe, frost, dome, milk, rim
+    fact gbend = false
+    fact grefr = 1
+    fact gdisp = 1
+    fact gclear = 1
+    fact gdome = 0
+    fact gmilk = 0
+    fact grim = 1
     fact look = 0                    // the shell's theme (Vitreus says so): 0 Glass, 1 Retro, 2 UwU, 3 Cyber; the plastic ones get an outline and a hard shadow
     text status = ""
     text empty = "This folder is empty"
@@ -1151,11 +1161,16 @@ scene Files {
     // ── the glass ──
     body {
         color: tint
-        glass: 1
-        lens: false
-        rim: 60%
+        glass: 100%
+        lens: gbend
+        frost: gclear
+        refraction: grefr
+        dispersion: gdisp
+        dome: gdome
+        milk: gmilk
+        rim: 60% * grim
         shine: 0, 0
-        opacity: 90% * (1 - ob)
+        opacity: gop * (1 - ob)
         show: ob < 0.996
         box { from: 0, 0; size: W, H; corner: 22 * rr }
     }

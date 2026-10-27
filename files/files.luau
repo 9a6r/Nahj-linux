@@ -3771,8 +3771,22 @@ local function ask_look()
         end)
     end)
 end
+local GLASS_FACTS = { gop = "glass_op", gbend = "glass_bend", grefr = "glass_refr", gdisp = "glass_disp", gclear = "glass_clear", gdome = "glass_dome", gmilk = "glass_milk", grim = "glass_rim" }
+local function ask_glass()
+    for mine, theirs in pairs(GLASS_FACTS) do
+        run("pleamar", { "--say", "vitreus", "get " .. theirs }, function(out, code)
+            if code ~= 0 or not out then return end
+            if mine == "gbend" then fact.gbend = out:match("true") ~= nil
+            else
+                local n = tonumber(out:match("%-?[%d.]+"))
+                if n then fact[mine] = n end
+            end
+        end)
+    end
+end
 ask_obs()
 ask_look()
-after(4000, function() ask_obs(); ask_look() end)
+ask_glass()
+after(4000, function() ask_obs(); ask_look(); ask_glass() end)
 
 F.start()

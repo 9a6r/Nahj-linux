@@ -4311,6 +4311,8 @@ function glass.push_obs()
     run("pleamar", { "--say", "desktopcards", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "files", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopnotes", "fact obs " .. v }, function() end)
+    run("pleamar", { "--say", "files", "fact gop " .. glass.opacity, "fact gbend " .. tostring(glass.bend or glass.live), "fact grefr " .. glass.refr, "fact gdisp " .. glass.disp,
+        "fact gclear " .. glass.clear, "fact gdome " .. glass.dome, "fact gmilk " .. glass.milk, "fact grim " .. glass.rim }, function() end)     -- Files wears the same glass
 end
 local function glass_save_soon()
     glass.push_obs()
