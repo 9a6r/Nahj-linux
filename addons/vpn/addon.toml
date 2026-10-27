@@ -6,5 +6,5 @@ scene       = "vpn.plm"
 icon        = "icon.svg"
 
 [drawer]
-width  = 280
-height = 300
+width  = 337
+height = 264
