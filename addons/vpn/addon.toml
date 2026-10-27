@@ -1,0 +1,10 @@
+name        = "VPN"
+description = "Switch your VPN profiles on and off"
+author      = "natepayn3"
+version     = "0.1"
+scene       = "vpn.plm"
+icon        = "icon.svg"
+
+[drawer]
+width  = 280
+height = 300
