@@ -1063,15 +1063,20 @@ scene Files {
     // ── some pieces that come again and again ──
     //  The glass the menus, the dialogs and the cards are made of: dark underneath, so that what is written on it reads, then the glass, or flat obsidian when the shell has its glass off.
     component Pane(px: number, py: number, pw: number, ph: number, rad: number, gl: number) {
-        box { from: px, py; size: pw, ph; corner: rad * rr; color: mix(tint, #000000, 0.2); opacity: 98% }
+        box { from: px, py; size: pw, ph; corner: rad * rr; color: mix(tint, #000000, 0.2); opacity: 98% - 18% * gbend * (1 - ob) }      // lighter with X-Bend on, or it hides the bend (the tiles behind still mostly stay out of the text)
         body {
             color: tint
-            glass: 1
-            lens: false
-            rim: 70%
+            glass: 100%
+            lens: gbend
+            frost: gclear
+            refraction: grefr
+            dispersion: gdisp
+            dome: gdome
+            milk: gmilk
+            rim: 70% * grim
             shine: 0, 0
             shadow: 0, 12, 30, 42%
-            opacity: gl * (1 - ob)
+            opacity: gl * gop * (1 - ob)
             show: ob < 0.996
             box { from: px, py; size: pw, ph; corner: rad * rr }
         }
@@ -1637,42 +1642,46 @@ scene Files {
     }
 
     // ── the right-click menu ──
-    //  It springs out of the pointer the way the shell's drawers do (a little smaller and faint to start), in the same glass, with each action's pencil picture, the key that does it on the right,
+    //  It drops open from the pointer the way the shell's drawers do (the glass grows downward, the lines fade in a moment later), in the same glass, with each action's pencil picture, the key that does it on the right,
     //  a line between groups, and the one that puts something away in the alert colour. The logic fills `menuitems` and says how tall it is (`menu.h`).
     prop mo = 0 ~calm
     follow mo = if(menu.on, 1, 0)
+    prop mi = 0 ~quick                  // the lines come in a moment after the glass has begun to drop
+    follow mi = if(menu.on and mo > 0.4, 1, 0)
     let mpx = clamp(menu.x, 8, W - 284)
     let mpy = clamp(menu.y, 8, H - menu.h - 8)
     let mrh = 32                        // how tall a line is (the logic adds them up with this number)
     group {
         show: mo > 0.01
-        pivot: mpx, mpy
-        scale: 0.9 + 0.1 * mo
-        opacity: mo
+        opacity: min(1, mo * 3)
         zone box menucatch { from: 0, 0; size: W, H; active: menu.on }
         on press menucatch { rb.down = false; rb.on = false; emit menu_close }
         on press right menucatch { emit menu_close }
-        Pane(mpx, mpy, 268, menu.h, 16, 0.6)
-        column menuc {
-            at: mpx + 7, mpy + 7
-            gap: 0
-            for m in menuitems {
-                group {
-                    size: 254, mrh + if(m.sep, 9, 0)
-                    prop mh = 0 ~quick
-                    follow mh = mz.hover
-                    box { from: 14, 4; size: 226, 1; color: ink; opacity: 10%; show: m.sep }
-                    box { from: 0, if(m.sep, 10, 1); size: 254, mrh - 2; corner: 11 * rr; color: if(m.danger, alert, mint); opacity: 18% * mh }
-                    box { from: 0, if(m.sep, 10, 1); size: 254, mrh - 2; corner: 11 * rr; stroke: 1; color: if(m.danger, alert, mint); opacity: 40% * mh }
-                    PGlyphSM(25, if(m.sep, 10, 1) + mrh / 2 - 1, 0.74, m.ic, if(m.on, 1, 0.35))
-                    text m.label { at: 50, if(m.sep, 10, 1) + mrh / 2 - 1; anchor: left center; size: 13.5; weight: 600; color: if(m.danger, mix(ink, alert, 0.55 + 0.45 * mh), ink); opacity: if(m.on, 100%, 38%); family: "Space Grotesk" }
-                    text m.key { at: 242, if(m.sep, 10, 1) + mrh / 2 - 1; anchor: right center; size: 11.5; weight: 500; color: faint; opacity: if(m.on, 75%, 30%); show: not m.chk; family: "Space Grotesk" }
-                    group { show: m.chk; PGlyphS35(230, if(m.sep, 10, 1) + mrh / 2 - 1, 0.55, 35, 1) }
-                    zone box mz { from: 0, if(m.sep, 10, 1); size: 254, mrh - 2; corner: 11 * rr; cursor: pointer; active: m.on and menu.on; label: "{m.label}" }
-                    on press mz { emit act(m.k) }
-                    on leave mz { pen = 0 }
-                    on enter mz { pen = 1 }
-                    on hover mz for 80ms { pen = 1 }
+        Pane(mpx, mpy, 268, max(4, menu.h * clamp(mo, 0, 1)), 16, 0.6)
+        group {
+            clip box { from: mpx, mpy; size: 268, menu.h * clamp(mo, 0, 1); corner: 16 * rr }
+            opacity: mi
+            column menuc {
+                at: mpx + 7, mpy + 7
+                gap: 0
+                for m in menuitems {
+                    group {
+                        size: 254, mrh + if(m.sep, 9, 0)
+                        prop mh = 0 ~quick
+                        follow mh = mz.hover
+                        box { from: 14, 4; size: 226, 1; color: ink; opacity: 10%; show: m.sep }
+                        box { from: 0, if(m.sep, 10, 1); size: 254, mrh - 2; corner: 11 * rr; color: if(m.danger, alert, mint); opacity: 18% * mh }
+                        box { from: 0, if(m.sep, 10, 1); size: 254, mrh - 2; corner: 11 * rr; stroke: 1; color: if(m.danger, alert, mint); opacity: 40% * mh }
+                        PGlyphSM(25, if(m.sep, 10, 1) + mrh / 2 - 1, 0.74, m.ic, if(m.on, 1, 0.35))
+                        text m.label { at: 50, if(m.sep, 10, 1) + mrh / 2 - 1; anchor: left center; size: 13.5; weight: 600; color: if(m.danger, mix(ink, alert, 0.55 + 0.45 * mh), ink); opacity: if(m.on, 100%, 38%); family: "Space Grotesk" }
+                        text m.key { at: 242, if(m.sep, 10, 1) + mrh / 2 - 1; anchor: right center; size: 11.5; weight: 500; color: faint; opacity: if(m.on, 75%, 30%); show: not m.chk; family: "Space Grotesk" }
+                        group { show: m.chk; PGlyphS35(230, if(m.sep, 10, 1) + mrh / 2 - 1, 0.55, 35, 1) }
+                        zone box mz { from: 0, if(m.sep, 10, 1); size: 254, mrh - 2; corner: 11 * rr; cursor: pointer; active: m.on and menu.on; label: "{m.label}" }
+                        on press mz { emit act(m.k) }
+                        on leave mz { pen = 0 }
+                        on enter mz { pen = 1 }
+                        on hover mz for 80ms { pen = 1 }
+                    }
                 }
             }
         }
