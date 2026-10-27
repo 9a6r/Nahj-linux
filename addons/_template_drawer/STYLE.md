@@ -6,7 +6,7 @@ What a panel should look and feel like, so that an add-on sits beside the Contro
 
 **Anyone is free to write an add-on their own way.** Put it in `~/.config/pleamar/vitreus-addons/<id>/`, share it from your own repository, and it works and looks however you made it. Nothing here is required for that.
 
-**An add-on that is included in Vitreus itself** (in `addons/`, in this repository, turned on from Settings > Add-ons by default) follows this style, so the shell feels like one thing. Before proposing one, check it against this list:
+**An add-on that is included in Vitreus itself** (in `addons/`, in this repository, listed in Settings > Add-ons, off until the user switches it on) follows this style, so the shell feels like one thing. Before proposing one, check it against this list:
 
 - It looks and moves as the sections below say: the boiled pencil that rests unless used, the Control Center's switches and sliders, even margins from the rectangle the shell gives it, and the content arriving the way the Control Center's does. Using `addon-pencil.plm` is the easy way to be right.
 - Its zones are gated on `shown`, its text fields go through the shell, and it stays well under the scene's size limit (`pleamar --check` prints it).
