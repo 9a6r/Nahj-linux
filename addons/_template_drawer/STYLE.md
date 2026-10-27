@@ -35,6 +35,15 @@ Copy these numbers; they are the Control Center's.
 - **A card**: 12 corner, a pencil outline, an icon at about 1.35 times the 24 px grid on the left, the name and a status line centred on the card's middle, the switch top right. A click on the card toggles it. Anything further (a right click, a slider) is a zone declared after the card's, so it is on top.
 - **Buttons and pills**: a disc or pill of `ink` at 8 to 18 percent with the label in `ink`, `mint` on hover; the same shape as the shell's.
 
+## Themes
+
+The shell can wear a different shape (Settings > Theme), and the add-on tells which through its `look` fact (`0` Glass, `1` Retro, `2` UwU, `3` Cyber, `4` Milkbox, `5` Proxy). The colours already follow the theme through the palette. The shape of a control does not, unless the control takes it from the theme's own pieces, so:
+
+- **Draw "pick one of several" controls (tabs, presets, a mode) with `PThumb`** from `addon-theme.plm` for the lit piece that slides under the chosen label, and keep the track, dividers and labels yours. On Proxy it is the HUD's slanted slab, a little taller than its track; on the other themes it is the pill with a glow. Do not draw your own lit pill: it would stay a pill on every theme.
+- **A new theme means a new case in the theme's pieces, not in every add-on.** An add-on that uses only `PThumb`, the pencil and the palette needs no change when a theme is added.
+- **Under Proxy the pencil should not wobble.** The HUD is crisp lines: where a piece of drawing boils (see "The boiled pencil"), hold it still when `look == 5` (`f: if(look == 5, 0, ...)`).
+- Copy `addon-theme.plm` into the add-on's folder next to `addon-palette.plm`, as you do the palette.
+
 ## Layout
 
 - **Use `u`, not pixels.** Declare `let u = 1.1` and write every length as `N * u`.
