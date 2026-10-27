@@ -6749,12 +6749,7 @@ scene Vitreus {
     group {
         show: wp_picker_show > 0.01
         opacity: wp_picker_show * wp_picker_veil
-        //  No sheet over the screen, on either page (the cards change the wallpaper live under them, and it has to be seen): only a soft shade rises from the foot, for the
-        //  words, the same on both.
-        //  (Each box runs to the foot and lies over the one before, so the dark rises in even steps of 3%; boxes side by side showed a line at each edge.)
-        repeat k in 0..24 {
-            box { from: 0, yo + vh - 420 + k * 17.5; size: screen.width, 420 - k * 17.5; color: #05070d; opacity: 0.03 / (1 - 0.03 * k) }
-        }
+        //  No sheet or shade over the screen, on either page (the cards change the wallpaper live under them, and it has to be seen).
         //  Where the pointer is on the hovered tile, for its tilt: a grid of invisible zones laid over it, 7 across and 8 down, each of which
         //  notes the pointer as it comes in. The tile's shader cannot be told (a group's shader is not given the pointer), and reading `cursor`
         //  instead made pleamar poll the mouse all the time. Declared before the tiles, so a press still goes to the tile under it.
