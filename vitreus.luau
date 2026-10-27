@@ -339,7 +339,9 @@ end
 -- running in the Frame layout it kept the `pulse` spring moving for nothing, and so the whole scene painting at the
 -- monitor's rate for as long as music played. (Globals: this chunk is at Luau's limit of locals.)
 cava_playing = false
+game_fx = { on = false }          -- Game mode (logic/gamemode.luau) sets `on`: nothing listens to the music while it is
 function cava_want()
+    if game_fx.on then hush() return end
     if cava_playing and (fact.bar_anchor == "top" or fact.bar_anchor == "bottom" or watching or eq_float() or fw_on()) then listen() else hush() end
 end
 
@@ -701,6 +703,65 @@ on("togglednd", function()
     dnd_refresh()
 end)
 
+-- Game mode (logic/gamemode.luau) silences notifications for as long as it is on, as a manual Do Not Disturb. `start` says whether it did
+-- (false: something was silencing already, which is then left alone); `stop` lifts only what `start` set.
+game_fx.dnd_start = function()
+    if dnd then return false end
+    dnd_manual = true
+    dnd_save()
+    dnd_refresh()
+    return true
+end
+game_fx.dnd_stop = function()
+    if not dnd_manual then return end                    -- turned off by hand in the meantime: nothing to undo
+    dnd_manual, dnd_until, dnd_len = false, 0, 0
+    dnd_save()
+    dnd_refresh()
+end
+
+-- Game mode on niri: animations off, through the same vitreus.kdl the Hyprland page's switch writes (niri reads it again by itself).
+-- What was set is put back; nothing is saved to niri-set.json, so a restart of the shell ends it.
+game_fx.niri = function(on)
+    iris_fx.niri_load()
+    if on then
+        if game_fx.niri_prior == nil then game_fx.niri_prior = { niri_set.anim } end
+        niri_set.anim = false
+    else
+        local p = game_fx.niri_prior
+        if not p then return end
+        niri_set.anim = p[1]
+        game_fx.niri_prior = nil
+    end
+    iris_fx.apply_niri()
+end
+-- And on pleamar-wm: its windows go square, shadowless and fully opaque (the scene's own facts, as Settings > Pleamar-WM sets them).
+-- The values it had are asked first and sent back after.
+game_fx.wm = function(on)
+    local NAMES = { "rad", "shd", "wo_a", "wo_i" }
+    if on then
+        if game_fx.wm_prior then return end
+        local prior, n = {}, 0
+        for _, k in ipairs(NAMES) do
+            wm_get(k, function(v)
+                prior[k] = v
+                n = n + 1
+                if n == #NAMES then
+                    game_fx.wm_prior = prior
+                    wm_say("fact rad 0")
+                    wm_say("fact shd 0")
+                    wm_say("fact wo_a 100")
+                    wm_say("fact wo_i 100")
+                end
+            end)
+        end
+    else
+        local p = game_fx.wm_prior
+        if not p then return end
+        game_fx.wm_prior = nil
+        for _, k in ipairs(NAMES) do if p[k] then wm_say("fact " .. k .. " " .. p[k]) end end
+    end
+end
+
 -- The Notifications page's card: the schedule and the fullscreen switch, shown through facts (`nt_quiet`, `nt_fs`, and the two times as text).
 local function dq_sync()
     fact.nt_quiet = DQ.on
@@ -1055,11 +1116,11 @@ local function pick_sec_name(sec) return sec == 1 and "CONNECTED" or (sec == 2 a
 local function bt_render()
     local b = bt_last
     if not b then return end
-    local name = ""
+    local name, name_bat = "", -1
     local rows = {}
     local seen = {}
     for _, d in ipairs(b.devices or {}) do
-        if d.connected then name = d.name end
+        if d.connected then name = d.name; name_bat = d.battery or -1 end
         if d.paired or d.connected or bt_scanning or bt_pending[d.address] then
             local nm = (d.name ~= nil and d.name ~= "") and d.name or d.address
             local row = {
@@ -1126,7 +1187,8 @@ local function bt_render()
     end
     fact.bat_n = #bats
     model.bat_devs = bats
-    text.bt_name = name
+    -- the tile says the name and, when the device reports one, its charge: Headphones · 80 %
+    text.bt_name = (name ~= "" and name_bat >= 0) and (name .. " · " .. math.floor(name_bat * 100 + 0.5) .. "%") or name
     bt_list = rows
     local sig = {}
     for i, r in ipairs(rows) do
@@ -6232,6 +6294,7 @@ end
         { "Settings: Glass", "open", open_settings("pg_glass"), "blur transparency frosted liquid look appearance theme" },
         { "Settings: Display", "open", open_settings("pg_disp"), "monitor screen resolution refresh rate scale arrangement vrr position" },
         { "Settings: Night mode", "open", open_settings("pg_night"), "nightlight blue light warm tint redshift filter schedule eyes" },
+        { "Game mode: toggle", "action", function() spawn('pleamar --say vitreus "emit game_toggle"') end, "game gaming play performance fullscreen tearing latency fps on off" },
         { "Night mode: toggle", "action", function() spawn('pleamar --say vitreus "emit night_toggle"') end, "nightlight blue light warm tint redshift filter on off" },
         { "Settings: Hyprland", "open", open_settings("pg_hypr"), "window manager gaps border layout animations tearing input keyboard mouse touchpad" },
         { "Settings: Pleamar-WM", "open", open_settings("pg_wm"), "pleamar wm window manager gaps layout columns rows grid leader floating free rain snow weather pointer mouse touchpad speed natural scroll tap idle screen off keybinds session" },
@@ -6941,6 +7004,8 @@ require("logic/tray")(set_panel)
 
 -- nightmode: see logic/nightmode.luau
 require("logic/nightmode")(with_dirs)
+-- game mode: see logic/gamemode.luau
+require("logic/gamemode")()
 
 -- the audio visualiser (the bottom edge rising into the music): see logic/visualizer.luau
 require("logic/visualizer")()

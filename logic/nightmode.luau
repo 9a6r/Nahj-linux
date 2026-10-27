@@ -213,14 +213,19 @@ void main() {
         if type(saved.stop) == "number" then N.stop = math.floor(saved.stop) % 48 end
     end
     show()
+    -- wlsunset does it wherever it is not Hyprland: niri, and pleamar-wm (which serves the same gamma protocol). (`N.niri` means "by wlsunset".)
+    local function use_wlsunset()
+        N.niri = true
+        run("which", { "wlsunset" }, function(_, code)
+            if code ~= 0 then text.night_status = "Needs wlsunset (pacman -S wlsunset)" return end
+            if N.on then apply() end
+        end)
+    end
     run("printenv", { "NIRI_SOCKET" }, function(o, c)       -- (asked here: a module sees the globals as they were when it was required)
-        if c == 0 and (o or "") ~= "" then
-            N.niri = true
-            run("which", { "wlsunset" }, function(_, code)
-                if code ~= 0 then text.night_status = "Needs wlsunset (pacman -S wlsunset)" return end
-                if N.on then apply() end
-            end)
-        end
+        if c == 0 and (o or "") ~= "" then return use_wlsunset() end
+        run("printenv", { "HYPRLAND_INSTANCE_SIGNATURE" }, function(o2, c2)
+            if not (c2 == 0 and (o2 or "") ~= "") then use_wlsunset() end      -- neither: pleamar-wm
+        end)
     end)
     run("which", { "hyprsunset" }, function(_, code)
         N.sun = code == 0

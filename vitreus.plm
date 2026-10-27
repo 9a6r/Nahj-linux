@@ -1032,6 +1032,24 @@ scene Vitreus {
     prop bt_fill = 0 ~700ms
     fact bt_rx = 0
     fact bt_ry = 0
+    prop nm_press = 0 ~pop
+    prop nm_rip = 1 ~700ms
+    prop nm_fill = 0 ~700ms
+    fact nm_rx = 0
+    fact nm_ry = 0
+    follow nm_fill = if(night_on, 1, 0)
+    prop gm_press = 0 ~pop
+    prop gm_rip = 1 ~700ms
+    prop gm_fill = 0 ~700ms
+    fact gm_rx = 0
+    fact gm_ry = 0
+    prop gm_pill = 0 ~pop
+    follow gm_fill = if(game_on, 1, 0)
+    follow gm_pill = if(game_on, 1, 0)
+    fact game_on = false                 // Game Mode is on (logic/gamemode.luau)
+    fact game_k = 1                      // 1 unless it cannot be started (on battery: 0.45, dimmed)
+    text game_status = "Off"
+    event game_toggle ->
     prop dnd_press = 0 ~pop
     prop dnd_rip = 1 ~700ms
     prop dnd_fill = 0 ~700ms
@@ -1671,6 +1689,8 @@ scene Vitreus {
     follow rec_sys_pill = if(rec_sys, 1, 0)
     prop night_auto_pill = 0 ~pop
     follow night_pill = if(night_on, 1, 0)
+    prop nm_pill = 0 ~pop
+    follow nm_pill = if(night_on, 1, 0)
     prop bar_oth_pill = 0 ~pop
     follow bar_oth_pill = if(bar_others, 1, 0)
     prop bar_dr_pill = 0 ~pop
@@ -3889,6 +3909,105 @@ scene Vitreus {
     }
 
     //  The power button in the bell's manner: the ring and its bar twice in pencil, an accent wash inside and two shading strokes on the left.
+    //  The Night mode tile's moon: the Power panel's Sleep icon (PSSleep), at the tile icons' size and with their opacity.
+    component PMoon(cx: number, cy: number, hot: number, o: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let kk = 0.9 * cu
+        group {
+            pivot: cx, cy
+            scale: 1 + 0.10 * a
+            path { at: cx, cy; color: mint; opacity: 28% * o; move 1 * kk, -9 * kk; curve 9 * kk, 5 * kk via -19 * kk, 2 * kk; curve 1 * kk, -9 * kk via -5 * kk, -1 * kk; close }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kk
+                let bj = (0.28 + 0.4 * a) * cu * sin(fr * 53 + bp * 137 + 171)
+                let bk = (0.28 + 0.4 * a) * cu * sin(fr * 61 + bp * 71 + 211)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kk; color: ink; opacity: if(bp == 0, 90%, 34%) * o
+                       move 1 * kk + bj, -9 * kk + bk
+                       curve 9 * kk + bk, 5 * kk + bj via -19 * kk, 2 * kk
+                       curve 1 * kk + bj, -9 * kk + bk via -5 * kk, -1 * kk
+                       close }
+            }
+            ellipse { at: cx + 4.6 * kk, cy + -4.2 * kk; radius: 1.2 * kk; color: mint; opacity: o }
+            ellipse { at: cx + 8 * kk, cy + -1.5 * kk; radius: 0.8 * kk; color: mint; opacity: o }
+            line { from: cx + -4.8 * kk, cy + -3 * kk + 0.3 * cu * sin(fr * 47 + 60); to: cx + -4.5 * kk, cy + 2.2 * kk + 0.3 * cu * sin(fr * 53 + 70); width: 1.1 * kk; color: mint; opacity: 65% * o }
+            line { from: cx + -3 * kk, cy + -3.4 * kk + 0.3 * cu * sin(fr * 53 + 70); to: cx + -2.8 * kk, cy + 0.8 * kk + 0.3 * cu * sin(fr * 59 + 80); width: 1.1 * kk; color: mint; opacity: 65% * o }
+        }
+    }
+
+    //  A game pad: the body, a cross on the left, two buttons on the right.
+    component PPad(cx: number, cy: number, hot: number, o: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let kp = 0.8 * cu
+        group {
+            pivot: cx, cy
+            scale: 1 + 0.10 * a
+            box { at: cx, cy; size: 20 * kp, 12 * kp; corner: 6 * kp; color: mint; opacity: 24% * o }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kp
+                let bj = (0.18 + 0.25 * a) * cu * sin(fr * 53 + bp * 137 + 9)
+                let bk = (0.18 + 0.25 * a) * cu * sin(fr * 61 + bp * 71 + 49)
+                box { at: cx + bo + bj, cy + bo * 0.5 + bk; size: 20 * kp, 12 * kp; corner: 6 * kp; stroke: if(bp == 0, 1.8, 1.3) * kp; color: ink; opacity: if(bp == 0, 90%, 34%) * o }
+            }
+            line { from: cx - 6 * kp, cy; to: cx - 2 * kp, cy; width: 1.6 * kp; color: ink; opacity: o }
+            line { from: cx - 4 * kp, cy - 2 * kp; to: cx - 4 * kp, cy + 2 * kp; width: 1.6 * kp; color: ink; opacity: o }
+            ellipse { at: cx + 3 * kp, cy + 1.5 * kp; radius: 1.2 * kp; color: ink; opacity: o }
+            ellipse { at: cx + 6 * kp, cy - 1.5 * kp; radius: 1.2 * kp; color: ink; opacity: o }
+        }
+    }
+
+    //  The little marks on the Caffeine, Night mode and Game mode switch knobs: the tile's own icon (cup, Sleep crescent, game pad) drawn small in the knob's dark,
+    //  an outline when off and with a faint fill when on. `on` is 0 to 1, `o` how strong the marks are (`glyph_a`).
+    component PKnobCup(cx: number, cy: number, on: number, o: number) {
+        let kc = 0.5 * cu
+        let oa = o * (0.7 + 0.3 * on)
+        path { at: cx, cy; color: off; opacity: oa * on * 0.5; move -9 * kc, -6 * kc; line -8 * kc, 3 * kc; curve -4 * kc, 7 * kc via -7.5 * kc, 6.5 * kc; line 3 * kc, 7 * kc; curve 7 * kc, 3 * kc via 7.5 * kc, 6.5 * kc; line 8 * kc, -6 * kc; close }
+        path { at: cx, cy; stroke: 1.3 * cu; color: off; opacity: oa; move -9 * kc, -6 * kc; line -8 * kc, 3 * kc; curve -4 * kc, 7 * kc via -7.5 * kc, 6.5 * kc; line 3 * kc, 7 * kc; curve 7 * kc, 3 * kc via 7.5 * kc, 6.5 * kc; line 8 * kc, -6 * kc }
+        path { at: cx, cy; stroke: 1.3 * cu; color: off; opacity: oa; move 8 * kc, -3.5 * kc; curve 8 * kc, 2.5 * kc via 14 * kc, -3.5 * kc }
+        path { at: cx, cy; stroke: 1.1 * cu; color: off; opacity: oa; move -9 * kc, -6 * kc; curve 8 * kc, -6 * kc via -0.5 * kc, -8.5 * kc; curve -9 * kc, -6 * kc via -0.5 * kc, -3.5 * kc; close }
+        line { from: cx - 11.5 * kc, cy + 10 * kc; to: cx + 10.5 * kc, cy + 10 * kc; width: 1.1 * cu; color: off; opacity: oa }
+    }
+    component PKnobBell(cx: number, cy: number, on: number, o: number) {
+        let kb = 0.42 * cu
+        let oa = o * (0.7 + 0.3 * on)
+        path { at: cx, cy; color: off; opacity: oa * on * 0.5; move -10 * kb, 6 * kb; curve -5.5 * kb, -6 * kb via -6.5 * kb, 2 * kb; curve 5.5 * kb, -6 * kb via 0, -15 * kb; curve 10 * kb, 6 * kb via 6.5 * kb, 2 * kb; close }
+        path { at: cx, cy; stroke: 1.3 * cu; color: off; opacity: oa; move -10 * kb, 6 * kb; curve -5.5 * kb, -6 * kb via -6.5 * kb, 2 * kb; curve 5.5 * kb, -6 * kb via 0, -15 * kb; curve 10 * kb, 6 * kb via 6.5 * kb, 2 * kb; close }
+        ellipse { at: cx, cy - 12.3 * kb; radius: 1.1 * cu; color: off; opacity: oa }
+        ellipse { at: cx, cy + 10 * kb; radius: 1.3 * cu; color: off; opacity: oa }
+    }
+    //  Three signal bars, the Wi-Fi tile's icon: `s2` and `s3` how much of the second and third are lit (the signal).
+    component PKnobBars(cx: number, cy: number, on: number, o: number, s2: number, s3: number) {
+        let kw = 0.5 * cu
+        repeat br in 0..3 {
+            let bx = (br - 1) * 6.5 * kw
+            let bt = (1 - br * 5.5) * kw
+            let oa = o * (0.7 + 0.3 * on) * if(br == 0, 1, if(br == 1, s2, s3))
+            path { at: cx + bx, cy + 3 * kw; color: off; opacity: oa * on * 0.5; move -2.4 * kw, 6 * kw; line -2.4 * kw, bt + 2 * kw; curve 2.4 * kw, bt + 2 * kw via 0, bt - 1.6 * kw; line 2.4 * kw, 6 * kw; close }
+            path { at: cx + bx, cy + 3 * kw; stroke: 1.3 * cu; color: off; opacity: oa; move -2.4 * kw, 6 * kw; line -2.4 * kw, bt + 2 * kw; curve 2.4 * kw, bt + 2 * kw via 0, bt - 1.6 * kw; line 2.4 * kw, 6 * kw; close }
+        }
+    }
+    component PKnobMoon(cx: number, cy: number, on: number, o: number) {
+        let kk = 0.5 * cu
+        let oa = o * (0.7 + 0.3 * on)
+        path { at: cx, cy; color: off; opacity: oa * on * 0.5; move 1 * kk, -9 * kk; curve 9 * kk, 5 * kk via -19 * kk, 2 * kk; curve 1 * kk, -9 * kk via -5 * kk, -1 * kk; close }
+        path { at: cx, cy; stroke: 1.3 * cu; color: off; opacity: oa; move 1 * kk, -9 * kk; curve 9 * kk, 5 * kk via -19 * kk, 2 * kk; curve 1 * kk, -9 * kk via -5 * kk, -1 * kk; close }
+        ellipse { at: cx + 4.6 * kk, cy - 4.2 * kk; radius: 0.9 * cu; color: off; opacity: oa }
+        ellipse { at: cx + 8 * kk, cy - 1.5 * kk; radius: 0.6 * cu; color: off; opacity: oa }
+    }
+    component PKnobPad(cx: number, cy: number, on: number, o: number) {
+        let kp = 0.5 * cu
+        let oa = o * (0.7 + 0.3 * on)
+        box { at: cx, cy; size: 20 * kp, 12 * kp; corner: 6 * kp; color: off; opacity: oa * on * 0.5 }
+        box { at: cx, cy; size: 20 * kp, 12 * kp; corner: 6 * kp; stroke: 1.3 * cu; color: off; opacity: oa }
+        line { from: cx - 6 * kp, cy; to: cx - 2 * kp, cy; width: 1.1 * cu; color: off; opacity: oa }
+        line { from: cx - 4 * kp, cy - 2 * kp; to: cx - 4 * kp, cy + 2 * kp; width: 1.1 * cu; color: off; opacity: oa }
+        ellipse { at: cx + 3 * kp, cy + 1.5 * kp; radius: 0.8 * cu; color: off; opacity: oa }
+        ellipse { at: cx + 6 * kp, cy - 1.5 * kp; radius: 0.8 * cu; color: off; opacity: oa }
+    }
+
     component PPower(cx: number, cy: number, hot: number, o: number) {
         prop a = 0 ~calm
         follow a = hot
@@ -4772,7 +4891,9 @@ scene Vitreus {
     //  each offset is finally used. Wi-Fi and Bluetooth are tiles side by side
     //  now, at the very top, so they cost one row's height between them.
     let tiles_top  = 8
-    let tiles_h    = 72
+    let tiles_h    = 89                  // Wi-Fi and Bluetooth: two large tiles, as tall as the three small ones beside them
+    let st_h       = 58                  // Night mode .. Power: three small tiles to a column
+    let st_gap     = 4
     let tiles_bot  = tiles_top + tiles_h
     //  Do Not Disturb and Caffeine: a second row of tiles, the same size as the first.
     let tiles2_top = tiles_bot + 4
