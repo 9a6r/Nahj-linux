@@ -125,12 +125,12 @@ scene VpnToggle {
             group {
                 show: has > 0.5
                 box { from: cx0, cy0; size: cw0, ch; corner: 12 * u; color: mint; opacity: 5% * row.$k.hover * shown }
-                PFill(tx: cx0, ty: cy0, tw: cw0, th: ch, sx: cx0 + cw0 - 26 * u, sy: cy0 + ch / 2, on: con, av: shown)
+                PFill(tx: cx0, ty: cy0, tw: cw0, th: ch, sx: cx0 + cw0 - 35 * u, sy: cy0 + ch / 2, on: con, av: shown)
                 PRound(x: cx0 + 2.6 * u, y: cy0 + 2.6 * u, w: cw0 - 5.2 * u, h: ch - 5.2 * u, r: 9.7 * u, s: 1 + k, wd: 1.7 * u, c: mix(faint, mint, con), a: (0.5 + 0.45 * con) * shown, f: chot * fr)
-                PSwitch(sx: cx0 + cw0 - 26 * u, sy: cy0 + ch / 2, on: con, av: shown, s: 7 + k, f: chot * fr)
+                PSwitch(sx: cx0 + cw0 - 35 * u, sy: cy0 + ch / 2, on: con, av: shown, s: 7 + k, f: chot * fr)
                 PKey(cx: cx0 + 32 * u, cy: cy0 + ch / 2, lit: con, c: mix(faint, mint, con), a: shown, s: 3 + 10 * k, f: chot * fr, z: 1.2)
-                text profs.$k.name { at: cx0 + 58 * u, cy0 + ch / 2 - 8 * u; anchor: left center; size: 13.5 * u; weight: 700; width: cw0 - 110 * u; lines: 1; color: ink; opacity: shown; family: "Space Grotesk" }
-                text profs.$k.sub { at: cx0 + 58 * u, cy0 + ch / 2 + 8 * u; anchor: left center; size: 11 * u; weight: 600; width: cw0 - 110 * u; lines: 1; color: mix(faint, mint, con); opacity: shown; family: "Space Grotesk" }
+                text profs.$k.name { at: cx0 + 58 * u, cy0 + ch / 2 - 8 * u; anchor: left center; size: 13.5 * u; weight: 700; width: cw0 - 120 * u; lines: 1; color: ink; opacity: shown; family: "Space Grotesk" }
+                text profs.$k.sub { at: cx0 + 58 * u, cy0 + ch / 2 + 8 * u; anchor: left center; size: 11 * u; weight: 600; width: cw0 - 120 * u; lines: 1; color: mix(faint, mint, con); opacity: shown; family: "Space Grotesk" }
             }
             zone box row.$k { from: cx0, cy0; size: cw0, ch; corner: 12 * u; cursor: pointer; label: profs.$k.name; active: shown > 0.5 and has > 0.5 and profs.$k.busy < 0.5 }
             on press row.$k { emit vt_toggle(k) }
