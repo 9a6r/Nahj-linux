@@ -4905,8 +4905,10 @@ scene Vitreus {
     let bright_top = tiles2_bot + 4
     //  The three sliders (brightness, the microphone, the volume) are rows of ONE card, 132 tall: the rows' middles are 26, 66 and 106 from its top (`vol_top` is the volume row's top, 24
     //  above its middle), and the mixer grows the card at its foot.
-    let bright_bot = bright_top + 132
-    let vol_top    = bright_top + 82
+    //  On a machine with no backlight to move (a desktop, an external monitor) the brightness row is left out: the card is a row shorter and the other two close up.
+    let bri_cut    = if(brightness.present, 0, 40)
+    let bright_bot = bright_top + 132 - bri_cut
+    let vol_top    = bright_top + 82 - bri_cut
     let vol_bot    = bright_bot
     //  The player's plate is alone in its own panel now, at the top of it.
     let media_top  = 8
@@ -4944,7 +4946,7 @@ scene Vitreus {
     //  The mixer is part of the volume card: the card grows by `mix.m` while it is open (a row of 32 per app, or a line of
     //  words with none, and room for the dots at the foot).
     let mix.m = if(mixer.count > 0, mixer.count * 32 + 8, 40)
-    let vp.h = 132 + mix.m * clamp(vm, 0, 1)                // the volume card's height, unscaled
+    let vp.h = 132 - bri_cut + mix.m * clamp(vm, 0, 1)                // the volume card's height, unscaled
     let mix.extra = mix.m * max(0, vm)
     let content_bot = mix(vol_bot + max(dd.extra, mix.extra), sub_bot, expand0)
     let dk.hh = bar.h / 2 + (content_bot + 16) * cu * dk0 + 13 * cu * tm * dk0 + max(0, sag)      // (the 13 is `lp.dd`: along the top or bottom the margins are made 18.5 all round here too)

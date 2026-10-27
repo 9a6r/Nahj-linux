@@ -89,11 +89,12 @@ part Dashboard {
         show: dsh_water > 0.004 or dsh_rise > 0.004
         let dsh.gap = 18
         let dsh.pw = 88                                               // a slider's width
+        let dsh.ns = if(brightness.present, 2, 1)                     // how many sliders: no backlight (a desktop, an external monitor) leaves the volume one alone
         let dsh.tw = min(1420, screen.width * 0.74)                   // the whole dashboard: the sliders, then the grid
-        let dsh.gw = dsh.tw - dsh.pw * 2 - dsh.gap * 2                // the grid of tiles, right of the sliders
+        let dsh.gw = dsh.tw - (dsh.pw + dsh.gap) * dsh.ns             // the grid of tiles, right of the sliders
         let dsh.gh = min(640, vh * 0.66)
         let dsh.sl = cx - dsh.tw / 2                                  // the sliders' left edge
-        let dsh.x0 = dsh.sl + dsh.pw * 2 + dsh.gap * 2                // the grid's
+        let dsh.x0 = dsh.sl + (dsh.pw + dsh.gap) * dsh.ns             // the grid's
         let dsh.y0 = yo + vh / 2 - dsh.gh / 2
         let dsh.sc = 0.95 + 0.05 * dsh_rise                           // a little smaller while further down
         let dsh.vis = clamp(dsh_rise * 1.5, 0, 1)
@@ -137,7 +138,7 @@ part Dashboard {
         let dC.h = dsh.gh * 0.52 - dsh.hg
         let dE.l = dsh.sl                                             // the two sliders, together
         let dE.t = dsh.y0
-        let dE.w = dsh.pw * 2 + dsh.gap
+        let dE.w = dsh.pw * dsh.ns + dsh.gap * (dsh.ns - 1)
         let dE.h = dsh.gh
 
         //  (No pool over the screen: the desktop is left as it is, not dimmed or deepened, while the dashboard is up.)
@@ -809,7 +810,7 @@ part Dashboard {
                 let dV.lv = if(dsh_sl.$v.pressed, clamp((dE.t + dE.h - pointer.y) / dE.h, 0, 1), clamp(if(v == 0, volume_level, bright_level), 0, 1))   // under the pointer while dragged, not waiting on the mixer
                 let dV.dim = if(v == 0, audio.muted, 1 - dV.on)               // its fill is grey: muted, or nothing to set
                 let dV.ly = clamp(dE.t + dE.h * (1 - dV.lv) - 21, dE.t + 9, dE.t + dE.h - 21)   // the line's top: it rides above the fill, 5 clear of it (the fill is 9 clear of the glass)
-                DshTile(dV.l, dE.t, dV.w, dE.h, pick(v, dsh_c4, dsh_c1), dV.k) {
+                DshTile(dV.l, dE.t, dV.w, dE.h, pick(v, dsh_c4, dsh_c1 * if(brightness.present, 1, 0)), dV.k) {
                     group {
                         clip inset 9 box { from: dV.l, dE.t; size: dV.w, dE.h; corner: dV.k }
                         box { from: dV.l, dV.ly + 21; size: dV.w, dE.t + dE.h - dV.ly - 21; color: if(dV.dim, faint, mint); opacity: if(dV.dim, 0.22, 0.85) }

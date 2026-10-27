@@ -23,9 +23,9 @@ part ControlsDrawer {
             box { at: pcx, card_cy; size: 288 * cu, vp.h * cu; corner: pr; color: ink; opacity: (veil) * (1 - obs) }
         }
 
-        //  Brightness: a sun that opens its rays as the backlight climbs. Dimmed, not hidden, on a machine with no backlight to move.
+        //  Brightness: a sun that opens its rays as the backlight climbs. Dimmed with no brightnessctl to move it; with no backlight at all the row is not there (`bri_cut`).
         group {
-            opacity: f6 * mix(0.45, 1, brightness.present) * mix(0.45, 1, bright_avail) * clamp(1 - expand0, 0, 1)
+            opacity: f6 * brightness.present * mix(0.45, 1, bright_avail) * clamp(1 - expand0, 0, 1)
             move: 0, (1 - f6) * 12 * cu
             let bcy = ck + (vol_top - 56) * cu
             //  Obsidian: the plate is a solid step lighter than the shell, with a small tight shadow under it, in place of the veil.
@@ -77,7 +77,7 @@ part ControlsDrawer {
             let th = (16 + 3 * vol_hit.hover) * cu          // the track thickens under the pointer
             PSlider(sl.x0, sy, sl.w, vol_shown, vol_hit.hover, cu, th, if(audio.muted, 1, 0))
             //  The zone that takes the click: the whole track and a little more each side, so it is easy to hit; on the press and all through a drag it turns where the pointer is into a volume.
-            zone box vol_plate { at: pcx, ck + (vol_top + (vp.h - 82) / 2) * cu; size: 288 * cu, (vp.h - 82) * cu; corner: pr }
+            zone box vol_plate { at: pcx, ck + (vol_top + (vp.h + bri_cut - 82) / 2) * cu; size: 288 * cu, (vp.h + bri_cut - 82) * cu; corner: pr }
             on press right vol_plate { vm_open = not vm_open; dd_open = false }
             zone box vol_hit { at: sl.x0 + sl.w / 2, sy; size: sl.w + 16 * cu, 24 * cu; cursor: pointer }
             on press vol_hit { vol_ui = clamp(((pointer.x - tx.pnl) - sl.x0) / sl.w, 0, 1); vol_lock: 1 ~1ms; emit setvol(clamp(((pointer.x - tx.pnl) - sl.x0) / sl.w, 0, 1)) }
@@ -86,11 +86,11 @@ part ControlsDrawer {
             on release vol_hit { vol_lock: 0 ~1ms after 900ms }
             //  Three small dots at the foot of the plate say there is more under it: the mixer. They are a button too (right-clicking the plate does the same).
             repeat i in 0..3 {
-                ellipse { at: pcx + (i - 1) * 6.5 * cu, vol_cy + (vp.h - 110.5) * cu; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * mix_hit.hover) * (1 - clamp(vm * 1.6, 0, 1)) * clamp(mvis, 0, 1) }
+                ellipse { at: pcx + (i - 1) * 6.5 * cu, vol_cy + (vp.h + bri_cut - 110.5) * cu; radius: 1.6 * cu; color: ink; opacity: (35% + 55% * mix_hit.hover) * (1 - clamp(vm * 1.6, 0, 1)) * clamp(mvis, 0, 1) }
             }
             //  While it is open the dots give way to an arrow pointing up: press it to fold the mixer away.
-            path { at: pcx, vol_cy + (vp.h - 110.5) * cu; stroke: 1.6 * cu; color: mint; opacity: (55% + 40% * mix_hit.hover) * clamp(vm * 1.6 - 0.6, 0, 1) * clamp(mvis, 0, 1); move -4.5 * cu, 1.8 * cu; line 0, -1.8 * cu; line 4.5 * cu, 1.8 * cu }
-            zone box mix_hit { at: pcx, vol_cy + (vp.h - 110.5) * cu; size: 40 * cu, 9 * cu; corner: 4.5 * cu; cursor: pointer; active: mixer.count > 0 or vm_open }
+            path { at: pcx, vol_cy + (vp.h + bri_cut - 110.5) * cu; stroke: 1.6 * cu; color: mint; opacity: (55% + 40% * mix_hit.hover) * clamp(vm * 1.6 - 0.6, 0, 1) * clamp(mvis, 0, 1); move -4.5 * cu, 1.8 * cu; line 0, -1.8 * cu; line 4.5 * cu, 1.8 * cu }
+            zone box mix_hit { at: pcx, vol_cy + (vp.h + bri_cut - 110.5) * cu; size: 40 * cu, 9 * cu; corner: 4.5 * cu; cursor: pointer; active: mixer.count > 0 or vm_open }
             on press mix_hit { vm_open = not vm_open; dd_open = false }
             on press right mix_hit { vm_open = not vm_open; dd_open = false }
             //  The speaker is a mute button. Declared after the track's zone, which reaches a little way under it, so the icon wins there.
