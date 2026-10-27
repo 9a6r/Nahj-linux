@@ -3737,7 +3737,7 @@ do
         -- The lock screen is drawn in the same typeface, so it starts again too, unless the session is locked right now (that would unlock it).
         after(500, function()
             run("pleamar", { "--say", "lockscreen", "get locked" }, function(locked)
-                local pat = tostring(locked):match("true") and "(vitreus\\.plm|desktop)" or "(vitreus\\.plm|desktop|lockscreen/lockscreen\\.plm)"
+                local pat = tostring(locked):match("true") and "(vitreus\\.plm|desktop|addons/)" or "(vitreus\\.plm|desktop|addons/|lockscreen/lockscreen\\.plm)"
                 run("pkill", { "-f", "pleamar --scene .*/vitreus/" .. pat }, function() end)
             end)
         end)
