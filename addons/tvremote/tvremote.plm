@@ -187,7 +187,7 @@ scene TvRemote {
 
         //  ── setting up: address, pairing, trouble ──
         group {
-            opacity: en2 * (1 - rdy)
+            opacity: en2 * (1 - rdy) * (1 - mo)
             move: 0, (1 - en2) * 12
             text setup_t { at: cx, top + 150 * u; anchor: center; size: 17 * u; weight: 700; width: W0 - 2 * m; lines: 2; align: center; color: ink; opacity: shown; family: "Space Grotesk" }
             text setup_s { at: cx, top + 206 * u; anchor: center; size: 12 * u; weight: 600; width: W0 - 2 * m; lines: 5; align: center; color: faint; opacity: shown; family: "Space Grotesk" }
@@ -200,7 +200,7 @@ scene TvRemote {
 
         //  ── the TVs found on the network ──
         group {
-            opacity: en2 * (1 - rdy)
+            opacity: en2 * (1 - rdy) * (1 - mo)
             move: 0, (1 - en2) * 12
             repeat k in 0..3 {
                 let fy = top + (244 + k * 40) * u

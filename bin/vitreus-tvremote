@@ -252,6 +252,7 @@ class Remote:
         self.sock = None
         self.lock = threading.Lock()
         self.alive = False
+        self.state = None                           # what the TV last said (model, app, volume), to answer a second connect
         self.stale = False                          # set when another TV was chosen: nothing more is reported from this one
 
     def close(self):
@@ -282,6 +283,7 @@ class Remote:
         self.sock.settimeout(20)                    # the TV pings every few seconds: silence this long means it is gone
         self.alive = True
         state = {"model": "", "vendor": "", "on": False, "app": "", "vol": -1, "max": 100, "muted": False}
+        self.state = state
         try:
             while True:
                 m = parse(recv_msg(self.sock))
@@ -412,6 +414,11 @@ def main():
     def start_remote(h):
         nonlocal remote
         if remote is not None and remote.alive and remote.host == h and not remote.stale:
+            # already connected: say so again, or a panel that asked is left on "Connecting" for good
+            if remote.state and remote.state.get("model"):
+                emit(ev="state", stage="ready", **remote.state)
+            else:
+                emit(ev="state", stage="connecting")
             return
         if remote is not None:
             remote.close()
