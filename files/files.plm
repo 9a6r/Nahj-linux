@@ -1570,75 +1570,102 @@ scene Files {
     on press zoutz { emit act(52) }
 
     // ── the name dialog: a new folder, a new name, a place to connect to, or a question ──
+    prop ao = 0 ~calm
+    follow ao = if(ask.on, 1, 0)
+    prop ai = 0 ~quick                  // the lines come in once the glass has begun to drop
+    follow ai = if(ask.on and ao > 0.4, 1, 0)
     group {
-        show: ask.on
+        show: ao > 0.01
+        opacity: min(1, ao * 3)
         zone box askcatch { from: 0, 0; size: W, H; active: ask.on }
         on press askcatch { emit act(10) }
-        box { from: 0, 0; size: W, H; corner: 22 * rr; color: deep; opacity: 45% }
-        Pane(W / 2 - 220, H / 2 - 80, 440, 160, 18, 0.96)
+        box { from: 0, 0; size: W, H; corner: 22 * rr; color: deep; opacity: 45% * clamp(ao, 0, 1) }
+        Pane(W / 2 - 220, H / 2 - 80, 440, max(4, (160) * clamp(ao, 0, 1)), 18, 0.96)
         zone box askbox { from: W / 2 - 220, H / 2 - 80; size: 440, 160 }
-        text ask.title { at: W / 2 - 196, H / 2 - 52; anchor: left center; size: 16; weight: 700; color: ink; family: "Space Grotesk" }
-        box { from: W / 2 - 196, H / 2 - 28; size: 392, 40; corner: 12 * rr; color: deep; opacity: 45%; show: ask.input }
-        box { from: W / 2 - 196, H / 2 - 28; size: 392, 40; corner: 12 * rr; stroke: 1.2; color: mint; opacity: 55%; show: ask.input }
-        input askin { at: W / 2 - 184, H / 2 - 18; width: 368; size: 15; weight: 500; color: ink; placeholder: "Name"; show: ask.input; family: "Space Grotesk" }
-        text ask.msg { at: W / 2 - 196, H / 2 - 30; anchor: left top; size: 14; weight: 500; color: ink; opacity: 85%; width: 392; lines: 3; show: not ask.input; family: "Space Grotesk" }
-        on submit askin { emit ask_ok }
-        Btn(W / 2 + 12, H / 2 + 30, 90, "Cancel", 0, act, 10)
-        Btn(W / 2 + 106, H / 2 + 30, 90, ask.ok, if(ask.danger, 2, 1), ask_ok, 0)
+        group {
+            clip box { from: W / 2 - 220, H / 2 - 80; size: 440, (160) * clamp(ao, 0, 1); corner: 18 * rr }
+            opacity: ai
+            text ask.title { at: W / 2 - 196, H / 2 - 52; anchor: left center; size: 16; weight: 700; color: ink; family: "Space Grotesk" }
+            box { from: W / 2 - 196, H / 2 - 28; size: 392, 40; corner: 12 * rr; color: deep; opacity: 45%; show: ask.input }
+            box { from: W / 2 - 196, H / 2 - 28; size: 392, 40; corner: 12 * rr; stroke: 1.2; color: mint; opacity: 55%; show: ask.input }
+            input askin { at: W / 2 - 184, H / 2 - 18; width: 368; size: 15; weight: 500; color: ink; placeholder: "Name"; show: ask.input; family: "Space Grotesk" }
+            text ask.msg { at: W / 2 - 196, H / 2 - 30; anchor: left top; size: 14; weight: 500; color: ink; opacity: 85%; width: 392; lines: 3; show: not ask.input; family: "Space Grotesk" }
+            on submit askin { emit ask_ok }
+            Btn(W / 2 + 12, H / 2 + 30, 90, "Cancel", 0, act, 10)
+            Btn(W / 2 + 106, H / 2 + 30, 90, ask.ok, if(ask.danger, 2, 1), ask_ok, 0)
+        }
     }
     on change ask.gen { focus askin }
 
     // ── a name that is taken ──
+    prop co = 0 ~calm
+    follow co = if(cf.on, 1, 0)
+    prop ci = 0 ~quick                  // the lines come in once the glass has begun to drop
+    follow ci = if(cf.on and co > 0.4, 1, 0)
     group {
-        show: cf.on
+        show: co > 0.01
+        opacity: min(1, co * 3)
         zone box cfcatch { from: 0, 0; size: W, H; active: cf.on }
-        box { from: 0, 0; size: W, H; corner: 22 * rr; color: deep; opacity: 45% }
-        Pane(W / 2 - 250, H / 2 - 105, 500, 210, 18, 0.96)
+        box { from: 0, 0; size: W, H; corner: 22 * rr; color: deep; opacity: 45% * clamp(co, 0, 1) }
+        Pane(W / 2 - 250, H / 2 - 105, 500, max(4, (210) * clamp(co, 0, 1)), 18, 0.96)
         zone box cfbox { from: W / 2 - 250, H / 2 - 105; size: 500, 210 }
-        text "Already there" { at: W / 2 - 226, H / 2 - 76; anchor: left center; size: 16; weight: 700; color: ink; family: "Space Grotesk" }
-        text cf.msg { at: W / 2 - 226, H / 2 - 52; anchor: left top; size: 13.5; weight: 500; color: ink; opacity: 85%; width: 452; lines: 3; family: "Space Grotesk" }
-        prop cah = 0 ~quick
-        follow cah = cfall.hover
-        box { from: W / 2 - 226, H / 2 + 6; size: 20, 20; corner: 6 * rr; color: mix(ink, mint, if(cf.all, 1, 0)); opacity: 12% + 10% * cah + 60% * if(cf.all, 1, 0) }
-        PGlyphS35(W / 2 - 216, H / 2 + 16, 0.5, 35, if(cf.all, 1, 0))
-        text "Do the same for the others" { at: W / 2 - 196, H / 2 + 16; anchor: left center; size: 13; weight: 500; color: ink; family: "Space Grotesk" }
-        zone box cfall { from: W / 2 - 230, H / 2 + 2; size: 260, 28; corner: 8 * rr; cursor: pointer; label: "Do the same for the others"; role: toggle; checked: cf.all }
-        on press cfall { emit cf_pick(9) }
-        Btn(W / 2 - 226, H / 2 + 54, 92, "Stop", 0, cf_pick, 0)
-        Btn(W / 2 - 126, H / 2 + 54, 92, "Skip", 0, cf_pick, 1)
-        Btn(W / 2 - 26, H / 2 + 54, 120, "Keep both", 0, cf_pick, 2)
-        Btn(W / 2 + 102, H / 2 + 54, 124, "Replace", 2, cf_pick, 3)
+        group {
+            clip box { from: W / 2 - 250, H / 2 - 105; size: 500, (210) * clamp(co, 0, 1); corner: 18 * rr }
+            opacity: ci
+            text "Already there" { at: W / 2 - 226, H / 2 - 76; anchor: left center; size: 16; weight: 700; color: ink; family: "Space Grotesk" }
+            text cf.msg { at: W / 2 - 226, H / 2 - 52; anchor: left top; size: 13.5; weight: 500; color: ink; opacity: 85%; width: 452; lines: 3; family: "Space Grotesk" }
+            prop cah = 0 ~quick
+            follow cah = cfall.hover
+            box { from: W / 2 - 226, H / 2 + 6; size: 20, 20; corner: 6 * rr; color: mix(ink, mint, if(cf.all, 1, 0)); opacity: 12% + 10% * cah + 60% * if(cf.all, 1, 0) }
+            PGlyphS35(W / 2 - 216, H / 2 + 16, 0.5, 35, if(cf.all, 1, 0))
+            text "Do the same for the others" { at: W / 2 - 196, H / 2 + 16; anchor: left center; size: 13; weight: 500; color: ink; family: "Space Grotesk" }
+            zone box cfall { from: W / 2 - 230, H / 2 + 2; size: 260, 28; corner: 8 * rr; cursor: pointer; label: "Do the same for the others"; role: toggle; checked: cf.all }
+            on press cfall { emit cf_pick(9) }
+            Btn(W / 2 - 226, H / 2 + 54, 92, "Stop", 0, cf_pick, 0)
+            Btn(W / 2 - 126, H / 2 + 54, 92, "Skip", 0, cf_pick, 1)
+            Btn(W / 2 - 26, H / 2 + 54, 120, "Keep both", 0, cf_pick, 2)
+            Btn(W / 2 + 102, H / 2 + 54, 124, "Replace", 2, cf_pick, 3)
+        }
     }
 
     // ── a list to choose from ──
     let pkh = 100 + picks.count * 42
+    prop ko = 0 ~calm
+    follow ko = if(pick.on, 1, 0)
+    prop ki = 0 ~quick                  // the lines come in once the glass has begun to drop
+    follow ki = if(pick.on and ko > 0.4, 1, 0)
     group {
-        show: pick.on
+        show: ko > 0.01
+        opacity: min(1, ko * 3)
         zone box pkcatch { from: 0, 0; size: W, H; active: pick.on }
         on press pkcatch { emit act(10) }
-        box { from: 0, 0; size: W, H; corner: 22 * rr; color: deep; opacity: 45% }
-        Pane(W / 2 - 220, H / 2 - pkh / 2, 440, pkh, 18, 0.96)
+        box { from: 0, 0; size: W, H; corner: 22 * rr; color: deep; opacity: 45% * clamp(ko, 0, 1) }
+        Pane(W / 2 - 220, H / 2 - pkh / 2, 440, max(4, (pkh) * clamp(ko, 0, 1)), 18, 0.96)
         zone box pkbox { from: W / 2 - 220, H / 2 - pkh / 2; size: 440, pkh }
-        text pick.title { at: W / 2 - 196, H / 2 - pkh / 2 + 30; anchor: left center; size: 16; weight: 700; color: ink; family: "Space Grotesk" }
-        column pkc {
-            at: W / 2 - 206, H / 2 - pkh / 2 + 56
-            gap: 0
-            for k in picks {
-                group {
-                    size: 412, 42
-                    prop kh = 0 ~quick
-                    follow kh = kz.hover
-                    box { from: 0, 1; size: 412, 40; corner: 11 * rr; color: mint; opacity: 16% * kh }
-                    box { from: 0, 1; size: 412, 40; corner: 11 * rr; stroke: 1; color: mint; opacity: 40% * kh }
-                    PGlyphSP(24, 21, 0.78, k.ic, 1)
-                    text k.label { at: 50, if(k.hs, 14, 21); anchor: left center; size: 13.5; weight: 600; color: ink; width: 346; lines: 1; family: "Space Grotesk" }
-                    text k.sub { at: 50, 30; anchor: left center; size: 11; weight: 500; color: faint; width: 346; lines: 1; show: k.hs; family: "Space Grotesk" }
-                    zone box kz { from: 0, 1; size: 412, 40; corner: 11 * rr; cursor: pointer; label: "{k.label}" }
-                    on press kz { emit pick_ok(k.at) }
+        group {
+            clip box { from: W / 2 - 220, H / 2 - pkh / 2; size: 440, (pkh) * clamp(ko, 0, 1); corner: 18 * rr }
+            opacity: ki
+            text pick.title { at: W / 2 - 196, H / 2 - pkh / 2 + 30; anchor: left center; size: 16; weight: 700; color: ink; family: "Space Grotesk" }
+            column pkc {
+                at: W / 2 - 206, H / 2 - pkh / 2 + 56
+                gap: 0
+                for k in picks {
+                    group {
+                        size: 412, 42
+                        prop kh = 0 ~quick
+                        follow kh = kz.hover
+                        box { from: 0, 1; size: 412, 40; corner: 11 * rr; color: mint; opacity: 16% * kh }
+                        box { from: 0, 1; size: 412, 40; corner: 11 * rr; stroke: 1; color: mint; opacity: 40% * kh }
+                        PGlyphSP(24, 21, 0.78, k.ic, 1)
+                        text k.label { at: 50, if(k.hs, 14, 21); anchor: left center; size: 13.5; weight: 600; color: ink; width: 346; lines: 1; family: "Space Grotesk" }
+                        text k.sub { at: 50, 30; anchor: left center; size: 11; weight: 500; color: faint; width: 346; lines: 1; show: k.hs; family: "Space Grotesk" }
+                        zone box kz { from: 0, 1; size: 412, 40; corner: 11 * rr; cursor: pointer; label: "{k.label}" }
+                        on press kz { emit pick_ok(k.at) }
+                    }
                 }
             }
+            Btn(W / 2 + 106, H / 2 + pkh / 2 - 50, 90, "Cancel", 0, act, 10)
         }
-        Btn(W / 2 + 106, H / 2 + pkh / 2 - 50, 90, "Cancel", 0, act, 10)
     }
 
     // ── the right-click menu ──
@@ -1693,79 +1720,83 @@ scene Files {
     follow po = if(prop.on, 1, 0)
     let ppx = W / 2 - 236
     let ppy = H / 2 - prop.h / 2
+    prop pri = 0 ~quick                  // the lines come in once the glass has begun to drop
+    follow pri = if(prop.on and po > 0.4, 1, 0)
     group {
         show: po > 0.01
-        pivot: W / 2, H / 2
-        scale: 0.94 + 0.06 * po
-        opacity: po
+        opacity: min(1, po * 3)
         zone box propcatch { from: 0, 0; size: W, H; active: prop.on }
         on press propcatch { emit act(10) }
         box { from: 0, 0; size: W, H; corner: 22 * rr; color: deep; opacity: 45% }
-        Pane(ppx, ppy, 472, prop.h, 20, 0.6)
+        Pane(ppx, ppy, 472, max(4, (prop.h) * clamp(po, 0, 1)), 20, 0.6)
         zone box propbox { from: ppx, ppy; size: 472, prop.h }
-        for i in pinfo {
-            group {
-                group { show: not i.has.thumb; PFile(ppx + 52, ppy + 52, 1, i.ik, 0, 1) }
-                group {
-                    show: i.has.thumb
-                    body {
-                        color: deep
-                        rim: 14%
-                        box { from: ppx + 20, ppy + 22; size: 64, 48; corner: 8 * rr }
-                    }
-                    clip box { from: ppx + 20, ppy + 22; size: 64, 48; corner: 8 * rr }
-                    image i.thumb { at: ppx + 20, ppy + 22; size: 64, 48 }
-                }
-                text i.name { at: ppx + 102, ppy + 38; anchor: left center; size: 18; weight: 700; color: ink; width: 346; lines: 1; family: "Space Grotesk" }
-                text i.sub { at: ppx + 102, ppy + 62; anchor: left center; size: 12.5; weight: 500; color: faint; width: 346; lines: 1; family: "Space Grotesk" }
-            }
-        }
-        box { from: ppx + 22, ppy + 90; size: 428, 1; color: ink; opacity: 10% }
-        column prc {
-            at: ppx + 22, ppy + 100
-            gap: 0
-            for r in prows {
-                group {
-                    size: 428, 30
-                    text r.label { at: 2, 15; anchor: left center; size: 12.5; weight: 500; color: faint; family: "Space Grotesk" }
-                    text r.value { at: 112, 15; anchor: left center; size: 13; weight: 500; color: ink; width: if(r.hb, 214, 316); lines: 1; show: not r.tog; family: "Space Grotesk" }
-                    // A row with a switch: Hidden (a name that starts with a dot).
-                    group {
-                        show: r.tog
-                        prop tg = 0 ~quick
-                        follow tg = if(r.on, 1, 0)
-                        box { from: 112, 3; size: 46, 24; corner: 12 * rr; color: mix(ink, mint, tg); opacity: 20% + 60% * tg }
-                        ellipse { at: 124 + 22 * tg, 15; radius: 8.5; color: mix(ink, onmint, 0.5 * tg) }
-                        text r.value { at: 170, 15; anchor: left center; size: 13; weight: 500; color: ink; width: 258; lines: 1; family: "Space Grotesk" }
-                        zone box tz { from: 108, 1; size: 150, 28; corner: 10 * rr; cursor: pointer; active: r.tog and prop.on; label: "{r.label}" }
-                        on press tz { emit prop_act(r.k) }
-                    }
-                    // A row with a button: change the program that opens it, count its checksum.
-                    group {
-                        show: r.hb
-                        prop bh3 = 0 ~quick
-                        follow bh3 = bz3.hover
-                        box { from: 330, 2; size: 98, 26; corner: 9 * rr; color: mint; opacity: 14% + 16% * bh3 }
-                        text r.btn { at: 379, 15; anchor: center; size: 12; weight: 600; color: ink; family: "Space Grotesk" }
-                        zone box bz3 { from: 330, 2; size: 98, 26; corner: 9 * rr; cursor: pointer; active: r.hb and prop.on; label: "{r.btn}" }
-                        on press bz3 { emit prop_act(r.k) }
-                    }
-                }
-            }
-        }
-        //  Who may do what: nine little switches (the numbers in the logic go from the owner's reading, 256, to everybody's executing, 1).
         group {
-            show: pm.on
-            let pmy = ppy + prop.h - 54 - 98
-            text "Permissions" { at: ppx + 24, pmy + 11; anchor: left center; size: 12.5; weight: 500; color: faint; family: "Space Grotesk" }
-            text "Owner" { at: ppx + 112, pmy + 11; anchor: left center; size: 12.5; weight: 500; color: ink; family: "Space Grotesk" }
-            text "Group" { at: ppx + 112, pmy + 39; anchor: left center; size: 12.5; weight: 500; color: ink; family: "Space Grotesk" }
-            text "Others" { at: ppx + 112, pmy + 67; anchor: left center; size: 12.5; weight: 500; color: ink; family: "Space Grotesk" }
-            repeat i in 0..9 {
-                Tog(ppx + 190 + mod(i, 3) * 34, pmy + floor(i / 3) * 28, mod(floor(pm.bits / pick(i, 256, 128, 64, 32, 16, 8, 4, 2, 1)), 2), pick(mod(i, 3), "r", "w", "x"), 8 - i)
+            clip box { from: ppx, ppy; size: 472, (prop.h) * clamp(po, 0, 1); corner: 20 * rr }
+            opacity: pri
+            for i in pinfo {
+                group {
+                    group { show: not i.has.thumb; PFile(ppx + 52, ppy + 52, 1, i.ik, 0, 1) }
+                    group {
+                        show: i.has.thumb
+                        body {
+                            color: deep
+                            rim: 14%
+                            box { from: ppx + 20, ppy + 22; size: 64, 48; corner: 8 * rr }
+                        }
+                        clip box { from: ppx + 20, ppy + 22; size: 64, 48; corner: 8 * rr }
+                        image i.thumb { at: ppx + 20, ppy + 22; size: 64, 48 }
+                    }
+                    text i.name { at: ppx + 102, ppy + 38; anchor: left center; size: 18; weight: 700; color: ink; width: 346; lines: 1; family: "Space Grotesk" }
+                    text i.sub { at: ppx + 102, ppy + 62; anchor: left center; size: 12.5; weight: 500; color: faint; width: 346; lines: 1; family: "Space Grotesk" }
+                }
             }
+            box { from: ppx + 22, ppy + 90; size: 428, 1; color: ink; opacity: 10% }
+            column prc {
+                at: ppx + 22, ppy + 100
+                gap: 0
+                for r in prows {
+                    group {
+                        size: 428, 30
+                        text r.label { at: 2, 15; anchor: left center; size: 12.5; weight: 500; color: faint; family: "Space Grotesk" }
+                        text r.value { at: 112, 15; anchor: left center; size: 13; weight: 500; color: ink; width: if(r.hb, 214, 316); lines: 1; show: not r.tog; family: "Space Grotesk" }
+                        // A row with a switch: Hidden (a name that starts with a dot).
+                        group {
+                            show: r.tog
+                            prop tg = 0 ~quick
+                            follow tg = if(r.on, 1, 0)
+                            box { from: 112, 3; size: 46, 24; corner: 12 * rr; color: mix(ink, mint, tg); opacity: 20% + 60% * tg }
+                            ellipse { at: 124 + 22 * tg, 15; radius: 8.5; color: mix(ink, onmint, 0.5 * tg) }
+                            text r.value { at: 170, 15; anchor: left center; size: 13; weight: 500; color: ink; width: 258; lines: 1; family: "Space Grotesk" }
+                            zone box tz { from: 108, 1; size: 150, 28; corner: 10 * rr; cursor: pointer; active: r.tog and prop.on; label: "{r.label}" }
+                            on press tz { emit prop_act(r.k) }
+                        }
+                        // A row with a button: change the program that opens it, count its checksum.
+                        group {
+                            show: r.hb
+                            prop bh3 = 0 ~quick
+                            follow bh3 = bz3.hover
+                            box { from: 330, 2; size: 98, 26; corner: 9 * rr; color: mint; opacity: 14% + 16% * bh3 }
+                            text r.btn { at: 379, 15; anchor: center; size: 12; weight: 600; color: ink; family: "Space Grotesk" }
+                            zone box bz3 { from: 330, 2; size: 98, 26; corner: 9 * rr; cursor: pointer; active: r.hb and prop.on; label: "{r.btn}" }
+                            on press bz3 { emit prop_act(r.k) }
+                        }
+                    }
+                }
+            }
+            //  Who may do what: nine little switches (the numbers in the logic go from the owner's reading, 256, to everybody's executing, 1).
+            group {
+                show: pm.on
+                let pmy = ppy + prop.h - 54 - 98
+                text "Permissions" { at: ppx + 24, pmy + 11; anchor: left center; size: 12.5; weight: 500; color: faint; family: "Space Grotesk" }
+                text "Owner" { at: ppx + 112, pmy + 11; anchor: left center; size: 12.5; weight: 500; color: ink; family: "Space Grotesk" }
+                text "Group" { at: ppx + 112, pmy + 39; anchor: left center; size: 12.5; weight: 500; color: ink; family: "Space Grotesk" }
+                text "Others" { at: ppx + 112, pmy + 67; anchor: left center; size: 12.5; weight: 500; color: ink; family: "Space Grotesk" }
+                repeat i in 0..9 {
+                    Tog(ppx + 190 + mod(i, 3) * 34, pmy + floor(i / 3) * 28, mod(floor(pm.bits / pick(i, 256, 128, 64, 32, 16, 8, 4, 2, 1)), 2), pick(mod(i, 3), "r", "w", "x"), 8 - i)
+                }
+            }
+            Btn(ppx + 472 - 22 - 96, ppy + prop.h - 54, 96, "Close", 1, act, 10)
         }
-        Btn(ppx + 472 - 22 - 96, ppy + prop.h - 54, 96, "Close", 1, act, 10)
     }
 
     // ── a look at a file ──
@@ -1777,24 +1808,28 @@ scene Files {
     let pvy = (H - pvh) / 2
     let pvfit = min(pvw - 40, (pvh - 130) * 1.5625)
     image pvimg = from pv.path, 1000, 640
+    prop pvi = 0 ~quick                  // the lines come in once the glass has begun to drop
+    follow pvi = if(pv.on and pvo > 0.4, 1, 0)
     group {
         show: pvo > 0.01
-        pivot: W / 2, H / 2
-        scale: 0.96 + 0.04 * pvo
-        opacity: pvo
+        opacity: min(1, pvo * 3)
         zone box pvcatch { from: 0, 0; size: W, H; active: pv.on }
         on press pvcatch { emit act(10) }
         box { from: 0, 0; size: W, H; corner: 22 * rr; color: deep; opacity: 55% }
-        Pane(pvx, pvy, pvw, pvh, 20, 0.7)
+        Pane(pvx, pvy, pvw, max(4, (pvh) * clamp(pvo, 0, 1)), 20, 0.7)
         zone box pvbox { from: pvx, pvy; size: pvw, pvh }
-        text pv.name { at: pvx + 24, pvy + 28; anchor: left center; size: 16; weight: 700; color: ink; width: pvw - 120; lines: 1; family: "Space Grotesk" }
-        text pv.sub { at: pvx + 24, pvy + 50; anchor: left center; size: 12; weight: 500; color: faint; width: pvw - 120; lines: 1; family: "Space Grotesk" }
-        text "{pv.n} / {pv.of}" { at: pvx + pvw - 24, pvy + 28; anchor: right center; size: 12; weight: 600; color: faint; show: pv.of > 1; family: "Space Grotesk" }
         group {
-            show: pv.kind == 1
-            image pvimg { at: pvx + (pvw - pvfit) / 2, pvy + 68; size: pvfit, pvfit / 1.5625 }
+            clip box { from: pvx, pvy; size: pvw, (pvh) * clamp(pvo, 0, 1); corner: 20 * rr }
+            opacity: pvi
+            text pv.name { at: pvx + 24, pvy + 28; anchor: left center; size: 16; weight: 700; color: ink; width: pvw - 120; lines: 1; family: "Space Grotesk" }
+            text pv.sub { at: pvx + 24, pvy + 50; anchor: left center; size: 12; weight: 500; color: faint; width: pvw - 120; lines: 1; family: "Space Grotesk" }
+            text "{pv.n} / {pv.of}" { at: pvx + pvw - 24, pvy + 28; anchor: right center; size: 12; weight: 600; color: faint; show: pv.of > 1; family: "Space Grotesk" }
+            group {
+                show: pv.kind == 1
+                image pvimg { at: pvx + (pvw - pvfit) / 2, pvy + 68; size: pvfit, pvfit / 1.5625 }
+            }
+            text pv.text { at: pvx + 26, pvy + 76; anchor: left top; size: 12.5; weight: 500; color: ink; width: pvw - 52; lines: 26; line_height: 1.25; show: pv.kind == 2; family: "monospace" }
+            text "← →  other files      Enter  open      Space or Esc  close" { at: pvx + pvw / 2, pvy + pvh - 24; anchor: center; size: 11.5; weight: 500; color: faint; show: not slim; family: "Space Grotesk" }
         }
-        text pv.text { at: pvx + 26, pvy + 76; anchor: left top; size: 12.5; weight: 500; color: ink; width: pvw - 52; lines: 26; line_height: 1.25; show: pv.kind == 2; family: "monospace" }
-        text "← →  other files      Enter  open      Space or Esc  close" { at: pvx + pvw / 2, pvy + pvh - 24; anchor: center; size: 11.5; weight: 500; color: faint; show: not slim; family: "Space Grotesk" }
     }
 }
