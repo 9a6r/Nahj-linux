@@ -412,7 +412,7 @@ scene Vitreus {
     //  Glass switched off (`glass_obs`): the same bar and drawers, but a flat, solid obsidian instead of glass. `obs` is 0 glass, 1 obsidian, and travels between them.
     fact glass_obs = false
     prop obs = 0 ~calm
-    follow obs = if(glass_obs or cas or uwu or milk or proxy_on, 1, 0)
+    follow obs = if(glass_obs or cas or uwu or milk, 1, 0)
     //  The Cassette theme (Settings > Theme): the same flat body as obsidian, but in the palette's own plastic (`obsidian` below stops being darkened), with a hard
     //  edge, a lit lip, a seam, a four-colour stripe across each drawer's head and a hard shadow. `cas_k` travels between glass and plastic; the drawers' liquid
     //  (necks, drips, the jelly) is switched off with it and their corners are cut square (`rc`, `bk`).
@@ -429,19 +429,15 @@ scene Vitreus {
     fact milk = false
     prop milk_k = 0 ~calm
     follow milk_k = if(milk, 1, 0)
-    let pk = max(max(max(cas_k, uwu_k), milk_k), px_k)
+    let pk = max(max(cas_k, uwu_k), milk_k)
     //  The Cyber theme: a neon HUD. The glass stays glass (the palette makes it near-black); on top of it each drawer gets a hairline neon outline, corner brackets and
     //  scan ticks (see bar_glass.plm). `cy_k` travels between glass and Cyber. `deep` is its second neon.
     fact cyber_on = false
     let cy_dark = 1.0                  // how far Cyber takes the glass's tint towards black (0 none, 1 black); the glass stays as see-through as it was
     prop cy_k = 0 ~calm
     follow cy_k = if(cyber_on, 1, 0)
-    //  The Proxy theme: a combat HUD (slanted black plates, green-to-yellow health bars, hazard stripes, round ability buttons). Near-black glass like Cyber's; the marks are in bar_glass.plm. `px_k` travels between glass and Proxy.
-    fact proxy_on = false
-    prop px_k = 0 ~calm
-    follow px_k = if(proxy_on, 1, 0)
     //  How square the corners are: Retro's plastic and Cyber's HUD both take the drawers' rounding down by the same 73 % (`corner: R * (1 - 0.73 * sq)`).
-    let sq = max(max(cas_k, cy_k), px_k)
+    let sq = max(cas_k, cy_k)
     event glass_obs_toggle ->
     let obsidian = mix(tint, #000000, 0.7 * (1 - pk))      // the theme's own tint, taken most of the way to black (the plastic's own colour on the Cassette): static themes and Iris both change it
     fact hy_blur = 3
@@ -5020,8 +5016,7 @@ scene Vitreus {
     //  A fixed height, whatever the page: the panel used to follow the page in view (262 to 456), so it resized, and moved what hangs from it, with
     //  every click in the sidebar. A page taller than this scrolls inside it (they have their scroll thumb and "More" cue); a shorter one has
     //  empty glass at its foot. It never goes below the sidebar's last row.
-    let th_ex = max(0, floor((themes.count + 3) / 4) - 1)      // rows of theme cards beyond the first (Settings > Theme)
-    let set.h = max(side.ab + 40, 456 + 88 * th_ex * set_pgp)
+    let set.h = max(side.ab + 40, 456)
     let ss.w = (120 + 500 * (min(1, ds0 * 1.6) + max(0, ds0 - 1) * 0.6)) * pu
     let ss.hh = bar.h / 2 + (8 + 36 + 8 + set.h + 16) * pu * ds0 + max(0, sag)
     //  The launcher: a drop that widens to the bar's width as it lands, like the calendar. The search field (40), the
@@ -5452,98 +5447,6 @@ scene Vitreus {
     let dax.br = dax.k * dax.nr * max(0, screen.width - dax.ex - dax.ew / 2 + 26 * cu)
     let dax.bt = dax.k * dax.nt * max(0, dax.ey - dax.eh / 2 - yo + 26 * cu)
     let dax.bb = dax.k * dax.nb * max(0, vb - dax.ey - dax.eh / 2 + 26 * cu)
-    //  The Proxy's panels lean: each drawer is also drawn as a slanted slab (see the paths in bar_shapes.plm), its sides leaning by `sk` over the drawer's height, the way the Desk's selectors do.
-    let pxk_drawer_cx = dk.ex
-    let pxk_drawer_cy = dk.ey - sg.up / 2
-    let pxk_drawer_w = dk.ew * (1 + dj.stretch - 0.07 * dk.bell + 0.003 * wobble * (1 - sg)) * dk.tail
-    let pxk_drawer_h = (dk.eh * (1 - dj.stretch * 0.5 - 0.002 * wobble * (1 - sg)) + sg.up) * dk.tail
-    let pxk_drawer_r = max(0, min(mix(min(dk.ew, dk.eh) / 2, rc, clamp(dk0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_drawer_w, pxk_drawer_h))))
-    let pxk_drawer_sk = min(clamp(pxk_drawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_drawer_h))
-    let pxk_drawer_l = sqrt(pxk_drawer_sk * pxk_drawer_sk + pxk_drawer_h * pxk_drawer_h) + 0.01
-    let pxk_cdrawer_cx = dc.ex
-    let pxk_cdrawer_cy = dc.ey - sg.up / 2
-    let pxk_cdrawer_w = dc.ew * (1 + dj.stretch - 0.07 * dc.bell + 0.003 * wobble)
-    let pxk_cdrawer_h = dc.eh * (1 - dj.stretch * 0.5 - 0.002 * wobble) + sg.up
-    let pxk_cdrawer_r = max(0, min(mix(min(dc.ew, dc.eh) / 2, rc, clamp(dc0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_cdrawer_w, pxk_cdrawer_h))))
-    let pxk_cdrawer_sk = min(clamp(pxk_cdrawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_cdrawer_h))
-    let pxk_cdrawer_l = sqrt(pxk_cdrawer_sk * pxk_cdrawer_sk + pxk_cdrawer_h * pxk_cdrawer_h) + 0.01
-    let pxk_sdrawer_cx = ds.ex
-    let pxk_sdrawer_cy = ds.ey
-    let pxk_sdrawer_w = ds.ew * (1 + dj.stretch - 0.07 * ds.bell + 0.003 * wobble)
-    let pxk_sdrawer_h = ds.eh * (1 - dj.stretch * 0.5 - 0.002 * wobble)
-    let pxk_sdrawer_r = max(0, min(mix(min(ds.ew, ds.eh) / 2, rc, clamp(ds0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_sdrawer_w, pxk_sdrawer_h))))
-    let pxk_sdrawer_sk = min(clamp(pxk_sdrawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_sdrawer_h))
-    let pxk_sdrawer_l = sqrt(pxk_sdrawer_sk * pxk_sdrawer_sk + pxk_sdrawer_h * pxk_sdrawer_h) + 0.01
-    let pxk_ldrawer_cx = dl.ex
-    let pxk_ldrawer_cy = dl.ey
-    let pxk_ldrawer_w = dl.ew * (1 + dj.stretch - 0.07 * dl.bell + 0.003 * wobble)
-    let pxk_ldrawer_h = dl.eh * (1 - dj.stretch * 0.5 - 0.002 * wobble)
-    let pxk_ldrawer_r = max(0, min(mix(min(dl.ew, dl.eh) / 2, rc, clamp(dl0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_ldrawer_w, pxk_ldrawer_h))))
-    let pxk_ldrawer_sk = min(clamp(pxk_ldrawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_ldrawer_h))
-    let pxk_ldrawer_l = sqrt(pxk_ldrawer_sk * pxk_ldrawer_sk + pxk_ldrawer_h * pxk_ldrawer_h) + 0.01
-    let pxk_xdrawer_cx = dax.ex + (dax.br - dax.bl) / 2 + if(dax0 > 0.002, 0, 30000)
-    let pxk_xdrawer_cy = dax.ey + (dax.bb - dax.bt) / 2
-    let pxk_xdrawer_w = dax.ew * (1 + dj.stretch - 0.07 * dax.bell + 0.003 * wobble) + dax.bl + dax.br
-    let pxk_xdrawer_h = dax.eh * (1 - dj.stretch * 0.5 - 0.002 * wobble) + dax.bt + dax.bb
-    let pxk_xdrawer_r = max(0, min(mix(min(dax.ew, dax.eh) / 2, rc, clamp(dax0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_xdrawer_w, pxk_xdrawer_h))))
-    let pxk_xdrawer_sk = min(clamp(pxk_xdrawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_xdrawer_h))
-    let pxk_xdrawer_l = sqrt(pxk_xdrawer_sk * pxk_xdrawer_sk + pxk_xdrawer_h * pxk_xdrawer_h) + 0.01
-    let pxk_odrawer_cx = do.ex + if(fm > 0.5, 0, 30000)
-    let pxk_odrawer_cy = do.ey
-    let pxk_odrawer_w = do.ew * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble)
-    let pxk_odrawer_h = do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble)
-    let pxk_odrawer_r = max(0, min(mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_odrawer_w, pxk_odrawer_h))))
-    let pxk_odrawer_sk = min(clamp(pxk_odrawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_odrawer_h))
-    let pxk_odrawer_l = sqrt(pxk_odrawer_sk * pxk_odrawer_sk + pxk_odrawer_h * pxk_odrawer_h) + 0.01
-    let pxk_mdrawer_cx = dm.ex
-    let pxk_mdrawer_cy = dm.ey - sg.up / 2
-    let pxk_mdrawer_w = dm.ew * (1 + dj.stretch - 0.07 * dm.bell + 0.003 * wobble)
-    let pxk_mdrawer_h = dm.eh * (1 - dj.stretch * 0.5 - 0.002 * wobble) + sg.up
-    let pxk_mdrawer_r = max(0, min(mix(min(dm.ew, dm.eh) / 2, rc, clamp(dm0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_mdrawer_w, pxk_mdrawer_h))))
-    let pxk_mdrawer_sk = min(clamp(pxk_mdrawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_mdrawer_h))
-    let pxk_mdrawer_l = sqrt(pxk_mdrawer_sk * pxk_mdrawer_sk + pxk_mdrawer_h * pxk_mdrawer_h) + 0.01
-    let pxk_zdrawer_cx = dz.fx + if(fm > 0.5, 0, 30000)
-    let pxk_zdrawer_cy = dz.fcy
-    let pxk_zdrawer_w = dz.fw * (1 + dz.stretch - 0.07 * dz.bell)
-    let pxk_zdrawer_h = dz.fh * (1 - dz.stretch * 0.5)
-    let pxk_zdrawer_r = max(0, min(mix(min(dz.fw, dz.fh) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_zdrawer_w, pxk_zdrawer_h))))
-    let pxk_zdrawer_sk = min(clamp(pxk_zdrawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_zdrawer_h))
-    let pxk_zdrawer_l = sqrt(pxk_zdrawer_sk * pxk_zdrawer_sk + pxk_zdrawer_h * pxk_zdrawer_h) + 0.01
-    let pxk_sgl_cx = (sg.lr - sg.r) / 2 + if(sg > 0.35, 0, 30000)
-    let pxk_sgl_cy = yo + (sg.hc - sg.r) / 2
-    let pxk_sgl_w = sg.lr + sg.r
-    let pxk_sgl_h = sg.hc + sg.r
-    let pxk_sgl_r = max(0, min((sg.hc + sg.r) * 0.34 * (1 - 0.73 * sq), 0.45 * max(0.1, min(pxk_sgl_w, pxk_sgl_h))))
-    let pxk_sgl_sk = min(clamp(pxk_sgl_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_sgl_h))
-    let pxk_sgl_l = sqrt(pxk_sgl_sk * pxk_sgl_sk + pxk_sgl_h * pxk_sgl_h) + 0.01
-    let pxk_sgc_cx = (sg.q0 + sg.q1) / 2 + if(sg > 0.35, 0, 30000)
-    let pxk_sgc_cy = yo + (sg.hc - sg.r) / 2
-    let pxk_sgc_w = sg.q1 - sg.q0
-    let pxk_sgc_h = sg.hc + sg.r
-    let pxk_sgc_r = max(0, min((sg.hc + sg.r) * 0.34 * (1 - 0.73 * sq), 0.45 * max(0.1, min(pxk_sgc_w, pxk_sgc_h))))
-    let pxk_sgc_sk = min(clamp(pxk_sgc_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_sgc_h))
-    let pxk_sgc_l = sqrt(pxk_sgc_sk * pxk_sgc_sk + pxk_sgc_h * pxk_sgc_h) + 0.01
-    let pxk_sgr_cx = (sg.rq + screen.width + sg.r) / 2 + if(sg > 0.35, 0, 30000)
-    let pxk_sgr_cy = yo + (sg.hc - sg.r) / 2
-    let pxk_sgr_w = screen.width + sg.r - sg.rq
-    let pxk_sgr_h = sg.hc + sg.r
-    let pxk_sgr_r = max(0, min((sg.hc + sg.r) * 0.34 * (1 - 0.73 * sq), 0.45 * max(0.1, min(pxk_sgr_w, pxk_sgr_h))))
-    let pxk_sgr_sk = min(clamp(pxk_sgr_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_sgr_h))
-    let pxk_sgr_l = sqrt(pxk_sgr_sk * pxk_sgr_sk + pxk_sgr_h * pxk_sgr_h) + 0.01
-    let pxk_cdk_cx = cdk.bx + if(cdk.g > 0.02, 0, 30000)
-    let pxk_cdk_cy = cdk.by
-    let pxk_cdk_w = max(0.3, cdk.bw)
-    let pxk_cdk_h = max(0.3, cdk.bh)
-    let pxk_cdk_r = max(0, min(cdk.cr, 0.45 * max(0.1, min(pxk_cdk_w, pxk_cdk_h))))
-    let pxk_cdk_sk = min(clamp(pxk_cdk_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_cdk_h))
-    let pxk_cdk_l = sqrt(pxk_cdk_sk * pxk_cdk_sk + pxk_cdk_h * pxk_cdk_h) + 0.01
-    let pxk_adk_cx = adk.bx + if(adk.g > 0.02, 0, 30000)
-    let pxk_adk_cy = adk.by
-    let pxk_adk_w = max(0.3, adk.bw)
-    let pxk_adk_h = max(0.3, adk.bh)
-    let pxk_adk_r = max(0, min(cdk.cr, 0.45 * max(0.1, min(pxk_adk_w, pxk_adk_h))))
-    let pxk_adk_sk = min(clamp(pxk_adk_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_adk_h))
-    let pxk_adk_l = sqrt(pxk_adk_sk * pxk_adk_sk + pxk_adk_h * pxk_adk_h) + 0.01
     let axs.hh = 38 * cu                                   // the shell's title bar across the top of the panel (title, grip, X): the content is below it
     let axs.m = 14 * cu                                    // the margin all round the content: the rectangle an add-on is given is this much inside the glass on every side (below the title bar, and clear of the pill's strip)
     let axs.mt = 0 * cu                                    // the margin above the content, under the title bar: none (the add-ons keep a little room of their own at their tops)
@@ -6534,42 +6437,6 @@ scene Vitreus {
         ellipse { at: gdo.l + 12, gdo.b - 12; radius: 3.6; color: mix(deep, #ffffff, 38%) }
         ellipse { at: gdo.l + 12, gdo.b - 12; radius: 3.6; stroke: 1.1; color: deep }
         line { from: gdo.l + 10, gdo.b - 10; to: gdo.l + 14, gdo.b - 14; width: 1.3; color: deep }
-    }
-    //  The Proxy's hazard tape on the add-on panel, as on the other drawers (see bar_glass.plm).
-    group {
-        show: px_k > 0.01 and dax0 > 0.9
-        opacity: px_k * clamp(dax0 * 3 - 2, 0, 1)
-        let pxdxl = pxk_xdrawer_cx - pxk_xdrawer_w / 2
-        let pxdxr = pxk_xdrawer_cx + pxk_xdrawer_w / 2
-        let pxdxb = min(pxk_xdrawer_cy + pxk_xdrawer_h / 2, vb - lf.t - 1)
-        box { from: pxdxl + 20 * u + 34 * u, pxdxb - 11; size: pxdxr - pxdxl - 40 * u - 2 * 34 * u, 9; color: #0b0d10 }
-        repeat pxdxh in 0..130 {
-            path { at: pxdxl + 20 * u + 34 * u + pxdxh * 16 * u, pxdxb - 11; color: #ffd21f; opacity: if(pxdxl + 20 * u + 34 * u + pxdxh * 16 * u + 8 * u + 5 < pxdxr - 20 * u - 34 * u, 100%, 0); move 5, 0; line 8 * u + 5, 0; line 8 * u, 9; line 0, 9; close }
-        }
-        repeat pxdxc in 0..7 {
-            repeat pxdxw in 0..3 {
-                ellipse { at: pxdxl + 20 * u + pxdxc * 34 * u / 7, pxdxb - 9.5 + pxdxw * 3.6 + mod(pxdxc, 2) * 1.8; radius: 0.5 + pxdxc * 0.28; color: if(mod(pxdxc, 2) == 0, #ffd21f, #0b0d10) }
-                ellipse { at: pxdxr - 20 * u - pxdxc * 34 * u / 7, pxdxb - 9.5 + pxdxw * 3.6 + mod(pxdxc, 2) * 1.8; radius: 0.5 + pxdxc * 0.28; color: if(mod(pxdxc, 2) == 0, #ffd21f, #0b0d10) }
-            }
-        }
-    }
-    //  The Proxy's hazard tape on the volume / notification banner, as on the other drawers (see bar_glass.plm).
-    group {
-        show: px_k > 0.01 and do0 > 0.9
-        opacity: px_k * clamp(do0 * 3 - 2, 0, 1)
-        let pxdol = do.ix - do.iw / 2
-        let pxdor = do.ix + do.iw / 2
-        let pxdob = min(do.ey + do.eh / 2, vb - lf.t - 1)
-        box { from: pxdol + 20 * u + 34 * u, pxdob - 11; size: pxdor - pxdol - 40 * u - 2 * 34 * u, 9; color: #0b0d10 }
-        repeat pxdoh in 0..130 {
-            path { at: pxdol + 20 * u + 34 * u + pxdoh * 16 * u, pxdob - 11; color: #ffd21f; opacity: if(pxdol + 20 * u + 34 * u + pxdoh * 16 * u + 8 * u + 5 < pxdor - 20 * u - 34 * u, 100%, 0); move 5, 0; line 8 * u + 5, 0; line 8 * u, 9; line 0, 9; close }
-        }
-        repeat pxdoc in 0..7 {
-            repeat pxdow in 0..3 {
-                ellipse { at: pxdol + 20 * u + pxdoc * 34 * u / 7, pxdob - 9.5 + pxdow * 3.6 + mod(pxdoc, 2) * 1.8; radius: 0.5 + pxdoc * 0.28; color: if(mod(pxdoc, 2) == 0, #ffd21f, #0b0d10) }
-                ellipse { at: pxdor - 20 * u - pxdoc * 34 * u / 7, pxdob - 9.5 + pxdow * 3.6 + mod(pxdoc, 2) * 1.8; radius: 0.5 + pxdoc * 0.28; color: if(mod(pxdoc, 2) == 0, #ffd21f, #0b0d10) }
-            }
-        }
     }
     //  The Cyber's HUD marks and digital rain on the volume / notification banner (see bar_glass.plm).
     group {

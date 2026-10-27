@@ -1,7 +1,6 @@
 language 0.1
 import "addon-palette.plm"
 import "addon-pencil.plm"                          // the pencil components (see STYLE.md): PLn, PCir, PRound, PSwitch, PFill, PSlider, PSliderMini, PIcon
-import "addon-theme.plm"                           // the theme's own pieces (see STYLE.md, "Themes"): PThumb
 
 //  A Vitreus add-on with a PANEL: the shell puts the add-on's icon on the add-on pill (the pill of icons in the corner the app dock is not in) and draws a panel out of it
 //  (the same glass as its own drawers) and this scene draws what is in it. A click on the icon opens the panel (or `pleamar --say vitreus "emit ax_toggle"`, which a key can run).
@@ -81,7 +80,7 @@ scene MyDrawer {
     fact room_r = 0
     fact room_b = 0
     fact room_l = 0
-    fact look = 0                                     // the theme's shape, set by Vitreus: 0 Glass, 1 Retro, 2 UwU, 3 Cyber, 4 Milkbox, 5 Proxy (PThumb reads it)
+    fact look = 0
     fact wx_ok = false
     text wx_temp = ""
     text wx_desc = ""
@@ -104,7 +103,7 @@ scene MyDrawer {
 
     //  What the pencil library (addon-pencil.plm) expects of the scene: the unit, and the frame its lines are drawn on (it rests while the panel is shut).
     let u = 1.1
-    let fr = if(shown > 0.5 and look < 4.5, floor(time * 8), 0)       // (the pencil holds still on the Proxy theme: its HUD is crisp)
+    let fr = if(shown > 0.5, floor(time * 8), 0)
 
     //  What is inside arrives as the Control Center's does: one piece after another (each its own spring, the later ones slower), each rising a little as it
     //  fades in (they start 200 ms after the panel is out: a scene that was shut draws nothing, so its first frame is a long one and a spring started in it would be over at once; they go out at once). `shown` goes down while the panel is pulled or resized and comes back where it lands, so the content arrives again there. Give the pieces of

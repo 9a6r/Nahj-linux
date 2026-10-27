@@ -40,20 +40,7 @@ part Desk {
                 color: mint
                 shadow: 0, 0, 10 * du, 48%, mint
                 rim: 16%
-                opacity: 1 - px_k
                 box { at: dt_cx + (desk_sel - 2.5) * dt_w, dt_y; size: (dt_w - 8 * du) + 10 * du * dt_str, 26 * du - 3 * du * clamp(dt_str, 0, 1); corner: 10 * du }
-            }
-            //  The Proxy's thumb: a slanted slab, as the HUD's selectors have it, its corners rounded by a stroke of the same colour round a smaller fill.
-            group {
-                show: px_k > 0.01
-                opacity: px_k
-                let dp.w = (dt_w + 4 * du) + 10 * du * dt_str
-                let dp.h = 38 * du - 3 * du * clamp(dt_str, 0, 1)        // taller than the 34 * du track: the chosen one stands out of it
-                let dp.x = dt_cx + (desk_sel - 2.5) * dt_w - dp.w / 2
-                let dp.y = dt_y - dp.h / 2
-                let dp.sk = 9 * du
-                path { at: dp.x + 2 * du, dp.y + 2 * du; color: mint; move dp.sk, 0; line dp.w - 4 * du, 0; line dp.w - 4 * du - dp.sk, dp.h - 4 * du; line 0, dp.h - 4 * du; close }
-                path { at: dp.x + 2 * du, dp.y + 2 * du; stroke: 4 * du; color: mint; move dp.sk, 0; line dp.w - 4 * du, 0; line dp.w - 4 * du - dp.sk, dp.h - 4 * du; line 0, dp.h - 4 * du; line dp.sk, 0 }
             }
             repeat i in 0..6 {
                 let tl  = dt_cx + (i - 2.5) * dt_w
@@ -214,19 +201,6 @@ part Desk {
                     shadow: 0, 0, 8 * du, 38%, mint
                     rim: 16%
                     box { at: dsk_xc + (pad_sel - 0.5) * 82 * du, pm_y; size: (74 + 8 * pm_str) * du, 21 * du; corner: 8.5 * du }
-                    opacity: 1 - px_k
-                }
-                //  The Proxy's thumb, as on the tabs above: a slanted slab taller than its track, corners rounded by a stroke round a smaller fill.
-                group {
-                    show: px_k > 0.01
-                    opacity: px_k
-                    let pp.w = (84 + 8 * pm_str) * du
-                    let pp.h = 32 * du
-                    let pp.x = dsk_xc + (pad_sel - 0.5) * 82 * du - pp.w / 2
-                    let pp.y = pm_y - pp.h / 2
-                    let pp.sk = 9 * du
-                    path { at: pp.x + 2 * du, pp.y + 2 * du; color: mint; move pp.sk, 0; line pp.w - 4 * du, 0; line pp.w - 4 * du - pp.sk, pp.h - 4 * du; line 0, pp.h - 4 * du; close }
-                    path { at: pp.x + 2 * du, pp.y + 2 * du; stroke: 4 * du; color: mint; move pp.sk, 0; line pp.w - 4 * du, 0; line pp.w - 4 * du - pp.sk, pp.h - 4 * du; line 0, pp.h - 4 * du; line pp.sk, 0 }
                 }
                 repeat i in 0..2 {
                     let pl_ = dsk_xc + (i - 0.5) * 82 * du
@@ -390,22 +364,9 @@ part Desk {
                         color: mint
                         shadow: 0, 0, 9 * du, 42%, mint
                         rim: 16%
-                        opacity: 1 - px_k
                         box { at: dsk_xc + (ft_sel - 1.5) * fp_w, fp_y; size: fp_w - 6 * du + 8 * du * fp_str, 24 * du - 3 * du * clamp(fp_str, 0, 1); corner: 10 * du }
                     }
-                    PPillOutline(dsk_xc + (ft_sel - 1.5) * fp_w, fp_y, fp_w - 6 * du + 8 * du * fp_str, 24 * du - 3 * du * clamp(fp_str, 0, 1), 10 * du, 0, 1 - px_k, du)
-                    //  The Proxy's thumb, as on the tabs: a slanted slab a little taller than its track.
-                    group {
-                        show: px_k > 0.01
-                        opacity: px_k
-                        let fq.w = fp_w + 6 * du + 8 * du * fp_str
-                        let fq.h = 36 * du
-                        let fq.x = dsk_xc + (ft_sel - 1.5) * fp_w - fq.w / 2
-                        let fq.y = fp_y - fq.h / 2
-                        let fq.sk = 8.5 * du
-                        path { at: fq.x + 2 * du, fq.y + 2 * du; color: mint; move fq.sk, 0; line fq.w - 4 * du, 0; line fq.w - 4 * du - fq.sk, fq.h - 4 * du; line 0, fq.h - 4 * du; close }
-                        path { at: fq.x + 2 * du, fq.y + 2 * du; stroke: 4 * du; color: mint; move fq.sk, 0; line fq.w - 4 * du, 0; line fq.w - 4 * du - fq.sk, fq.h - 4 * du; line 0, fq.h - 4 * du; line fq.sk, 0 }
-                    }
+                    PPillOutline(dsk_xc + (ft_sel - 1.5) * fp_w, fp_y, fp_w - 6 * du + 8 * du * fp_str, 24 * du - 3 * du * clamp(fp_str, 0, 1), 10 * du, 0, 1, du)
                     repeat i in 0..4 {
                         let pl = dsk_xc + (i - 1.5) * fp_w
                         let psl = clamp(1 - abs(ft_sel - i), 0, 1)

@@ -690,22 +690,10 @@ part ControlsDrawer {
             }
             body {
                 color: mix(ink, mint, ns_on)
-                opacity: (16% + 84% * ns_on) * (1 - px_k)
+                opacity: 16% + 84% * ns_on
                 shadow: 0, 0, 10 * cu * ns_on, 48% * ns_on, mint
                 rim: 16% * ns_on
                 box { at: ns_tx, ns_y; size: ns_tw, ns_th; corner: 10 * cu }
-            }
-            //  The Proxy's thumb: a slanted slab a little taller than its track, as in the Desk.
-            group {
-                show: px_k > 0.01
-                opacity: px_k * (16% + 84% * ns_on)
-                let nsq.w = ns_tw + 10 * cu
-                let nsq.h = 40 * cu
-                let nsq.x = ns_tx - nsq.w / 2
-                let nsq.y = ns_y - nsq.h / 2
-                let nsq.sk = 9 * cu
-                path { at: nsq.x + 2 * cu, nsq.y + 2 * cu; color: mix(ink, mint, ns_on); move nsq.sk, 0; line nsq.w - 4 * cu, 0; line nsq.w - 4 * cu - nsq.sk, nsq.h - 4 * cu; line 0, nsq.h - 4 * cu; close }
-                path { at: nsq.x + 2 * cu, nsq.y + 2 * cu; stroke: 4 * cu; color: mix(ink, mint, ns_on); move nsq.sk, 0; line nsq.w - 4 * cu, 0; line nsq.w - 4 * cu - nsq.sk, nsq.h - 4 * cu; line 0, nsq.h - 4 * cu; line nsq.sk, 0 }
             }
             repeat i in 0..6 {
                 let lx  = pcx + (i - 2.5) * 44 * cu
@@ -825,22 +813,10 @@ part ControlsDrawer {
                 }
                 body {
                     color: mix(ink, mint, cs_on)
-                    opacity: (16% + 84% * cs_on) * (1 - px_k)
+                    opacity: 16% + 84% * cs_on
                     shadow: 0, 0, 10 * cu * cs_on, 48% * cs_on, mint
                     rim: 16% * cs_on
                     box { at: cs_tx, cs_y; size: cs_tw, cs_th; corner: 10 * cu }
-                }
-                //  The Proxy's thumb: a slanted slab a little taller than its track, as in the Desk.
-                group {
-                    show: px_k > 0.01
-                    opacity: px_k * (16% + 84% * cs_on)
-                    let csq.w = cs_tw + 10 * cu
-                    let csq.h = 40 * cu
-                    let csq.x = cs_tx - csq.w / 2
-                    let csq.y = cs_y - csq.h / 2
-                    let csq.sk = 9 * cu
-                    path { at: csq.x + 2 * cu, csq.y + 2 * cu; color: mix(ink, mint, cs_on); move csq.sk, 0; line csq.w - 4 * cu, 0; line csq.w - 4 * cu - csq.sk, csq.h - 4 * cu; line 0, csq.h - 4 * cu; close }
-                    path { at: csq.x + 2 * cu, csq.y + 2 * cu; stroke: 4 * cu; color: mix(ink, mint, cs_on); move csq.sk, 0; line csq.w - 4 * cu, 0; line csq.w - 4 * cu - csq.sk, csq.h - 4 * cu; line 0, csq.h - 4 * cu; line csq.sk, 0 }
                 }
                 repeat i in 0..7 {
                     let lx  = pcx + (i - 3) * 38 * cu
