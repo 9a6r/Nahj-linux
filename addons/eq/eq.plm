@@ -1,6 +1,7 @@
 language 0.1
 import "addon-palette.plm"
 import "addon-pencil.plm"
+import "addon-theme.plm"                          // the theme's own pieces (PThumb: see STYLE.md, "Themes")
 
 //  Equalizer, in boiled pencil: ten bands you drag, five presets and one switch, in a panel out of the add-on pill.
 //  The scene only draws and reports what was touched (`eq_toggle`, `preset(n)`, `bset(band * 1000 + (dB + 12) * 10)`); eq.luau keeps the bands and
@@ -71,7 +72,7 @@ scene Equalizer {
     let shown = if(slot_open and (if(mon_known, mon_here > 0.5, slot_sw == 0 or (screen.width == slot_sw and screen.height == slot_sh))), 1, 0)
 
     let u = 1.1
-    let fr = if(shown > 0.5, floor(time * 8), 0)
+    let fr = if(shown > 0.5 and look < 4.5, floor(time * 8), 0)       // (the pencil holds still on the Proxy theme: its HUD is crisp)
 
     prop wk = 0 ~700ms
     prop en1 = 0 ~200ms
@@ -200,13 +201,7 @@ scene Equalizer {
                 box { at: x0 + (k + 1) * pw, pcy; size: 1 * u, 10 * u; corner: 0.5 * u; color: ink; opacity: 12% * shown * dim }
             }
         }
-        body {
-            color: mint
-            shadow: 0, 0, 10 * u, 48% * pa, mint
-            rim: 16%
-            opacity: pa * shown * dim
-            box { at: x0 + (psel + 0.5) * pw, pcy; size: pw - 8 * u, 26 * u; corner: 10 * u }
-        }
+        PThumb(x: x0 + (psel + 0.5) * pw, y: pcy, w: pw - 8 * u, h: 26 * u, rad: 10 * u, th: ph, a: pa * shown * dim)
         repeat k in 0..5 {
             let tsl = clamp(1 - abs(psel - k), 0, 1) * pa
             text pick(k, "Flat", "Bass", "Vocal", "Treble", "Loud") { at: x0 + (k + 0.5) * pw, pcy; anchor: center; align: center; size: 12.5 * u; weight: 600; color: mix(ink, off, tsl); opacity: shown * dim * (62% + 38% * tsl + 30% * chip.$k.hover); family: "Space Grotesk" }

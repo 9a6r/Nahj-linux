@@ -382,6 +382,46 @@ part BarGlass {
             include "bar_shapes.plm"
             include "bar_waves.plm"
         }
+        //  The Proxy's body: flat near-black plates with a thin pale outline and a hard offset edge in the second accent, like the HUD's own panels. Solid, so the glass is off (`obs`), as with the plastics.
+        body {
+            color: obsidian
+            rim: 0%
+            border: 1.4 * u * px_k, mix(#e8f1f5, obsidian, 0.4)
+            shadow: 2.5 * u * px_k, 3 * u * px_k, 0, 85% * px_k, deep
+            opacity: px_k
+            show: (px_k > 0.004) and fw_act < 0.5
+            include "bar_shapes.plm"
+        }
+        body {
+            color: obsidian
+            rim: 0%
+            border: 1.4 * u * px_k, mix(#e8f1f5, obsidian, 0.4)
+            shadow: 2.5 * u * px_k, 3 * u * px_k, 0, 85% * px_k, deep
+            opacity: px_k
+            show: (px_k > 0.004) and fw_act > 0.5 and fw_act < 1.5
+            include "bar_shapes.plm"
+            include "bar_waves_12.plm"
+        }
+        body {
+            color: obsidian
+            rim: 0%
+            border: 1.4 * u * px_k, mix(#e8f1f5, obsidian, 0.4)
+            shadow: 2.5 * u * px_k, 3 * u * px_k, 0, 85% * px_k, deep
+            opacity: px_k
+            show: (px_k > 0.004) and fw_act > 1.5 and fw_act < 2.5
+            include "bar_shapes.plm"
+            include "bar_waves_24.plm"
+        }
+        body {
+            color: obsidian
+            rim: 0%
+            border: 1.4 * u * px_k, mix(#e8f1f5, obsidian, 0.4)
+            shadow: 2.5 * u * px_k, 3 * u * px_k, 0, 85% * px_k, deep
+            opacity: px_k
+            show: (px_k > 0.004) and fw_act > 2.5 and fw_act < 3.5
+            include "bar_shapes.plm"
+            include "bar_waves.plm"
+        }
         //  The Cassette's detail on each drawer, only while it is plastic and the drawer is out: an accent-coloured tab at the top left (opposite the grips) (a console's button), a row of straight vertical grip slots in the bottom right
         //  corner (like the vents of a handheld: dark, with a lit edge) that run a few pixels past the drawer's bottom edge as if they wrapped round the base, and a screw in the bottom left.
         //  Inside the drawer they stay in its margin, so they never touch what it holds.
@@ -504,6 +544,116 @@ part BarGlass {
             ellipse { at: gdz.l + 12, gdz.b - 12; radius: 3.6; color: mix(deep, #ffffff, 38%) }
             ellipse { at: gdz.l + 12, gdz.b - 12; radius: 3.6; stroke: 1.1; color: deep }
             line { from: gdz.l + 10, gdz.b - 10; to: gdz.l + 14, gdz.b - 14; width: 1.3; color: deep }
+        }
+        //  The Proxy's HUD marks: on every drawer that is out, a slanted black plate hanging off its top left with a green-to-yellow health bar (a pink bar under it, a numbered cell at its start), a data pill with a round blue badge at the top right,
+        //  and a hazard-stripe rail under it. They are drawn on the glass, outside it. The bar gets the combo tag and the round ability buttons.
+        group {
+            show: px_k > 0.01 and dk0 > 0.9
+            opacity: px_k * clamp(dk0 * 3 - 2, 0, 1)
+            let pxdkl = dk.ex - dk.ew / 2
+            let pxdkr = dk.ex + dk.ew / 2
+            let pxdkt = dk.ey - dk.eh / 2
+            let pxdkb = min(dk.ey + dk.eh / 2, vb - lf.t - 1)
+            box { from: pxdkl + 20 * u + 34 * u, pxdkb - 11; size: pxdkr - pxdkl - 40 * u - 2 * 34 * u, 9; color: #0b0d10 }
+            repeat pxdkch in 0..130 {
+                path { at: pxdkl + 20 * u + 34 * u + pxdkch * 16 * u, pxdkb - 11; color: #ffd21f; opacity: if(pxdkl + 20 * u + 34 * u + pxdkch * 16 * u + 8 * u + 5 < pxdkr - 20 * u - 34 * u, 100%, 0); move 5, 0; line 8 * u + 5, 0; line 8 * u, 9; line 0, 9; close }
+            }
+            repeat pxdkcc in 0..7 {
+                repeat pxdkcw in 0..3 {
+                    ellipse { at: pxdkl + 20 * u + pxdkcc * 34 * u / 7, pxdkb - 9.5 + pxdkcw * 3.6 + mod(pxdkcc, 2) * 1.8; radius: 0.5 + pxdkcc * 0.28; color: if(mod(pxdkcc, 2) == 0, #ffd21f, #0b0d10) }
+                    ellipse { at: pxdkr - 20 * u - pxdkcc * 34 * u / 7, pxdkb - 9.5 + pxdkcw * 3.6 + mod(pxdkcc, 2) * 1.8; radius: 0.5 + pxdkcc * 0.28; color: if(mod(pxdkcc, 2) == 0, #ffd21f, #0b0d10) }
+                }
+            }
+        }
+        group {
+            show: px_k > 0.01 and dc0 > 0.9
+            opacity: px_k * clamp(dc0 * 3 - 2, 0, 1)
+            let pxdcl = dc.ex - dc.ew / 2
+            let pxdcr = dc.ex + dc.ew / 2
+            let pxdct = dc.ey - dc.eh / 2
+            let pxdcb = min(dc.ey + dc.eh / 2, vb - lf.t - 1)
+            box { from: pxdcl + 20 * u + 34 * u, pxdcb - 11; size: pxdcr - pxdcl - 40 * u - 2 * 34 * u, 9; color: #0b0d10 }
+            repeat pxdcch in 0..130 {
+                path { at: pxdcl + 20 * u + 34 * u + pxdcch * 16 * u, pxdcb - 11; color: #ffd21f; opacity: if(pxdcl + 20 * u + 34 * u + pxdcch * 16 * u + 8 * u + 5 < pxdcr - 20 * u - 34 * u, 100%, 0); move 5, 0; line 8 * u + 5, 0; line 8 * u, 9; line 0, 9; close }
+            }
+            repeat pxdccc in 0..7 {
+                repeat pxdccw in 0..3 {
+                    ellipse { at: pxdcl + 20 * u + pxdccc * 34 * u / 7, pxdcb - 9.5 + pxdccw * 3.6 + mod(pxdccc, 2) * 1.8; radius: 0.5 + pxdccc * 0.28; color: if(mod(pxdccc, 2) == 0, #ffd21f, #0b0d10) }
+                    ellipse { at: pxdcr - 20 * u - pxdccc * 34 * u / 7, pxdcb - 9.5 + pxdccw * 3.6 + mod(pxdccc, 2) * 1.8; radius: 0.5 + pxdccc * 0.28; color: if(mod(pxdccc, 2) == 0, #ffd21f, #0b0d10) }
+                }
+            }
+        }
+        group {
+            show: px_k > 0.01 and ds0 > 0.9
+            opacity: px_k * clamp(ds0 * 3 - 2, 0, 1)
+            let pxdsl = ds.ex - ds.ew / 2
+            let pxdsr = ds.ex + ds.ew / 2
+            let pxdst = ds.ey - ds.eh / 2
+            let pxdsb = min(ds.ey + ds.eh / 2, vb - lf.t - 1)
+            box { from: pxdsl + 20 * u + 34 * u, pxdsb - 11; size: pxdsr - pxdsl - 40 * u - 2 * 34 * u, 9; color: #0b0d10 }
+            repeat pxdsch in 0..130 {
+                path { at: pxdsl + 20 * u + 34 * u + pxdsch * 16 * u, pxdsb - 11; color: #ffd21f; opacity: if(pxdsl + 20 * u + 34 * u + pxdsch * 16 * u + 8 * u + 5 < pxdsr - 20 * u - 34 * u, 100%, 0); move 5, 0; line 8 * u + 5, 0; line 8 * u, 9; line 0, 9; close }
+            }
+            repeat pxdscc in 0..7 {
+                repeat pxdscw in 0..3 {
+                    ellipse { at: pxdsl + 20 * u + pxdscc * 34 * u / 7, pxdsb - 9.5 + pxdscw * 3.6 + mod(pxdscc, 2) * 1.8; radius: 0.5 + pxdscc * 0.28; color: if(mod(pxdscc, 2) == 0, #ffd21f, #0b0d10) }
+                    ellipse { at: pxdsr - 20 * u - pxdscc * 34 * u / 7, pxdsb - 9.5 + pxdscw * 3.6 + mod(pxdscc, 2) * 1.8; radius: 0.5 + pxdscc * 0.28; color: if(mod(pxdscc, 2) == 0, #ffd21f, #0b0d10) }
+                }
+            }
+        }
+        group {
+            show: px_k > 0.01 and dl0 > 0.9
+            opacity: px_k * clamp(dl0 * 3 - 2, 0, 1)
+            let pxdll = dl.ex - dl.ew / 2
+            let pxdlr = dl.ex + dl.ew / 2
+            let pxdlt = dl.ey - dl.eh / 2
+            let pxdlb = min(dl.ey + dl.eh / 2, vb - lf.t - 1)
+            box { from: pxdll + 20 * u + 34 * u, pxdlb - 11; size: pxdlr - pxdll - 40 * u - 2 * 34 * u, 9; color: #0b0d10 }
+            repeat pxdlch in 0..130 {
+                path { at: pxdll + 20 * u + 34 * u + pxdlch * 16 * u, pxdlb - 11; color: #ffd21f; opacity: if(pxdll + 20 * u + 34 * u + pxdlch * 16 * u + 8 * u + 5 < pxdlr - 20 * u - 34 * u, 100%, 0); move 5, 0; line 8 * u + 5, 0; line 8 * u, 9; line 0, 9; close }
+            }
+            repeat pxdlcc in 0..7 {
+                repeat pxdlcw in 0..3 {
+                    ellipse { at: pxdll + 20 * u + pxdlcc * 34 * u / 7, pxdlb - 9.5 + pxdlcw * 3.6 + mod(pxdlcc, 2) * 1.8; radius: 0.5 + pxdlcc * 0.28; color: if(mod(pxdlcc, 2) == 0, #ffd21f, #0b0d10) }
+                    ellipse { at: pxdlr - 20 * u - pxdlcc * 34 * u / 7, pxdlb - 9.5 + pxdlcw * 3.6 + mod(pxdlcc, 2) * 1.8; radius: 0.5 + pxdlcc * 0.28; color: if(mod(pxdlcc, 2) == 0, #ffd21f, #0b0d10) }
+                }
+            }
+        }
+        group {
+            show: px_k > 0.01 and dm0 > 0.9
+            opacity: px_k * clamp(dm0 * 3 - 2, 0, 1)
+            let pxdml = dm.ex - dm.ew / 2
+            let pxdmr = dm.ex + dm.ew / 2
+            let pxdmt = dm.ey - dm.eh / 2
+            let pxdmb = min(dm.ey + dm.eh / 2, vb - lf.t - 1)
+            box { from: pxdml + 20 * u + 34 * u, pxdmb - 11; size: pxdmr - pxdml - 40 * u - 2 * 34 * u, 9; color: #0b0d10 }
+            repeat pxdmch in 0..130 {
+                path { at: pxdml + 20 * u + 34 * u + pxdmch * 16 * u, pxdmb - 11; color: #ffd21f; opacity: if(pxdml + 20 * u + 34 * u + pxdmch * 16 * u + 8 * u + 5 < pxdmr - 20 * u - 34 * u, 100%, 0); move 5, 0; line 8 * u + 5, 0; line 8 * u, 9; line 0, 9; close }
+            }
+            repeat pxdmcc in 0..7 {
+                repeat pxdmcw in 0..3 {
+                    ellipse { at: pxdml + 20 * u + pxdmcc * 34 * u / 7, pxdmb - 9.5 + pxdmcw * 3.6 + mod(pxdmcc, 2) * 1.8; radius: 0.5 + pxdmcc * 0.28; color: if(mod(pxdmcc, 2) == 0, #ffd21f, #0b0d10) }
+                    ellipse { at: pxdmr - 20 * u - pxdmcc * 34 * u / 7, pxdmb - 9.5 + pxdmcw * 3.6 + mod(pxdmcc, 2) * 1.8; radius: 0.5 + pxdmcc * 0.28; color: if(mod(pxdmcc, 2) == 0, #ffd21f, #0b0d10) }
+                }
+            }
+        }
+        group {
+            show: px_k > 0.01 and dz0 > 0.9
+            opacity: px_k * clamp(dz0 * 3 - 2, 0, 1)
+            let pxdzl = dz.fl
+            let pxdzr = dz.fr
+            let pxdzt = dz.ft
+            let pxdzb = min(dz.fb, vb - lf.t - 1)
+            box { from: pxdzl + 20 * u + 34 * u, pxdzb - 11; size: pxdzr - pxdzl - 40 * u - 2 * 34 * u, 9; color: #0b0d10 }
+            repeat pxdzch in 0..130 {
+                path { at: pxdzl + 20 * u + 34 * u + pxdzch * 16 * u, pxdzb - 11; color: #ffd21f; opacity: if(pxdzl + 20 * u + 34 * u + pxdzch * 16 * u + 8 * u + 5 < pxdzr - 20 * u - 34 * u, 100%, 0); move 5, 0; line 8 * u + 5, 0; line 8 * u, 9; line 0, 9; close }
+            }
+            repeat pxdzcc in 0..7 {
+                repeat pxdzcw in 0..3 {
+                    ellipse { at: pxdzl + 20 * u + pxdzcc * 34 * u / 7, pxdzb - 9.5 + pxdzcw * 3.6 + mod(pxdzcc, 2) * 1.8; radius: 0.5 + pxdzcc * 0.28; color: if(mod(pxdzcc, 2) == 0, #ffd21f, #0b0d10) }
+                    ellipse { at: pxdzr - 20 * u - pxdzcc * 34 * u / 7, pxdzb - 9.5 + pxdzcw * 3.6 + mod(pxdzcc, 2) * 1.8; radius: 0.5 + pxdzcc * 0.28; color: if(mod(pxdzcc, 2) == 0, #ffd21f, #0b0d10) }
+                }
+            }
         }
         //  The Cyber's HUD marks: bright corner brackets (with a soft glow) round the bar and round every drawer that is out, and a little ruler of ticks under each. At each one's bottom right a terminal readout: hex digits that jump between three values, and a block cursor that blinks.
         //  They are drawn on the glass, outside it, and never outline it.
@@ -1175,14 +1325,14 @@ part BarGlass {
             body {
                 color: bf.c
                 rim: 10%
-                opacity: 10% * bf.show * batt_on
+                opacity: 10% * bf.show * batt_on * (1 - px_k)
                 box { from: bf.x, bf.mid - bf.hh / 2; size: bf.full, bf.hh; corner: min(bf.hh / 2, max(0.5, bar.rad - bf.m)) }
                 box { at: bf.x + bf.full + 3.1 * bu, bf.mid; size: 7 * bu, 0.56 * bf.hh; corner: 2.6 * bu }
             }
             body {
                 gradient: bf.x, 0 to bf.x + max(1, bf.len), 0, mix(tint, bf.c, 0.28), bf.c
                 rim: 18%
-                opacity: (19% + 9% * batt_low) * bf.show * batt_on
+                opacity: (19% + 9% * batt_low) * bf.show * batt_on * (1 - px_k)
                 box { from: bf.x, bf.mid - bf.hh / 2; size: bf.len, bf.hh; corner: min(bf.hh / 2, max(0.5, bar.rad - bf.m)) }
             }
             //  The nub on the gauge's far end, like a battery's terminal. It is in the faint track too, so that it has the same two layers the fill has (the
@@ -1190,8 +1340,32 @@ part BarGlass {
             //  and a second one would draw a line across the joint.
             body {
                 color: bf.c
-                opacity: (19% + 9% * batt_low) * bf.show * batt_on
+                opacity: (19% + 9% * batt_low) * bf.show * batt_on * (1 - px_k)
                 box { at: bf.x + bf.full + 3.3 * bu, bf.mid; size: 6.6 * bu, 0.56 * bf.hh; corner: 2.6 * bu }
+            }
+            //  The Proxy's gauge: the HP meter of the game's HUD, drawn as it is there. A black plate; a green bar that fades to yellow-green, tall on the left (leaning, its end cut on a slant)
+            //  and a thin strip running out from its top. The charge fills the green. Every corner is rounded (a polygon pulled in by
+            //  R and stroked 2R wide). Only while the pointer is on the bar or the charge is low, like the glass gauge it replaces.
+            group {
+                let pxg.pad = 3 * bu
+                let pxg.w = bf.full + bf.nub
+                let pxX = bf.x + pxg.pad
+                let pxW = pxg.w - 2 * pxg.pad
+                let pxH = min(bf.hh - 2 * pxg.pad, 22 * bu)
+                let pxY = bf.mid - pxH / 2
+                let pxR = 0.18 * pxH
+                let pxg.len = batt_fill * pxW
+                let pxg.c = mix(mix(#ff4d4d, #f2e11c, clamp((batt_fill - 0.2) / 0.2, 0, 1)), #3cf03c, clamp((batt_fill - 0.5) / 0.25, 0, 1))      // red under 20 %, yellow about 40 to 50 %, green from 75 %
+                show: px_k > 0.01 and bf.show > 0.01 and batt_on > 0.01
+                opacity: px_k * bf.show * batt_on * 0.5
+                box { from: bf.x, pxY - pxg.pad; size: pxg.w, pxH + 2 * pxg.pad; corner: 4 * bu; color: #05070a }
+                repeat pxk in 0..24 {
+                    group {
+                        clip inset 0 box { from: pxX + pxk * pxW / 24, pxY - 4 * bu; size: clamp(pxg.len - pxk * pxW / 24, 0.01, pxW / 24 + 0.7), pxH + 8 * bu }
+                        path { at: pxX, pxY; color: mix(mix(pxg.c, #ffffff, 0.16), pxg.c, pxk / 23); move 0.022 * pxW + 1 * pxR, 0 * pxH + 1 * pxR; line 1 * pxW + -1 * pxR, 0 * pxH + 1 * pxR; line 1 * pxW + -1 * pxR, 0.38 * pxH + -1 * pxR; line 0.381 * pxW + -1 * pxR, 0.38 * pxH + -1 * pxR; line 0.355 * pxW + -1 * pxR, 1 * pxH + -1 * pxR; line 0 * pxW + 1 * pxR, 1 * pxH + -1 * pxR; close }
+                        path { at: pxX, pxY; stroke: 2 * pxR; color: mix(mix(pxg.c, #ffffff, 0.16), pxg.c, pxk / 23); move 0.022 * pxW + 1 * pxR, 0 * pxH + 1 * pxR; line 1 * pxW + -1 * pxR, 0 * pxH + 1 * pxR; line 1 * pxW + -1 * pxR, 0.38 * pxH + -1 * pxR; line 0.381 * pxW + -1 * pxR, 0.38 * pxH + -1 * pxR; line 0.355 * pxW + -1 * pxR, 1 * pxH + -1 * pxR; line 0 * pxW + 1 * pxR, 1 * pxH + -1 * pxR; line 0.022 * pxW + 1 * pxR, 0 * pxH + 1 * pxR }
+                    }
+                }
             }
         }
 

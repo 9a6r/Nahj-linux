@@ -89,7 +89,7 @@ scene TvRemote {
     let shown = if(slot_open and (if(mon_known, mon_here > 0.5, slot_sw == 0 or (screen.width == slot_sw and screen.height == slot_sh))), 1, 0)
 
     let u = 1.1
-    let fr = if(shown > 0.5, floor(time * 8), 0)
+    let fr = if(shown > 0.5 and look < 4.5, floor(time * 8), 0)       // (the pencil holds still on the Proxy theme: its HUD is crisp)
 
     prop wk = 0 ~700ms
     prop en1 = 0 ~200ms
