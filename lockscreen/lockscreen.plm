@@ -467,6 +467,10 @@ scene Lockscreen {
             }
         }
 
+        //  the box takes the keyboard as soon as the compositor confirms the lock, so the password can be
+        //  typed straight away instead of after a click (`focus` also has the compositor lend the keyboard
+        //  to this surface). On `lock.held`, not on `locked`: the surface does not exist before that.
+        on change lock.held while lock.held { focus password }
         on press bar_hit { focus password }
         on press clr_z { emit clear }
         on press go_z { emit tryauth }
