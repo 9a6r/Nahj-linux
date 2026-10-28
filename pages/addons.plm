@@ -43,12 +43,12 @@ part Addons {
                         let adbx = spx + 368 * pu
                         let adby = sby + adc * pu
                         let adbh = if(adel.$pass.$i.hover > 0.5 or addons.$i.ask, 1, 0)
-                        group { show: addons.$i.mine
-                            box { at: adbx, adby + 1 * pu; size: 11 * pu, 12 * pu; corner: 2 * pu; stroke: 1.4 * pu; color: mix(ink, #ff7a7a, adbh); opacity: 45% + 50% * adbh }
-                            line { from: adbx - 8 * pu, adby - 6 * pu; to: adbx + 8 * pu, adby - 6 * pu; width: 1.4 * pu; color: mix(ink, #ff7a7a, adbh); opacity: 45% + 50% * adbh }
-                            line { from: adbx - 3 * pu, adby - 9 * pu; to: adbx + 3 * pu, adby - 9 * pu; width: 1.4 * pu; color: mix(ink, #ff7a7a, adbh); opacity: 45% + 50% * adbh }
+                        group {
+                            box { at: adbx, adby + 1 * pu; size: 11 * pu, 12 * pu; corner: 2 * pu; stroke: 1.4 * pu; color: mix(ink, alert, adbh); opacity: 45% + 50% * adbh }
+                            line { from: adbx - 8 * pu, adby - 6 * pu; to: adbx + 8 * pu, adby - 6 * pu; width: 1.4 * pu; color: mix(ink, alert, adbh); opacity: 45% + 50% * adbh }
+                            line { from: adbx - 3 * pu, adby - 9 * pu; to: adbx + 3 * pu, adby - 9 * pu; width: 1.4 * pu; color: mix(ink, alert, adbh); opacity: 45% + 50% * adbh }
                         }
-                        zone box adel.$pass.$i { at: adbx, adby; size: 26 * pu, 30 * pu; cursor: pointer; active: addons.$i.mine and (sby + adc * pu) - ad.off > sby and (sby + adc * pu) - ad.off < sby + set.h * pu; label: "Delete this add-on" }
+                        zone box adel.$pass.$i { at: adbx, adby; size: 26 * pu, 30 * pu; cursor: pointer; active: (sby + adc * pu) - ad.off > sby and (sby + adc * pu) - ad.off < sby + set.h * pu; label: "Remove this add-on" }
                         on press adel.$pass.$i { emit addon_del(i) }
                         box { at: spx + 219 * pu, sby + adc * pu; size: 438 * pu, 66 * pu; corner: 14 * pu; stroke: 1.5 * pu; color: mint; opacity: 100% * adl }
                     }
@@ -56,6 +56,10 @@ part Addons {
                 }
                 group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + (36 + max(1, addons.count) * 74 + 6) * pu + 0.5); text ad_note { at: floor(spx + 14 * pu + 0.5), floor(sby + (36 + max(1, addons.count) * 74 + 6) * pu + 0.5); anchor: left center; size: 13; width: (410 * pu) / rs; lines: 1; color: if(ad_err, alert, faint); opacity: if(ad_err, 100%, 70%); family: "Space Grotesk" } }
                 group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + (36 + max(1, addons.count) * 74 + 26) * pu + 0.5); text ad_tpl { at: floor(spx + 14 * pu + 0.5), floor(sby + (36 + max(1, addons.count) * 74 + 26) * pu + 0.5); anchor: left center; size: 13; width: (410 * pu) / rs; lines: 1; color: faint; opacity: 70%; family: "Space Grotesk" } }
+                //  Add-ons that shipped with the shell and were removed from here (the bin): one line brings them all back.
+                group { scale: rs; pivot: floor(spx + 14 * pu + 0.5), floor(sby + (36 + max(1, addons.count) * 74 + 46) * pu + 0.5); text ad_hid { at: floor(spx + 14 * pu + 0.5), floor(sby + (36 + max(1, addons.count) * 74 + 46) * pu + 0.5); anchor: left center; size: 13; width: (410 * pu) / rs; lines: 1; color: mix(faint, mint, ad_unh.hover); opacity: 70% + 30% * ad_unh.hover; family: "Space Grotesk" } }
+                zone box ad_unh { from: spx + 6 * pu, sby + (36 + max(1, addons.count) * 74 + 36) * pu; size: 300 * pu, 20 * pu; cursor: pointer; active: ad_hidn > 0.5 and set_pgo > 0.5 and (sby + (36 + max(1, addons.count) * 74 + 46) * pu) - ad.off > sby and (sby + (36 + max(1, addons.count) * 74 + 46) * pu) - ad.off < sby + set.h * pu; label: "Bring the removed add-ons back" }
+                on press ad_unh { emit addons_unhide }
             }
             let ad.thh = set.h * set.h / max(set.h, ad.h)
             let ad.thy = ad.thh / 2 + ad.sc / max(1, ad.h - set.h) * (set.h - ad.thh)
