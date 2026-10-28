@@ -1,4 +1,6 @@
 # The same scenes and keep-alive wrappers used by Vitreus's installer.
+dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE
+/usr/local/libexec/nahj-wallpaper
 vitreus-keep "$HOME/.config/pleamar/shells/vitreus/vitreus.plm" "$HOME/.local/share/pleamar/vitreus/vitreus.log"
 PLEAMAR_SWAPCHAIN=1 vitreus-keep "$HOME/.config/pleamar/shells/vitreus/lockscreen/lockscreen.plm"
 vitreus-keep "$HOME/.config/pleamar/shells/vitreus/wptrans/wptrans.plm"

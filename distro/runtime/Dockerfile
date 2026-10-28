@@ -25,7 +25,8 @@ RUN --mount=type=secret,id=cloud_ca \
         yaml-cpp kpmcore kcoreaddons polkit-qt6 extra-cmake-modules \
         libpwquality icu libxcrypt boost \
         parted rsync squashfs-tools dosfstools e2fsprogs \
-        grub efibootmgr os-prober plymouth sddm qemu-system-x86 edk2-ovmf \
+        grub efibootmgr os-prober plymouth sddm qemu-system-x86 qemu-img \
+        qemu-hw-display-virtio-vga qemu-hw-display-virtio-gpu edk2-ovmf \
     && useradd --create-home --uid 1000 --shell /bin/bash builder \
     && install -d -o builder -g builder /build \
     && pacman -Q > /usr/local/share/nahj-build-packages.txt

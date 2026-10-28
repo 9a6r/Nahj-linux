@@ -15,4 +15,5 @@ file_permissions+=(
   ["/usr/local/libexec/nahj-image-setup"]="0:0:755"
   ["/usr/local/libexec/nahj-wallpaper"]="0:0:755"
   ["/etc/sudoers.d/10-nahj-live"]="0:0:440"
+  ["/etc/sudoers.d"]="0:0:750"
 )

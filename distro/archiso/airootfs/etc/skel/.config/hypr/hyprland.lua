@@ -44,7 +44,5 @@ require("hypr_vitreus")
 pcall(require, "vitreus_monitors")
 pcall(require, "vitreus_hypr")
 pcall(require, "vitreus_colors")
-hl.on("hyprland.start", function ()
-    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE")
-    hl.exec_cmd("/usr/local/libexec/nahj-wallpaper")
-end)
+-- Nahj's wallpaper and bus initialization run from pleamar/autostart alongside
+-- the original scenes, after the original startup handler launches its daemons.

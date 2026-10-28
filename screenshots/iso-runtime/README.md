@@ -23,3 +23,7 @@
 ![Calamares welcome and Vitreus bar inside the live ISO](installer-welcome.png)
 
 هذه اللقطة من جلسة تشخيص لنفس ISO: أُعيد تشغيل الشيل باستخدام خيار Pleamar الأصلي `PLEAMAR_SWAPCHAIN=1` بعد أن رفض Virtio/llvmpipe إطارات DMA-BUF، وشُغّل مساعد الخلفية يدويًا بعد تأخر بدء الخدمة. لم تتغير ملفات تصميم الشيل أو الأنيميشن. تم تعطيل قفل الخمول مؤقتًا أثناء الاختبار فقط. الاستجابة تحت TCG بطيئة؛ اللقطة لا تثبت اكتمال التثبيت أو سلاسة VirtualBox، والتعديلات الدائمة ما زالت قيد التحقق.
+
+سطح المكتب والشريط بعد الانتقال لمساحة عمل فارغة في نفس جلسة الاختبار:
+
+![Actual live desktop with original Vitreus bar and wallpaper](desktop-software-rendering.png)

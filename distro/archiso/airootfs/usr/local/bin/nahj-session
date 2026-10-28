@@ -4,6 +4,15 @@ export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 export XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland
 export QT_QPA_PLATFORM='wayland;xcb'
 export MOZ_ENABLE_WAYLAND=1
+# Software Vulkan cannot reliably export frames as DMA-BUFs on virtual GPUs.
+# Use Pleamar's existing presentation path only when all detected devices are
+# CPUs. Keep hardware rendering and all scene animations unchanged.
+if [[ -z ${PLEAMAR_SWAPCHAIN+x} ]]; then
+    renderers=$(timeout 15s vulkaninfo --summary 2>/dev/null | sed -n 's/.*deviceType[[:space:]]*=[[:space:]]*//p' || true)
+    if [[ -n $renderers ]] && ! grep -qv '^PHYSICAL_DEVICE_TYPE_CPU$' <<< "$renderers"; then
+        export PLEAMAR_SWAPCHAIN=1
+    fi
+fi
 /usr/local/bin/nahj-session-init
 # SDDM provides the user bus; direct TTY launches get their own session bus.
 if [[ -n ${DBUS_SESSION_BUS_ADDRESS:-} ]]; then

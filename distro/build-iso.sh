@@ -3,7 +3,7 @@
 set -euo pipefail
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 releng=/usr/share/archiso/configs/releng
-work= out= payload= packages=
+work='' out='' payload='' packages=''
 prepare_only=false
 usage() {
     cat <<'EOF'
@@ -107,8 +107,12 @@ rm -f "$profile/airootfs/root/.automated_script.sh" "$profile/airootfs/root/.zlo
       "$profile/airootfs/etc/systemd/system/multi-user.target.wants/sshd.service" \
       "$profile/airootfs/etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service" \
       "$profile/airootfs/etc/systemd/system/sockets.target.wants/systemd-networkd.socket" \
+      "$profile/airootfs/etc/systemd/system/sysinit.target.wants/systemd-time-wait-sync.service" \
       "$profile/airootfs/etc/resolv.conf"
 ln -s /run/NetworkManager/resolv.conf "$profile/airootfs/etc/resolv.conf"
+# Keep background time synchronization, but never block offline live startup
+# indefinitely on NTP before pacman-init and graphical.target can complete.
+printf '\nunset '\''file_permissions[/root/.automated_script.sh]'\''\n' >> "$profile/profiledef.sh"
 
 # Every loader references the actual zen kernel and initramfs. Keep upstream's
 # UUID placeholders intact so mkarchiso still resolves removable media properly.
@@ -120,6 +124,7 @@ while IFS= read -r -d '' file; do
 done < <(find "$profile/syslinux" "$profile/efiboot" "$profile/grub" -type f \( -name '*.cfg' -o -name '*.conf' \) -print0)
 
 # Pin the network destination, while retaining the package signature policy.
+# shellcheck disable=SC2016 # pacman expands these repository placeholders.
 sed -i 's|^Include = /etc/pacman.d/mirrorlist$|Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch|' "$profile/pacman.conf"
 local_repo=$work/local-repo
 mkdir -p "$local_repo"
@@ -133,8 +138,12 @@ EOF
 
 # Cheap structural checks fail before the costly pacstrap/squashfs work.
 grep -qx 'linux-zen' "$profile/packages.x86_64"
-! grep -qx 'linux' "$profile/packages.x86_64"
-! grep -REq 'vmlinuz-linux([[:space:]]|$)|initramfs-linux\.img' "$profile/syslinux" "$profile/efiboot" "$profile/grub"
+if grep -qx 'linux' "$profile/packages.x86_64"; then
+    die 'generic linux kernel remained in the package list'
+fi
+if grep -REq 'vmlinuz-linux([[:space:]]|$)|initramfs-linux\.img' "$profile/syslinux" "$profile/efiboot" "$profile/grub"; then
+    die 'a boot loader still references the generic linux kernel'
+fi
 test -f "$profile/airootfs/etc/skel/.config/hypr/hyprland.lua"
 test -f "$profile/airootfs/etc/skel/.config/pleamar/autostart"
 test -f "$profile/airootfs/usr/share/sddm/themes/vitreus/background.jpg"
