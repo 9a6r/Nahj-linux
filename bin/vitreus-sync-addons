@@ -5,6 +5,7 @@
   vitreus-sync-addons bump [id]    move the pin to the newest release tag (rewrites bundled.toml), then sync it
   vitreus-sync-addons check        list add-ons with a newer release than the pin; exit 1 if any
   vitreus-sync-addons lint [id]    check a bundled add-on (or every one in bundled.toml) against addons/_template_drawer/STYLE.md; exit 1 on errors
+  vitreus-sync-addons lint DIR     the same for any add-on folder (an author checking their own, before asking to be bundled)
 
 Only releases are followed, never a branch: a bump is a commit you read before it ships."""
 import hashlib, io, json, os, re, shutil, subprocess, sys, tarfile, tomllib, urllib.request
@@ -85,9 +86,10 @@ def rewrite(id, tag, sha):
     open(MANIFEST, "w").write(text[:m.start()] + block + text[m.end():])
 
 
-def lint(id):
+def lint(folder):
     """The rules of STYLE.md that a program can check. Errors block a bundle; warnings are for the reviewer's eye."""
-    folder = os.path.join(ADDONS, id)
+    folder = os.path.realpath(folder)
+    id = os.path.basename(folder)
     errs, warns = [], []
     tpl = os.path.join(ADDONS, "_template_drawer")
     try:
@@ -100,8 +102,8 @@ def lint(id):
             errs.append("addon.toml: `%s` is missing" % k)
     if "vitreus_api" not in meta:
         warns.append("addon.toml: no `vitreus_api`")
-    if not any(KEEP.match(n) for n in os.listdir(folder)):
-        errs.append("no licence file in the folder")
+    if not any(KEEP.match(n) for d in (folder, os.path.dirname(folder)) for n in os.listdir(d)):          # beside the add-on, or at the root of its repository
+        errs.append("no licence file in the folder or beside it (the root of the repository)")
     scene = meta.get("scene", id + ".plm")
     plms = [n for n in os.listdir(folder) if n.endswith(".plm")]
     text = {n: open(os.path.join(folder, n), errors="replace").read() for n in plms + [n for n in os.listdir(folder) if n.endswith(".luau")]}
@@ -155,7 +157,7 @@ def lint(id):
 def main():
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     only = sys.argv[2] if len(sys.argv) > 2 else None
-    entries = {k: v for k, v in load().items() if isinstance(v, dict) and only in (None, k)}
+    entries = {} if cmd == "lint" and only and os.path.isdir(only) else {k: v for k, v in load().items() if isinstance(v, dict) and only in (None, k)}
     if cmd == "sync":
         for id, e in entries.items():
             fetch(id, e)
@@ -174,8 +176,10 @@ def main():
             sys.exit(1 if behind else 0)
     elif cmd == "lint":
         bad = False
-        for id in entries:
-            errs, warns = lint(id)
+        if only and os.path.isdir(only):
+            entries = {os.path.basename(os.path.realpath(only)): only}
+        for id, target in ((i, e if isinstance(e, str) else os.path.join(ADDONS, i)) for i, e in entries.items()):
+            errs, warns = lint(target)
             for w in warns:
                 print("%s: warning: %s" % (id, w))
             for e in errs:
