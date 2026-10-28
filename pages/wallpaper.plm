@@ -18,7 +18,7 @@ part Wallpaper {
             box { at: wpf.x + 77 * pu, wpf.y; size: 154 * pu, 22 * pu; corner: 11 * pu; color: mint; opacity: 10% + 10% * wp_dir_hit.hover }
             PPillOutline(wpf.x + 77 * pu, wpf.y, 154 * pu, 22 * pu, 11 * pu, wp_dir_hit.hover, clamp(3 * (10% + 10% * wp_dir_hit.hover), 0, 1), pu)
             box { at: wpf.x + 77 * pu, wpf.y; size: 154 * pu, 22 * pu; corner: 11 * pu; stroke: 1.2 * pu; color: mint; opacity: 55% + 30% * wp_dir_hit.hover }
-            group { scale: rs; pivot: floor(wpf.x + 14 * pu + 0.5), floor(wpf.y + 0.5); text "󰉋" { at: floor(wpf.x + 14 * pu + 0.5), floor(wpf.y + 0.5); anchor: center; size: 15.5; color: mint; family: "SpaceMono Nerd Font Propo" } }
+            group { scale: rs; pivot: floor(wpf.x + 14 * pu + 0.5), floor(wpf.y + 0.5); GFolder(floor(wpf.x + 14 * pu + 0.5), floor(wpf.y + 0.5), (15.5) / 24, mint, 1, 0) }
             group { scale: rs; pivot: floor(wpf.x + 27 * pu + 0.5), floor(wpf.y + 0.5); text wp_dirtext { at: floor(wpf.x + 27 * pu + 0.5), floor(wpf.y + 0.5); anchor: left center; size: 14; width: (88 * pu) / rs; lines: 1; color: ink; family: "Space Grotesk" } }
             group { scale: rs; pivot: floor(wpf.x + 146 * pu + 0.5), floor(wpf.y + 0.5); text "Browse" { at: floor(wpf.x + 146 * pu + 0.5), floor(wpf.y + 0.5); anchor: right center; size: 13.5; weight: 700; color: mint; family: "Space Grotesk" } }
             zone box wp_dir_hit { at: wpf.x + 77 * pu, wpf.y; size: 154 * pu, 22 * pu; corner: 11 * pu; cursor: pointer; label: "Choose the wallpaper folder"; active: set_page == pg_wall and not wpd_open }
@@ -137,16 +137,16 @@ part Wallpaper {
                 on scroll wd_bg { fp_to = clamp(fp_to - wheel * 54, 0, max(0, wd.ch - wd.vh + 4 * pu)) }
                 //  Up a folder, home, where we are, and the cross.
                 ellipse { at: wd.l + 26 * pu, wd.t + 27 * pu; radius: 12 * pu; color: ink; opacity: (0.07 + 0.1 * wd_up.hover) * if(face_at_top, 0.4, 1) }
-                group { scale: rs; pivot: floor(wd.l + 26 * pu + 0.5), floor(wd.t + 27 * pu + 0.5); text "󰁞" { at: floor(wd.l + 26 * pu + 0.5), floor(wd.t + 27 * pu + 0.5); anchor: center; size: 15.5; family: "SpaceMono Nerd Font Propo"; color: ink; opacity: if(face_at_top, 0.4, 1) } }
+                group { scale: rs; pivot: floor(wd.l + 26 * pu + 0.5), floor(wd.t + 27 * pu + 0.5); GArrowTo(floor(wd.l + 26 * pu + 0.5), floor(wd.t + 27 * pu + 0.5), 270, (15.5) / 24, ink, if(face_at_top, 0.4, 1), 0) }
                 zone ellipse wd_up { at: wd.l + 26 * pu, wd.t + 27 * pu; radius: 14 * pu; cursor: pointer; active: wpd_open and not face_at_top; label: "Up a folder" }
                 on press wd_up { emit face_up }
                 ellipse { at: wd.l + 56 * pu, wd.t + 27 * pu; radius: 12 * pu; color: ink; opacity: 0.07 + 0.1 * wd_home.hover }
-                group { scale: rs; pivot: floor(wd.l + 56 * pu + 0.5), floor(wd.t + 27 * pu + 0.5); text "󰋜" { at: floor(wd.l + 56 * pu + 0.5), floor(wd.t + 27 * pu + 0.5); anchor: center; size: 15.5; family: "SpaceMono Nerd Font Propo"; color: ink } }
+                group { scale: rs; pivot: floor(wd.l + 56 * pu + 0.5), floor(wd.t + 27 * pu + 0.5); GHome(floor(wd.l + 56 * pu + 0.5), floor(wd.t + 27 * pu + 0.5), (15.5) / 24, ink, 1, 0) }
                 zone ellipse wd_home { at: wd.l + 56 * pu, wd.t + 27 * pu; radius: 14 * pu; cursor: pointer; active: wpd_open; label: "Home folder" }
                 on press wd_home { emit face_home }
                 group { scale: rs; pivot: floor(wd.l + 82 * pu + 0.5), floor(wd.t + 27 * pu + 0.5); text face_path { at: floor(wd.l + 82 * pu + 0.5), floor(wd.t + 27 * pu + 0.5); anchor: left center; size: 16; weight: 600; width: (wd.w - 82 * pu - 48 * pu) / rs; lines: 1; family: "Space Grotesk"; color: ink } }
                 ellipse { at: wd.l + wd.w - 26 * pu, wd.t + 27 * pu; radius: 12 * pu; color: ink; opacity: 0.07 + 0.1 * wd_x.hover }
-                group { scale: rs; pivot: floor(wd.l + wd.w - 26 * pu + 0.5), floor(wd.t + 27 * pu + 0.5); text "󰅖" { at: floor(wd.l + wd.w - 26 * pu + 0.5), floor(wd.t + 27 * pu + 0.5); anchor: center; size: 15.5; family: "SpaceMono Nerd Font Propo"; color: ink } }
+                group { scale: rs; pivot: floor(wd.l + wd.w - 26 * pu + 0.5), floor(wd.t + 27 * pu + 0.5); GClose(floor(wd.l + wd.w - 26 * pu + 0.5), floor(wd.t + 27 * pu + 0.5), (15.5) / 24, ink, 1, 0) }
                 zone ellipse wd_x { at: wd.l + wd.w - 26 * pu, wd.t + 27 * pu; radius: 14 * pu; cursor: pointer; active: wpd_open; label: "Close" }
                 on press wd_x { wpd_open = false }
                 group { scale: rs; pivot: floor(wd.l + wd.w / 2 + 0.5), floor(wd.t + wd.h / 2 + 0.5); text "Nothing here" { at: floor(wd.l + wd.w / 2 + 0.5), floor(wd.t + wd.h / 2 + 0.5); anchor: center; size: 15.5; family: "Space Grotesk"; color: faint; show: face_pics.count < 1 } }
@@ -158,7 +158,7 @@ part Wallpaper {
                         group {
                             show: face_pics.count > i
                             box { from: wdi.x, wdi.y; size: 98 * pu, 98 * pu; corner: 14 * pu; color: ink; opacity: 0.07 }
-                            group { scale: rs; pivot: floor(wdi.x + 49 * pu + 0.5), floor(wdi.y + 36 * pu + 0.5); text "󰉋" { at: floor(wdi.x + 49 * pu + 0.5), floor(wdi.y + 36 * pu + 0.5); anchor: center; size: 35.5; family: "SpaceMono Nerd Font Propo"; color: mint; show: face_pics.$i.dir } }
+                            group { scale: rs; pivot: floor(wdi.x + 49 * pu + 0.5), floor(wdi.y + 36 * pu + 0.5); group { show: face_pics.$i.dir; GFolder(floor(wdi.x + 49 * pu + 0.5), floor(wdi.y + 36 * pu + 0.5), (35.5) / 24, mint, 1, 0) } }
                             group { scale: rs; pivot: floor(wdi.x + 49 * pu + 0.5), floor(wdi.y + 76 * pu + 0.5); text face_pics.$i.name { at: floor(wdi.x + 49 * pu + 0.5), floor(wdi.y + 76 * pu + 0.5); anchor: center; align: center; size: 13.5; width: (90 * pu) / rs; lines: 1; family: "Space Grotesk"; color: ink; show: face_pics.$i.dir } }
                             group {
                                 show: not face_pics.$i.dir

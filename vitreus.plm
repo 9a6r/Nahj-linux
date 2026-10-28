@@ -3,6 +3,7 @@ language 0.1
 import "palette-live.plm"
 import "desktopclock/clockface.plm"
 import "desktopclock/clockface_styled.plm"
+import "pencil-glyphs.plm"
 
 //  Vitreus: a bar of liquid glass. The glass only blurs what is behind it (the
 //  compositor does it; `lens: false`, unless the Glass page turns bending on), and the panel is not stuck under the

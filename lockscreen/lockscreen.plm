@@ -1,5 +1,6 @@
 language 0.1
 import "../palette.plm"
+import "../pencil-glyphs.plm"
 
 //  The lock screen: the wallpaper arrives sharp and blurs into place under a ring
 //  of liquid that leaves the centre, then the clock, the avatar and the password bar rise in one after
@@ -63,6 +64,7 @@ scene Lockscreen {
     //  long as it is named anywhere, even with nothing on screen (this scene, unlocked, cost 3% of a core for that); a clock that
     //  is spun by a condition lets it go idle. It is called `time` so that everything below reads it as before.
     prop time = 0
+    let lkf = floor(time * 8)                 // the pencil icons' frame (pencil-glyphs.plm): the hovered ones boil on it
     spin time by if(locked, 1, 0)
     text password = ""
     text status = "System Locked"
@@ -205,8 +207,8 @@ scene Lockscreen {
 
                 group {
                     show: batt.present
-                    text "battery_android_full" { at: ox + 34, oy + 24; anchor: center; size: 18; color: if(batt.percent <= 20, #ef4444, acc); family: "Material Symbols Outlined" }
-                    text "bolt" { at: ox + 34, oy + 24; anchor: center; size: 11; color: onmint; family: "Material Symbols Outlined"; show: batt.charging }
+                    GBattery(ox + 34, oy + 24, if(batt.charging, 0, batt.percent / 100), 18 / 24, if(batt.percent <= 20, #ef4444, acc), 1, 0)
+                    group { show: batt.charging; GBolt(ox + 34, oy + 24, 13 / 24, acc, 1, 0) }
                     text number(batt.percent, 0, "%") { at: ox + 50, oy + 24; anchor: left center; size: 12; weight: 700; color: ink; family: "Space Grotesk" }
                 }
                 body {
@@ -217,7 +219,7 @@ scene Lockscreen {
                     frost: 70%
                     box { at: ox + w - 24 - 46, oy + 24; size: 92, 24; corner: 12 }
                 }
-                text "lock" { at: ox + w - 24 - 46 - 32, oy + 24; anchor: center; size: 12; color: acc; family: "Material Symbols Outlined" }
+                GLock(ox + w - 24 - 46 - 32, oy + 24, 12 / 24, acc, 1, 0)
                 text "VITREUS" { at: ox + w - 24 - 46 + 8, oy + 24; anchor: center; size: 9; weight: 700; color: faint; family: "Space Grotesk" }
             }
 
@@ -277,7 +279,7 @@ scene Lockscreen {
                     clip inset 5 ellipse { at: cx, cb + 400; radius: 100 }
                     image avatar { at: cx - 95, cb + 305; size: 190, 190; show: has_avatar }
                 }
-                text "person" { at: cx, cb + 400; anchor: center; size: 104; color: acc; family: "Material Symbols Outlined"; show: not has_avatar }
+                group { show: not has_avatar; GPerson(cx, cb + 400, 104 / 24, acc, 1, 0) }
                 text realname { at: cx, cb + 527; anchor: center; size: 21; weight: 700; color: ink; family: "Space Grotesk"; letter_scale: 1 + 0.6 * (1 - (1 - pow(1 - clamp((e - 0.35 - letter * 0.012) / 0.3, 0, 1), 3))); letter_move: 0, 16 * (1 - (1 - pow(1 - clamp((e - 0.35 - letter * 0.012) / 0.3, 0, 1), 3))); letter_opacity: (1 - pow(1 - clamp((e - 0.35 - letter * 0.012) / 0.3, 0, 1), 3)) }
                 text "Esc to exit · test lock" { at: cx, cb + 583; anchor: center; size: 11; color: acc; opacity: 80%; family: "Space Grotesk"; show: safe and pw_len == 0 }
                 text status { at: cx, cb + 562; anchor: center; size: 12; color: mix(mix(faint, #ef4444, err_t), #10b981, ok_t); family: "Space Grotesk" }
@@ -300,9 +302,9 @@ scene Lockscreen {
                     }
                     //  the lock, its disc tinted by how the last try went
                     ellipse { at: cx - 226, bar_y; radius: 18; color: mix(mix(#ffffff, #ef4444, err_t * 0.9), #10b981, ok_t * 0.9); opacity: 8% + 10% * (err_t + ok_t) }
-                    text "lock" { at: cx - 226, bar_y; anchor: center; size: 20; color: acc; family: "Material Symbols Outlined"; show: not right and not wrong }
-                    text "lock_open" { at: cx - 226, bar_y; anchor: center; size: 20; color: #10b981; family: "Material Symbols Outlined"; show: right }
-                    text "lock_reset" { at: cx - 226, bar_y; anchor: center; size: 20; color: #ef4444; family: "Material Symbols Outlined"; show: wrong and not right }
+                    group { show: not right and not wrong; GLock(cx - 226, bar_y, 20 / 24, acc, 1, 0) }
+                    group { show: right; GLockOpen(cx - 226, bar_y, 20 / 24, #10b981, 1, 0) }
+                    group { show: wrong and not right; GRetry(cx - 226, bar_y, 20 / 24, #ef4444, 1, 0) }
 
                     //  what has been typed: a blinking caret and a hint while empty, shapes after
                     box { at: cx - 197, bar_y; size: 2, 20; corner: 1; color: acc; opacity: (1 - typed_t) * (50% + 50% * sin(time * 340)); show: pw_len == 0 }
@@ -387,12 +389,12 @@ scene Lockscreen {
                     group {
                         show: pw_len > 0 and not authing
                         ellipse { at: cx + 184, bar_y; radius: 16; color: mix(#ffffff, #ef4444, clr_hot); opacity: 8% + 12% * clr_hot }
-                        text "cancel" { at: cx + 184, bar_y; anchor: center; size: 18; color: mix(faint, #ef4444, clr_hot); family: "Material Symbols Outlined" }
+                        GCancel(cx + 184, bar_y, 18 / 24, mix(faint, #ef4444, clr_hot), 1, if(clr_hot > 0.5, lkf, 0))
                     }
                     ellipse { at: cx + 230, bar_y; radius: 20; color: mix(#ffffff, acc, typed_t); opacity: 8% + 77% * typed_t + 15% * go_hot * typed_t }
-                    text "arrow_forward" { at: cx + 230, bar_y; anchor: center; size: 22; weight: 700; color: mix(faint, deep, typed_t); family: "Material Symbols Outlined"; show: not authing }
+                    group { show: not authing; GArrow(cx + 230, bar_y, 22 / 24, mix(faint, deep, typed_t), 1, 0) }
                     group { pivot: cx + 230, bar_y; rotate: time * 450; show: authing
-                        text "progress_activity" { at: cx + 230, bar_y; anchor: center; size: 22; color: deep; family: "Material Symbols Outlined" }
+                        GSpinner(cx + 230, bar_y, 0, 22 / 24, deep, 1, 0)
                     }
 
                     zone box bar_hit { at: cx - 30, bar_y; size: 440, 58; cursor: text }
@@ -409,16 +411,16 @@ scene Lockscreen {
                     box { at: cx, cb + 701; size: 380, 52; corner: 26; color: panel; opacity: 60% }
                     box { at: cx, cb + 701; size: 380, 52; corner: 26; color: #ffffff; opacity: 0%; stroke: 1 }
                     ellipse { at: cx - 190 + 14 + 16, cb + 701; radius: 16; color: acc; opacity: 20% }
-                    text "music_note" { at: cx - 190 + 14 + 16, cb + 701; anchor: center; size: 18; color: acc; family: "Material Symbols Outlined" }
+                    GNote(cx - 190 + 14 + 16, cb + 701, 18 / 24, acc, 1, 0)
                     text med.title { at: cx - 190 + 62, cb + 693; anchor: left center; size: 12; weight: 700; width: 190; lines: 1; color: ink; family: "Space Grotesk" }
                     text med.artist { at: cx - 190 + 62, cb + 710; anchor: left center; size: 11; width: 190; lines: 1; color: faint; family: "Space Grotesk" }
                     ellipse { at: cx + 190 - 14 - 28 - 4 - 32 - 4 - 14, cb + 701; radius: 14; color: #ffffff; opacity: 15% * prev_hot }
-                    text "skip_previous" { at: cx + 190 - 14 - 28 - 4 - 32 - 4 - 14, cb + 701; anchor: center; size: 18; color: ink; family: "Material Symbols Outlined" }
+                    GSkip(cx + 190 - 14 - 28 - 4 - 32 - 4 - 14, cb + 701, 1, 18 / 24, ink, 1, 0)
                     ellipse { at: cx + 190 - 14 - 28 - 4 - 16, cb + 701; radius: 16; color: mix(#ffffff, acc, play_hot); opacity: 12% + 88% * play_hot }
-                    text "pause" { at: cx + 190 - 14 - 28 - 4 - 16, cb + 701; anchor: center; size: 20; color: mix(ink, deep, play_hot); family: "Material Symbols Outlined"; show: med.playing }
-                    text "play_arrow" { at: cx + 190 - 14 - 28 - 4 - 16, cb + 701; anchor: center; size: 20; color: mix(ink, deep, play_hot); family: "Material Symbols Outlined"; show: not med.playing }
+                    group { show: med.playing; GPause(cx + 190 - 14 - 28 - 4 - 16, cb + 701, 20 / 24, mix(ink, deep, play_hot), 1, if(play_hot > 0.5, lkf, 0)) }
+                    group { show: not med.playing; GPlay(cx + 190 - 14 - 28 - 4 - 16, cb + 701, 20 / 24, mix(ink, deep, play_hot), 1, if(play_hot > 0.5, lkf, 0)) }
                     ellipse { at: cx + 190 - 14 - 14, cb + 701; radius: 14; color: #ffffff; opacity: 15% * next_hot }
-                    text "skip_next" { at: cx + 190 - 14 - 14, cb + 701; anchor: center; size: 18; color: ink; family: "Material Symbols Outlined" }
+                    GSkip(cx + 190 - 14 - 14, cb + 701, -1, 18 / 24, ink, 1, 0)
                     zone box prev_z { at: cx + 190 - 14 - 28 - 4 - 32 - 4 - 14, cb + 701; size: 28, 28; corner: 14; cursor: pointer; active: media_in > 0.9 }
                     zone box play_z { at: cx + 190 - 14 - 28 - 4 - 16, cb + 701; size: 32, 32; corner: 16; cursor: pointer; active: media_in > 0.9 }
                     zone box next_z { at: cx + 190 - 14 - 14, cb + 701; size: 28, 28; corner: 14; cursor: pointer; active: media_in > 0.9 }
@@ -440,7 +442,7 @@ scene Lockscreen {
                 box { at: cx, py; size: 164, 48; corner: 24; color: #ffffff; opacity: 0%; stroke: 1 }
                 ellipse { at: cx - 48, py; radius: 18 * clamp(ph_p0 * 1.2, 0, 1); color: acc; opacity: 30% }
                 ellipse { at: cx - 48, py; radius: 18; color: #ffffff; opacity: 14% * pz0.hover }
-                text "bedtime" { at: cx - 48, py; anchor: center; size: 20; color: mix(faint, acc, max(pz0.hover, clamp(ph_p0 * 3, 0, 1))); family: "Material Symbols Outlined" }
+                GMoon(cx - 48, py, 20 / 24, mix(faint, acc, max(pz0.hover, clamp(ph_p0 * 3, 0, 1))), 1, if(pz0.hover > 0.5, lkf, 0))
                 text "Hold to sleep" { at: cx, py - 40; anchor: center; size: 12; weight: 700; color: ink; family: "Space Grotesk"; show: ph_d0 }
                 zone box pz0 { at: cx - 48, py; size: 36, 36; corner: 18; cursor: pointer; active: show_power }
                 on press pz0 { ph_s0 = time; ph_d0 = true }
@@ -448,7 +450,7 @@ scene Lockscreen {
                 on hold pz0 for 1000ms { ph_d0 = false; emit lock_power(0) }
                 ellipse { at: cx + 0, py; radius: 18 * clamp(ph_p1 * 1.2, 0, 1); color: acc; opacity: 30% }
                 ellipse { at: cx + 0, py; radius: 18; color: #ffffff; opacity: 14% * pz1.hover }
-                text "restart_alt" { at: cx + 0, py; anchor: center; size: 20; color: mix(faint, acc, max(pz1.hover, clamp(ph_p1 * 3, 0, 1))); family: "Material Symbols Outlined" }
+                GRetry(cx + 0, py, 20 / 24, mix(faint, acc, max(pz1.hover, clamp(ph_p1 * 3, 0, 1))), 1, if(pz1.hover > 0.5, lkf, 0))
                 text "Hold to restart" { at: cx, py - 40; anchor: center; size: 12; weight: 700; color: ink; family: "Space Grotesk"; show: ph_d1 }
                 zone box pz1 { at: cx + 0, py; size: 36, 36; corner: 18; cursor: pointer; active: show_power }
                 on press pz1 { ph_s1 = time; ph_d1 = true }
@@ -456,7 +458,7 @@ scene Lockscreen {
                 on hold pz1 for 1000ms { ph_d1 = false; emit lock_power(1) }
                 ellipse { at: cx + 48, py; radius: 18 * clamp(ph_p2 * 1.2, 0, 1); color: acc; opacity: 30% }
                 ellipse { at: cx + 48, py; radius: 18; color: #ffffff; opacity: 14% * pz2.hover }
-                text "power_settings_new" { at: cx + 48, py; anchor: center; size: 20; color: mix(faint, acc, max(pz2.hover, clamp(ph_p2 * 3, 0, 1))); family: "Material Symbols Outlined" }
+                GPower(cx + 48, py, 20 / 24, mix(faint, acc, max(pz2.hover, clamp(ph_p2 * 3, 0, 1))), 1, if(pz2.hover > 0.5, lkf, 0))
                 text "Hold to power off" { at: cx, py - 40; anchor: center; size: 12; weight: 700; color: ink; family: "Space Grotesk"; show: ph_d2 }
                 zone box pz2 { at: cx + 48, py; size: 36, 36; corner: 18; cursor: pointer; active: show_power }
                 on press pz2 { ph_s2 = time; ph_d2 = true }
