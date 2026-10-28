@@ -1094,6 +1094,11 @@ local bt_list = {}
 local bt_last = nil                       -- the last thing the service said
 local bt_sig = nil                        -- what the list said last time it was handed over
 local bt_scanning = false                 -- a scan is running (see `bt_scan` below)
+-- Devices a scan found stay in the list (Nearby) for as long as the Bluetooth window is open, not just while the scan runs: BlueZ forgets an
+-- unpaired device some seconds after discovery stops, but the list used to drop them the moment the scan ended. `rows` keeps the last row of
+-- each by address; one BlueZ has dropped meanwhile is still listed (`gone`), and pressing it scans again for a few seconds before connecting.
+-- (A global: this chunk is at Luau's limit of locals.)
+BT_SEEN = { rows = {} }
 
 -- The list is built here: what is connected first, then what is paired, then the
 -- rest, named ones alphabetically and the anonymous ones (BLE beacons, mostly, which are dozens) last, by
@@ -1134,7 +1139,7 @@ local function bt_render()
     local seen = {}
     for _, d in ipairs(b.devices or {}) do
         if d.connected then name = d.name; name_bat = d.battery or -1 end
-        if d.paired or d.connected or bt_scanning or bt_pending[d.address] then
+        if d.paired or d.connected or bt_scanning or bt_pending[d.address] or BT_SEEN.rows[d.address] then
             local nm = (d.name ~= nil and d.name ~= "") and d.name or d.address
             local row = {
                 name = nm, address = d.address, paired = d.paired and true or false,
@@ -1152,6 +1157,17 @@ local function bt_render()
                 end
             end
             seen[d.address] = true
+            rows[#rows + 1] = row
+            if not row.paired and not row.connected then BT_SEEN.rows[d.address] = row end
+        end
+    end
+    -- found by a scan, then forgotten by BlueZ: still listed while the window is open
+    for addr, r in pairs(BT_SEEN.rows) do
+        if not seen[addr] and not bt_pending[addr] then
+            local row = {}
+            for k, v in pairs(r) do row[k] = v end
+            row.busy, row.gone = 0, true
+            seen[addr] = true
             rows[#rows + 1] = row
         end
     end
@@ -1448,6 +1464,33 @@ on("bt_pick", function(i)
     if not d or d.hd > 0 or d.busy == 1 or d.busy == 2 then return end
     if d.connected then
         bt_ask(d, 2, "bluetooth.disconnect")
+    elseif d.gone then
+        -- BlueZ has forgotten it: look for it again (shown as connecting meanwhile), and connect once it is back; after ten seconds without it,
+        -- the row says it could not, as a connection that is not answered does
+        bt_pending[d.address] = { kind = 1, row = d, gen = -1 }
+        bt_render()
+        BT_SEEN.scan(10)
+        local tries = 0
+        local function look()
+            tries = tries + 1
+            for _, x in ipairs((bt_last and bt_last.devices) or {}) do
+                if x.address == d.address then
+                    bt_pending[d.address] = nil
+                    return bt_ask(d, 1, "bluetooth.connect")
+                end
+            end
+            if tries < 20 then return after(500, look) end
+            local p = bt_pending[d.address]
+            if p and p.gen == -1 then
+                p.kind = 3
+                bt_render()
+                after(3000, function()
+                    local q = bt_pending[d.address]
+                    if q and q.gen == -1 then bt_pending[d.address] = nil; bt_render() end
+                end)
+            end
+        end
+        after(500, look)
     else
         bt_ask(d, 1, "bluetooth.connect")
     end
@@ -1465,17 +1508,26 @@ end)
 -- `bluetoothctl --timeout 12 scan on`: pleamar's own `bluetooth.scan` answers
 -- without an error but BlueZ never starts discovering (`Discovering` stays "no"), while this does, and the
 -- service picks up what it finds. It ends by itself after twelve seconds.
-on("bt_scan", function()
+function BT_SEEN.scan(secs)
     if bt_scanning then return end
     bt_scanning = true
     fact.bt_scanning = true
     bt_render()
-    run("bluetoothctl", { "--timeout", "12", "scan", "on" }, function()
+    run("bluetoothctl", { "--timeout", tostring(secs), "scan", "on" }, function()
         bt_scanning = false
         fact.bt_scanning = false
         bt_render()
     end)
-end)
+end
+on("bt_scan", function() BT_SEEN.scan(12) end)
+-- The window closed: what the scans found is let go (BlueZ has forgotten most of it by now anyway).
+function BT_SEEN.clear()
+    if next(BT_SEEN.rows) == nil then return end
+    BT_SEEN.rows = {}
+    bt_render()
+end
+on("fact:panel_sub", function(v) if tostring(v) ~= "btview" then BT_SEEN.clear() end end)
+on("fact:panel", function(v) if tostring(v) ~= "controls" then BT_SEEN.clear() end end)
 end
 
 -- Wi-Fi asks NetworkManager once and the answer arrives within a few seconds, so its spinner is timed. As with
