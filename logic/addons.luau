@@ -290,7 +290,8 @@ return function()
             if k > MAX then break end
             local by = a.author ~= "" and ("by " .. a.author) or ""
             if a.version ~= "" then by = (by ~= "" and (by .. "  ·  ") or "") .. "version " .. a.version end
-            rows[#rows + 1] = { name = a.name, desc = a.description ~= "" and a.description or "No description", by = by, on = enabled[a.id] == true }
+            if a.repo ~= "" then by = (by ~= "" and (by .. "  ·  ") or "") .. "source" end      -- hosted by its author: the line links to the repository
+            rows[#rows + 1] = { name = a.name, desc = a.description ~= "" and a.description or "No description", by = by, has = a.repo ~= "", on = enabled[a.id] == true }
         end
         model.addons = rows
         place_cards(nil)
@@ -303,8 +304,7 @@ return function()
         end
         fact.ad_err = #errors > 0
         show_slot()
-        local shown = template:gsub("^/home/[^/]+", "~")
-        text.ad_tpl = template ~= "" and ("Templates: " .. shown .. " (a window), " .. shown .. "_drawer") or ""
+        text.ad_tpl = template ~= "" and "Templates: addons/_template (window), addons/_template_drawer (panel)" or ""   -- short enough for the line; the folders sit in the shell's own folder
     end
 
     local function start(a)
@@ -336,6 +336,7 @@ return function()
                 a.description = type(a.description) == "string" and a.description or ""
                 a.author = type(a.author) == "string" and a.author or ""
                 a.version = type(a.version) == "string" and a.version or ""
+                a.repo = type(a.repo) == "string" and a.repo:match("^https://github%.com/[%w][%w._-]*/[%w._-]+$") or ""     -- checked again here: it ends in a shell command
                 a.drawer = type(a.drawer) == "table" and a.drawer or nil
                 a.icon = type(a.icon) == "string" and a.icon or nil
                 a.wallpaper = type(a.wallpaper) == "table" and a.wallpaper or nil
@@ -374,6 +375,10 @@ return function()
     end
 
     on("addons_refresh", function() refresh(false) end)
+    on("addon_repo", function(k)
+        local a = list[(tonumber(k) or -1) + 1]
+        if a and a.repo ~= "" then exec_on_desktop("xdg-open '" .. a.repo .. "'") end
+    end)
     on("addon_toggle", function(k)
         local a = list[(tonumber(k) or -1) + 1]
         if not a or not ready then return end

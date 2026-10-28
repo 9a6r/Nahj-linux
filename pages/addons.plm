@@ -37,6 +37,8 @@ part Addons {
                         on release adr_card.$pass.$i { emit adr_drop }
                         zone box ad_hit.$pass.$i { at: spx + 405 * pu, sby + adc * pu; size: 46 * pu, 30 * pu; cursor: pointer; active: (sby + adc * pu) - ad.off > sby and (sby + adc * pu) - ad.off < sby + set.h * pu; label: "Add-on" }
                         on press ad_hit.$pass.$i { emit addon_toggle(i) }
+                        zone box ad_src.$pass.$i { at: spx + 14 * pu + 175 * pu, sby + (adt + 53) * pu; size: 350 * pu, 16 * pu; cursor: pointer; active: addons.$i.has and (sby + adc * pu) - ad.off > sby and (sby + adc * pu) - ad.off < sby + set.h * pu; label: "Open this add-on's repository" }
+                        on press ad_src.$pass.$i { emit addon_repo(i) }
                         box { at: spx + 219 * pu, sby + adc * pu; size: 438 * pu, 66 * pu; corner: 14 * pu; stroke: 1.5 * pu; color: mint; opacity: 100% * adl }
                     }
                 }

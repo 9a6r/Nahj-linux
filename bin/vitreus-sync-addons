@@ -1,0 +1,191 @@
+#!/usr/bin/env python3
+"""Keep the add-ons that live in their own repositories up to date in addons/.
+
+  vitreus-sync-addons sync [id]    fetch each add-on in addons/bundled.toml at its pinned sha into addons/<id>/
+  vitreus-sync-addons bump [id]    move the pin to the newest release tag (rewrites bundled.toml), then sync it
+  vitreus-sync-addons check        list add-ons with a newer release than the pin; exit 1 if any
+  vitreus-sync-addons lint [id]    check a bundled add-on (or every one in bundled.toml) against addons/_template_drawer/STYLE.md; exit 1 on errors
+
+Only releases are followed, never a branch: a bump is a commit you read before it ships."""
+import hashlib, io, json, os, re, shutil, subprocess, sys, tarfile, tomllib, urllib.request
+
+ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
+ADDONS = os.path.join(ROOT, "addons")
+MANIFEST = os.path.join(ADDONS, "bundled.toml")
+API = 1                                   # the add-on API this Vitreus offers
+KEEP = re.compile(r"^(licen[cs]e|copying|notice)", re.I)
+
+
+def get(url, raw=False):
+    req = urllib.request.Request(url, headers={"User-Agent": "vitreus-sync-addons"})
+    if os.environ.get("GITHUB_TOKEN"):
+        req.add_header("Authorization", "Bearer " + os.environ["GITHUB_TOKEN"])
+    with urllib.request.urlopen(req, timeout=60) as r:
+        data = r.read()
+    return data if raw else json.loads(data)
+
+
+def load():
+    with open(MANIFEST, "rb") as f:
+        return tomllib.load(f)
+
+
+def fetch(id, e):
+    if not re.fullmatch(r"[a-z0-9-]+", id) or not re.fullmatch(r"[0-9a-f]{40}", e.get("sha", "")):
+        sys.exit("%s: needs a lowercase id and a full 40-character sha" % id)
+    blob = get("https://codeload.github.com/%s/tar.gz/%s" % (e["repo"], e["sha"]), raw=True)
+    sub = e.get("path", "").strip("/")
+    dest, tmp = os.path.join(ADDONS, id), os.path.join(ADDONS, ".sync-" + id)
+    shutil.rmtree(tmp, ignore_errors=True)
+    os.makedirs(tmp)
+    with tarfile.open(fileobj=io.BytesIO(blob)) as t:
+        top = t.getnames()[0].split("/")[0]
+        prefix = "/".join(x for x in (top, sub) if x) + "/"
+        members = [m for m in t.getmembers() if m.name.startswith(prefix) and (m.isfile() or m.isdir())]
+        for m in members:
+            m.name = m.name[len(prefix):]
+            if not m.name or m.name.startswith(("/", "..")) or ".." in m.name.split("/"):
+                continue                                   # nothing outside the folder
+            t.extract(m, tmp, filter="data")
+    toml = os.path.join(tmp, "addon.toml")
+    if not os.path.isfile(toml):
+        shutil.rmtree(tmp)
+        sys.exit("%s: no addon.toml at %s in %s" % (id, sub or "/", e["repo"]))
+    with open(toml, "rb") as f:
+        want = tomllib.load(f).get("vitreus_api", API)
+    if want > API:
+        shutil.rmtree(tmp)
+        sys.exit("%s: targets add-on API %s, this Vitreus offers %s: not synced" % (id, want, API))
+    if not any(KEEP.match(n) for n in os.listdir(tmp)) and os.path.isdir(dest):
+        for n in os.listdir(dest):                         # the licence stays even if upstream drops it
+            if KEEP.match(n):
+                shutil.copy2(os.path.join(dest, n), tmp)
+    shutil.rmtree(dest, ignore_errors=True)
+    os.rename(tmp, dest)
+    print("%s: %s @ %s" % (id, e["tag"], e["sha"][:10]))
+
+
+def latest(e):
+    rels = get("https://api.github.com/repos/%s/releases?per_page=10" % e["repo"])
+    rels = [r for r in rels if not r["draft"] and not r["prerelease"]]
+    if not rels:
+        return None
+    tag = rels[0]["tag_name"]
+    ref = get("https://api.github.com/repos/%s/git/ref/tags/%s" % (e["repo"], tag))["object"]
+    if ref["type"] == "tag":                               # annotated: one more hop to the commit
+        ref = get(ref["url"])["object"]
+    return tag, ref["sha"]
+
+
+def rewrite(id, tag, sha):
+    text = open(MANIFEST).read()
+    m = re.search(r"^\[%s\]\s*$.*?(?=^\[|\Z)" % re.escape(id), text, re.S | re.M)
+    block = re.sub(r'^(tag\s*=\s*)".*"', r'\g<1>"%s"' % tag, m.group(0), flags=re.M)
+    block = re.sub(r'^(sha\s*=\s*)".*"', r'\g<1>"%s"' % sha, block, flags=re.M)
+    open(MANIFEST, "w").write(text[:m.start()] + block + text[m.end():])
+
+
+def lint(id):
+    """The rules of STYLE.md that a program can check. Errors block a bundle; warnings are for the reviewer's eye."""
+    folder = os.path.join(ADDONS, id)
+    errs, warns = [], []
+    tpl = os.path.join(ADDONS, "_template_drawer")
+    try:
+        with open(os.path.join(folder, "addon.toml"), "rb") as f:
+            meta = tomllib.load(f)
+    except (OSError, tomllib.TOMLDecodeError) as x:
+        return ["addon.toml: %s" % x], []
+    for k in ("name", "description", "author", "version"):
+        if not meta.get(k):
+            errs.append("addon.toml: `%s` is missing" % k)
+    if "vitreus_api" not in meta:
+        warns.append("addon.toml: no `vitreus_api`")
+    if not any(KEEP.match(n) for n in os.listdir(folder)):
+        errs.append("no licence file in the folder")
+    scene = meta.get("scene", id + ".plm")
+    plms = [n for n in os.listdir(folder) if n.endswith(".plm")]
+    text = {n: open(os.path.join(folder, n), errors="replace").read() for n in plms + [n for n in os.listdir(folder) if n.endswith(".luau")]}
+    if scene not in text:
+        return errs + ["scene %s not found" % scene], warns
+    body = text[scene]
+    # the shared pieces are copies: a changed one is the add-on drifting from the shell
+    for n in ("addon-palette.plm", "addon-pencil.plm", "addon-theme.plm"):
+        mine, ref = os.path.join(folder, n), os.path.join(tpl, n)
+        if os.path.isfile(mine) and os.path.isfile(ref) and hashlib.sha256(open(mine, "rb").read()).digest() != hashlib.sha256(open(ref, "rb").read()).digest():
+            warns.append("%s differs from the template's: update it, or say why it must differ" % n)
+    if "addon-palette.plm" not in text or 'import "addon-palette.plm"' not in "".join(text[n] for n in plms):
+        errs.append("does not import addon-palette.plm (colours come from the palette)")
+    if 'import "addon-pencil.plm"' not in "".join(text[n] for n in plms):
+        errs.append("does not import addon-pencil.plm (the switches, sliders and icons are drawn there)")
+    ui = "".join(text[n] for n in plms if n not in ("addon-palette.plm", "addon-pencil.plm", "addon-theme.plm"))
+    for n in plms:
+        if n in ("addon-palette.plm", "addon-pencil.plm", "addon-theme.plm"):
+            continue                                   # the shared pieces: compared with the template's above
+        for i, line in enumerate(text[n].splitlines(), 1):
+            code = line.split("//")[0]
+            if re.search(r"#[0-9a-fA-F]{6}\b|\brgba?\(\s*[0-9.]", code):
+                errs.append("%s:%d: a literal colour: use the palette (ink, faint, mint, onmint, card, off, alert)" % (n, i))
+            m = re.search(r'family:\s*"([^"]+)"', code)
+            if m and m.group(1) != "Space Grotesk":
+                errs.append("%s:%d: font %s: the shell's is Space Grotesk" % (n, i, m.group(1)))
+    for word, comp in (("switch", "PSwitch"), ("slider", "PSlider")):
+        if re.search(word, ui, re.I) and not re.search(r"\b%s(Mini)?\(" % comp, ui):
+            warns.append("mentions a %s but never calls %s: is it drawn by hand?" % (word, comp))
+    if not re.search(r"\blet u\s*=", ui):
+        warns.append("no `let u = ...`: lengths are N * u")
+    if "shown" not in ui:
+        warns.append("never uses `shown`: zones must be gated on it")
+    # every program the add-on runs has to be named in permissions
+    m = re.search(r"permissions\s*\{(.*?)\}", ui, re.S)
+    granted = set(re.findall(r'"([^"]+)"', "".join(l for l in m.group(1).splitlines() if l.strip().startswith("run")))) if m else set()
+    ran = set(re.findall(r'\brun\(\s*"([^"]+)"', "".join(text.values())))
+    for prog in sorted(ran - granted):
+        errs.append("runs `%s`, which `permissions { run: ... }` does not name" % prog)
+    for prog in sorted(granted - ran):
+        warns.append("permissions names `%s`, which nothing here runs" % prog)
+    try:
+        r = subprocess.run(["pleamar", "--check", os.path.join(folder, scene)], capture_output=True, text=True, timeout=60)
+        if r.returncode != 0:
+            errs.append("pleamar --check: " + (r.stdout + r.stderr).strip().splitlines()[-1])
+    except (OSError, subprocess.TimeoutExpired):
+        warns.append("pleamar not found: scene not compiled")
+    return errs, warns
+
+
+def main():
+    cmd = sys.argv[1] if len(sys.argv) > 1 else ""
+    only = sys.argv[2] if len(sys.argv) > 2 else None
+    entries = {k: v for k, v in load().items() if isinstance(v, dict) and only in (None, k)}
+    if cmd == "sync":
+        for id, e in entries.items():
+            fetch(id, e)
+    elif cmd in ("bump", "check"):
+        behind = False
+        for id, e in entries.items():
+            new = latest(e)
+            if new and new[1] != e["sha"]:
+                behind = True
+                print("%s: %s -> %s" % (id, e["tag"], new[0]))
+                if cmd == "bump":
+                    rewrite(id, *new)
+                    e.update(tag=new[0], sha=new[1])
+                    fetch(id, e)
+        if cmd == "check":
+            sys.exit(1 if behind else 0)
+    elif cmd == "lint":
+        bad = False
+        for id in entries:
+            errs, warns = lint(id)
+            for w in warns:
+                print("%s: warning: %s" % (id, w))
+            for e in errs:
+                print("%s: ERROR: %s" % (id, e))
+            bad = bad or bool(errs)
+            if not errs and not warns:
+                print("%s: follows the style guide" % id)
+        sys.exit(1 if bad else 0)
+    else:
+        sys.exit(__doc__)
+
+
+main()

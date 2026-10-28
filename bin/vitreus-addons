@@ -12,6 +12,17 @@ template = os.path.realpath(os.path.join(here, "..", "addons", "_template"))
 bundled = os.path.realpath(os.path.join(here, "..", "addons"))
 user = os.path.join(os.path.expanduser("~"), ".config", "pleamar", "vitreus-addons")
 
+def repo_url(v):
+    """`owner/name` or a github.com URL, as an https URL; "" for anything else (it is opened by a click, so it is checked)."""
+    m = re.fullmatch(r"(?:https://github\.com/)?([A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9._-]+?)(?:\.git)?/?", str(v or "").strip())
+    return "https://github.com/" + m.group(1) if m else ""
+
+try:                                  # add-ons hosted by their own authors: addons/bundled.toml names their repository
+    with open(os.path.join(bundled, "bundled.toml"), "rb") as f:
+        remote = {k: v.get("repo") for k, v in tomllib.load(f).items() if isinstance(v, dict)}
+except (OSError, tomllib.TOMLDecodeError):
+    remote = {}
+
 def read(folder, name):
     toml = os.path.join(folder, "addon.toml")
     if not os.path.isfile(toml):
@@ -50,7 +61,7 @@ def read(folder, name):
             raise ValueError("%s: [wallpaper] has to be a table, with frames = true or false" % name)
         wallpaper = {"frames": wallpaper.get("frames", False)}
     return {"id": name, "icon": icon, "drawer": drawer, "wallpaper": wallpaper, "sock": os.path.splitext(os.path.basename(path))[0], "name": str(t.get("name", name))[:28], "author": str(t.get("author", ""))[:40],
-            "version": str(t.get("version", ""))[:12], "description": str(t.get("description", ""))[:80], "scene": path}
+            "version": str(t.get("version", ""))[:12], "repo": repo_url(t.get("repo") or (remote.get(name) if os.path.realpath(os.path.dirname(folder)) == bundled else "")), "description": str(t.get("description", ""))[:80], "scene": path}
 
 RESERVED = {"vitreus", "desktopclock", "desktopsysmon", "desktopnotes", "desktopmenu", "desktopmenu_hypr", "desktopedit", "desktopcards", "webcam", "lockscreen", "wptrans", "files", "cursortrail", "dashboard", "snap", "wm"}
 found, errors = [], []
