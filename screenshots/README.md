@@ -5,3 +5,6 @@
 Actual desktop or VM screenshots belong here after running the image. Record the ISO commit, renderer/VM settings, and what was tested. Never present source artwork as proof of a successful boot.
 
 [Shell and desktop reference gallery](shell-reference/README.md) contains 13 unchanged images/animations copied from the original project. These are not captures from the new ISO; source paths and checksums are in `shell-reference/sources.json`.
+# Actual ISO captures
+
+[Live ISO boot captures and exact build identity](iso-runtime/README.md). These are separate from the source reference images and rendered animation previews below.
