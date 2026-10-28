@@ -57,3 +57,7 @@ Validation: six target-installer tests passed; Calamares module schemas, shell s
 ### Shell reference gallery
 
 Uploaded 13 original desktop/shell images and animated WebP files under `screenshots/shell-reference/`, with an Arabic gallery and a source-commit/checksum manifest. All copies match the original assets byte-for-byte. These are labelled reference images, not new ISO runtime screenshots. No shell code or artwork was changed.
+
+### Cloud build resumed after environment publication
+
+The official Arch builder image now builds successfully with TLS and package signatures enabled. Iris palette generation, mpvpaper compilation/help, and all six original font families completed. Added the original Caffeine idle-inhibitor build to the payload and compiled it successfully. To fit this cloud host's Docker VFS storage, compilation uses one shared container instead of several full image copies. Runtime and Calamares compilation are in progress; this is not an ISO boot result.

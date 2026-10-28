@@ -99,3 +99,12 @@ PY
 test -x "$payload/usr/bin/iris"
 test -x "$payload/usr/bin/mpvpaper-holder"
 echo 'Installed and checked Iris, mpvpaper, and six original font families in the payload.'
+
+# Preserve the shell's Caffeine helper as built by its original installer.
+inhibit_proto=/usr/share/wayland-protocols/unstable/idle-inhibit/idle-inhibit-unstable-v1.xml
+mkdir -p "$work/inhibit"
+wayland-scanner client-header "$inhibit_proto" "$work/inhibit/idle-inhibit.h"
+wayland-scanner private-code "$inhibit_proto" "$work/inhibit/idle-inhibit.c"
+gcc -O2 -I"$work/inhibit" -o "$payload/usr/bin/vitreus-inhibit" \
+    "$repo/bin/vitreus-inhibit.c" "$work/inhibit/idle-inhibit.c" \
+    $(pkg-config --cflags --libs wayland-client)
