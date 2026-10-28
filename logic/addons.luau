@@ -41,6 +41,7 @@ return function()
     end
     local needs = {}            -- add-on id -> the packages it still wants (an add-on works without them, with a feature off): the card names them
     local NEEDS = { eq = { "vitreus-eq", "--missing" } }       -- how to ask an add-on what it is missing: a command that prints a package name a line
+    local asked = nil           -- the id whose bin was pressed once: the card asks, and a second press (within 4 s) deletes it
     local sizes = {}            -- the size each add-on's panel was left at (by id): used when it opens again
     local winopen = {}
     local function say_one(sock, cmds)
@@ -295,8 +296,10 @@ return function()
             if a.repo ~= "" then by = (by ~= "" and (by .. "  ·  ") or "") .. "source" end      -- hosted by its author: the line links to the repository
             local need = needs[a.id]
             local note = ""
-            if need and #need > 0 then note = "To use Boost, install " .. table.concat(need, " and ") end
-            rows[#rows + 1] = { name = a.name, desc = a.description ~= "" and a.description or "No description", by = note ~= "" and note or by, has = a.repo ~= "", on = enabled[a.id] == true, need = note ~= "" }
+            if asked == a.id then
+                note = "Delete it? Press the bin again · it goes to the trash"
+            elseif need and #need > 0 then note = "To use Boost, install " .. table.concat(need, " and ") end
+            rows[#rows + 1] = { name = a.name, desc = a.description ~= "" and a.description or "No description", by = note ~= "" and note or by, has = a.repo ~= "", on = enabled[a.id] == true, need = note ~= "", mine = a.mine == true, ask = asked == a.id }
         end
         model.addons = rows
         place_cards(nil)
@@ -342,6 +345,7 @@ return function()
                 a.author = type(a.author) == "string" and a.author or ""
                 a.version = type(a.version) == "string" and a.version or ""
                 a.repo = type(a.repo) == "string" and a.repo:match("^https://github%.com/[%w][%w._-]*/[%w._-]+$") or ""     -- checked again here: it ends in a shell command
+                a.mine = a.mine == true
                 a.drawer = type(a.drawer) == "table" and a.drawer or nil
                 a.icon = type(a.icon) == "string" and a.icon or nil
                 a.wallpaper = type(a.wallpaper) == "table" and a.wallpaper or nil
@@ -401,6 +405,28 @@ return function()
     on("addon_repo", function(k)
         local a = list[(tonumber(k) or -1) + 1]
         if a and a.repo ~= "" then exec_on_desktop("xdg-open '" .. a.repo .. "'") end
+    end)
+    -- The bin on the cards of the user's own add-ons: the first press asks on the card, the second removes the folder (to the trash, bin/vitreus-addons --remove).
+    on("addon_del", function(k)
+        local a = list[(tonumber(k) or -1) + 1]
+        if not a or not a.mine or not ready then return end
+        if asked ~= a.id then
+            asked = a.id
+            show()
+            after(4000, function() if asked == a.id then asked = nil; show() end end)
+            return
+        end
+        asked = nil
+        if enabled[a.id] then enabled[a.id] = nil; stop(a) end
+        for i, id in ipairs(order) do if id == a.id then table.remove(order, i) break end end
+        sizes[a.id] = nil
+        save()
+        local data = sys.ask("files.folder")
+        if type(data) ~= "string" then return end
+        run("vitreus-addons", { "--remove", data, a.id }, function(_, code)
+            refresh(false)
+            if code ~= 0 then after(800, function() text.ad_note = "Could not delete " .. a.name end) end
+        end)
     end)
     on("addon_toggle", function(k)
         local a = list[(tonumber(k) or -1) + 1]

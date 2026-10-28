@@ -796,7 +796,7 @@ scene Vitreus {
     fact th_err = false
     event themes_refresh ->
     //  Settings > Add-ons: a row for each folder in ~/.config/pleamar/vitreus-addons (logic/addons.luau), with its switch.
-    model addons max 12 { name: text; desc: text; by: text; has: bool; on: bool; need: bool }
+    model addons max 12 { name: text; desc: text; by: text; has: bool; on: bool; need: bool; mine: bool; ask: bool }
     text ad_tpl = ""                 // ... and where the template is, to copy
     text ad_note = ""                // the line under the rows: what is wrong with an add-on, or where to put one
     fact ad_err = false
@@ -805,6 +805,7 @@ scene Vitreus {
     follow ad_scroll = ad_scroll_to
     event addons_refresh ->
     event addon_toggle ->
+    event addon_del ->                // the bin on the card of one of the user's own add-ons (logic/addons.luau)
     event addon_repo ->
     repeat i in 0..12 { prop ad_pill.$i = 0 ~pop }          // each add-on's switch
     repeat i in 0..12 { follow ad_pill.$i = if(addons.$i.on, 1, 0) }
