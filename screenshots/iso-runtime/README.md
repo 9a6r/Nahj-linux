@@ -17,3 +17,9 @@
 قائمة UEFI باستخدام OVMF:
 
 ![UEFI boot menu](uefi-menu.png)
+
+نافذة المثبّت والشريط الزجاجي داخل جلسة Hyprland الحقيقية:
+
+![Calamares welcome and Vitreus bar inside the live ISO](installer-welcome.png)
+
+هذه اللقطة من جلسة تشخيص لنفس ISO: أُعيد تشغيل الشيل باستخدام خيار Pleamar الأصلي `PLEAMAR_SWAPCHAIN=1` بعد أن رفض Virtio/llvmpipe إطارات DMA-BUF، وشُغّل مساعد الخلفية يدويًا بعد تأخر بدء الخدمة. لم تتغير ملفات تصميم الشيل أو الأنيميشن. تم تعطيل قفل الخمول مؤقتًا أثناء الاختبار فقط. الاستجابة تحت TCG بطيئة؛ اللقطة لا تثبت اكتمال التثبيت أو سلاسة VirtualBox، والتعديلات الدائمة ما زالت قيد التحقق.
