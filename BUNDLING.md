@@ -6,11 +6,14 @@ This page is for an add-on that is **included natively** (listed in Settings > A
 
 ## What I ask of you
 
-1. **Follow the add-on style.** `addons/_template_drawer/STYLE.md` has the rules (switches, sliders, cards, fonts, margins, how things move) and `addon-pencil.plm` has the components. Draw with `PSwitch` and `PSlider`, take colours from `addon-palette.plm`, and use the Space Grotesk font. A proposal that is nearly there is a conversation, not a rejection.
+1. **Follow the add-on style.** `addons/_template_drawer/STYLE.md` has the rules (switches, sliders, cards, fonts, margins, how things move) and `addon-pencil.plm` has the components. Draw with `PSwitch` and `PSlider`, take colours from `addon-palette.plm`, draw icons in pencil (no icon fonts), and use the Space Grotesk font. A proposal that is nearly there is a conversation, not a rejection.
 2. **Publish tagged releases** (a GitHub Release such as `v1.0.0`). Vitreus follows releases, never your main branch, so you decide when an update reaches people.
 3. **Fill in `addon.toml`**: `name`, `description`, `author`, `version`, `vitreus_api`, and `repo = "owner/name"` so the card in Settings links to your repository.
-4. **Keep `permissions` honest**: name every program the add-on runs. Say in your README how a token or password is kept, and send nothing anywhere the user did not set up.
-5. **Include a licence file** compatible with Vitreus's (MIT), and a README with screenshots. Say in it if an AI assistant helped.
+4. **Open your config file with `vitreus-edit FILE`** (name it in `permissions { run: … }`), not with an editor of your own choosing: it finds the person's editor the
+   same way for every add-on ($VISUAL / $EDITOR, the desktop's text editor, the usual ones). It exits with 3 when there is none: then say so where the button is, for
+   a few seconds (install a text editor or set $EDITOR, and where the file is), so that the button never seems to do nothing.
+5. **Keep `permissions` honest**: name every program the add-on runs. Say in your README how a token or password is kept, and send nothing anywhere the user did not set up.
+6. **Include a licence file** compatible with Vitreus's (MIT), and a README with screenshots. Say in it if an AI assistant helped.
 
 ## Check it yourself
 

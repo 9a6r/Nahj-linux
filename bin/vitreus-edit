@@ -1,0 +1,93 @@
+#!/bin/sh
+# vitreus-edit FILE: opens FILE in the person's text editor. For the shell and its add-ons (an add-on's settings gear opens its config file with it),
+# so that every one finds an editor the same way and none of them stays silent when there is none.
+#
+#   vitreus-edit FILE            open it, detached; exit 0 once an editor has been started
+#   vitreus-edit --which FILE    say what would open it (one line: the command), and open nothing
+#
+# Exit codes: 0 started (or, with --which, found), 2 no FILE given, 3 no editor found: the caller says so to the person (the template's
+# hint: install one, or set $EDITOR). Nothing is printed on success; on 3, a line on stderr says what was tried.
+#
+# Where it looks, in order:
+#   1. $VISUAL, then $EDITOR: in a terminal if it is one of the editors that live in one (vi, vim, nvim, nano, micro, helix, kakoune, emacs -nw...)
+#   2. what the desktop opens text files with (xdg-mime's default for text/plain, launched with `gio launch`)
+#   3. an editor with a window of its own: GNOME Text Editor, Kate, KWrite, Mousepad, gedit, Pluma, Xed, FeatherPad, VS Code, VSCodium, Zed (zeditor on Arch), Sublime Text
+#   4. an editor that lives in a terminal (micro, nano, nvim, vim, helix, vi), in a terminal: $TERMINAL, xdg-terminal-exec, kitty, foot, Alacritty, WezTerm,
+#      Ghostty, Konsole, GNOME Terminal, xterm
+# A variable with arguments ("code -w") is split on its spaces.
+set -u
+
+which_only=false
+[ "${1:-}" = "--which" ] && { which_only=true; shift; }
+file=${1:-}
+[ -n "$file" ] || { echo "usage: vitreus-edit [--which] FILE" >&2; exit 2; }
+
+have() { command -v "$1" > /dev/null 2>&1; }
+
+# The terminal to run an editor that lives in one, as the words that go before the command (empty: none found).
+term_prefix() {
+    if [ -n "${TERMINAL:-}" ] && have "${TERMINAL%% *}"; then echo "$TERMINAL -e"; return; fi
+    have xdg-terminal-exec && { echo "xdg-terminal-exec"; return; }
+    have kitty && { echo "kitty"; return; }
+    have foot && { echo "foot"; return; }
+    have alacritty && { echo "alacritty -e"; return; }
+    have wezterm && { echo "wezterm start --"; return; }
+    have ghostty && { echo "ghostty -e"; return; }
+    have konsole && { echo "konsole -e"; return; }
+    have gnome-terminal && { echo "gnome-terminal --"; return; }
+    have xterm && { echo "xterm -e"; return; }
+}
+
+in_terminal() {
+    case "$(basename "${1%% *}")" in
+        vi|vim|nvim|nano|micro|hx|helix|kak|ne|joe|mg|jed|emacs*) return 0 ;;
+    esac
+    case "$1" in *" -nw"*|*" -t "*) return 0 ;; esac
+    return 1
+}
+
+# Runs the command (a string of words, then the file), detached from the caller, or with --which says it.
+go() {
+    if $which_only; then echo "$1 $file"; exit 0; fi
+    # shellcheck disable=SC2086
+    setsid -f $1 "$file" > /dev/null 2>&1 < /dev/null
+    exit 0
+}
+
+# 1. what the person asked for
+for v in "${VISUAL:-}" "${EDITOR:-}"; do
+    [ -n "$v" ] && have "${v%% *}" || continue
+    if in_terminal "$v"; then
+        t=$(term_prefix)
+        [ -n "$t" ] && go "$t $v"
+    else
+        go "$v"
+    fi
+done
+
+# 2. the desktop's choice for text. Launched as itself (`gio launch` its .desktop file), not through `xdg-open`, which goes by the file's own type:
+#    a config.json is application/json, which often has no editor set even when text files do (and then opens in a browser, or nothing).
+if have xdg-mime && have gio; then
+    app=$(xdg-mime query default text/plain 2> /dev/null)
+    if [ -n "$app" ]; then
+        for d in "${XDG_DATA_HOME:-$HOME/.local/share}" $(echo "${XDG_DATA_DIRS:-/usr/local/share:/usr/share}" | tr ':' ' '); do
+            [ -f "$d/applications/$app" ] && go "gio launch $d/applications/$app"
+        done
+    fi
+fi
+
+# 3. an editor with a window
+for e in gnome-text-editor kate kwrite mousepad gedit pluma xed featherpad code codium zeditor zed subl; do
+    have "$e" && go "$e"
+done
+
+# 4. an editor in a terminal
+t=$(term_prefix)
+if [ -n "$t" ]; then
+    for e in micro nano nvim vim hx helix vi; do
+        have "$e" && go "$t $e"
+    done
+fi
+
+echo "vitreus-edit: no text editor found (\$VISUAL and \$EDITOR unset, no default for text files, none of the usual editors installed${t:+}${t:- and no terminal for one})" >&2
+exit 3
