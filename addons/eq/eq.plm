@@ -95,10 +95,9 @@ scene Equalizer {
     event eq_toggle ->
     event preset ->
     //  The Boost: 0 to 12 dB past the output's own 100 %, into a maximizer and a limiter at the end of the filter. `boost_ok` is 0 while a plugin package
-    //  it needs is missing; `boost_need` names it on the row and `boost_hint` (shown on hover) says what to install.
+    //  it needs is missing; `boost_hint` (shown on hover) says which packages it needs.
     fact boost = 0
     fact boost_ok = 1
-    text boost_need = ""
     text boost_hint = ""
     event boost ->
     event bset ->
@@ -219,16 +218,15 @@ scene Equalizer {
         //  ── the Boost: louder than 100 %, into the limiter. Drag along it; a right-click puts it back to 0 ──
         let bty = py + ph + 22 * u
         let bsx = x0 + 62 * u
-        let bsw = wd - 62 * u - 58 * u
+        let bsw = wd - 62 * u - 4 * u
         let bok = boost_ok
         let bhot = if(bz.hover > 0.5, 1, 0)
-        text "Boost" { at: x0 + 4 * u, bty; anchor: left center; size: 12.5 * u; weight: 700; color: ink; opacity: shown * (0.45 + 0.55 * bok); family: "Space Grotesk" }
+        text "Boost" { at: x0 + 4 * u, bty - 7 * u * bok; anchor: left center; size: 12.5 * u; weight: 700; color: ink; opacity: shown * (0.45 + 0.55 * bok); family: "Space Grotesk" }
+        text number(boost, 0, " dB") { at: x0 + 4 * u, bty + 8 * u; anchor: left center; size: 10.5 * u; weight: 700; color: mix(faint, mint, if(boost > 0.5, 1, 0)); opacity: shown * bok; family: "Space Grotesk" }
         group {
             opacity: 0.35 + 0.65 * bok
-            PSlider(x0: bsx, y: bty, w: bsw, lv: boost / 12, h: 12 * u, f: bhot * fr)
+            PSliderCC(x0: bsx, y: bty, w: bsw, lv: boost / 12, hot: bhot, k: u, h: 12 * u, mute: 1 - bok)
         }
-        text number(boost, 0, " dB") { at: x0 + wd - 4 * u, bty; anchor: right center; size: 12 * u; weight: 700; color: mix(faint, mint, if(boost > 0.5, 1, 0)); opacity: shown * bok; family: "Space Grotesk" }
-        text boost_need { at: x0 + wd - 4 * u, bty; anchor: right center; size: 10.5 * u; weight: 600; color: faint; opacity: shown * (1 - bok); family: "Space Grotesk" }
         zone box bz { from: bsx - 8 * u, bty - 14 * u; size: bsw + 16 * u, 28 * u; cursor: ew_resize; label: "Boost (drag left or right)"; active: shown > 0.5 and bok > 0.5 }
         on press bz { emit boost(floor(clamp((pointer.x - bsx) / bsw, 0, 1) * 12 + 0.5)) }
         on drag bz { emit boost(floor(clamp((pointer.x - bsx) / bsw, 0, 1) * 12 + 0.5)) }
