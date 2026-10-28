@@ -53,3 +53,7 @@ Confirmed and fixed:
 - Builder failures now retain `toolchain.log` in the workflow evidence artifact.
 
 Validation: six target-installer tests passed; Calamares module schemas, shell syntax and whitespace checks passed. Existing shell/application source remains unchanged. Full compilation, real live/installed boot and VirtualBox performance remain unverified; the cloud still blocks the configured Arch mirror and GitHub API with CONNECT 403.
+
+### Shell reference gallery
+
+Uploaded 13 original desktop/shell images and animated WebP files under `screenshots/shell-reference/`, with an Arabic gallery and a source-commit/checksum manifest. All copies match the original assets byte-for-byte. These are labelled reference images, not new ISO runtime screenshots. No shell code or artwork was changed.

@@ -1,0 +1,71 @@
+{
+  "source_commit": "f8a930e5008c98a04eedf195a27476e272712da2",
+  "kind": "original-project-reference-images",
+  "files": [
+    {
+      "file": "dashboard.webp",
+      "source": "assets/screenshots/dashboard.webp",
+      "sha256": "979ce84bd1fe938673fcf5b20ad362eaf50c8020b2d4cb6add090e03ea1f2dbb"
+    },
+    {
+      "file": "demo.webp",
+      "source": "assets/screenshots/demo.webp",
+      "sha256": "69d636103f35e1ab9c59faf79da29974e6a7734bf167c806a8e2e9a9e07b17bf"
+    },
+    {
+      "file": "tour.webp",
+      "source": "assets/screenshots/tour.webp",
+      "sha256": "825e028949fc5b419ffdfed3c3db00065ea9e92a7408d7108c6c7443df004a70"
+    },
+    {
+      "file": "control-center.webp",
+      "source": "assets/screenshots/control-center.webp",
+      "sha256": "9ae669e1e3b77eb522c239907df25fa88fd5b38d239150895b7cffcec05ea96d"
+    },
+    {
+      "file": "launcher.webp",
+      "source": "assets/screenshots/launcher.webp",
+      "sha256": "d969e1e2cd93bfcec83a8ef832960af59595ee6ae073c459b85ca246d46ec2ff"
+    },
+    {
+      "file": "desk.webp",
+      "source": "assets/screenshots/desk.webp",
+      "sha256": "f3a18852e836d3b842042afc8bcedf8464d917986c1e5689e70a40e6637010aa"
+    },
+    {
+      "file": "calendar.webp",
+      "source": "assets/screenshots/calendar.webp",
+      "sha256": "331ca0098c8ea50daf14f44df49b76bc23611cca08857977e266331ea54b33cd"
+    },
+    {
+      "file": "player-and-windows.webp",
+      "source": "assets/screenshots/player-and-windows.webp",
+      "sha256": "cd91c66768d8b5bde71aa029e72ebd9a164b099d956561b6b4b33a555fe10339"
+    },
+    {
+      "file": "system-tray.webp",
+      "source": "assets/screenshots/system-tray.webp",
+      "sha256": "198e93abbd1358fc7b7d89f7df76f69fecbd87f3dfd1046cb2fa8ef47130744a"
+    },
+    {
+      "file": "settings-about.webp",
+      "source": "assets/screenshots/settings-about.webp",
+      "sha256": "431ad962ee523a6ec1699cb4da2353bba6c0b96bd7b40668b4da86500c90f167"
+    },
+    {
+      "file": "wallpaper-demo.webp",
+      "source": "assets/screenshots/wallpaper-demo.webp",
+      "sha256": "587a390549a556d1e8dfef2b73ee4c11fe46c93acb26f707378d8262d327542e"
+    },
+    {
+      "file": "lockscreen.webp",
+      "source": "assets/screenshots/lockscreen.webp",
+      "sha256": "cea60622dd9f5c30aaa2c7c39c617f13ef5235e9da0040445327036a9c6de820"
+    },
+    {
+      "file": "snap.webp",
+      "source": "assets/screenshots/snap.webp",
+      "sha256": "1653aea62f0475047f6ce58316aed0c5f55ebe3900defdb854c753ec1100f1c8"
+    }
+  ]
+}
