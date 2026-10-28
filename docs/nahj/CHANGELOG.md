@@ -41,3 +41,15 @@ Additional validation:
 - Commits `f9b4c89` and `b86f805` were pushed. GitHub run https://github.com/9a6r/Nahj-linux/actions/runs/40607837434 was observed in progress; result not yet verified.
 - Cloud build proxy DNS was resolved through Docker's explicit host mapping; the remaining failure is an actual `CONNECT 403` for geo.mirror.pkgbuild.com. GitHub API is likewise blocked in the current instance, although Git push and the public Actions page work. The necessary two domains are saved in the environment draft and await runtime activation.
 - No ISO boot, real desktop screenshot, or hardware install has yet been verified. Do not treat this branch as a tested release.
+
+## 2026-10-28 — Image and installer correctness review
+
+Confirmed and fixed:
+
+- SDDM's configured X11 greeter needed `xorg-server`; added it. The desktop session remains Hyprland/Wayland.
+- Archiso's actual overlay copy uses `--no-preserve=mode`, dropping execute bits on added runtimes and shell helpers. The generated profile now records those executable permissions explicitly. Reproduced the copy behavior and verified a copied program runs after applying the generated permissions.
+- Archiso removes `/boot` contents from the squashfs. The installer now restores `vmlinuz-linux-zen` from the installed kernel's module directory before initramfs/GRUB setup; missing or ambiguous kernels fail the installation step. Added regression tests.
+- Original SDDM assets now use Space Grotesk from the image payload, with an explicit missing-font failure instead of a silent builder-font substitution. Generated the actual original login backgrounds and verified three font weights and 1920×1080 backgrounds.
+- Builder failures now retain `toolchain.log` in the workflow evidence artifact.
+
+Validation: six target-installer tests passed; Calamares module schemas, shell syntax and whitespace checks passed. Existing shell/application source remains unchanged. Full compilation, real live/installed boot and VirtualBox performance remain unverified; the cloud still blocks the configured Arch mirror and GitHub API with CONNECT 403.

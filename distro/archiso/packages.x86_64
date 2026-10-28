@@ -21,6 +21,7 @@ qt6-declarative
 qt6-svg
 xorg-server
 sddm
+xorg-server
 plymouth
 networkmanager
 bluez

@@ -20,7 +20,10 @@ jobs:
           mkdir -p "$RUNNER_TEMP/nahj"/{payload,packages,out,logs}
           sudo chown -R 1000:1000 "$RUNNER_TEMP/nahj"
       - name: Build trusted Arch toolchain
-        run: docker build --progress=plain -f distro/runtime/Dockerfile -t nahj-builder distro/runtime
+        shell: bash
+        run: |
+          set -o pipefail
+          docker build --progress=plain -f distro/runtime/Dockerfile -t nahj-builder distro/runtime 2>&1 | tee "$RUNNER_TEMP/nahj/logs/toolchain.log"
       - name: Build payload and installer
         shell: bash
         run: |

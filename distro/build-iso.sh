@@ -74,7 +74,23 @@ find "$seed" -type f ! -perm /111 -exec chmod 0644 {} +
 
 # Use the original login theme and original backdrop. This script writes only
 # the generated image tree; it does not touch the repository's SDDM files.
-PATH="$payload/usr/bin:$PATH" bash "$repo/sddm/build-assets.sh" "$profile/airootfs/usr/share/sddm/themes/vitreus"
+bash "$repo/distro/runtime/build-greeter.sh" "$payload" "$profile/airootfs/usr/share/sddm/themes/vitreus"
+
+# mkarchiso copies the overlay with --no-preserve=mode. Record every payload
+# and shell executable explicitly so programs remain runnable in the live image.
+python3 - "$profile" <<'PY_PERMISSIONS'
+from pathlib import Path
+import shlex
+import sys
+profile = Path(sys.argv[1])
+root = profile / "airootfs"
+with (profile / "profiledef.sh").open("a") as handle:
+    for directory in ("usr/bin", "usr/local", "usr/share/nahj/vitreus"):
+        for path in sorted((root / directory).rglob("*")):
+            if path.is_file() and not path.is_symlink() and path.stat().st_mode & 0o111:
+                key = shlex.quote("/" + str(path.relative_to(root)))
+                handle.write(f'\nfile_permissions[{key}]="0:0:755"\n')
+PY_PERMISSIONS
 
 # NetworkManager exclusively owns the desktop network. Remove live releng's
 # competing network stack and automatic root shell; leave rescue services.

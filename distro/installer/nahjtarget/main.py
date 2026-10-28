@@ -35,12 +35,39 @@ def remove_path(path):
         shutil.rmtree(path)
 
 
+def restore_kernel(root):
+    """Archiso strips /boot from squashfs; restore zen before initcpio/GRUB."""
+    modules = target_path(root, "usr/lib/modules")
+    if modules.is_symlink():
+        raise ValueError("Unsafe target modules directory")
+    candidates = []
+    for pkgbase in modules.glob("*/pkgbase"):
+        kernel = target_path(root, str(pkgbase.parent.relative_to(root) / "vmlinuz"))
+        if pkgbase.is_symlink() or kernel.is_symlink():
+            raise ValueError("Unsafe target kernel metadata")
+        if pkgbase.read_text().strip() == "linux-zen" and kernel.is_file():
+            candidates.append(kernel)
+    if len(candidates) != 1:
+        raise ValueError("Expected exactly one installed linux-zen kernel")
+    boot = target_path(root, "boot")
+    if boot.is_symlink():
+        raise ValueError("Unsafe target boot directory")
+    boot.mkdir(exist_ok=True)
+    destination = target_path(root, "boot/vmlinuz-linux-zen")
+    if destination.is_symlink():
+        raise ValueError("Unsafe target kernel destination")
+    shutil.copyfile(candidates[0], destination)
+    destination.chmod(0o644)
+
+
 def configure_target(root_path):
     root = Path(root_path).resolve(strict=True)
     if root == Path("/") or not (root / "etc/nahj/live-image").is_file():
         raise ValueError("Refusing cleanup without a copied Nahj live-image marker in a target root")
     if not target_path(root, "etc/passwd").is_file():
         raise ValueError("The copied target has no account database")
+
+    restore_kernel(root)
 
     # Remove the public live login before the users module creates the chosen
     # account, so the installed username may legitimately be 'nahj' too.

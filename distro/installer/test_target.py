@@ -17,6 +17,8 @@ class InstalledTargetTest(unittest.TestCase):
         self.root = Path(self.temporary.name)
         files = {
             "etc/nahj/live-image": "Nahj live image\n",
+            "usr/lib/modules/test-zen/pkgbase": "linux-zen\n",
+            "usr/lib/modules/test-zen/vmlinuz": "test kernel payload\n",
             "etc/passwd": "root:x:0:0:root:/root:/bin/bash\nother:x:1001:1001::/home/other:/bin/bash\nnahj:x:1000:1000::/home/nahj:/bin/bash\n",
             "etc/shadow": "root:!:1::::::\nother:!:1::::::\nnahj:PUBLIC-LIVE-HASH:1::::::\n",
             "etc/group": "root:x:0:\nwheel:x:998:nahj,other\nnahj:x:1000:\n",
@@ -58,6 +60,18 @@ class InstalledTargetTest(unittest.TestCase):
         wants = self.root / "etc/systemd/system/multi-user.target.wants"
         self.assertFalse((wants / "pacman-init.service").is_symlink())
         self.assertTrue((wants / "NetworkManager.service").is_symlink())
+
+    def test_restores_kernel_missing_from_live_squashfs(self):
+        module.configure_target(self.root)
+        self.assertEqual((self.root / "boot/vmlinuz-linux-zen").read_bytes(),
+                         (self.root / "usr/lib/modules/test-zen/vmlinuz").read_bytes())
+
+    def test_missing_kernel_stops_before_account_changes(self):
+        (self.root / "usr/lib/modules/test-zen/vmlinuz").unlink()
+        before = (self.root / "etc/passwd").read_bytes()
+        with self.assertRaises(ValueError):
+            module.configure_target(self.root)
+        self.assertEqual((self.root / "etc/passwd").read_bytes(), before)
 
     def test_refuses_unmarked_or_host_root(self):
         with self.assertRaises(ValueError):
