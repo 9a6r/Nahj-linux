@@ -209,7 +209,14 @@ scene Lockscreen {
                     text "bolt" { at: ox + 34, oy + 24; anchor: center; size: 11; color: onmint; family: "Material Symbols Outlined"; show: batt.charging }
                     text number(batt.percent, 0, "%") { at: ox + 50, oy + 24; anchor: left center; size: 12; weight: 700; color: ink; family: "Space Grotesk" }
                 }
-                box { at: ox + w - 24 - 46, oy + 24; size: 92, 24; corner: 12; color: #ffffff; opacity: 8% }
+                body {
+                    color: panel
+                    glass: 100%
+                    opacity: 70%
+                    refraction: 90%
+                    frost: 70%
+                    box { at: ox + w - 24 - 46, oy + 24; size: 92, 24; corner: 12 }
+                }
                 text "lock" { at: ox + w - 24 - 46 - 32, oy + 24; anchor: center; size: 12; color: acc; family: "Material Symbols Outlined" }
                 text "VITREUS" { at: ox + w - 24 - 46 + 8, oy + 24; anchor: center; size: 9; weight: 700; color: faint; family: "Space Grotesk" }
             }
@@ -253,9 +260,17 @@ scene Lockscreen {
 
                 //  The avatar: a 200 px disc inside a morphing aurora blob (blob.wgsl).
                 shader blob { at: cx - 130, cb + 270; size: 260, 260; values: 1; colors: mintlo, minthi }
+                //  Glass: the lock paints its own wallpaper, so the glass bends that picture (pleamar sees what the scene painted under it), with
+                //  nothing to capture from the compositor and nothing to pay while the lock is not up.
                 body {
                     color: panel
+                    glass: 100%
                     opacity: 80%
+                    refraction: 140%
+                    dispersion: 90%
+                    frost: 60%
+                    vivid: 115%
+                    shine: pointer
                     ellipse { at: cx, cb + 400; radius: 100 }
                 }
                 group {
@@ -272,7 +287,13 @@ scene Lockscreen {
                     move: shake, 0
                     body {
                         color: panel
+                        glass: 100%
                         opacity: 72%
+                        refraction: 120%
+                        dispersion: 80%
+                        frost: 80%
+                        vivid: 115%
+                        shine: pointer
                         border: 1.5, mix(mix(mix(#ffffff, mint, typed_t), #ef4444, err_t), #10b981, ok_t)
                         shadow: 0, 0, 10 + 8 * (err_t + ok_t), 30% + 30% * (err_t + ok_t), mix(mix(mint, #ef4444, err_t), #10b981, ok_t)
                         box { at: cx, bar_y; size: 520, 58; corner: 29 }
