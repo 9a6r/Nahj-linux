@@ -1,0 +1,544 @@
+#!/usr/bin/env python3
+"""dev/health: a check-up of the shell, to run by hand whenever, with no one watching.
+
+  dev/health                 everything: the scenes compile, the live desktop looked at (read only), and the rig driven round the panels
+  dev/health --quick         the same, shorter (two rounds of the panels, half a minute of idle)
+  dev/health --no-rig        only the compile check and the live desktop
+  dev/health --no-live       only the compile check and the rig
+  dev/health --cycles N --idle S    how many rounds of the panels the rig is driven through, and how long it is then left alone (4, 60)
+
+What it looks at:
+  static   `pleamar --check` on every scene (not the libraries), the property budget (65 536), JSON decoded outside a pcall
+  live     the desktop in use, without saying anything to it: the same scene running twice, a scene's helpers started twice (socat, pactl,
+           cava, udevadm...), zombies, memory/fds/threads per scene and their growth since the last runs (kept in ~/.local/state/vitreus/health),
+           `pleamar --report` (how much of the time each scene is drawing, and its CPU), duplicate Hyprland key bindings, the user journal and
+           core dumps of pleamar since boot
+  rig      a headless copy (dev/rig): opens and closes every panel, every Settings page and every Controls window a few times, measuring the
+           scene's memory, fds, threads and child processes after each round and while it is left idle, then reads its log for errors
+
+Nothing is sent to the shell in use: the rig is a copy with its own folders (see dev/rig). The rig is never asked to press a power, lock, restart
+or monitor action, and the Controls' Power window is left out. The exit code is 2 if something failed, 1 if there are warnings, 0 if all is well.
+The whole report is also written to ~/.local/state/vitreus/health/report-DATE.txt (the rig's log beside it).
+"""
+import argparse, collections, json, os, re, shutil, subprocess, sys, time
+
+SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RIG = os.environ.get("RIG", "/tmp/vrig")
+STATE = os.path.join(os.environ.get("XDG_STATE_HOME", os.path.expanduser("~/.local/state")), "vitreus", "health")
+PROP_LIMIT = 65536
+
+PANELS = ["calendar", "controls", "player", "volume", "notif", "settings", "launch", "tray", "desk"]
+PAGES = ["pg_wall", "pg_glass", "pg_disp", "pg_bar", "pg_night", "pg_hypr", "pg_about", "pg_sys", "pg_nt", "pg_lock", "pg_wm", "pg_vpn",
+         "pg_clock", "pg_theme", "pg_keys", "pg_addons"]
+SUBS = ["netview", "btview", "notifview", "cafview", "capview"]          # (not powview: the power actions)
+
+# Lines in the rig's log that come from the rig itself, not from the shell: the stock headless pleamar-wm session lacks the facts Vitreus's own
+# window manager session has (the shell sets them: the gaps, borders, `fr.*` room round the windows...; wm_facts() adds those), has no PipeWire
+# portal, and has notes of its own.
+RIG_NOISE = [re.compile(p) for p in [
+    r"portal · no PipeWire",
+    r"note\s+·\s+session\.plm:",
+    r"tray\s+·\s+there was no watcher",
+]]
+BAD = re.compile(r"error|attempt to|traceback|stack|panic|failed|cannot|could not|I don't know|not read|unknown|invalid|nil value|overflow|too many", re.I)
+
+out_lines = []
+results = []          # (level, section, message)  level: ok / warn / fail / info
+
+
+def say(s=""):
+    print(s, flush=True)
+    out_lines.append(s)
+
+
+def mark(level, section, msg):
+    results.append((level, section, msg))
+    tag = {"ok": " ok ", "warn": "WARN", "fail": "FAIL", "info": "info"}[level]
+    say(f"  [{tag}] {msg}")
+
+
+def sh(args, timeout=120, env=None):
+    try:
+        p = subprocess.run(args, capture_output=True, text=True, timeout=timeout, env=env)
+        return p.returncode, p.stdout, p.stderr
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return 127, "", str(e)
+
+
+# ── processes ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+def read(path):
+    try:
+        with open(path) as f:
+            return f.read()
+    except OSError:
+        return None
+
+
+def proc_info(pid):
+    st = read(f"/proc/{pid}/status")
+    stat = read(f"/proc/{pid}/stat")
+    cmd = read(f"/proc/{pid}/cmdline")
+    if st is None or stat is None or cmd is None:
+        return None
+    f = {}
+    for line in st.splitlines():
+        k, _, v = line.partition(":")
+        f[k] = v.strip()
+    rest = stat[stat.rfind(")") + 2:].split()
+    try:
+        fds = len(os.listdir(f"/proc/{pid}/fd"))
+    except OSError:
+        fds = -1
+    return {
+        "pid": pid, "ppid": int(rest[1]), "state": rest[0], "start": int(rest[19]),
+        "rss": int(f.get("VmRSS", "0 kB").split()[0]), "threads": int(f.get("Threads", "0")), "fds": fds,
+        "argv": [a for a in cmd.split("\0") if a],
+    }
+
+
+def all_procs():
+    ps = {}
+    for d in os.listdir("/proc"):
+        if d.isdigit():
+            i = proc_info(int(d))
+            if i:
+                ps[i["pid"]] = i
+    return ps
+
+
+def descendants(ps, pid):
+    kids = collections.defaultdict(list)
+    for p in ps.values():
+        kids[p["ppid"]].append(p["pid"])
+    out, todo = [], list(kids[pid])
+    while todo:
+        c = todo.pop()
+        out.append(c)
+        todo.extend(kids[c])
+    return out
+
+
+def scene_of(argv):
+    """The scene a pleamar process runs, or None."""
+    if not argv or not os.path.basename(argv[0]).startswith("pleamar") or "--scene" not in argv:
+        return None
+    i = argv.index("--scene")
+    return argv[i + 1] if i + 1 < len(argv) else None
+
+
+def slope(xs, ys):
+    n = len(xs)
+    if n < 2:
+        return 0.0
+    mx, my = sum(xs) / n, sum(ys) / n
+    d = sum((x - mx) ** 2 for x in xs)
+    return 0.0 if d == 0 else sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / d
+
+
+# ── static ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+def is_library(path):
+    with open(path, errors="replace") as f:
+        for line in f:
+            s = line.strip()
+            if not s or s.startswith("//") or s.startswith("language "):
+                continue
+            return s.startswith("library ")
+    return False
+
+
+def static():
+    say("\n== Static: the scenes compile")
+    scenes = []
+    for root, dirs, files in os.walk(SRC):
+        dirs[:] = [d for d in dirs if d not in (".git", "dev", "pages", "node_modules")]
+        for n in files:
+            if n.endswith(".plm"):
+                p = os.path.join(root, n)
+                if not is_library(p) and not n.startswith(("palette", "wm-palette")):
+                    scenes.append(p)
+    bad = 0
+    for p in sorted(scenes):
+        rel = os.path.relpath(p, SRC)
+        code, o, e = sh(["pleamar", "--check", p])
+        text = (o + e).strip()
+        if code != 0 or ": ok" not in text:
+            bad += 1
+            mark("fail", "static", f"{rel} does not compile:\n" + "\n".join("        " + l for l in text.splitlines()[-8:]))
+            continue
+        m = re.search(r"ok · (\d+) properties", text)
+        props = int(m.group(1)) if m else 0
+        notes = [l for l in text.splitlines() if ": ok" not in l and l.strip()]
+        if props > 0.9 * PROP_LIMIT:
+            mark("warn", "static", f"{rel}: {props} properties, {props * 100 // PROP_LIMIT}% of the {PROP_LIMIT} a scene may hold")
+        for l in notes[:5]:
+            mark("warn", "static", f"{rel}: {l.strip()}")
+    if not bad:
+        mark("ok", "static", f"{len(scenes)} scenes compile")
+
+    say("\n== Static: Luau")
+    hits = []
+    for root, dirs, files in os.walk(SRC):
+        dirs[:] = [d for d in dirs if d not in (".git", "dev")]
+        for n in files:
+            if n.endswith(".luau"):
+                p = os.path.join(root, n)
+                with open(p, errors="replace") as f:
+                    for k, line in enumerate(f, 1):
+                        code = line.split("--", 1)[0]
+                        if "json.decode" in code and "pcall" not in code:
+                            hits.append(f"{os.path.relpath(p, SRC)}:{k}")
+    if hits:
+        mark("warn", "static", "json.decode outside a pcall (a bad answer stops the handler): " + ", ".join(hits[:10]))
+    else:
+        mark("ok", "static", "every json.decode is inside a pcall")
+
+
+# ── live (read only) ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+def live(report_secs):
+    say("\n== Live desktop (read only: nothing is said to it)")
+    ps = all_procs()
+    scenes = {pid: scene_of(p["argv"]) for pid, p in ps.items()}
+    scenes = {pid: s for pid, s in scenes.items() if s and "/vitreus/" in s and not s.startswith(RIG)}
+    if not scenes:
+        mark("info", "live", "no Vitreus scene is running here")
+        return
+
+    by_scene = collections.defaultdict(list)
+    for pid, s in scenes.items():
+        by_scene[os.path.realpath(s)].append(pid)
+    dup = {s: p for s, p in by_scene.items() if len(p) > 1}
+    for s, pids in dup.items():
+        mark("fail", "live", f"{os.path.relpath(s, SRC)} is running {len(pids)} times (pids {', '.join(map(str, pids))}): they fight over its socket and layer")
+    if not dup:
+        mark("ok", "live", f"{len(scenes)} scenes, each running once")
+
+    # helpers: the same long-lived command twice under one scene is a listener started again without the old one being stopped
+    say("")
+    say(f"  {'scene':<24}{'RSS MB':>8}{'fds':>6}{'thr':>5}{'kids':>6}  helpers")
+    now = time.time()
+    hist_path = os.path.join(STATE, "live.tsv")
+    rows = []
+    for pid, s in sorted(scenes.items(), key=lambda kv: -ps[kv[0]]["rss"]):
+        p = ps[pid]
+        desc = descendants(ps, pid)
+        zomb = [d for d in desc if ps.get(d, {}).get("state") == "Z"]
+        cmds = collections.Counter(" ".join(ps[d]["argv"])[:120] for d in desc if d in ps and ps[d]["state"] != "Z")
+        name = os.path.splitext(os.path.basename(s))[0]
+        helpers = ", ".join(f"{os.path.basename(c.split()[0])}" + (f"×{n}" if n > 1 else "") for c, n in cmds.items()) or "-"
+        say(f"  {name:<24}{p['rss'] / 1024:>8.0f}{p['fds']:>6}{p['threads']:>5}{len(desc):>6}  {helpers}")
+        for c, n in cmds.items():
+            if n > 1 and not c.startswith(("sh ", "/bin/sh ", "sleep ")):
+                mark("warn", "live", f"{name}: `{c}` is running {n} times under it (a listener started again without the old one stopped?)")
+        if zomb:
+            mark("warn", "live", f"{name}: {len(zomb)} zombie child process(es): something it started has ended and was never waited for")
+        rows.append((int(now), pid, p["start"], name, p["rss"], p["fds"], p["threads"], len(desc)))
+
+    # growth since earlier runs of this check, for the same process (pid and start time): memory that only goes up over hours is a leak
+    os.makedirs(STATE, exist_ok=True)
+    old = collections.defaultdict(list)
+    if os.path.exists(hist_path):
+        with open(hist_path) as f:
+            for line in f:
+                c = line.rstrip("\n").split("\t")
+                if len(c) >= 7:
+                    old[(int(c[1]), int(c[2]))].append((int(c[0]), int(c[4]), int(c[5]), int(c[6])))
+    with open(hist_path, "a") as f:
+        for r in rows:
+            f.write("\t".join(map(str, r)) + "\n")
+    say("")
+    grew = False
+    for r in rows:
+        h = old.get((r[1], r[2]))
+        if not h:
+            continue
+        t0, rss0, fd0, thr0 = h[0]
+        hours = (r[0] - t0) / 3600
+        if hours < 0.25:
+            continue
+        mb_h = (r[4] - rss0) / 1024 / hours
+        xs = [x[0] for x in h] + [r[0]]
+        ys = [x[1] for x in h] + [r[4]]
+        rising = all(b >= a - 2048 for a, b in zip(ys, ys[1:]))         # (never fell by more than 2 MB between looks)
+        msg = f"{r[3]}: {rss0 / 1024:.0f} → {r[4] / 1024:.0f} MB in {hours:.1f} h ({mb_h:+.1f} MB/h over {len(xs)} looks), fds {fd0} → {r[5]}, threads {thr0} → {r[6]}"
+        if mb_h > 20 and (r[4] - rss0) > 50 * 1024 and rising:
+            mark("warn", "live", msg + ": only ever rising, a leak?")
+            grew = True
+        elif r[5] - fd0 > 20:
+            mark("warn", "live", msg + ": the open files keep growing")
+            grew = True
+        else:
+            mark("info", "live", msg)
+    if not any(old.get((r[1], r[2])) for r in rows):
+        mark("info", "live", "no earlier look at these same processes: run dev/health again later (an hour or more) to see whether their memory grows")
+    elif not grew:
+        mark("ok", "live", "no scene's memory or open files only ever rise")
+
+    # pleamar --report: what each scene costs at rest
+    if report_secs > 0:
+        say(f"\n  pleamar --report, {report_secs} s (leave the mouse alone meanwhile, for figures at rest):")
+        rp = os.path.join(STATE, "last-report.md")
+        code, o, e = sh(["pleamar", "--report", "--seconds", str(report_secs), "--out", rp], timeout=report_secs + 60)
+        txt = read(rp) or ""
+        if not txt:
+            mark("warn", "live", f"pleamar --report gave nothing ({(o + e).strip()[:200]})")
+        for sec in re.split(r"\n## ", txt)[1:]:
+            name = sec.split("\n", 1)[0].strip()
+            an = re.search(r"animating (-?\d+)%", sec)
+            cpu = re.search(r"Process CPU:\*\* (\d+)%", sec)
+            card = re.search(r"Card memory in use:\*\* (\d+) MB", sec)
+            if not an:
+                continue
+            a, c = int(an.group(1)), int(cpu.group(1)) if cpu else 0
+            say(f"    {name:<22} drawing {max(a, 0):>3}% of the time · CPU {c:>2}% of a core" + (f" · card {card.group(1)} MB" if card else ""))
+            if a > 50 and c >= 3:
+                why = " (its network graph slides all the time while it is shown: by design)" if name == "desktopsysmon" else ""
+                mark("warn", "live", f"{name} draws {a}% of the time at rest and costs {c}% of a core{why}")
+        mark("info", "live", f"the whole report: {rp}")
+
+    # Hyprland key bindings bound twice
+    if os.environ.get("HYPRLAND_INSTANCE_SIGNATURE") and shutil.which("hyprctl"):
+        code, o, _ = sh(["hyprctl", "binds", "-j"])
+        try:
+            binds = json.loads(o)
+        except ValueError:
+            binds = None
+        if isinstance(binds, list):
+            seen = collections.defaultdict(list)
+            for b in binds:
+                key = b.get("key") or f"code:{b.get('keycode')}"
+                k = (b.get("submap", ""), b.get("modmask", 0), key.lower(), b.get("release"), b.get("mouse"), b.get("longPress"))
+                seen[k].append(f"{b.get('dispatcher')} {b.get('arg', '')}".strip())
+            dups = {k: v for k, v in seen.items() if len(v) > 1}
+            for k, v in dups.items():
+                mark("warn", "live", f"Hyprland: mods {k[1]} + {k[2]}{' in submap ' + k[0] if k[0] else ''} is bound {len(v)} times: {' | '.join(v)}")
+            if not dups:
+                mark("ok", "live", f"{len(binds)} Hyprland key bindings, none bound twice")
+
+    # the journal and core dumps since boot
+    code, o, _ = sh(["journalctl", "--user", "-b", "--no-pager", "-o", "short-iso", "-g", "pleamar|vitreus"], timeout=60)
+    errs = collections.Counter()
+    for line in o.splitlines():
+        if BAD.search(line):
+            msg = re.sub(r"^\S+ \S+ ", "", line)
+            msg = re.sub(r"\[\d+\]", "[…]", msg)
+            msg = re.sub(r"\d+(\.\d+)?", "N", msg)
+            errs[msg[:200]] += 1
+    if errs:
+        mark("warn", "live", f"{sum(errs.values())} error-like lines about pleamar/Vitreus in the journal since boot; the most frequent:")
+        for m, n in errs.most_common(8):
+            say(f"        {n:>4}×  {m}")
+    else:
+        mark("ok", "live", "no error-like lines about pleamar/Vitreus in the user journal since boot")
+    if shutil.which("coredumpctl"):
+        code, o, _ = sh(["coredumpctl", "list", "--no-pager", "--no-legend", "-S", "-7d"], timeout=30)
+        dumps = [l for l in o.splitlines() if "pleamar" in l]
+        if dumps:
+            mark("fail", "live", f"{len(dumps)} pleamar crash(es) in the last week (coredumpctl list pleamar):")
+            for l in dumps[-5:]:
+                say("        " + l.strip())
+        else:
+            mark("ok", "live", "no pleamar crash in the last week")
+
+
+# ── rig ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+def rig(cycles, idle):
+    say(f"\n== Rig: a headless copy driven round the panels ({cycles} rounds, then {idle} s idle)")
+    rigcmd = os.path.join(SRC, "dev", "rig")
+    if os.path.exists(os.path.join(RIG, "pid")):
+        mark("warn", "rig", "a rig is already running (dev/rig stop it first, or it is someone else's test): skipped")
+        return
+    total = 60 + cycles * 90 + idle + 60
+    code, o, e = sh([rigcmd, "start", str(total)], timeout=120)
+    if code != 0:
+        mark("fail", "rig", "the rig did not come up: " + (o + e).strip()[-400:])
+        log = read(os.path.join(RIG, "log")) or ""
+        say("\n".join("        " + l for l in log.splitlines()[-20:]))
+        sh([rigcmd, "stop"])
+        return
+    try:
+        _rig_body(rigcmd, cycles, idle)
+    finally:
+        log = read(os.path.join(RIG, "log")) or ""
+        os.makedirs(STATE, exist_ok=True)
+        keep = os.path.join(STATE, time.strftime("rig-%Y%m%d-%H%M.log"))
+        with open(keep, "w") as f:
+            f.write(log)
+        sh([rigcmd, "stop"])
+        rig_log(log, keep)
+
+
+def rig_pid():
+    target = os.path.join(RIG, "conf/pleamar/shells/vitreus/vitreus.plm")
+    for pid, p in all_procs().items():
+        if scene_of(p["argv"]) == target:
+            return pid
+    return None
+
+
+def sample(pid):
+    ps = all_procs()
+    p = ps.get(pid)
+    if not p:
+        return None
+    desc = descendants(ps, pid)
+    return {"t": time.time(), "rss": p["rss"], "fds": p["fds"], "thr": p["threads"], "kids": len(desc),
+            "zomb": sum(1 for d in desc if ps.get(d, {}).get("state") == "Z")}
+
+
+def _rig_body(rigcmd, cycles, idle):
+    def tell(*cmds):
+        return sh([rigcmd, "say", *cmds], timeout=20)[0] == 0
+
+    time.sleep(12)                                    # the start-up's own work (thumbnails, the palette, the first listings) settles
+    pid = rig_pid()
+    if not pid:
+        mark("fail", "rig", "the shell's process in the rig is gone after starting (it crashed?): see the log below")
+        return
+    base = sample(pid)
+    say(f"  after start: {base['rss'] / 1024:.0f} MB, {base['fds']} fds, {base['thr']} threads, {base['kids']} child processes")
+
+    refused = set()
+    per_round = []
+    for c in range(cycles):
+        t0 = time.time()
+        for pn in PANELS:
+            if not tell(f"fact panel {pn}"):
+                refused.add(f"panel {pn}")
+            time.sleep(1.4)
+            if pn == "settings":
+                for pg in PAGES:
+                    if not tell(f"fact set_page {pg}"):
+                        refused.add(f"set_page {pg}")
+                    time.sleep(0.9)
+            if pn == "controls":
+                for sb in SUBS:
+                    tell(f"fact panel_sub {sb}")
+                    time.sleep(1.0)
+                    tell("fact panel_sub none")
+                    time.sleep(0.5)
+            tell("fact panel none")
+            time.sleep(0.6)
+            if not rig_pid():
+                mark("fail", "rig", f"the shell died in round {c + 1}, at the {pn} panel")
+                return
+        time.sleep(3)
+        s = sample(pid)
+        per_round.append(s)
+        say(f"  round {c + 1}: {s['rss'] / 1024:.0f} MB, {s['fds']} fds, {s['thr']} threads, {s['kids']} child processes ({time.time() - t0:.0f} s)")
+    if refused:
+        mark("warn", "rig", "the shell refused: " + ", ".join(sorted(refused)) + " (renamed? update PANELS/PAGES in dev/health)")
+
+    # Memory that grows with every round of the same panels (after the first, which fills caches) is kept and never let go.
+    if len(per_round) >= 3:
+        xs = list(range(1, len(per_round)))
+        ys = [s["rss"] / 1024 for s in per_round[1:]]
+        k = slope(xs, ys)
+        total = ys[-1] - ys[0]
+        msg = f"memory over rounds 2..{len(per_round)}: {k:+.1f} MB a round ({total:+.0f} MB)"
+        mark("warn" if k > 3 and total > 8 else "ok", "rig", msg + (": grows with every round, a leak?" if k > 3 and total > 8 else ""))
+    for key, name, lim in (("fds", "open files", 4), ("thr", "threads", 4), ("kids", "child processes", 2)):
+        a, b = per_round[0][key], per_round[-1][key]
+        if b - a > lim:
+            mark("warn", "rig", f"{name}: {a} after the first round, {b} after the last: something opened per panel is not closed")
+        else:
+            mark("ok", "rig", f"{name} steady ({base[key]} at start, {a} → {b} over the rounds)")
+    if per_round[-1]["zomb"]:
+        mark("warn", "rig", f"{per_round[-1]['zomb']} zombie child process(es) under the shell")
+
+    # Idle: nothing open, nothing touched. Memory that still climbs is a timer that keeps something.
+    pts = []
+    t_end = time.time() + idle
+    while time.time() < t_end:
+        time.sleep(5)
+        s = sample(pid)
+        if not s:
+            mark("fail", "rig", "the shell died while idle")
+            return
+        pts.append(s)
+    if len(pts) >= 4:
+        k = slope([p["t"] / 60 for p in pts], [p["rss"] / 1024 for p in pts])
+        warn = k > 2
+        mark("warn" if warn else "ok", "rig", f"idle for {idle} s: memory {k:+.2f} MB a minute, {pts[-1]['kids']} child processes"
+             + (": still climbing with nothing open" if warn else ""))
+        if pts[-1]["kids"] - pts[0]["kids"] > 2:
+            mark("warn", "rig", f"child processes rose from {pts[0]['kids']} to {pts[-1]['kids']} while idle")
+
+
+def wm_facts():
+    """Patterns for the facts Vitreus's own pleamar-wm session declares (`fact gap`, `fact fr.$i.top` ...), which the stock headless one does not know."""
+    src = read(os.path.join(SRC, "pleamar-wm", "wm", "session.plm")) or ""
+    names = set(re.findall(r"^\s*(?:repeat [^{]*\{\s*)?fact ([\w.$]+)", src, re.M))
+    return [re.compile("I don't know the fact '" + re.escape(n).replace(r"\$i", r"\d+").replace(r"\$k", r"\d+") + "'") for n in names]
+
+
+def rig_log(log, keep):
+    say("\n== Rig: its log")
+    RIG_NOISE.extend(wm_facts())
+    lines = [l for l in log.splitlines() if l.strip()]
+    noise = sum(1 for l in lines if any(r.search(l) for r in RIG_NOISE))
+    errs = collections.Counter()
+    for l in lines:
+        if any(r.search(l) for r in RIG_NOISE):
+            continue
+        if BAD.search(l):
+            errs[re.sub(r"\d+(\.\d+)?", "N", l.strip())[:220]] += 1
+    slow = [float(m.group(1)) for m in re.finditer(r"slow frame: (\d+) ms at ([\d.]+) s", log) if float(m.group(2)) > 15]
+    if errs:
+        lvl = "fail" if any(re.search(r"panic|traceback|attempt to|stack", m, re.I) for m in errs) else "warn"
+        mark(lvl, "rig", f"{sum(errs.values())} error-like lines ({len(errs)} different):")
+        for m, n in errs.most_common(15):
+            say(f"        {n:>4}×  {m}")
+    else:
+        mark("ok", "rig", f"no errors in the log ({len(lines)} lines, {noise} from the rig itself left out)")
+    if slow:
+        mark("info", "rig", f"{len(slow)} slow frames after the start (worst {max(slow):.0f} ms); a headless rig draws on the CPU path, so only a sudden rise means much")
+    mark("info", "rig", f"the rig's log: {keep}")
+
+
+# ── main ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+def main():
+    ap = argparse.ArgumentParser(description="A check-up of Vitreus: compile, live desktop (read only), and a driven headless copy.")
+    ap.add_argument("--quick", action="store_true", help="shorter: 2 rounds, 30 s idle, a 6 s report")
+    ap.add_argument("--no-rig", action="store_true")
+    ap.add_argument("--no-live", action="store_true")
+    ap.add_argument("--no-static", action="store_true")
+    ap.add_argument("--cycles", type=int, default=None, help="rounds of the panels in the rig (4)")
+    ap.add_argument("--idle", type=int, default=None, help="seconds the rig is left idle afterwards (60)")
+    ap.add_argument("--report-seconds", type=int, default=None, help="how long pleamar --report measures the live scenes (12; 0 skips it)")
+    a = ap.parse_args()
+    cycles = a.cycles if a.cycles is not None else (2 if a.quick else 4)
+    idle = a.idle if a.idle is not None else (30 if a.quick else 60)
+    rsecs = a.report_seconds if a.report_seconds is not None else (6 if a.quick else 12)
+    if cycles < 3 and not a.no_rig:
+        say("(fewer than 3 rounds: the per-round memory trend is not judged, only the idle one)")
+
+    started = time.time()
+    say(f"Vitreus health · {time.strftime('%Y-%m-%d %H:%M')} · {SRC}")
+    if not a.no_static:
+        static()
+    if not a.no_live:
+        live(rsecs)
+    if not a.no_rig:
+        rig(max(1, cycles), idle)
+
+    n = collections.Counter(l for l, _, _ in results)
+    say(f"\n== Summary ({time.time() - started:.0f} s): {n['fail']} failed, {n['warn']} warnings, {n['ok']} fine")
+    for lvl in ("fail", "warn"):
+        for _, sec, msg in results:
+            if _ == lvl:
+                say(f"  {lvl.upper()} [{sec}] {msg.splitlines()[0]}")
+    os.makedirs(STATE, exist_ok=True)
+    rp = os.path.join(STATE, time.strftime("report-%Y%m%d-%H%M.txt"))
+    with open(rp, "w") as f:
+        f.write("\n".join(out_lines) + "\n")
+    print(f"\nwritten to {rp}")
+    sys.exit(2 if n["fail"] else (1 if n["warn"] else 0))
+
+
+if __name__ == "__main__":
+    main()
