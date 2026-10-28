@@ -71,8 +71,30 @@ local function refresh_monitors(done)
         if done then done() end
     end)
 end
+-- Monitors come and go rarely. On Hyprland its event socket says when (a monitor added or removed, a config reload that may move one), and a
+-- look every minute covers a missed event; without that socket (niri, pleamar-wm) it is every five seconds, as it always was.
+local mon_events = false
+local function watch_monitors(refresh)
+    run("printenv", { "XDG_RUNTIME_DIR", "HYPRLAND_INSTANCE_SIGNATURE" }, function(out, code)
+        local rt, sig = (out or ""):match("^([^\n]+)\n([^\n]+)")
+        if code ~= 0 or not rt or not sig then return end
+        local ok = pcall(spawn, "socat", { "-u", "UNIX-CONNECT:" .. rt .. "/hypr/" .. sig .. "/.socket2.sock", "-" }, function(line)
+            if line:match("^monitoradded") or line:match("^monitorremoved") or line:match("^configreloaded") then after(400, refresh) end
+        end, function()
+            mon_events = false
+            after(5000, function() watch_monitors(refresh) end)
+        end)
+        mon_events = ok
+    end)
+end
+local mon_ticks = 0
+local function mon_due()
+    mon_ticks = mon_ticks + 1
+    return not mon_events or mon_ticks % 12 == 0
+end
 refresh_monitors()
-every(5000, function() refresh_monitors() end)
+watch_monitors(function() refresh_monitors() end)
+every(5000, function() if mon_due() then refresh_monitors() end end)
 
 -- ── the stickers ──
 pcall(math.randomseed, os.time())

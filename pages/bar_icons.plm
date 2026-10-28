@@ -6,9 +6,10 @@ part BarIcons {
     group {
         glow: 2.4 * bu, 110%, deep
         row tray_bar_row {
-            at: floor(tr.x - ((if(bs.tray > 0.02, bartrays.count, 0) + if(rec_on, 1, 0) + if(priv_mic, 1, 0) + if(priv_cam, 1, 0) + if(priv_scr and not rec_on, 1, 0)) * 24 - 6) * bu / 2 + 0.5), floor(bar.y - 9 * bu + 0.5)
+            at: floor(tr.x - ((if(bs.tray > 0.02, bartrays.count, 0) + if(rec_on, 1, 0) + if(priv_mic, 1, 0) + if(priv_cam, 1, 0) + if(priv_scr and not rec_on, 1, 0) + if(kb_multi, 1, 0)) * 24 - 6) * bu / 2 + 0.5), floor(bar.y - 9 * bu + 0.5)
             gap: floor(6 * bu + 0.5)
             show: lm < 0.5
+            BarKbd() { show: kb_multi }
             BarPriv(0) { show: priv_mic }
             BarPriv(1) { show: priv_cam }
             BarPriv(2) { show: priv_scr and not rec_on }
@@ -19,6 +20,7 @@ part BarIcons {
             at: floor(lf.x - 9 * bu + 0.5), floor(lv.tray + 0.5)
             gap: floor(6 * bu + 0.5)
             show: lm >= 0.5
+            BarKbd() { show: kb_multi }
             BarPriv(0) { show: priv_mic }
             BarPriv(1) { show: priv_cam }
             BarPriv(2) { show: priv_scr and not rec_on }

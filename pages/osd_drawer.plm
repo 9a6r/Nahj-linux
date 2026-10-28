@@ -7,11 +7,11 @@ part OsdDrawer {
         move: rt * (screen.width - 2 * os.px), (1 - fo) * 12 * u + bt * (yo + vb - 2 * os.cy)
         //  The same as the calendar's: what is inside grows with the drawer, from the edge it comes out of (the strip's, or the right frame's for the volume and the notifications, which grow leftwards).
         group {
-            pivot: mix(mix(screen.width - th.r, screen.width + 26 * u, fm), 2 * os.px - mix(screen.width - th.r, screen.width + 26 * u, fm), rt), do.ey
+            pivot: mix(do.edge, 2 * os.px - do.edge, rt), do.ey
             scale: max(do.lf, 0.05)
         //  A notification at a smaller size (`nk`, vitreus.plm): its content scaled about the drawer's top right corner, as the glass is made smaller.
         group {
-            pivot: screen.width - th.r, os.cy
+            pivot: do.corner, os.cy
             scale: nk
         //  Two effects cannot sit one inside the other, so the Retro theme's pixelation of the drawer (`px.do`) is on this group, and the face's own (below) on a
         //  group beside it.
@@ -59,20 +59,18 @@ part OsdDrawer {
             text number(bright_now * 100, 0, "%") { at: floor(os.px + 116 * u + 0.5), floor(by + 0.5); anchor: center; align: center; size: 21; weight: 700; color: ink; family: "Space Grotesk" }
         }
 
-        // ── the microphone: muted or on, under whichever of the other two are out ──
+        // ── Caps Lock, Num Lock or the keyboard layout (logic/lockkeys.luau), under whichever of the other two are out (this was the microphone's row) ──
         group {
             opacity: okv * osd_mp
             show: okv > 0.01 and osd_m
             let omcy = ot + (32 + 72 * osd_vp + 72 * osd_bp) * u
             let mtx = os.px - 128 * u
-            box { at: mtx, omcy; size: 44 * u, 44 * u; corner: 12 * u; color: if(audio.input_muted, alert, mint); opacity: if(audio.input_muted, 16%, 14%) }
-            //  A microphone: its head, the cradle round it, and the stand; a slash through it while it is muted.
-            box { at: mtx, omcy - 4 * u; size: 9 * u, 15 * u; corner: 4.5 * u; color: if(audio.input_muted, faint, mint) }
-            path { at: mtx, omcy - 4 * u; stroke: 1.8 * u; color: if(audio.input_muted, faint, mint); move -7.5 * u, 1 * u; curve 0, 9.5 * u via -7.5 * u, 9.5 * u; curve 7.5 * u, 1 * u via 7.5 * u, 9.5 * u }
-            box { at: mtx, omcy + 9 * u; size: 1.8 * u, 4 * u; corner: 0.9 * u; color: if(audio.input_muted, faint, mint) }
-            path { at: mtx, omcy; stroke: 2.2 * u; color: alert; opacity: if(audio.input_muted, 100%, 0); move -9 * u, -10 * u; line 9 * u, 10 * u }
-            text "Microphone muted" { at: floor(os.px - 90 * u + 0.5), floor(omcy + 0.5); anchor: left center; size: 19; weight: 700; color: ink; family: "Space Grotesk"; show: audio.input_muted }
-            text "Microphone on" { at: floor(os.px - 90 * u + 0.5), floor(omcy + 0.5); anchor: left center; size: 19; weight: 700; color: mint; family: "Space Grotesk"; show: not audio.input_muted }
+            let lkon = lk_state or lk_kind == 2
+            box { at: mtx, omcy; size: 44 * u, 44 * u; corner: 12 * u; color: if(lkon, mint, ink); opacity: if(lkon, 14%, 6%) }
+            text pick(lk_kind, "keyboard_capslock", "dialpad", "keyboard") { at: mtx, omcy; anchor: center; size: 24; color: if(lkon, mint, faint); family: "Material Symbols Outlined" }
+            text pick(lk_kind, "Caps Lock", "Num Lock", "Layout") { at: floor(os.px - 90 * u + 0.5), floor(omcy + 0.5); anchor: left center; size: 19; weight: 700; color: ink; family: "Space Grotesk"; show: lk_kind != 2 }
+            text pick(if(lk_state, 1, 0), "off", "on") { at: floor(os.px + 116 * u + 0.5), floor(omcy + 0.5); anchor: center; align: center; size: 21; weight: 700; color: if(lk_state, mint, faint); family: "Space Grotesk"; show: lk_kind != 2 }
+            text kb_name { at: floor(os.px - 90 * u + 0.5), floor(omcy + 0.5); anchor: left center; size: 19; weight: 700; width: 230 * u; lines: 1; color: mint; family: "Space Grotesk"; show: lk_kind == 2 }
         }
 
         // ── a notification ──

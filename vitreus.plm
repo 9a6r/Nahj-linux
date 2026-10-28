@@ -312,6 +312,8 @@ scene Vitreus {
     fact nt_size = 1                 // how big a notification's drawer is (Settings > Notifications, "Size": 0.7, 0.85 or 1; logic/notif_size.luau)
     event nt_size_set ->             // its chips: 0 small, 1 medium, 2 large
     fact osd_on = false                                     // the volume / notification drawer is out: set by the logic; it is not a value of `panel`, so it shows beside Settings, the search, the desk...
+    fact nt_left = false                                    // it comes out of the left edge this time: the Desk or the Control Center was open as it came out (`ol`)
+    on change osd_on while osd_on { nt_left = desk_open or panel == controls }       // as it opens only: kept while it closes
     //  The volume drawer holds up to two rows, one above the other: the volume and the brightness, each out for two seconds after it changes (the logic's
     //  timers). With both, the drawer is as tall as both, so neither covers the other.
     fact osd_v = false
@@ -331,7 +333,7 @@ scene Vitreus {
     text priv_mic_who = ""
     text priv_cam_who = ""
     text priv_scr_who = ""
-    fact osd_m = false                  // the microphone's row: out for two seconds after it is muted or unmuted, under the other two
+    fact osd_m = false                  // the lock keys' row (Caps Lock, Num Lock, a layout switch; it was the microphone's): out for two seconds, under the other two
     prop osd_mp = 0 ~calm
     follow osd_mp = if(osd_m, 1, 0)
     event mic_toggle ->                 // the microphone button in the controls' volume card
@@ -392,6 +394,7 @@ scene Vitreus {
     fact glass_dome = 0              // pleamar's `dome:` (magnifies what is behind, towards the middle), 0 to 150 %: a test knob
     fact glass_milk = 0              // pleamar's `milk:` (a milky veil inside the glass), 0 to 100 %: a test knob
     fact glass_bend = false           // the lens is on: X-Bend or Live bend (either one; the switches' own states are `glass_x` and `glass_live`)
+    fact files_bend = false           // whether Files bends its glass: `glass_bend`, but off while hyprglass is loaded (the compositor draws Files' glass then)
     fact glass_x = false              // the Glass page's "X-Bend" switch: the glass bends the wallpaper copy
     fact lens_interval_ms = 300      // the least time between two captures of Live bend (`lens every` below)
     fact glass_live = false           // the Glass page's "Live bend": the glass bends the live windows (a capture) instead of the wallpaper copy
@@ -412,7 +415,7 @@ scene Vitreus {
     //  Glass switched off (`glass_obs`): the same bar and drawers, but a flat, solid obsidian instead of glass. `obs` is 0 glass, 1 obsidian, and travels between them.
     fact glass_obs = false
     prop obs = 0 ~calm
-    follow obs = if(glass_obs or cas or uwu or milk or proxy_on, 1, 0)
+    follow obs = if(glass_obs or cas or uwu or milk or proxy_on or game_on, 1, 0)      // (Game Mode: no glass while it is on, see game_fx.glass)
     //  The Cassette theme (Settings > Theme): the same flat body as obsidian, but in the palette's own plastic (`obsidian` below stops being darkened), with a hard
     //  edge, a lit lip, a seam, a four-colour stripe across each drawer's head and a hard shadow. `cas_k` travels between glass and plastic; the drawers' liquid
     //  (necks, drips, the jelly) is switched off with it and their corners are cut square (`rc`, `bk`).
@@ -1584,7 +1587,18 @@ scene Vitreus {
     follow adk_ga = if(adk_pins.count > 0 and not (bv.ax and not bar_frame), 1, 0)       // (not while its icons are on the Island: `bs.ax`)
     follow rcn = if(rec_on, 1, 0)
     prop pvn = 0 ~calm                // the privacy lights' slots, the same way
-    follow pvn = if(priv_mic, 1, 0) + if(priv_cam, 1, 0) + if(priv_scr and not rec_on, 1, 0)
+    follow pvn = if(priv_mic, 1, 0) + if(priv_cam, 1, 0) + if(priv_scr and not rec_on, 1, 0) + if(kb_multi, 1, 0)
+    //  The keyboard layout (logic/lockkeys.luau, from Hyprland's `activelayout` event): a two-letter chip with the tray icons, only when more than one
+    //  layout is set up, so it takes no room otherwise. A press switches to the next layout.
+    fact kb_multi = false
+    text kb_code = ""
+    event kb_next ->
+    event lockkeys ->                // Caps Lock or Num Lock was pressed (hypr_vitreus.lua's binds)
+    //  Caps Lock and Num Lock: a row of the volume drawer for two seconds when either is pressed (`osd_m`, pages/osd_drawer.plm). `lk_kind`
+    //  0 Caps, 1 Num, 2 a layout switch (`kb_name`); `lk_state` on or off.
+    fact lk_kind = 0
+    fact lk_state = false
+    text kb_name = ""
     repeat i in 0..9 {
         prop bcx.$i = 0 ~quick
         prop bcy.$i = 4 ~quick
@@ -4285,6 +4299,13 @@ scene Vitreus {
     //  While a screen recording runs, a red dot rides the tray. Under the pointer it squares off into a stop button.
     //  A privacy light on the bar, while something uses the microphone (kind 0, amber), the camera (1, green) or shares the screen (2, blue):
     //  its icon on a soft glowing disc. Under the pointer, the apps doing it are named below it.
+    component BarKbd() {
+        size: floor(22 * bu + 0.5), floor(18 * bu + 0.5)
+        box { at: 11 * bu, 9 * bu; size: 22 * bu, 16 * bu; corner: 5 * bu; color: ink; opacity: 10% + 8% * kb_z.hover }
+        text kb_code { at: floor(11 * bu + 0.5), floor(9 * bu + 0.5); anchor: center; align: center; size: 10; weight: 700; color: ink; family: "Space Grotesk" }
+        zone box kb_z { at: 11 * bu, 9 * bu; size: 22 * bu, 18 * bu; cursor: pointer; label: "Keyboard layout" }
+        on press kb_z { emit kb_next }
+    }
     component BarPriv(kind: number) {
         size: floor(18 * bu + 0.5), floor(18 * bu + 0.5)
         let beat = 0.5 + 0.5 * sin(time * 160)
@@ -5185,7 +5206,13 @@ scene Vitreus {
     //  The same two places in both layouts (the left layout's): the volume low and the notification high, out of the right edge of the screen. Along the top there
     //  is no frame there, so they come out of the edge of the screen itself. Content hangs from `os.ck`, centred on `os.px`.
     let os.stop = bar.y - bar.h / 2                           // the bar's top edge (the desk's island placement hangs from it)
-    let os.px = screen.width - th.r - 176.5 * u
+    //  Out of the other side (`nt_left`) when the Desk or the Control Center is open as it comes out, so it does not land on them: everything of the drawer
+    //  (its glass, its content, the corner it grows from) is placed where its mirror image falls, the left frame's thickness in place of the right's. Picked
+    //  as the drawer opens and kept until it has closed, so it never jumps while it is out.
+    let ol = if(nt_left, 1, 0)
+    let ol.d = th.l - th.r
+    let os.px0 = screen.width - th.r - 176.5 * u
+    let os.px = mix(os.px0, screen.width - os.px0 + ol.d, ol)
     let os.ck = os.cy - (8 + osd_h / 2) * u
     let do.lf = min(1, do0 * 1.6) + max(0, do0 - 1) * 0.6
     let do.rt = th.r + (26 + 353 * nk) * u
@@ -5194,10 +5221,14 @@ scene Vitreus {
     let do.gx = screen.width + 26 * u * do.lf - do.gw / 2
     let do.ew = do.gw
     let do.eh = do.gh
-    let do.ex = do.gx
+    let do.ex = mix(do.gx, screen.width - do.gx + ol.d, ol)
     let do.ey = os.cy
     let do.iw = max(0.1, 352 * u * nk * do.lf)                       // along the top the panel is wholly on screen (the right frame's 8 in from the edge), so its corners are all rounded
-    let do.ix = screen.width - th.r - do.iw / 2
+    let do.ix0 = screen.width - th.r - do.iw / 2
+    let do.ix = mix(do.ix0, screen.width - do.ix0 + ol.d, ol)
+    let do.edge0 = mix(screen.width - th.r, screen.width + 26 * u, fm)         // the edge it grows out of, and the corner a smaller notification is scaled about
+    let do.edge = mix(do.edge0, screen.width - do.edge0 + ol.d, ol)
+    let do.corner = mix(screen.width - th.r, th.l, ol)
     let do.bl = (26 + 20 * do.bell) * u * min(1, do0 * 4)         // how much the drawer melts into what it joins
     let do.stretch = clamp(vel(do) * 0.07, 0, 0.5)
     let dm.gl = mix(min(dtrav, dm0), dm0, att)
@@ -5637,6 +5668,19 @@ scene Vitreus {
     fact ft_len = 30
     fact ft_state = 0                                       // 0 ready, 1 running, 2 paused, 3 done
     fact ft_prog = 1.0                                      // the fraction left
+    //  The Focus tab's three modes (`ft_mode`): 0 Focus (the timer above, which also silences alerts and keeps the machine awake), 1 Timer (the same
+    //  countdown, short presets, and nothing else touched), 2 Stopwatch (counts up, with laps). Not changed while a countdown or the stopwatch is going.
+    fact ft_mode = 0
+    prop ft_msel = 0 ~slide
+    follow ft_msel = ft_mode
+    event sw_toggle ->                                      // the stopwatch: start, pause or resume
+    event sw_lap ->
+    event sw_reset ->
+    fact sw_state = 0                                       // 0 ready, 1 running, 2 paused
+    fact sw_prog = 0.0                                      // how far round the current minute it is: the ring
+    text sw_time = "00:00"
+    text sw_laps = ""                                       // the last laps, newest first: "Lap 3 · 01:12   Lap 2 · 00:58"
+    fact sw_nlaps = 0
     fact desk_kb = false                                    // typing in the desk (the task field, the terminal): only then does it take the keyboard
     on change desk_tab { desk_kb = false; term_armed = false }
     on change desk_open while not desk_open { desk_kb = false; term_armed = false }
@@ -5824,7 +5868,8 @@ scene Vitreus {
     follow ft_caf_p = if(ft_caf, 1, 0)
     prop ft_sel = 1 ~slide
     follow ft_ring = ft_prog
-    follow ft_sel = if(ft_len == 15, 0, if(ft_len == 30, 1, if(ft_len == 45, 2, 3)))
+    let ft_idx = if(ft_mode == 1, if(ft_len == 1, 0, if(ft_len == 3, 1, if(ft_len == 5, 2, 3))), if(ft_len == 15, 0, if(ft_len == 30, 1, if(ft_len == 45, 2, 3))))
+    follow ft_sel = ft_idx
     on press ntn_t { panel_scr = screen.index; panel = if(panel == launch, none, launch) }
     on press ntn_l { panel_scr = screen.index; panel = if(bt > 0.5, if(panel == settings, none, settings), if(panel == launch, none, launch)) }
     on press ntn_b { panel_scr = screen.index; panel = if(bt > 0.5, if(panel == launch, none, launch), if(panel == settings, none, settings)) }

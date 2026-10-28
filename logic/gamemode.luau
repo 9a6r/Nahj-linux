@@ -38,6 +38,7 @@ return function()
             end
             G.on = true
             game_fx.on = true
+            game_fx.glass(true)               -- no glass: flat obsidian, nothing bent or captured over the game
             G.dnd = game_fx.dnd_start()       -- notifications off, unless something was silencing them already
             cava_want()                       -- the visualiser stops listening (cava is stopped)
             show()
@@ -57,6 +58,7 @@ return function()
     local function stop()
         G.on = false
         game_fx.on = false
+        game_fx.glass(false)
         if G.dnd then game_fx.dnd_stop(); G.dnd = false end
         cava_want()
         show()

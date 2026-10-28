@@ -13,7 +13,7 @@ import "clockface_styled.plm"
 scene DesktopClock {
     surface { size: full, full; anchor: top_left; margin: 0; level: bottom, top while edit; screens: each; reserve: -1 }
 
-    permissions { services: "clock", "files", "files.write"; run: "pleamar", "hyprctl" }
+    permissions { services: "clock", "files", "files.write"; run: "pleamar", "hyprctl", "socat", "printenv" }
 
     //  The shell's colours as facts (palette-live.plm reads them): Vitreus sets them when the palette changes (`push_pal` in vitreus.luau), so the theme
     //  changes the colour at once, not after a reload of this scene as the imported palette.plm did.

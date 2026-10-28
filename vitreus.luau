@@ -770,7 +770,7 @@ local function dq_sync()
     text.nt_qto_t = DQ.clock(DQ.to)
 end
 on("nt_q_toggle", function() DQ.on = not DQ.on; DQ.skip = false; dnd_save(); dq_sync(); dnd_refresh() end)
-on("nt_fs_toggle", function() DQ.fullscreen = not DQ.fullscreen; DQ.fs = false; DQ.skip = false; dnd_save(); dq_sync(); dnd_refresh() end)
+on("nt_fs_toggle", function() DQ.fullscreen = not DQ.fullscreen; DQ.fs = false; DQ.skip = false; dnd_save(); dq_sync(); dnd_refresh(); DQ.check() end)
 on("nt_q_step", function(k)        -- 0 start earlier, 1 start later, 2 end earlier, 3 end later: half an hour at a time
     k = math.floor((tonumber(k) or 0) + 0.5)
     if k == 0 then DQ.from = (DQ.from - 30) % 1440
@@ -782,14 +782,27 @@ on("nt_q_step", function(k)        -- 0 start earlier, 1 start later, 2 end earl
 end)
 dq_sync()
 every(20000, dnd_refresh)                                   -- quiet hours begin and end by the clock
--- A fullscreen window is asked of Hyprland (the `fullscreen` of the focused window is 2 for a real fullscreen), only while that switch is on.
-every(2500, function()
+-- A fullscreen window is asked of Hyprland (the `fullscreen` of the focused window is 2 for a real fullscreen), only while that switch is on:
+-- when Hyprland's event socket says a window went fullscreen or back, or the focus or the workspace moved (`DQ.poke`, from watch_urgent),
+-- and every half minute in case an event was missed. (It used to be asked every 2.5 s, and still is without Hyprland.)
+function DQ.check()
     if not DQ.fullscreen then return end
     run("hyprctl", { "activewindow", "-j" }, function(out)
         local ok, j = pcall(json.decode, out or "")
         local fs = ok and type(j) == "table" and (tonumber(j.fullscreen) or 0) >= 2
         if fs ~= DQ.fs then DQ.fs = fs; dnd_refresh() end
     end)
+end
+function DQ.poke()
+    if not DQ.fullscreen or DQ.poking then return end
+    DQ.poking = true
+    after(120, function() DQ.poking = false; DQ.check() end)      -- a burst of events (a workspace switch says several) is asked once
+end
+-- (Without Hyprland there are no such events, pleamar-wm's `hyprctl activewindow` is asked every 2.5 s, as before.)
+DQ.ticks = 0
+every(2500, function()
+    DQ.ticks = DQ.ticks + 1
+    if not on_hyprland or DQ.ticks % 12 == 0 then DQ.check() end
 end)
 -- A timer chip; pressing the one that is lit again cancels it.
 on("dnd_for", function(m)
@@ -1401,7 +1414,9 @@ on("bt_disc_toggle", function()
 end)
 
 adapter_refresh()
-every(5000, adapter_refresh)
+-- The adapter's name and "discoverable" are only drawn in the Bluetooth window: read while it is open, not all day.
+on("fact:panel_sub", function(v) if tostring(v) == "btview" then adapter_refresh() end end)
+every(5000, function() if tostring(fact.panel) == "controls" and tostring(fact.panel_sub) == "btview" then adapter_refresh() end end)
 end
 
 -- Asks BlueZ for something slow, and shows that it was asked. `kind` 1 connecting, 2 disconnecting. If BlueZ has
@@ -1697,8 +1712,12 @@ on("wifi_copy_ip", function()
     if ip and ip ~= "" then run("wl-copy", { ip }, function() end) end
 end)
 
-sys.watch("network", function() wf_refresh() end)
-every(6000, wf_refresh)
+-- The list is only drawn in the Controls drawer's Wi-Fi window, so it is only read while that is open (and once as it opens): `nmcli device wifi
+-- list` starts a scan of the air whenever the last one is older than half a minute, so asking it all day kept the radio scanning all day.
+function WF.shown() return tostring(fact.panel) == "controls" and tostring(fact.panel_sub) == "netview" end
+sys.watch("network", function() if WF.shown() then wf_refresh() end end)
+on("fact:panel_sub", function(v) if tostring(v) == "netview" then wf_refresh() end end)
+every(6000, function() if WF.shown() then wf_refresh() end end)
 on("wifi_scan_done", wf_refresh)
 end
 
@@ -2115,6 +2134,10 @@ function watch_urgent()
             rt, sig = (rt or ""):gsub("%s+$", ""), (sig or ""):gsub("%s+$", "")
             if rt == "" or sig == "" then return end
             spawn("socat", { "-u", "UNIX-CONNECT:" .. rt .. "/hypr/" .. sig .. "/.socket2.sock", "-" }, function(line)
+                -- what can change whether the focused window is fullscreen (Do Not Disturb's "while fullscreen")
+                if line:match("^configreloaded>>") and game_fx.hg_check then game_fx.hg_check() end      -- hyprglass loaded or unloaded
+                if line:match("^activelayout>>") and LOCKKEYS and LOCKKEYS.layout then LOCKKEYS.layout() end           -- the keyboard layout changed (logic/lockkeys.luau)
+                if line:match("^fullscreen>>") or line:match("^activewindowv2>>") or line:match("^workspacev2>>") or line:match("^closewindow>>") then DQ.poke() end
                 -- A special workspace (the scratchpads) shown or put away: `activespecial>>special:magic,<name>`, with no name when it is put away.
                 local spn = line:match("^activespecial>>([^,]*),")
                 if spn then
@@ -4291,7 +4314,8 @@ local function glass_refresh()
     fact.glass_disp = glass.disp
     fact.glass_dome = glass.dome
     fact.glass_milk = glass.milk
-    fact.glass_bend = glass.bend or glass.live      -- the lens: either switch turns it on (Live bend does not need X-Bend)
+    fact.glass_bend = (glass.bend or glass.live) and not glass.game      -- the lens: either switch turns it on (Live bend does not need X-Bend); never in Game Mode
+    fact.files_bend = (glass.bend or glass.live) and not glass.game and not glass.hg      -- Files asks for this one as it starts (files.luau)
     fact.glass_x = glass.bend
     fact.glass_live = glass.live
     fact.lens_interval_ms = glass.cap_ms             -- pleamar reads this one: the least time between two captures for Live bend
@@ -4308,15 +4332,40 @@ local function glass_refresh()
 end
 -- The desktop clock and system monitor are scenes of their own: they are told when the glass goes off or on (they ask for it themselves when they start).
 function glass.push_obs()
-    local v = glass.obsidian and "true" or "false"
+    local v = (glass.obsidian or glass.game) and "true" or "false"
     run("pleamar", { "--say", "desktopclock", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopsysmon", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopcards", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "files", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopnotes", "fact obs " .. v }, function() end)
-    run("pleamar", { "--say", "files", "fact gop " .. glass.opacity, "fact gbend " .. tostring(glass.bend or glass.live), "fact grefr " .. glass.refr, "fact gdisp " .. glass.disp,
+    run("pleamar", { "--say", "files", "fact gop " .. glass.opacity, "fact gbend " .. tostring((glass.bend or glass.live) and not glass.game and not glass.hg), "fact grefr " .. glass.refr, "fact gdisp " .. glass.disp,
         "fact gclear " .. glass.clear, "fact gdome " .. glass.dome, "fact gmilk " .. glass.milk, "fact grim " .. glass.rim }, function() end)     -- Files wears the same glass
 end
+-- Game Mode (logic/gamemode.luau) takes the glass away while it is on: the bar and the drawers go flat obsidian (`game_on` in the scene's `obs`) and
+-- nothing bends, so nothing is captured behind them, every frame of a game being "something behind that changed"; and with Hyprland's blur off
+-- (Game Mode turns it off too) the glass would only be a thin tint over the game. The desktop's own scenes and Files are told as for "glass off".
+-- The Glass page keeps showing the person's own settings; nothing is saved.
+function game_fx.glass(on)
+    glass.game = on and true or false
+    glass_refresh()
+    glass.push_obs()
+end
+-- hyprglass (on trial with Files only): when the plugin is loaded in Hyprland, the compositor draws the glass behind the Files window
+-- (hypr_vitreus.lua says how), so Files stops bending its own copy of the wallpaper (`gbend`, in glass.push_obs); the shell keeps its own. Looked at as the shell starts and whenever Hyprland's
+-- config is read again (a plugin is loaded or unloaded, then `hyprctl reload`: watch_urgent's listener calls this on `configreloaded`).
+function game_fx.hg_check()
+    if not on_hyprland then return end
+    run("hyprctl", { "plugin", "list" }, function(out, code)
+        if code ~= 0 then return end
+        local on = (out or ""):find("hyprglass", 1, true) ~= nil
+        if on ~= (glass.hg == true) then
+            glass.hg = on
+            glass_refresh()
+            glass.push_obs()
+        end
+    end)
+end
+after(3000, function() game_fx.hg_check() end)
 local function glass_save_soon()
     glass.push_obs()
     if glass_save_waiting then return end
@@ -8388,6 +8437,9 @@ end)()
 
 -- focus: see logic/focus.luau
 require("logic/focus")()
+-- Caps Lock, Num Lock and the keyboard layout: see logic/lockkeys.luau (it fills LOCKKEYS.layout, called by watch_urgent's listener)
+LOCKKEYS = { show = show_level }     -- (the volume drawer's rows: the lock keys have the third, "m")
+require("logic/lockkeys")()
 
 -- ── A screenshot, as a card ───────────────────────────────────────────────────────────────────────────
 -- Capture (logic/capture_power.luau) says `text shot_path <file>` and `emit shot_done` once a picture is taken. It comes up in the volume's and the
