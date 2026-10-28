@@ -89,10 +89,9 @@ local function on_line(line)
     target = type(ev.target) == "string" and ev.target or ""
     active = ev.active ~= false
     err = type(ev.error) == "string" and ev.error or ""
-    -- the Boost needs two plugin packages (vitreus-eq says which are missing): the row says so, and its hover says how
+    -- the Boost needs two plugin packages (vitreus-eq says which are missing): the panel leaves the row out, and Settings > Add-ons says what to install
     local miss = type(ev.missing) == "table" and ev.missing or {}
     fact.boost_ok = #miss == 0 and 1 or 0
-    text.boost_hint = #miss > 0 and "The Boost needs lsp-plugins-lv2 and zam-plugins-lv2 (Arch package names)." or ""
     show()
 end
 

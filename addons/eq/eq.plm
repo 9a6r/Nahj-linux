@@ -90,15 +90,13 @@ scene Equalizer {
     shader glint = file "glint.wgsl"                   // the band of light that crosses the glass now and then
     prop sw = 0 ~1300ms                                // how far across it is (0 to 1)
     every 3500ms while shown > 0.5 { sw: 1 ~1300ms; sw: 0 ~0ms after 1700ms }
-    fact touched = 0                                  // a band has been dragged this session: the hint goes
     fact bend = 1                                     // 1: the glass bends what is behind it; 0: it only blurs (cheaper): `pleamar --say equalizer "fact bend 0"`
     event eq_toggle ->
     event preset ->
     //  The Boost: 0 to 12 dB past the output's own 100 %, into a maximizer and a limiter at the end of the filter. `boost_ok` is 0 while a plugin package
-    //  it needs is missing; `boost_hint` (shown on hover) says which packages it needs.
+    //  it needs is missing, and the row is then not drawn (Settings > Add-ons says what to install).
     fact boost = 0
     fact boost_ok = 1
-    text boost_hint = ""
     event boost ->
     event bset ->
     repeat i in 0..10 {
@@ -156,7 +154,7 @@ scene Equalizer {
     let x0 = left + 24
 
     //  The bands: 12 dB up and down. A column is 1/10 of the width; y is worked out the same way in the rules below.
-    let by0 = top + 178 * u
+    let by0 = top + (178 - 30 * (1 - boost_ok)) * u       // the Boost row is not there while its plugins are missing (Settings > Add-ons says so): the bands take its room
     let by1 = top + slot_h - 34 * u
     let bh = by1 - by0
     let bym = (by0 + by1) / 2
@@ -221,21 +219,16 @@ scene Equalizer {
         let bsw = wd - 62 * u - 4 * u
         let bok = boost_ok
         let bhot = if(bz.hover > 0.5, 1, 0)
-        text "Boost" { at: x0 + 4 * u, bty - 7 * u * bok; anchor: left center; size: 12.5 * u; weight: 700; color: ink; opacity: shown * (0.45 + 0.55 * bok); family: "Space Grotesk" }
+        text "Boost" { at: x0 + 4 * u, bty - 7 * u; anchor: left center; size: 12.5 * u; weight: 700; color: ink; opacity: shown * bok; family: "Space Grotesk" }
         text number(boost, 0, " dB") { at: x0 + 4 * u, bty + 8 * u; anchor: left center; size: 10.5 * u; weight: 700; color: mix(faint, mint, if(boost > 0.5, 1, 0)); opacity: shown * bok; family: "Space Grotesk" }
         group {
-            opacity: 0.35 + 0.65 * bok
-            PSliderCC(x0: bsx, y: bty, w: bsw, lv: boost / 12, hot: bhot, k: u, h: 12 * u, mute: 1 - bok)
+            opacity: bok
+            PSliderCC(x0: bsx, y: bty, w: bsw, lv: boost / 12, hot: bhot, k: u, h: 12 * u, mute: 0)
         }
         zone box bz { from: bsx - 8 * u, bty - 14 * u; size: bsw + 16 * u, 28 * u; cursor: ew_resize; label: "Boost (drag left or right)"; active: shown > 0.5 and bok > 0.5 }
         on press bz { emit boost(floor(clamp((pointer.x - bsx) / bsw, 0, 1) * 12 + 0.5)) }
         on drag bz { emit boost(floor(clamp((pointer.x - bsx) / bsw, 0, 1) * 12 + 0.5)) }
         on press right bz { emit boost(0) }
-        //  greyed out: the row says what is missing, and the hover says what to install
-        zone box bzn { from: x0, bty - 14 * u; size: wd, 28 * u; label: "Boost needs plugins"; active: shown > 0.5 and bok < 0.5 }
-        let bnh = if(bzn.hover > 0.5 and bok < 0.5, 1, 0)
-        box { at: x0 + wd / 2, bty + 32 * u; size: wd, 34 * u; corner: 9 * u; color: deep; opacity: 92% * bnh * shown }
-        text boost_hint { at: x0 + wd / 2, bty + 32 * u; anchor: center; align: center; size: 10.5 * u; weight: 600; width: wd - 20 * u; lines: 2; color: ink; opacity: bnh * shown; family: "Space Grotesk" }
     }
 
     group {
@@ -289,7 +282,6 @@ scene Equalizer {
             box { at: x0 + colw * 9.5 + if(clamp((gs.9 + 12) / 24 * bh + bh * (0.1 * ls.9 + 0.08 * fl.9), 0, bh * 1.04) > 1, 0, 30000), by1 - (clamp((gs.9 + 12) / 24 * bh + bh * (0.1 * ls.9 + 0.08 * fl.9), 0, bh * 1.04) - 3 * u) / 2; size: colw * 1.3, clamp((gs.9 + 12) / 24 * bh + bh * (0.1 * ls.9 + 0.08 * fl.9), 0, bh * 1.04) + 3 * u; corner: colw * 0.55; blend: 14 * u }
             }
         }
-        text "Drag the glass up or down" { at: x0 + wd / 2, by0 + 2 * u; anchor: center; size: 11 * u; weight: 600; color: faint; opacity: 70% * (1 - touched) * shown; family: "Space Grotesk" }
         //  0 dB.
         line { from: x0, bym; to: x0 + wd, bym; width: 1; color: ink; opacity: 20% * shown }
         repeat i in 0..10 {
@@ -305,7 +297,7 @@ scene Equalizer {
             text number(g.$i, 1, " dB") { at: cxi, crest - 16 * u; anchor: center; size: 10.5 * u; weight: 700; color: ink; opacity: hot * shown; family: "Space Grotesk" }
             text pick(i, "32", "64", "125", "250", "500", "1k", "2k", "4k", "8k", "16k") { at: cxi, by1 + 16 * u; anchor: center; size: 10.5 * u; weight: 600; color: faint; opacity: shown; family: "Space Grotesk" }
             zone box band.$i { from: x0 + colw * i, by0 - 12 * u; size: colw, bh + 24 * u; cursor: ns_resize; label: "Band (drag up or down)"; active: shown > 0.5 }
-            on press band.$i { held = i; touched = 1; emit bset(i * 1000 + floor((12 - 24 * clamp((pointer.y - by0) / bh, 0, 1)) * 10 + 120.5)) }
+            on press band.$i { held = i; emit bset(i * 1000 + floor((12 - 24 * clamp((pointer.y - by0) / bh, 0, 1)) * 10 + 120.5)) }
             on drag band.$i { emit bset(i * 1000 + floor((12 - 24 * clamp((pointer.y - by0) / bh, 0, 1)) * 10 + 120.5)) }
             on release band.$i { held = -1 }
             on press right band.$i { emit bset(i * 1000 + 120) }

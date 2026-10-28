@@ -32,7 +32,7 @@ try:
 except Exception:
     np = None
 
-DATA = sys.argv[1] if len(sys.argv) > 1 else os.path.expanduser("~/.local/share/pleamar/vitreus-eq")
+DATA = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else os.path.expanduser("~/.local/share/pleamar/vitreus-eq")
 CONF = os.path.join(DATA, "chain.conf")
 SINK = os.environ.get("VITREUS_EQ_NAME", "vitreus_eq")
 
@@ -494,6 +494,10 @@ def shutdown(*_):
 
 def main():
     global want_on, gains, boost, spec_on, claim
+    if "--missing" in sys.argv:         # the Arch packages the Boost still needs, one a line (Settings > Add-ons shows them): nothing else runs
+        for name in missing_plugins():
+            print(name + "-lv2")
+        return
     signal.signal(signal.SIGTERM, shutdown)
     signal.signal(signal.SIGHUP, shutdown)
 

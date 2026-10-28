@@ -39,6 +39,8 @@ return function()
         for _, id in ipairs(order) do out[#out + 1] = by[id] end
         return out
     end
+    local needs = {}            -- add-on id -> the packages it still wants (an add-on works without them, with a feature off): the card names them
+    local NEEDS = { eq = { "vitreus-eq", "--missing" } }       -- how to ask an add-on what it is missing: a command that prints a package name a line
     local sizes = {}            -- the size each add-on's panel was left at (by id): used when it opens again
     local winopen = {}
     local function say_one(sock, cmds)
@@ -291,7 +293,10 @@ return function()
             local by = a.author ~= "" and ("by " .. a.author) or ""
             if a.version ~= "" then by = (by ~= "" and (by .. "  ·  ") or "") .. "version " .. a.version end
             if a.repo ~= "" then by = (by ~= "" and (by .. "  ·  ") or "") .. "source" end      -- hosted by its author: the line links to the repository
-            rows[#rows + 1] = { name = a.name, desc = a.description ~= "" and a.description or "No description", by = by, has = a.repo ~= "", on = enabled[a.id] == true }
+            local need = needs[a.id]
+            local note = ""
+            if need and #need > 0 then note = "To use Boost, install " .. table.concat(need, " and ") end
+            rows[#rows + 1] = { name = a.name, desc = a.description ~= "" and a.description or "No description", by = note ~= "" and note or by, has = a.repo ~= "", on = enabled[a.id] == true, need = note ~= "" }
         end
         model.addons = rows
         place_cards(nil)
@@ -361,12 +366,30 @@ return function()
         return nil
     end
 
+    -- What each add-on that can say is missing: asked each time the page is opened, so installing the packages and coming back is enough.
+    local function check_needs(done)
+        local waiting = 0
+        for id, cmd in pairs(NEEDS) do
+            waiting = waiting + 1
+            run(cmd[1], { cmd[2] }, function(out, code)
+                local miss = {}
+                if code == 0 then
+                    for name in tostring(out or ""):gmatch("[%w][%w._+-]*") do miss[#miss + 1] = name end
+                end
+                needs[id] = miss
+                waiting = waiting - 1
+                if waiting == 0 then done() end
+            end)
+        end
+        if waiting == 0 then done() end
+    end
+
     local function refresh(first)
         local data = sys.ask("files.folder")
         if type(data) ~= "string" then return end
         run("vitreus-addons", { data }, function(_, code)
             if code ~= 0 or not load_list() then return end
-            show()
+            check_needs(show)
             if first then
                 ready = true
                 for k, a in ipairs(list) do if enabled[a.id] then start(a) end end
