@@ -1,0 +1,60 @@
+# Calamares is built from an immutable upstream revision, with archive verification.
+pkgname=nahj-installer
+pkgver=3.3.14
+pkgrel=1
+pkgdesc='Calamares installer and live-to-installed configuration for Nahj Linux'
+arch=('x86_64')
+url='https://github.com/9a6r/Nahj-linux'
+license=('GPL-3.0-or-later')
+depends=(qt6-base qt6-declarative qt6-svg qt6-wayland yaml-cpp kpmcore
+         kcoreaddons polkit-qt6 python python-pyyaml libpwquality icu libxcrypt
+         parted rsync squashfs-tools dosfstools e2fsprogs grub efibootmgr os-prober)
+makedepends=(cmake ninja extra-cmake-modules qt6-tools python-jsonschema)
+provides=('calamares')
+conflicts=('calamares')
+_commit=21ea803527735cfaf54fa6059e71d1ef65004864
+source=("calamares-${_commit}.tar.gz::https://codeload.github.com/calamares/calamares/tar.gz/${_commit}")
+sha256sums=('59de9c212472a0e80847e71db1c01c7d86d35b341f4cb0fad58a09724fcf3c77')
+
+build() {
+    local wanted=' bootloader displaymanager finished fstab grubcfg hwclock initcpio initcpiocfg keyboard locale localecfg machineid mount networkcfg partition services-systemd summary umount unpackfs users welcome '
+    local skip='' module
+    for module in "$srcdir/calamares-$_commit/src/modules/"*/; do
+        module=${module%/}; module=${module##*/}
+        [[ "$wanted" == *" $module "* ]] || skip+="$module;"
+    done
+    cmake -S "$srcdir/calamares-$_commit" -B build -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_LIBDIR=lib -DWITH_QT6=ON -DWITH_QML=ON \
+        -DWITH_PYTHON=ON -DWITH_PYBIND11=ON -DINSTALL_CONFIG=ON \
+        -DINSTALL_POLKIT=OFF -DBUILD_TESTING=OFF -DBUILD_SCHEMA_TESTING=OFF \
+        -DBUILD_CRASH_REPORTING=OFF -DSKIP_MODULES="$skip"
+    cmake --build build --parallel "${NAHJ_BUILD_JOBS:-2}"
+}
+
+check() {
+    # Validate our actual configuration against the pinned release's schemas.
+    local config module schema
+    for config in "$startdir/calamares/modules/"*.conf; do
+        module=${config##*/}; module=${module%.conf}
+        schema="$srcdir/calamares-$_commit/src/modules/$module/$module.schema.yaml"
+        [[ ! -f "$schema" ]] || python "$srcdir/calamares-$_commit/ci/configvalidator.py" "$schema" "$config"
+    done
+    python "$startdir/test_target.py"
+    # Fail the package build if a required plugin was silently skipped by CMake.
+    for module in partition users welcome locale keyboard summary finished; do
+        test -f "build/src/modules/$module/libcalamares_viewmodule_${module}.so"
+    done
+}
+
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+    install -d "$pkgdir/etc/calamares" "$pkgdir/usr/lib/calamares/modules/nahjtarget"
+    cp -a "$startdir/calamares/." "$pkgdir/etc/calamares/"
+    cp -a "$startdir/nahjtarget/." "$pkgdir/usr/lib/calamares/modules/nahjtarget/"
+    install -Dm644 "$startdir/welcome.png" "$pkgdir/etc/calamares/branding/nahj/welcome.png"
+    install -Dm755 "$startdir/nahj-install" "$pkgdir/usr/local/bin/nahj-install"
+    install -Dm644 "$startdir/nahj-install.desktop" "$pkgdir/usr/share/applications/nahj-install.desktop"
+    # Do not expose upstream's unconfigured root launcher alongside ours.
+    rm -f "$pkgdir/usr/share/applications/calamares.desktop"
+}

@@ -1,0 +1,7 @@
+# The same scenes and keep-alive wrappers used by Vitreus's installer.
+vitreus-keep "$HOME/.config/pleamar/shells/vitreus/vitreus.plm" "$HOME/.local/share/pleamar/vitreus/vitreus.log"
+PLEAMAR_SWAPCHAIN=1 vitreus-keep "$HOME/.config/pleamar/shells/vitreus/lockscreen/lockscreen.plm"
+vitreus-keep "$HOME/.config/pleamar/shells/vitreus/wptrans/wptrans.plm"
+vitreus-keep "$HOME/.config/pleamar/shells/vitreus/desktopclock/desktopclock.plm"
+vitreus-keep "$HOME/.config/pleamar/shells/vitreus/desktopsysmon/desktopsysmon.plm"
+vitreus-keep "$HOME/.config/pleamar/shells/vitreus/cursortrail/cursortrail.plm"

@@ -1,0 +1,31 @@
+---
+componentName: nahj
+welcomeStyleCalamares: false
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 1000px,680px
+windowPlacement: center
+sidebar: widget
+navigation: widget
+strings:
+  productName: Nahj Linux
+  shortProductName: Nahj
+  version: rolling
+  shortVersion: rolling
+  versionedName: Nahj Linux
+  shortVersionedName: Nahj Linux
+  bootloaderEntryName: Nahj
+  productUrl: https://github.com/9a6r/Nahj-linux
+  supportUrl: https://github.com/9a6r/Nahj-linux/issues
+  knownIssuesUrl: https://github.com/9a6r/Nahj-linux/issues
+images:
+  productWelcome: welcome.png
+style:
+  SidebarBackground: '#161a1f'
+  SidebarText: '#c2c7cc'
+  SidebarTextCurrent: '#10161a'
+  SidebarBackgroundCurrent: '#9ed6bd'
+slideshow: show.qml
+slideshowAPI: 2
+uploadServer:
+  type: none

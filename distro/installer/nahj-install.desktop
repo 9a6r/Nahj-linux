@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Install Nahj Linux
+Name[ar]=تثبيت نهج لينكس
+Comment=Install this live system on a disk
+Comment[ar]=تثبيت النظام على القرص
+Exec=/usr/local/bin/nahj-install
+TryExec=/usr/local/bin/nahj-install
+Icon=system-software-install
+Terminal=false
+Categories=System;
+StartupNotify=true

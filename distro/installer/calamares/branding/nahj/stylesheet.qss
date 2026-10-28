@@ -1,0 +1,26 @@
+/* The existing Glass palette; this styles the installer only. */
+QWidget {
+    background-color: #1b2127;
+    color: #f5f7f5;
+    font-family: "Space Grotesk";
+}
+QLabel { background: transparent; }
+QPushButton {
+    background-color: #3a4048;
+    border: 1px solid #3a4048;
+    border-radius: 12px;
+    padding: 8px 18px;
+}
+QPushButton:hover { border-color: #9ed6bd; }
+QPushButton:default { background-color: #9ed6bd; color: #10161a; }
+QPushButton:disabled { color: #889098; }
+QLineEdit, QComboBox, QSpinBox, QTreeView, QListView, QTextEdit {
+    background-color: #161a1f;
+    selection-background-color: #9ed6bd;
+    selection-color: #10161a;
+    border: 1px solid #3a4048;
+    border-radius: 8px;
+    padding: 5px;
+}
+QProgressBar { border: 0; background: #0b0e11; border-radius: 5px; text-align: center; }
+QProgressBar::chunk { background: #9ed6bd; border-radius: 5px; }

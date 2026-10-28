@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Executed only by the image build's pacman transaction, before initramfs generation.
+set -euo pipefail
+[[ -e /etc/nahj/live-image ]]
+if ! getent passwd nahj >/dev/null; then
+    useradd --create-home --uid 1000 --user-group --groups wheel,video,audio,input,storage --shell /bin/bash nahj
+fi
+# This is a public live-media password, not an installed-system credential.
+printf '%s\n' 'nahj:nahj' | chpasswd
+passwd --lock root
+chmod 0440 /etc/sudoers.d/10-nahj-live
+systemctl enable NetworkManager.service bluetooth.service sddm.service vboxservice.service
+systemctl enable power-profiles-daemon.service
+systemctl set-default graphical.target
+plymouth-set-default-theme nahj
+locale-gen
+# Prevent this build-only helper from being copied to an installed machine.
+rm -f /usr/local/libexec/nahj-image-setup

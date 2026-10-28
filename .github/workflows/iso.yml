@@ -1,0 +1,58 @@
+name: Build Nahj ISO
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, codex/nahj-archiso]
+    paths: ['distro/**', '.github/workflows/iso.yml', 'screenshots/boot/**']
+permissions:
+  contents: read
+concurrency:
+  group: nahj-iso-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  iso:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Prepare build directories
+        run: |
+          mkdir -p "$RUNNER_TEMP/nahj"/{payload,packages,out,logs}
+          sudo chown -R 1000:1000 "$RUNNER_TEMP/nahj"
+      - name: Build trusted Arch toolchain
+        run: docker build --progress=plain -f distro/runtime/Dockerfile -t nahj-builder distro/runtime
+      - name: Build payload and installer
+        shell: bash
+        run: |
+          set -o pipefail
+          docker run --rm --user builder -v "$GITHUB_WORKSPACE:/src:ro" -v "$RUNNER_TEMP/nahj:/build" nahj-builder bash -euo pipefail -c '
+            python /src/distro/boot/generate.py --output /build/payload/usr/share/plymouth/themes/nahj --preview-dir /build/previews
+            /src/distro/runtime/build.sh /build/payload /build/runtime-cache
+            /src/distro/runtime/desktop-assets.sh /build/payload /build/desktop-cache
+            PYTHONDONTWRITEBYTECODE=1 python /src/distro/installer/test_target.py
+            /src/distro/installer/build.sh /build/packages
+          ' 2>&1 | tee "$RUNNER_TEMP/nahj/logs/payload.log"
+      - name: Compose and build live ISO
+        shell: bash
+        run: |
+          set -o pipefail
+          sudo modprobe loop
+          docker run --rm --privileged -v "$GITHUB_WORKSPACE:/src:ro" -v "$RUNNER_TEMP/nahj:/build" -e SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)" nahj-builder /src/distro/build-iso.sh --work-dir /build/iso-work --out-dir /build/out --payload-dir /build/payload --package-dir /build/packages 2>&1 | tee "$RUNNER_TEMP/nahj/logs/iso.log"
+          test -s "$RUNNER_TEMP/nahj/out/SHA256SUMS"
+      - name: Upload ISO and checksums
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: nahj-iso-${{ github.sha }}
+          path: ${{ runner.temp }}/nahj/out/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+      - name: Upload build evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: nahj-build-evidence-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/nahj/logs/
+            ${{ runner.temp }}/nahj/previews/
+          retention-days: 7

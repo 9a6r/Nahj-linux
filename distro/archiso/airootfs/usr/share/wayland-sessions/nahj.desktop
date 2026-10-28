@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Nahj — Hyprland / Vitreus
+Comment=The original Vitreus desktop shell on Hyprland and Wayland
+Exec=/usr/local/bin/nahj-session
+Type=Application
+DesktopNames=Hyprland

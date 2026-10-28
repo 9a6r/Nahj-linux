@@ -1,0 +1,78 @@
+# Generated frame constants come from generate.py. The intro never wraps.
+# Image decoding keeps only the current frame, instead of preloading hundreds.
+Window.SetBackgroundTopColor(0.035, 0.10, 0.14);
+Window.SetBackgroundBottomColor(0.02, 0.06, 0.09);
+
+frame = 0;
+phase = "intro";
+background = Sprite();
+background.SetZ(-100);
+dialog = null;
+message = null;
+
+fun draw_frame() {
+    local.image = Image(phase + "-" + frame + ".png");
+    local.width = Window.GetWidth();
+    local.height = Window.GetHeight();
+    local.scale = Math.Min(width / @WIDTH@, height / @HEIGHT@);
+    image = image.Scale(Math.Int(@WIDTH@ * scale), Math.Int(@HEIGHT@ * scale));
+    background.SetImage(image);
+    background.SetX(Window.GetX() + (width - image.GetWidth()) / 2);
+    background.SetY(Window.GetY() + (height - image.GetHeight()) / 2);
+}
+
+fun refresh() {
+    draw_frame();
+    global.frame++;
+    if (phase == "intro" && frame >= @INTRO_FRAMES@) {
+        global.phase = "loop";
+        global.frame = 0;
+    }
+    if (phase == "loop" && frame >= @LOOP_FRAMES@)
+        global.frame = 0;
+}
+
+fun place_text(text, y, z) {
+    local.image = Image.Text(text, 0.92, 0.98, 1.0);
+    local.sprite = Sprite(image);
+    sprite.SetPosition(Window.GetX() + (Window.GetWidth() - image.GetWidth()) / 2,
+                       Window.GetY() + Window.GetHeight() * y, z);
+    return sprite;
+}
+
+fun display_normal() {
+    global.dialog = null;
+}
+
+fun display_password(prompt, bullets) {
+    global.dialog = null;
+    local.mask = "";
+    for (i = 0; i < bullets; i++)
+        mask += "*";
+    global.dialog.prompt = place_text(prompt, 0.81, 100);
+    global.dialog.answer = place_text(mask, 0.87, 100);
+}
+
+fun display_question(prompt, entry) {
+    global.dialog = null;
+    global.dialog.prompt = place_text(prompt, 0.81, 100);
+    global.dialog.answer = place_text(entry, 0.87, 100);
+}
+
+fun display_message(text) {
+    global.message = null;
+    global.message = place_text(text, 0.94, 100);
+}
+
+fun hide_message(text) {
+    global.message = null;
+}
+
+draw_frame();
+Plymouth.SetRefreshRate(@FPS@);
+Plymouth.SetRefreshFunction(refresh);
+Plymouth.SetDisplayNormalFunction(display_normal);
+Plymouth.SetDisplayPasswordFunction(display_password);
+Plymouth.SetDisplayQuestionFunction(display_question);
+Plymouth.SetDisplayMessageFunction(display_message);
+Plymouth.SetHideMessageFunction(hide_message);

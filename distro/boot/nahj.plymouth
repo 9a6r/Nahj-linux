@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Nahj
+Description=Nahj one-shot glow and moving water
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/nahj
+ScriptFile=/usr/share/plymouth/themes/nahj/nahj.script

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Idempotent user initialization. Never replace an existing user's shell or settings.
+set -euo pipefail
+config=${XDG_CONFIG_HOME:-$HOME/.config}
+data=${XDG_DATA_HOME:-$HOME/.local/share}
+seed=/usr/share/nahj/vitreus
+dest=$config/pleamar/shells/vitreus
+mkdir -p "$config/pleamar/shells" "$config/hypr" "$data/pleamar/vitreus" "$HOME/.local/bin"
+if [[ ! -e "$dest" ]]; then
+    cp -a "$seed" "$dest"
+    chmod -R u+rwX "$dest"
+fi
+for palette in palette wm-palette; do
+    if [[ ! -e "$dest/$palette.plm" ]]; then
+        cp "$dest/$palette.default.plm" "$dest/$palette.plm"
+    fi
+done
+for helper in "$dest"/bin/*; do
+    [[ -x "$helper" && ! -e "$HOME/.local/bin/${helper##*/}" ]] || continue
+    ln -s "$helper" "$HOME/.local/bin/${helper##*/}"
+done
+for file in hyprland.lua; do
+    [[ -e "$config/hypr/$file" ]] || cp "/etc/skel/.config/hypr/$file" "$config/hypr/$file"
+done
+[[ -e "$config/hypr/hypr_vitreus.lua" ]] || ln -s "$dest/hypr_vitreus.lua" "$config/hypr/hypr_vitreus.lua"
+[[ -e "$config/hypr/hypridle.conf" ]] || cp "$dest/pleamar-wm/hypridle.conf" "$config/hypr/hypridle.conf"
+[[ -e "$config/pleamar/autostart" ]] || cp /etc/skel/.config/pleamar/autostart "$config/pleamar/autostart"
+xdg-user-dirs-update

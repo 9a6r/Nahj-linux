@@ -21,3 +21,13 @@ Initial evidence:
 - Docker is available. This machine exposes no `/dev/kvm` or `/dev/dri`; hardware-accelerated VM/desktop claims require separate testing.
 
 Build and validation results are recorded below as they are completed. A configured workflow is not evidence that an ISO built or booted.
+
+## 2026-10-28 — Recovered implementation and first build submission
+
+- Added Archiso overlay, linux-zen boot configuration, preserved Vitreus SDDM theme, live session, and Calamares packaging.
+- Added pinned runtime/font/desktop source downloads with checksums and an Arch builder container.
+- Generated the supplied-video splash: 132 intro frames followed by a 108-frame glow-free loop; preview artifacts are in `screenshots/boot/`.
+- Four installer target-cleanup tests passed. Bash and Python syntax checks passed.
+- Cloud container build initially failed on mirror DNS routing; retry uses the environment proxy and trusted CA. No TLS or package-signature verification is disabled.
+- Added GitHub Actions build with ISO/checksum artifacts and retained failure logs. A submitted build is not a boot validation.
+- Outstanding: complete compilation and ISO build, then actual BIOS/UEFI/live/installed and VirtualBox visual checks. Fast boot currently can finish Plymouth before the intro completes; this needs integration review.

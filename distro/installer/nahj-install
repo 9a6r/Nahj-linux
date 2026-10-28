@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ ! -e /etc/nahj/live-image || ! -r /run/archiso/bootmnt/arch/x86_64/airootfs.sfs ]]; then
+    printf '%s\n' 'Start the installer from the Nahj Linux live image.' >&2
+    exit 1
+fi
+# The live account may elevate without a password. Qt talks to this same Wayland
+# session; no xhost change, network listener or privileged helper is left behind.
+export QT_QPA_PLATFORM=wayland
+exec sudo --preserve-env=WAYLAND_DISPLAY,XDG_RUNTIME_DIR,DISPLAY,DBUS_SESSION_BUS_ADDRESS,QT_QPA_PLATFORM \
+    /usr/bin/calamares

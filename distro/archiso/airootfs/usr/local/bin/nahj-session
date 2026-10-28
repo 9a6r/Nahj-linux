@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
+export XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland
+export QT_QPA_PLATFORM='wayland;xcb'
+export MOZ_ENABLE_WAYLAND=1
+/usr/local/bin/nahj-session-init
+# SDDM provides the user bus; direct TTY launches get their own session bus.
+if [[ -n ${DBUS_SESSION_BUS_ADDRESS:-} ]]; then
+    exec Hyprland
+fi
+exec dbus-run-session -- Hyprland
