@@ -31,3 +31,13 @@ Build and validation results are recorded below as they are completed. A configu
 - Cloud container build initially failed on mirror DNS routing; retry uses the environment proxy and trusted CA. No TLS or package-signature verification is disabled.
 - Added GitHub Actions build with ISO/checksum artifacts and retained failure logs. A submitted build is not a boot validation.
 - Outstanding: complete compilation and ISO build, then actual BIOS/UEFI/live/installed and VirtualBox visual checks. Fast boot currently can finish Plymouth before the intro completes; this needs integration review.
+
+Additional validation:
+
+- Verified all 240 generated PNG checksums and phase counts.
+- Verified all 14 pinned desktop source/font archive checksums.
+- Validated installer module configurations against the pinned Calamares schemas; YAML parsing passed.
+- Git comparison confirms no original shell files were modified.
+- Commits `f9b4c89` and `b86f805` were pushed. GitHub run https://github.com/9a6r/Nahj-linux/actions/runs/40607837434 was observed in progress; result not yet verified.
+- Cloud build proxy DNS was resolved through Docker's explicit host mapping; the remaining failure is an actual `CONNECT 403` for geo.mirror.pkgbuild.com. GitHub API is likewise blocked in the current instance, although Git push and the public Actions page work. The necessary two domains are saved in the environment draft and await runtime activation.
+- No ISO boot, real desktop screenshot, or hardware install has yet been verified. Do not treat this branch as a tested release.
