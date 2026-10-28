@@ -4,9 +4,9 @@
 # The saved TVs are in ~/.local/share/pleamar/tvremote/config.json; the certificate that the TVs remember as "paired" is in the same folder, mode 600: anyone who can read it can control them.
 
 name        = "TV Remote"
-description = "Control your Google TV from the panel"
+description = "Control your Google TV or LG TV from the panel"
 author      = "natepayn3"
-version     = "0.2"
+version     = "0.3"
 scene       = "tvremote.plm"
 icon        = "remote.svg"
 
