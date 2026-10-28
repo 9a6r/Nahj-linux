@@ -1370,6 +1370,11 @@ scene Vitreus {
     on change panel while panel != player and panel != tray { f3: 0 ~80ms; f3: 0 ~80ms after 205ms }
     on change panel while panel == settings   { fs: 1 after 220ms }
     on change panel while panel == launch     { fl: 1 after 200ms; focus lq; emit launch_open }
+    //  …and again the moment the field is actually drawn: the `focus` above runs in the same frame as the
+    //  change, when this group is still `opacity: fl * pown` with `fl` at 0 (it only starts 200 ms later)
+    //  and the surface has only just asked for the keyboard, so nothing took it and the search would not
+    //  take a key until it was clicked.
+    on change fl > 0.05 while panel == launch { focus lq }
     on change panel while panel != launch     { fl: 0 ~80ms; fl: 0 ~80ms after 205ms }
     on change panel while panel != settings   { fs: 0 ~80ms; fs: 0 ~80ms after 225ms }
     on change osd_on while osd_on { fo: 1 after 140ms }
