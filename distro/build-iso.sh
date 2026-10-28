@@ -59,7 +59,7 @@ cat "$repo/distro/archiso/profiledef.override.sh" >> "$profile/profiledef.sh"
 
 # Keep official rescue utilities, replacing only the generic kernel package.
 cat "$releng/packages.x86_64" "$repo/distro/archiso/packages.x86_64" \
-    | sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' -e '/^linux$/d' -e '/^linux-headers$/d' \
+    | sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' -e '/^linux$/d' -e '/^linux-headers$/d' -e '/^virtualbox-guest-utils-nox$/d' \
     | sort -u > "$profile/packages.x86_64"
 printf '%s\n' nahj-installer >> "$profile/packages.x86_64"
 
@@ -156,6 +156,7 @@ gpg --homedir "$signing" --batch --pinentry-mode loopback --passphrase '' \
 fingerprint=$(gpg --homedir "$signing" --with-colons --list-secret-keys | awk -F: '$1 == "fpr" { print $10; exit }')
 [[ $fingerprint =~ ^[A-F0-9]{40}$ ]] || die 'could not determine package signing key'
 gpg --homedir "$signing" --batch --export "$fingerprint" > "$work/local-build-key.gpg"
+pacman-key --init
 pacman-key --add "$work/local-build-key.gpg"
 pacman-key --lsign-key "$fingerprint"
 for package in "$local_repo"/*.pkg.tar.zst; do

@@ -19,6 +19,8 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/nahj"/{payload,packages,out,logs}
           sudo chown -R 1000:1000 "$RUNNER_TEMP/nahj"
+          # tee runs as the host runner (UID differs from container builder).
+          sudo chown "$(id -u):$(id -g)" "$RUNNER_TEMP/nahj/logs"
       - name: Build trusted Arch toolchain
         shell: bash
         run: |
