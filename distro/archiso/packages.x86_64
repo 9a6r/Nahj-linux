@@ -7,9 +7,7 @@ vulkan-radeon
 vulkan-intel
 vulkan-swrast
 vulkan-tools
-libva-mesa-driver
 mesa-utils
-xf86-video-vmware
 virtualbox-guest-utils
 hyprland
 hypridle

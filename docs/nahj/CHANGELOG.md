@@ -61,3 +61,5 @@ Uploaded 13 original desktop/shell images and animated WebP files under `screens
 ### Cloud build resumed after environment publication
 
 The official Arch builder image now builds successfully with TLS and package signatures enabled. Iris palette generation, mpvpaper compilation/help, and all six original font families completed. Added the original Caffeine idle-inhibitor build to the payload and compiled it successfully. To fit this cloud host's Docker VFS storage, compilation uses one shared container instead of several full image copies. Runtime and Calamares compilation are in progress; this is not an ISO boot result.
+
+Calamares 3.3.14 compiled and packaged successfully in the Arch container; its six target tests and module schemas passed. Fixed installer selection to distinguish its main package from makepkg's additional debug package. Repository preflight found `libva-mesa-driver` and `xf86-video-vmware` no longer available; the image retains current Mesa, xorg-server's modesetting driver, and VirtualBox guest utilities. All 208 official image packages now resolve successfully. Pleamar compilation is in progress.

@@ -48,7 +48,7 @@ done
 shopt -s nullglob
 local_packages=("$packages"/*.pkg.tar.zst)
 ((${#local_packages[@]})) || die "no locally built packages in $packages"
-installer_packages=("$packages"/nahj-installer-*.pkg.tar.zst)
+installer_packages=("$packages"/nahj-installer-[0-9]*.pkg.tar.zst)
 ((${#installer_packages[@]} == 1)) || die "expected exactly one nahj-installer package"
 mkdir -p "$work" "$out"
 profile=$work/profile
