@@ -17,3 +17,11 @@
 # sha     = "0123456789abcdef0123456789abcdef01234567"
 # license = "MIT"
 # api     = 1
+
+[news-weather]
+repo    = "jaslrobinson/vitreus-news-weather"
+path    = ""
+tag     = "v0.2"
+sha     = "e4de5351aaef6ef0e0aa09c19b600c1fb7bfcaad"
+license = "MIT"
+api     = 1
