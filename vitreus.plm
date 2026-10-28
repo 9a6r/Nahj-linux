@@ -1595,6 +1595,7 @@ scene Vitreus {
     text kb_code = ""
     event kb_next ->
     event lockkeys ->                // Caps Lock or Num Lock was pressed (hypr_vitreus.lua's binds)
+    event lockkeys_set ->            // the same from pleamar-wm, with the new state: 0 / 1 Caps off / on, 2 / 3 Num off / on (pleamar-wm/wm/session.luau)
     //  Caps Lock and Num Lock: a row of the volume drawer for two seconds when either is pressed (`osd_m`, pages/osd_drawer.plm). `lk_kind`
     //  0 Caps, 1 Num, 2 a layout switch (`kb_name`); `lk_state` on or off.
     fact lk_kind = 0

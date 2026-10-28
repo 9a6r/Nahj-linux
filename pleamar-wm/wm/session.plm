@@ -147,6 +147,13 @@ scene Session {
     // Super held (the compositor says): then a window is carried from
     // anywhere on it, tiled or free, even to the other monitor.
     fact keys.super = 0
+    //  Caps Lock and Num Lock (the compositor says, pleamar-wm with `keys.caps`/`keys.num`): passed on to Vitreus by session.luau, which shows them
+    //  in its volume drawer. `lk_change` carries 0 / 1 for Caps off / on, 2 / 3 for Num off / on.
+    fact keys.caps = 0
+    fact keys.num = 0
+    event lk_change ->
+    on change keys.caps { emit lk_change(if(keys.caps > 0.5, 1, 0)) }
+    on change keys.num { emit lk_change(2 + if(keys.num > 0.5, 1, 0)) }
     fact grab.x = 0                      // where it was taken from, from its corner
     fact grab.y = 0
     fact over = -1                       // the window under the one carried
@@ -206,7 +213,7 @@ scene Session {
     fact ph.at = 0
     prop pc = 0 ~spring(230, 23)
     // (The hour, on the phone's status line.)
-    permissions { services: "clock" }
+    permissions { services: "clock"; run: "pleamar" }
     service clock as now { time: text; hour: number }
     // Each window's turn on the phone, left to right as they opened, and how many there are.
     let ph.on[16]

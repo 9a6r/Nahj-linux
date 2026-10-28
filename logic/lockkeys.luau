@@ -5,7 +5,8 @@
 -- `capsLock` and `numLock`). No polling. A change shows a row of the volume drawer for two seconds (pages/osd_drawer.plm).
 -- The layout: Hyprland's event socket says `activelayout>>KEYBOARD,NAME` when it changes (vitreus.luau's listener calls `LOCKKEYS.layout`); the bar
 -- shows a two-letter chip with the tray icons only when more than one layout is set up (`kb_multi`), and a press on it switches to the next.
--- Without Hyprland there is nothing to read (pleamar-wm's `hyprctl` answers only `monitors` and `activewindow`): nothing is shown.
+-- Under pleamar-wm the window manager scene says the new state itself (`lockkeys_set`, from pleamar-wm/wm/session.luau); the layout is
+-- Hyprland's only.
 return function()
     local caps, num = nil, nil
     local main_name = nil
@@ -51,6 +52,14 @@ return function()
                 caps, num = c, n
             end)
         end)
+    end)
+
+    -- pleamar-wm says the new state itself (its window manager scene passes on `keys.caps` and `keys.num`): nothing to read.
+    on("lockkeys_set", function(n)
+        n = math.floor((tonumber(n) or 0) + 0.5)
+        local kind, state = n // 2, n % 2 == 1
+        if kind == 0 then caps = state elseif kind == 1 then num = state else return end
+        pop(kind, state)
     end)
 
     LOCKKEYS.layout = function()
