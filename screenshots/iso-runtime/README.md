@@ -27,3 +27,13 @@
 سطح المكتب والشريط بعد الانتقال لمساحة عمل فارغة في نفس جلسة الاختبار:
 
 ![Actual live desktop with original Vitreus bar and wallpaper](desktop-software-rendering.png)
+
+اختيار المنطقة الزمنية داخل المثبّت:
+
+![Installer location page](installer-location.png)
+
+خطة التثبيت على القرص الافتراضي الفارغ (40 GiB، BIOS). هذه معاينة قبل تنفيذ التثبيت، وليست دليلًا على اكتماله:
+
+![Installer disk plan before applying changes](installer-disk-plan.png)
+
+أثناء متابعة الاختبارات الوظيفية للمثبّت، أُوقفت عمليات رسم الشيل مؤقتًا لتخفيف حمل محاكاة TCG؛ إعدادات النظام الأصلية لم تتغير. الشريط الظاهر في هذه المرحلة لا يثبت تشغيل الأنيميشن أثناء اختبار التثبيت.
