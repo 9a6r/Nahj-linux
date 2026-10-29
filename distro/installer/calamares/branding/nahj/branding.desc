@@ -19,7 +19,7 @@ strings:
   supportUrl: https://github.com/9a6r/Nahj-linux/issues
   knownIssuesUrl: https://github.com/9a6r/Nahj-linux/issues
 images:
-  productWelcome: welcome.png
+  productWelcome: welcome.svg
 style:
   SidebarBackground: '#161a1f'
   SidebarText: '#c2c7cc'

@@ -12,7 +12,6 @@ out=$(cd "$out" && pwd)
 work=$(mktemp -d "${TMPDIR:-/tmp}/nahj-installer.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 cp -a "$repo/distro/installer/." "$work/"
-install -m644 "$repo/screenshots/boot/nahj-background.png" "$work/welcome.png"
 cd "$work"
 export PKGDEST="$out"
 makepkg --cleanbuild --clean --noconfirm

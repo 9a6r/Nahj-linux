@@ -1,7 +1,7 @@
 # Calamares is built from an immutable upstream revision, with archive verification.
 pkgname=nahj-installer
 pkgver=3.3.14
-pkgrel=1
+pkgrel=2
 pkgdesc='Calamares installer and live-to-installed configuration for Nahj Linux'
 arch=('x86_64')
 url='https://github.com/9a6r/Nahj-linux'
@@ -52,7 +52,6 @@ package() {
     install -d "$pkgdir/etc/calamares" "$pkgdir/usr/lib/calamares/modules/nahjtarget"
     cp -a "$startdir/calamares/." "$pkgdir/etc/calamares/"
     cp -a "$startdir/nahjtarget/." "$pkgdir/usr/lib/calamares/modules/nahjtarget/"
-    install -Dm644 "$startdir/welcome.png" "$pkgdir/etc/calamares/branding/nahj/welcome.png"
     install -Dm755 "$startdir/nahj-install" "$pkgdir/usr/local/bin/nahj-install"
     install -Dm644 "$startdir/nahj-install.desktop" "$pkgdir/usr/share/applications/nahj-install.desktop"
     # Do not expose upstream's unconfigured root launcher alongside ours.

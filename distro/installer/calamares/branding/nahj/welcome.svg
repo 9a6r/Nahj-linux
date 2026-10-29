@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="440" viewBox="0 0 960 440">
+  <defs>
+    <linearGradient id="glass" x2="0.7" y2="1">
+      <stop stop-color="#323e44"/><stop offset="1" stop-color="#1b2127"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="958" height="438" rx="28" fill="url(#glass)" stroke="#45545b"/>
+  <path d="M48 58h40" stroke="#9ed6bd" stroke-width="4" stroke-linecap="round"/>
+  <g font-family="Space Grotesk, sans-serif">
+    <text x="48" y="146" font-size="68" font-weight="600" fill="#f5f7f5">Nahj</text>
+    <text x="51" y="185" font-size="16" letter-spacing="5" fill="#9ed6bd">LINUX</text>
+    <text x="48" y="254" font-size="26" fill="#f5f7f5">Make room for your desktop.</text>
+    <text x="48" y="290" font-size="18" fill="#c2c7cc">Choose your settings. Review. Install.</text>
+    <text x="48" y="388" font-size="15" fill="#9caab0">Arch Linux  /  Hyprland  /  Vitreus</text>
+  </g>
+  <g fill="none" stroke="#647a7c">
+    <rect x="594" y="67" width="307" height="255" rx="20"/>
+    <rect x="607" y="80" width="34" height="229" rx="12" fill="#263238"/>
+    <path d="M659 94h109" stroke="#9ed6bd" stroke-width="4" stroke-linecap="round"/>
+    <rect x="659" y="116" width="224" height="112" rx="12" fill="#253238"/>
+    <rect x="659" y="241" width="106" height="52" rx="10"/>
+    <rect x="777" y="241" width="106" height="52" rx="10"/>
+    <path d="M702 346h92" stroke-linecap="round"/>
+  </g>
+  <g fill="#9ed6bd">
+    <circle cx="624" cy="98" r="5"/><circle cx="624" cy="126" r="3"/>
+    <circle cx="624" cy="149" r="3"/><circle cx="624" cy="288" r="4"/>
+    <rect x="685" y="143" width="121" height="5" rx="2" opacity=".7"/>
+    <rect x="685" y="159" width="167" height="4" rx="2" opacity=".3"/>
+    <rect x="685" y="173" width="143" height="4" rx="2" opacity=".3"/>
+  </g>
+</svg>

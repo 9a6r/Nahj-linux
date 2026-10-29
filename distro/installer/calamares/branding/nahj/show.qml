@@ -6,7 +6,8 @@ Rectangle {
     function onLeave() {}
     Image {
         anchors.fill: parent
-        source: "welcome.png"
+        anchors.margins: 24
+        source: "welcome.svg"
         fillMode: Image.PreserveAspectFit
         smooth: true
     }

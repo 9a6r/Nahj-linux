@@ -111,6 +111,13 @@ def run():
         configure_target(root)
     except (OSError, ValueError) as error:
         return ("Could not prepare the installed system", str(error))
+    # The live keyring is a tmpfs mount; unpackfs copies the image, not that
+    # initialized mount. The installed system needs its own persistent keyring
+    # before the live-only pacman-init service is retired.
+    for command in (["pacman-key", "--init"], ["pacman-key", "--populate", "archlinux"]):
+        result = libcalamares.utils.target_env_call(command)
+        if result:
+            return ("Could not initialize package verification", f"{' '.join(command)} exited with status {result}.")
     # Remove the live-only installer from the target's package database as well
     # as its files. Dependencies remain; the running installer is on live media.
     result = libcalamares.utils.target_env_call(["pacman", "-R", "--noconfirm", "nahj-installer"])
