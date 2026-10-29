@@ -1,0 +1,97 @@
+[
+  {
+    "scene": "addons/_template/addon.plm",
+    "exit_code": 0,
+    "output": "addons/_template/addon.plm: ok · 0 properties, 4 instructions, 0 layers, 0 rules, 0 zones, 0 gestures"
+  },
+  {
+    "scene": "addons/_template_drawer/addon.plm",
+    "exit_code": 0,
+    "output": "addons/_template_drawer/addon.plm: ok · 199 properties, 512 instructions, 0 layers, 28 rules, 12 zones, 0 gestures"
+  },
+  {
+    "scene": "addons/eq/eq.plm",
+    "exit_code": 0,
+    "output": "addons/eq/eq.plm: ok · 300 properties, 592 instructions, 0 layers, 204 rules, 64 zones, 0 gestures"
+  },
+  {
+    "scene": "addons/news-weather/news-weather.plm",
+    "exit_code": 0,
+    "output": "addons/news-weather/news-weather.plm: ok · 1398 properties, 7872 instructions, 0 layers, 912 rules, 704 zones, 0 gestures"
+  },
+  {
+    "scene": "addons/tvremote/tvremote.plm",
+    "exit_code": 0,
+    "output": "addons/tvremote/tvremote.plm: ok · 600 properties, 584 instructions, 0 layers, 236 rules, 136 zones, 0 gestures"
+  },
+  {
+    "scene": "cursortrail/cursortrail.plm",
+    "exit_code": 0,
+    "output": "cursortrail/cursortrail.plm: ok · 45 properties, 188 instructions, 0 layers, 0 rules, 0 zones, 0 gestures"
+  },
+  {
+    "scene": "desktopcards/desktopcards.plm",
+    "exit_code": 0,
+    "output": "desktopcards/desktopcards.plm: ok · 421 properties, 1392 instructions, 0 layers, 116 rules, 84 zones, 0 gestures"
+  },
+  {
+    "scene": "desktopclock/desktopclock.plm",
+    "exit_code": 0,
+    "output": "desktopclock/desktopclock.plm: ok · 177 properties, 216 instructions, 0 layers, 20 rules, 4 zones, 0 gestures"
+  },
+  {
+    "scene": "desktopedit/desktopedit.plm",
+    "exit_code": 0,
+    "output": "desktopedit/desktopedit.plm: ok · 60 properties, 4108 instructions, 0 layers, 116 rules, 36 zones, 0 gestures"
+  },
+  {
+    "scene": "desktopmenu/desktopmenu_hypr.plm",
+    "exit_code": 0,
+    "output": "desktopmenu/desktopmenu_hypr.plm: ok · 0 properties, 8 instructions, 0 layers, 4 rules, 4 zones, 0 gestures"
+  },
+  {
+    "scene": "desktopnotes/desktopnotes.plm",
+    "exit_code": 0,
+    "output": "desktopnotes/desktopnotes.plm: ok · 236 properties, 3408 instructions, 0 layers, 328 rules, 132 zones, 0 gestures"
+  },
+  {
+    "scene": "desktopsysmon/desktopsysmon.plm",
+    "exit_code": 0,
+    "output": "desktopsysmon/desktopsysmon.plm: ok · 329 properties, 1232 instructions, 0 layers, 24 rules, 4 zones, 0 gestures"
+  },
+  {
+    "scene": "files/files.plm",
+    "exit_code": 0,
+    "output": "files/files.plm: ok · 2511 properties, 31697 instructions, 0 layers, 1722 rules, 375 zones, 0 gestures"
+  },
+  {
+    "scene": "lockscreen/lockscreen.plm",
+    "exit_code": 0,
+    "output": "lockscreen/lockscreen.plm: ok · 639 properties, 4709 instructions, 0 layers, 24 rules, 10 zones, 0 gestures"
+  },
+  {
+    "scene": "pleamar-wm/wm/session.plm",
+    "exit_code": 0,
+    "output": "pleamar-wm/wm/session.plm: ok · 8815 properties, 35940 instructions, 0 layers, 12216 rules, 2624 zones, 0 gestures"
+  },
+  {
+    "scene": "snap/snap.plm",
+    "exit_code": 0,
+    "output": "snap/snap.plm: ok · 468 properties, 10252 instructions, 0 layers, 255 rules, 73 zones, 0 gestures"
+  },
+  {
+    "scene": "vitreus.plm",
+    "exit_code": 0,
+    "output": "vitreus.plm: ok · 30298 properties, 91168 instructions, 0 layers, 9508 rules, 5672 zones, 0 gestures"
+  },
+  {
+    "scene": "webcam/webcam.plm",
+    "exit_code": 0,
+    "output": "webcam/webcam.plm: ok · 29 properties, 52 instructions, 0 layers, 104 rules, 36 zones, 0 gestures"
+  },
+  {
+    "scene": "wptrans/wptrans.plm",
+    "exit_code": 0,
+    "output": "wptrans/wptrans.plm: ok · 2 properties, 3 instructions, 0 layers, 1 rules, 0 zones, 0 gestures"
+  }
+]
