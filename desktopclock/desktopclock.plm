@@ -13,7 +13,7 @@ import "clockface_styled.plm"
 scene DesktopClock {
     surface { size: full, full; anchor: top_left; margin: 0; level: bottom, top while edit; screens: each; reserve: -1 }
 
-    permissions { services: "clock", "files", "files.write"; run: "pleamar", "hyprctl" }
+    permissions { services: "clock", "files", "files.write"; run: "pleamar", "hyprctl", "socat", "printenv" }
 
     //  The shell's colours as facts (palette-live.plm reads them): Vitreus sets them when the palette changes (`push_pal` in vitreus.luau), so the theme
     //  changes the colour at once, not after a reload of this scene as the imported palette.plm did.
@@ -206,14 +206,14 @@ scene DesktopClock {
     let tfh = clamp(ceil(2 * hh / tgh), 1, gny)
     //  While it is dragged the zone is the whole surface: the card moves a cell at a time away from where the press was, and a pointer that leaves the zone's input region
     //  ends the drag (the compositor lets go of it), after about one cell.
-    zone box edz { from: if(dragging, 0, zx), if(dragging, 0, zy); size: if(dragging, scw, 2 * (hw + pad)), if(dragging, sch, 2 * (hh + pad)); corner: 16; cursor: pointer; active: edit and (here > 0.5 or dragging); label: "Move clock" }
+    zone box edz { from: if(dragging, 0, zx), if(dragging, 0, zy); size: if(dragging, scw, 2 * (hw + pad)), if(dragging, sch, 2 * (hh + pad)); corner: 16; cursor: pointer; active: edit and shown and (here > 0.5 or dragging); label: "Move clock" }
     on press edz { pcx = mox + gl + (ex0 + fw / 2) * gw; pcy = moy + gt + (ey0 + fh / 2) * gh; dcx = pcx; dcy = pcy; zpx = fx; zpy = fy; dragging = true }
     on drag edz { dcx = pcx + drag.dx; dcy = pcy + drag.dy }
     on change dcx { mon = tmon; gx = clamp(floor((dcx - tox - gl) / tgw - tfw / 2 + 0.5), 0, gnx - tfw); gy = clamp(floor((dcy - toy - gt) / tgh - tfh / 2 + 0.5), 0, gny - tfh) }
     on change dcy { mon = tmon; gx = clamp(floor((dcx - tox - gl) / tgw - tfw / 2 + 0.5), 0, gnx - tfw); gy = clamp(floor((dcy - toy - gt) / tgh - tfh / 2 + 0.5), 0, gny - tfh) }
     on release edz { dragging = false; mon = tmon; gx = clamp(floor((dcx - tox - gl) / tgw - tfw / 2 + 0.5), 0, gnx - tfw); gy = clamp(floor((dcy - toy - gt) / tgh - tfh / 2 + 0.5), 0, gny - tfh) }   // (the rules above read the frame before: once more, now that it is still)
     group {
-        show: edp > 0.01 and here > 0.5
+        show: edp > 0.01 and here > 0.5 and shown
         opacity: edp
         box { from: fx - hw - pad, fy - hh - pad; size: 2 * (hw + pad), 2 * (hh + pad); corner: 16; color: mint; opacity: 7% + 9% * dgp }
         box { from: fx - hw - pad, fy - hh - pad; size: 2 * (hw + pad), 2 * (hh + pad); corner: 16; stroke: 1.6; color: mint; opacity: 55% + 45% * dgp }

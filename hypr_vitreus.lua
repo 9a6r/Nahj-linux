@@ -58,6 +58,27 @@ hl.window_rule({
     float = true,
 })
 
+-- Caps Lock and Num Lock: Hyprland has no event for them, so these tell the shell when either is pressed (a row of the volume drawer shows the
+-- new state). `non_consuming`: the key still reaches the window. Both keys are modifiers themselves (Caps Lock is CAPS, Num Lock MOD2) and a bind
+-- only fires with exactly its own modifiers held (`ignore_mods` is not taken by this Hyprland), so each is bound with and without them: with only
+-- the plain bind, Caps fired on the way on and not on the way off, and nothing fired at all while Num Lock was on.
+for _, key in ipairs({ "Caps_Lock", "Num_Lock" }) do
+    for _, mods in ipairs({ "", "CAPS + ", "MOD2 + ", "CAPS + MOD2 + " }) do
+        hl.bind(mods .. key, hl.dsp.exec_cmd("PATH=\"$HOME/.local/bin:$PATH\" pleamar --say vitreus \"emit lockkeys\""), { non_consuming = true })
+    end
+end
+
+-- hyprglass (an optional Hyprland plugin, ~/.local/lib/hyprglass/hyprglass.so), on trial with Files only: the compositor draws glass behind the
+-- Files window (tagged below), and Files stops bending its own copy of the wallpaper while the plugin is loaded (vitreus.luau, `game_fx.hg_check`),
+-- so that the compositor's shows through. Nothing else: no other window, and not the shell's layer (it is one full-screen surface, and the
+-- plugin glassed all of it). This does nothing until the plugin is loaded: `hyprctl plugin load ~/.local/lib/hyprglass/hyprglass.so`, then `hyprctl reload`.
+if hl.plugin and hl.plugin.hyprglass then
+    local hg = hl.plugin.hyprglass
+    -- (its own default blur, 2.0 = 24 px in three passes, hid everything behind: this is about as frosted as pleamar's glass at 100 %)
+    hg.config({ enabled = false, layers = { enabled = false }, blur_strength = 0.5, blur_iterations = 2 })
+    hl.window_rule({ name = "vitreus-files-hyprglass", match = { class = "^vitreus\\.files$" }, tag = "+hyprglass_enabled" })
+end
+
 -- What starts with the session: pleamar runs ~/.config/pleamar/autostart (the Vitreus scene, lock screen and desktop widgets), and the
 -- daemons the shell relies on (wallpaper, idle lock, clipboard history). Hyprland's PATH has no ~/.local/bin, hence the export.
 hl.on("hyprland.start", function ()

@@ -39,6 +39,11 @@ return function()
         for _, id in ipairs(order) do out[#out + 1] = by[id] end
         return out
     end
+    local needs = {}            -- add-on id -> the packages it still wants (an add-on works without them, with a feature off): the card names them
+    local NEEDS = { eq = { "vitreus-eq", "--missing" } }       -- how to ask an add-on what it is missing: a command that prints a package name a line
+    local hidden = {}           -- ids of bundled add-ons the user removed from the page (they are not listed, and do not start; the line under the cards brings them back)
+    local hidden_n = 0
+    local asked = nil           -- the id whose bin was pressed once: the card asks, and a second press (within 4 s) deletes it
     local sizes = {}            -- the size each add-on's panel was left at (by id): used when it opens again
     local winopen = {}
     local function say_one(sock, cmds)
@@ -207,7 +212,7 @@ return function()
     end
 
     local function save()
-        pcall(sys.call, "files.write", "addons-state.json", { enabled = enabled, sizes = sizes, order = order })
+        pcall(sys.call, "files.write", "addons-state.json", { enabled = enabled, sizes = sizes, order = order, hidden = hidden })
     end
     on("ax_resized", function()       -- a panel was resized: kept for the next time it opens
         local a = cur_pin()
@@ -220,6 +225,9 @@ return function()
         if ok and type(saved) == "table" and type(saved.enabled) == "table" then
             for id, v in pairs(saved.enabled) do if v == true then enabled[id] = true end end
         end
+        if ok and type(saved) == "table" and type(saved.hidden) == "table" then
+            for id, v in pairs(saved.hidden) do if v == true then hidden[id] = true end end
+        end
         if ok and type(saved) == "table" and type(saved.order) == "table" then
             for _, id in ipairs(saved.order) do if type(id) == "string" then order[#order + 1] = id end end
         end
@@ -231,7 +239,7 @@ return function()
     -- Dragging a card (Settings > Add-ons; the scene is pages/addons.plm, the way the Island layout's chips are dragged): the cards stand in slots (`adr.<n>`, card n's slot, 0 first) that
     -- follow `order`; while one is held, the others close the gap it left and open one where it would land (the slot the pointer is nearest), and the held one follows the pointer.
     -- Letting go keeps the order, which is the order of the add-on pill.
-    local CARD_TOP, CARD_STEP = 36, 92          -- as the page lays the cards out
+    local CARD_TOP, CARD_STEP = 36, 74          -- as the page lays the cards out
     local dragc = nil                            -- { id, slot, float } while a card is held
     local function place_cards(drag)
         norm_order()
@@ -290,7 +298,13 @@ return function()
             if k > MAX then break end
             local by = a.author ~= "" and ("by " .. a.author) or ""
             if a.version ~= "" then by = (by ~= "" and (by .. "  ·  ") or "") .. "version " .. a.version end
-            rows[#rows + 1] = { name = a.name, desc = a.description ~= "" and a.description or "No description", by = by, on = enabled[a.id] == true }
+            if a.repo ~= "" then by = (by ~= "" and (by .. "  ·  ") or "") .. "source" end      -- hosted by its author: the line links to the repository
+            local need = needs[a.id]
+            local note = ""
+            if asked == a.id then
+                note = a.mine and "Delete it? Press the bin again · it goes to the trash" or "Remove it? Press the bin again · you can bring it back below"
+            elseif need and #need > 0 then note = "To use Boost, install " .. table.concat(need, " and ") end
+            rows[#rows + 1] = { name = a.name, desc = a.description ~= "" and a.description or "No description", by = note ~= "" and note or by, has = a.repo ~= "", on = enabled[a.id] == true, need = note ~= "", mine = a.mine == true, ask = asked == a.id }
         end
         model.addons = rows
         place_cards(nil)
@@ -302,9 +316,10 @@ return function()
             text.ad_note = "Yours go in ~/.config/pleamar/vitreus-addons"
         end
         fact.ad_err = #errors > 0
+        fact.ad_hidn = hidden_n
+        text.ad_hid = hidden_n > 0 and (hidden_n .. (hidden_n == 1 and " add-on" or " add-ons") .. " removed from this list · press to bring back") or ""
         show_slot()
-        local shown = template:gsub("^/home/[^/]+", "~")
-        text.ad_tpl = template ~= "" and ("Templates: " .. shown .. " (a window), " .. shown .. "_drawer") or ""
+        text.ad_tpl = template ~= "" and "Templates: addons/_template (window), addons/_template_drawer (panel)" or ""   -- short enough for the line; the folders sit in the shell's own folder
     end
 
     local function start(a)
@@ -328,6 +343,7 @@ return function()
     end
 
     local function load_list()
+        hidden_n = 0
         local ok, f = pcall(sys.ask, "files.read", "addons.json", "json")
         if not ok or type(f) ~= "table" or type(f.addons) ~= "table" then return false end
         local out = {}
@@ -336,10 +352,12 @@ return function()
                 a.description = type(a.description) == "string" and a.description or ""
                 a.author = type(a.author) == "string" and a.author or ""
                 a.version = type(a.version) == "string" and a.version or ""
+                a.repo = type(a.repo) == "string" and a.repo:match("^https://github%.com/[%w][%w._-]*/[%w._-]+$") or ""     -- checked again here: it ends in a shell command
+                a.mine = a.mine == true
                 a.drawer = type(a.drawer) == "table" and a.drawer or nil
                 a.icon = type(a.icon) == "string" and a.icon or nil
                 a.wallpaper = type(a.wallpaper) == "table" and a.wallpaper or nil
-                out[#out + 1] = a
+                if hidden[a.id] and not a.mine then hidden_n = hidden_n + 1 else out[#out + 1] = a end
             end
         end
         list = out
@@ -360,12 +378,30 @@ return function()
         return nil
     end
 
+    -- What each add-on that can say is missing: asked each time the page is opened, so installing the packages and coming back is enough.
+    local function check_needs(done)
+        local waiting = 0
+        for id, cmd in pairs(NEEDS) do
+            waiting = waiting + 1
+            run(cmd[1], { cmd[2] }, function(out, code)
+                local miss = {}
+                if code == 0 then
+                    for name in tostring(out or ""):gmatch("[%w][%w._+-]*") do miss[#miss + 1] = name end
+                end
+                needs[id] = miss
+                waiting = waiting - 1
+                if waiting == 0 then done() end
+            end)
+        end
+        if waiting == 0 then done() end
+    end
+
     local function refresh(first)
         local data = sys.ask("files.folder")
         if type(data) ~= "string" then return end
         run("vitreus-addons", { data }, function(_, code)
             if code ~= 0 or not load_list() then return end
-            show()
+            check_needs(show)
             if first then
                 ready = true
                 for k, a in ipairs(list) do if enabled[a.id] then start(a) end end
@@ -374,6 +410,43 @@ return function()
     end
 
     on("addons_refresh", function() refresh(false) end)
+    on("addon_repo", function(k)
+        local a = list[(tonumber(k) or -1) + 1]
+        if a and a.repo ~= "" then exec_on_desktop("xdg-open '" .. a.repo .. "'") end
+    end)
+    -- The bin on a card: the first press asks on the card, the second removes the add-on: the folder of one of the user's own (to the trash, bin/vitreus-addons --remove), or, for one that ships with the shell, just its place in the list.
+    on("addon_del", function(k)
+        local a = list[(tonumber(k) or -1) + 1]
+        if not a or not ready then return end
+        if asked ~= a.id then
+            asked = a.id
+            show()
+            after(4000, function() if asked == a.id then asked = nil; show() end end)
+            return
+        end
+        asked = nil
+        if enabled[a.id] then enabled[a.id] = nil; stop(a) end
+        for i, id in ipairs(order) do if id == a.id then table.remove(order, i) break end end
+        sizes[a.id] = nil
+        save()
+        if not a.mine then          -- one that ships with the shell: not listed any more (its files are the shell's)
+            hidden[a.id] = true
+            save()
+            refresh(false)
+            return
+        end
+        local data = sys.ask("files.folder")
+        if type(data) ~= "string" then return end
+        run("vitreus-addons", { "--remove", data, a.id }, function(_, code)
+            refresh(false)
+            if code ~= 0 then after(800, function() text.ad_note = "Could not delete " .. a.name end) end
+        end)
+    end)
+    on("addons_unhide", function()
+        hidden = {}
+        save()
+        refresh(false)
+    end)
     on("addon_toggle", function(k)
         local a = list[(tonumber(k) or -1) + 1]
         if not a or not ready then return end

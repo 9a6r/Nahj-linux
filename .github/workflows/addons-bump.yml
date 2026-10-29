@@ -1,0 +1,27 @@
+name: Bump bundled add-ons
+on:
+  schedule: [{ cron: "0 6 * * 1" }]
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Move the pins to the newest releases
+        env: { GITHUB_TOKEN: "${{ github.token }}" }
+        run: bin/vitreus-sync-addons bump | tee /tmp/bump.txt
+      - name: Open a PR if anything moved
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          [ -n "$(git status --porcelain)" ] || exit 0
+          git config user.name "github-actions"; git config user.email "actions@users.noreply.github.com"
+          git checkout -b addons-bump
+          git add -A addons
+          git commit -m "Bump bundled add-ons" -m "$(cat /tmp/bump.txt)"
+          bin/vitreus-sync-addons lint | tee -a /tmp/bump.txt || true   # the findings go in the PR; its check blocks the merge
+          git push -f origin addons-bump
+          gh pr create --title "Bump bundled add-ons" --body "$(cat /tmp/bump.txt)"$'\n\nRead the diff under addons/ before merging: add-ons are not sandboxed.' \
+            || gh pr edit addons-bump --body "$(cat /tmp/bump.txt)"

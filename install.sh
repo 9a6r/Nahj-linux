@@ -23,11 +23,11 @@
 #                                      on any other distribution it lists what to install by hand).
 #                                      hyprsunset is required on Hyprland (Night mode): without it, this stops
 #   2. pleamar, the runtime           (its own installer, into your home; a few minutes to build)
-#   3. the fonts                      (Space Grotesk, and the four the Retro, UwU, Cyber and Milkbox themes are drawn in: Audiowide, Mochiy Pop One, Orbitron and Zen Kurenaido;
+#   3. the fonts                      (Space Grotesk, and the five the Retro, UwU, Cyber, Milkbox and Proxy themes are drawn in: Audiowide, Mochiy Pop One, Orbitron, Zen Kurenaido and Titan One;
 #                                      into ~/.local/share/fonts, no sudo)
 #   4. the shell                      (into ~/.config/pleamar/shells/vitreus: cloned, or updated)
 #   5. your palette, autostart entry  (made once and never written over)
-#   5b. the helpers                  (bin/vitreus-clipimg, vitreus-polkit-agent, vitreus-sysmon, vitreus-term, vitreus-files and vitreus-report, linked into ~/.local/bin; vitreus-inhibit, built there)
+#   5b. the helpers                  (bin/vitreus-clipimg, vitreus-polkit-agent, vitreus-sysmon, vitreus-term, vitreus-files, vitreus-edit and vitreus-report, linked into ~/.local/bin; vitreus-inhibit, built there)
 #   6. its Hyprland key binds         (hypr_vitreus.lua linked into ~/.config/hypr, and loaded from hyprland.lua)
 #   6b. the daemons                   (awww, hypridle and the clipboard history: lines in ~/.config/pleamar/autostart, run on any compositor)
 #   6c. niri                        (config.kdl includes vitreus.kdl, the room round the windows the shell writes, and niri_vitreus.kdl, its key binds; with niri installed)
@@ -53,6 +53,9 @@ orbitron_licence_url="https://github.com/google/fonts/raw/main/ofl/orbitron/OFL.
 # The Milkbox theme's typeface, Zen Kurenaido (a soft hand-drawn face; Google Fonts, OFL).
 kurenaido_url="https://github.com/google/fonts/raw/main/ofl/zenkurenaido/ZenKurenaido-Regular.ttf"
 kurenaido_licence_url="https://github.com/google/fonts/raw/main/ofl/zenkurenaido/OFL.txt"
+# The Proxy theme's typeface, Titan One (a chunky rounded display face; Google Fonts, OFL).
+titan_url="https://github.com/google/fonts/raw/main/ofl/titanone/TitanOne-Regular.ttf"
+titan_licence_url="https://github.com/google/fonts/raw/main/ofl/titanone/OFL.txt"
 
 conf="${XDG_CONFIG_HOME:-$HOME/.config}"
 data="${XDG_DATA_HOME:-$HOME/.local/share}"
@@ -63,6 +66,7 @@ fonts_dot="$data/fonts/Audiowide"
 fonts_mochiy="$data/fonts/MochiyPopOne"
 fonts_orbitron="$data/fonts/Orbitron"
 fonts_kurenaido="$data/fonts/ZenKurenaido"
+fonts_titan="$data/fonts/TitanOne"
 
 # Official-repo packages, then AUR ones: what each is for is in the README.
 pacman_pkgs="gcc pkgconf wayland wayland-protocols git curl jq python fontconfig socat glib2 file imagemagick cava playerctl networkmanager bluez bluez-utils brightnessctl hypridle hyprsunset libnotify xdg-user-dirs xdg-utils wl-clipboard cliphist awww ffmpeg grim slurp wf-recorder power-profiles-daemon polkit python-gobject python-pyte ttf-space-mono-nerd pipewire-audio sound-theme-freedesktop tesseract tesseract-data-eng"
@@ -240,6 +244,7 @@ if [ "$action" = uninstall ]; then
     if [ -L "$HOME/.local/bin/vitreus-files" ]; then run rm -f "$HOME/.local/bin/vitreus-files"; fi
     if [ -L "$HOME/.local/bin/vitreus-keep" ]; then run rm -f "$HOME/.local/bin/vitreus-keep"; fi
     if [ -L "$HOME/.local/bin/vitreus-themes" ]; then run rm -f "$HOME/.local/bin/vitreus-themes"; fi
+    if [ -L "$HOME/.local/bin/vitreus-edit" ]; then run rm -f "$HOME/.local/bin/vitreus-edit"; fi
     if [ -L "$HOME/.local/bin/vitreus-addons" ]; then run rm -f "$HOME/.local/bin/vitreus-addons"; fi
     if [ -L "$HOME/.local/bin/vitreus-feedfetch" ]; then run rm -f "$HOME/.local/bin/vitreus-feedfetch"; fi
     if [ -L "$HOME/.local/bin/vitreus-tvremote" ]; then run rm -f "$HOME/.local/bin/vitreus-tvremote"; fi
@@ -397,7 +402,7 @@ if $deps; then
     xdg-user-dirs   finding your Pictures folder, and the places in Files' sidebar
     git, fontconfig
     python          the font setup of the Retro and UwU themes and the font picker (bin/vitreus-fonts)
-    Audiowide, Mochiy Pop One, Orbitron, Zen Kurenaido  the typefaces of the Retro, UwU, Cyber and Milkbox themes (Space Grotesk's neighbours, installed into ~/.local/share/fonts)
+    Audiowide, Mochiy Pop One, Orbitron, Zen Kurenaido, Titan One  the typefaces of the Retro, UwU, Cyber, Milkbox and Proxy themes (Space Grotesk's neighbours, installed into ~/.local/share/fonts)
 LIST
     fi
     # On Hyprland hyprsunset is not optional: Night mode is driven by it. Without it the shell would have to fall back to a Hyprland
@@ -598,6 +603,18 @@ LIST
             have fc-cache && fc-cache -f "$fonts_kurenaido" > /dev/null 2>&1 || true
         fi
     fi
+    if have fc-list && fc-list 2> /dev/null | grep -qi 'titan one'; then
+        say "the Titan One font is installed"
+    elif ask_font "install the Titan One font, for the Proxy theme (into $fonts_titan)?"; then
+        if $dry; then
+            echo "    would download $titan_url"
+        else
+            mkdir -p "$fonts_titan"
+            curl -fsSL -m 120 "$titan_url" -o "$fonts_titan/TitanOne-Regular.ttf" || warn "could not download Titan One: the Proxy theme will use Space Grotesk until you install it"
+            curl -fsSL -m 120 "$titan_licence_url" -o "$fonts_titan/OFL.txt" 2> /dev/null || true
+            have fc-cache && fc-cache -f "$fonts_titan" > /dev/null 2>&1 || true
+        fi
+    fi
     fi
 fi
 
@@ -692,6 +709,7 @@ if [ -x "$dest/bin/vitreus-clipimg" ] || $dry; then
     [ -x "$dest/bin/vitreus-files" ] && run ln -sf "$dest/bin/vitreus-files" "$HOME/.local/bin/vitreus-files"
     [ -x "$dest/bin/vitreus-keep" ] && run ln -sf "$dest/bin/vitreus-keep" "$HOME/.local/bin/vitreus-keep"
     [ -x "$dest/bin/vitreus-themes" ] && run ln -sf "$dest/bin/vitreus-themes" "$HOME/.local/bin/vitreus-themes"       # the shell reads the theme files through it
+    [ -x "$dest/bin/vitreus-edit" ] && run ln -sf "$dest/bin/vitreus-edit" "$HOME/.local/bin/vitreus-edit"             # opens a file in the person's editor (add-ons' settings gears)
     [ -x "$dest/bin/vitreus-addons" ] && run ln -sf "$dest/bin/vitreus-addons" "$HOME/.local/bin/vitreus-addons"       # and the add-ons in ~/.config/pleamar/vitreus-addons (never touched here)
     [ -x "$dest/bin/vitreus-feedfetch" ] && run ln -sf "$dest/bin/vitreus-feedfetch" "$HOME/.local/bin/vitreus-feedfetch"       # the News & Weather add-on (addons/news-weather) reads its feeds through it
     [ -x "$dest/bin/vitreus-tvremote" ] && run ln -sf "$dest/bin/vitreus-tvremote" "$HOME/.local/bin/vitreus-tvremote"       # the TV Remote add-on (addons/tvremote) talks to the TV through it

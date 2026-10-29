@@ -13,6 +13,7 @@ name        = "My add-on"                    # the title of the card (up to ~28 
 description = "What it does, in one line"      # the line under the title (up to ~80 characters; one line is shown)
 author      = "Your Name <you@example.com>"      # shown small, with the version, under the description
 version     = "0.1"
+# repo       = "owner/name"     # optional: where the add-on is hosted (GitHub). The card in Settings > Add-ons then shows a "source" link to it
 
 # Style: Vitreus prefers the boiled pencil for an add-on's icon and graphics: hand-drawn, slightly crooked lines, each drawn twice (the second pass fainter and a hair off) with a wash
 # of the accent colour inside, and, in the scene, strokes redrawn about eight times a second (`floor(time * 8)`; see PCup, PBell and PEnvelope in vitreus.plm). The shell wobbles the

@@ -12,9 +12,12 @@ The panel talks to it in JSON lines: one command per line on stdin, one event pe
 
 The client certificate (what the TV remembers as "paired") lives in the data folder given as argv[1], mode 600.
 """
+import base64
 import hashlib
 import json
 import os
+import re
+import select
 import socket
 import ssl
 import subprocess
@@ -252,6 +255,7 @@ class Remote:
         self.sock = None
         self.lock = threading.Lock()
         self.alive = False
+        self.state = None                           # what the TV last said (model, app, volume), to answer a second connect
         self.stale = False                          # set when another TV was chosen: nothing more is reported from this one
 
     def close(self):
@@ -282,6 +286,7 @@ class Remote:
         self.sock.settimeout(20)                    # the TV pings every few seconds: silence this long means it is gone
         self.alive = True
         state = {"model": "", "vendor": "", "on": False, "app": "", "vol": -1, "max": 100, "muted": False}
+        self.state = state
         try:
             while True:
                 m = parse(recv_msg(self.sock))
@@ -328,6 +333,369 @@ class Remote:
                 self.sock = None
 
 
+# ── LG webOS TVs: the second-screen API (requests as JSON over a WebSocket, 3001 with TLS or 3000) ───────────────────────────
+WEBOS_PORTS = tuple(int(p) for p in os.environ.get("VITREUS_TVREMOTE_WEBOS_PORTS", "3001,3000").split(","))     # wss, ws
+WEBOS_IDLE = float(os.environ.get("VITREUS_TVREMOTE_WEBOS_IDLE", "20"))      # seconds of silence before the TV is asked whether it is there
+WEBOS_PERMS = [                                     # aiowebostv's (handshake.py): the TV asks once, on its screen, for all of them
+    "APP_TO_APP", "CLOSE", "CONTROL_AUDIO", "CONTROL_DISPLAY", "CONTROL_INPUT_JOYSTICK", "CONTROL_INPUT_MEDIA_PLAYBACK",
+    "CONTROL_INPUT_MEDIA_RECORDING", "CONTROL_INPUT_TEXT", "CONTROL_INPUT_TV", "CONTROL_MOUSE_AND_KEYBOARD", "CONTROL_POWER",
+    "CONTROL_TV_SCREEN", "LAUNCH", "LAUNCH_WEBAPP", "READ_APP_STATUS", "READ_COUNTRY_INFO", "READ_CURRENT_CHANNEL",
+    "READ_INPUT_DEVICE_LIST", "READ_INSTALLED_APPS", "READ_LGE_SDX", "READ_LGE_TV_INPUT_EVENTS", "READ_NETWORK_STATE",
+    "READ_NOTIFICATIONS", "READ_POWER_STATE", "READ_RUNNING_APPS", "READ_SETTINGS", "READ_TV_CHANNEL_LIST", "READ_TV_CURRENT_TIME",
+    "READ_UPDATE_INFO", "SEARCH", "TEST_OPEN", "TEST_PROTECTED", "TEST_SECURE", "UPDATE_FROM_REMOTE_APP", "WRITE_NOTIFICATION_ALERT",
+    "WRITE_NOTIFICATION_TOAST", "WRITE_SETTINGS",
+]
+WEBOS_BUTTONS = {"UP": "UP", "DOWN": "DOWN", "LEFT": "LEFT", "RIGHT": "RIGHT", "OK": "ENTER", "BACK": "BACK", "HOME": "HOME", "SETTINGS": "MENU"}
+WS_MAX = 1 << 20                                    # a message larger than this ends the connection (the app list is ~16 KiB)
+
+
+def webos_key_file(host):
+    """The key the TV gave when its prompt was accepted: with it, it lets us in without asking again."""
+    return os.path.join(DATA, "webos-" + host + ".key")
+
+
+class PairRefused(Exception):
+    pass
+
+
+class WebSocket:
+    """A small RFC 6455 client: masked frames out, text / ping / close in."""
+
+    def __init__(self, url, timeout=8):
+        scheme, rest = url.split("://", 1)
+        hostport, _, path = rest.partition("/")
+        host, _, port = hostport.partition(":")
+        port = int(port or (443 if scheme == "wss" else 80))
+        sock = socket.create_connection((host, port), timeout=timeout)
+        if scheme == "wss":
+            ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE                     # the TV's certificate is its own, signed by nobody
+            sock = ctx.wrap_socket(sock, server_hostname=host)
+        key = base64.b64encode(os.urandom(16)).decode()
+        sock.sendall(("GET /%s HTTP/1.1\r\nHost: %s:%d\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n"
+                      "Sec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n" % (path, host, port, key)).encode())
+        head = b""
+        while b"\r\n\r\n" not in head:
+            chunk = sock.recv(4096)
+            if not chunk or len(head) > 16384:
+                raise ConnectionError("the handshake ended early")
+            head += chunk
+        if b" 101 " not in head.split(b"\r\n", 1)[0]:
+            raise ConnectionError("refused: " + head.split(b"\r\n", 1)[0].decode(errors="replace"))
+        self.buf = head.split(b"\r\n\r\n", 1)[1]
+        self.sock = sock
+        self.lock = threading.Lock()
+
+    def _read(self, n):
+        while len(self.buf) < n:
+            chunk = self.sock.recv(65536)
+            if not chunk:
+                raise ConnectionError("closed")
+            self.buf += chunk
+        out, self.buf = self.buf[:n], self.buf[n:]
+        return out
+
+    def send(self, data, opcode=1):
+        data = data.encode() if isinstance(data, str) else data
+        n = len(data)
+        head = bytes([0x80 | opcode]) + (bytes([0x80 | n]) if n < 126 else bytes([0xFE]) + n.to_bytes(2, "big") if n < 65536
+                                         else bytes([0xFF]) + n.to_bytes(8, "big"))
+        mask = os.urandom(4)
+        with self.lock:
+            self.sock.sendall(head + mask + bytes(b ^ mask[i % 4] for i, b in enumerate(data)))
+
+    def recv(self):
+        """The next text message; answers pings; ConnectionError when the TV closes."""
+        parts = b""
+        while True:
+            b0, b1 = self._read(2)
+            op, n = b0 & 0x0F, b1 & 0x7F
+            if n == 126:
+                n = int.from_bytes(self._read(2), "big")
+            elif n == 127:
+                n = int.from_bytes(self._read(8), "big")
+            if n + len(parts) > WS_MAX:
+                raise ConnectionError("a message too large")
+            mask = self._read(4) if b1 & 0x80 else None
+            data = self._read(n)
+            if mask:
+                data = bytes(b ^ mask[i % 4] for i, b in enumerate(data))
+            if op == 8:
+                raise ConnectionError("closed by the TV")
+            if op == 9:
+                self.send(data, 10)
+                continue
+            if op == 10:
+                continue
+            parts += data
+            if b0 & 0x80:
+                return parts.decode(errors="replace")
+
+    def close(self):
+        for f in (lambda: self.sock.shutdown(socket.SHUT_RDWR), self.sock.close):
+            try:
+                f()
+            except OSError:
+                pass
+
+
+def wake(host, mac):
+    """Wake-on-LAN: the TV must allow it ("Turn on via Wi-Fi" / "Mobile TV On"). The MAC comes from the scan, else the ARP cache."""
+    if not mac:
+        try:
+            out = subprocess.run(["ip", "neigh", "show", host], capture_output=True, text=True, timeout=3).stdout
+        except (OSError, subprocess.SubprocessError):
+            out = ""
+        m = re.search(r"lladdr ([0-9a-fA-F:]{17})", out)
+        mac = m.group(1) if m else ""
+    if not mac:
+        return False
+    packet = b"\xff" * 6 + bytes.fromhex(mac.replace(":", "")) * 16
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    for dst in ("255.255.255.255", host.rsplit(".", 1)[0] + ".255"):
+        try:
+            s.sendto(packet, (dst, 9))
+        except OSError:
+            pass
+    s.close()
+    return True
+
+
+def is_webos(host):
+    """Does `host` answer on an LG's ports (for an address typed in, which the scan did not say the kind of)?"""
+    for port in WEBOS_PORTS:
+        try:
+            socket.create_connection((host, port), timeout=2).close()
+            return True
+        except OSError:
+            pass
+    return False
+
+
+class WebOS:
+    """An LG webOS TV: requests and subscriptions on one WebSocket, the d-pad's buttons on a second one the TV hands out."""
+
+    def __init__(self, host, mac=""):
+        self.host, self.mac = host, mac
+        self.ws = None
+        self.buttons = None
+        self.pending = None                         # a button pressed while the button socket was (re)opening
+        self.alive = False
+        self.stale = False
+        self.state = None
+        self.n = 0
+        self.waiting = {}                           # request id -> (callback, kept for a subscription)
+        self.lock = threading.Lock()
+        self.playing = False                        # webOS has no play/pause toggle: alternate
+
+    def close(self):
+        self.stale = True
+        for w in (self.ws, self.buttons):
+            if w is not None:
+                w.close()
+
+    def request(self, uri, payload=None, kind="request", on_reply=None):
+        if self.ws is None:
+            raise ConnectionError("not connected")
+        with self.lock:
+            self.n += 1
+            rid = "r%d" % self.n
+            if on_reply:
+                self.waiting[rid] = (on_reply, kind == "subscribe")
+        msg = {"type": kind, "id": rid, "uri": "ssap://" + uri}
+        if payload is not None:
+            msg["payload"] = payload
+        self.ws.send(json.dumps(msg))
+
+    def open(self):
+        last = None
+        for scheme, port in (("wss", WEBOS_PORTS[0]), ("ws", WEBOS_PORTS[1])):
+            try:
+                return WebSocket("%s://%s:%d/" % (scheme, self.host, port))
+            except (OSError, ConnectionError) as e:
+                last = e
+        raise ConnectionError("no answer on %d or %d: %s" % (WEBOS_PORTS[0], WEBOS_PORTS[1], last))
+
+    def register(self, ws, key):
+        """Register with the saved key, or by the prompt on the TV (60 s to accept); returns the key the TV gave."""
+        payload = {"forcePairing": False, "pairingType": "PROMPT",
+                   "manifest": {"manifestVersion": 1, "appVersion": "1.1", "permissions": WEBOS_PERMS}}
+        if key:
+            payload["client-key"] = key
+        ws.send(json.dumps({"type": "register", "id": "register_0", "payload": payload}))
+        ws.sock.settimeout(60)
+        while True:
+            try:
+                m = json.loads(ws.recv())
+            except socket.timeout:
+                raise PairRefused("nobody answered the question on the TV")
+            if m.get("id") != "register_0":
+                continue
+            if m.get("type") == "registered":
+                return (m.get("payload") or {}).get("client-key") or key
+            if m.get("type") == "response" and (m.get("payload") or {}).get("pairingType") == "PROMPT":
+                emit(ev="state", stage="pair_wait_accept")
+                continue
+            if m.get("type") == "error":
+                raise PairRefused(m.get("error") or "refused")
+
+    def run(self):
+        ws = self.open()
+        self.ws = ws
+        st = {"model": "", "vendor": "LG", "on": True, "app": "", "vol": -1, "max": 100, "muted": False}
+        try:
+            key = None
+            try:
+                with open(webos_key_file(self.host)) as f:
+                    key = f.read().strip() or None
+            except OSError:
+                pass
+            got = self.register(ws, key)
+            if got and got != key:
+                fd = os.open(webos_key_file(self.host), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+                with os.fdopen(fd, "w") as f:
+                    f.write(got)
+                emit(ev="state", stage="paired")
+            ws.sock.settimeout(WEBOS_IDLE)
+            self.alive = True
+            self.state = st
+
+            def info(p):
+                st["model"] = p.get("modelName") or st["model"]
+                emit(ev="state", stage="ready", **st)
+
+            def vol(p):
+                v = p.get("volumeStatus", p)
+                if isinstance(v.get("volume"), int):
+                    st["vol"] = v["volume"]
+                if v.get("maxVolume"):
+                    st["max"] = v["maxVolume"]
+                m = v.get("muteStatus", v.get("muted", p.get("mute")))
+                if m is not None:
+                    st["muted"] = bool(m)
+                emit(ev="state", stage="ready", **st)
+
+            def app(p):
+                if p.get("appId"):
+                    st["app"] = p["appId"]
+                    emit(ev="state", stage="ready", **st)
+            self.request("system/getSystemInfo", on_reply=info)
+            self.request("audio/getVolume", kind="subscribe", on_reply=vol)
+            self.request("com.webos.applicationManager/getForegroundAppInfo", kind="subscribe", on_reply=app)
+            self.request("com.webos.service.networkinput/getPointerInputSocket", on_reply=self.open_buttons)
+            emit(ev="state", stage="ready", **st)
+            missed = False
+            while True:
+                try:
+                    text = ws.recv()
+                    missed = False
+                except socket.timeout:
+                    if missed:
+                        raise ConnectionError("the TV stopped answering")
+                    missed = True
+                    self.request("audio/getVolume")     # a request, not a ping: an LG's pong never comes back as a message to wake this loop
+                    continue
+                if self.stale:
+                    return
+                try:
+                    m = json.loads(text)
+                except ValueError:
+                    continue
+                if m.get("type") == "error":
+                    emit(ev="log", msg="webOS %s: %s" % (m.get("id"), m.get("error")))
+                    with self.lock:
+                        self.waiting.pop(m.get("id"), None)
+                    continue
+                with self.lock:
+                    cb = self.waiting.get(m.get("id"))
+                    if cb and not cb[1]:
+                        self.waiting.pop(m.get("id"), None)
+                if cb:
+                    cb[0](m.get("payload") or {})
+        finally:
+            self.alive = False
+            self.close_quietly()
+
+    def close_quietly(self):
+        for w in (self.ws, self.buttons):
+            if w is not None:
+                w.close()
+        self.ws = self.buttons = None
+
+    def open_buttons(self, p):
+        path = p.get("socketPath", "")
+
+        def go():
+            try:
+                w = WebSocket(path)
+            except (OSError, ConnectionError, ValueError) as e:
+                emit(ev="log", msg="webOS button socket: %s" % e)
+                return
+            w.sock.settimeout(None)
+            self.buttons = w
+            if self.pending:
+                name, self.pending = self.pending, None
+                self.button(name)
+            try:
+                while not self.stale:
+                    w.recv()                        # (answers the TV's pings)
+            except (OSError, ConnectionError):
+                pass
+            if self.buttons is w:
+                self.buttons = None
+        threading.Thread(target=go, daemon=True).start()
+
+    def button(self, name):
+        w = self.buttons
+        if w is not None:
+            try:
+                w.send("type:button\nname:%s\n\n" % name)
+                return
+            except (OSError, ConnectionError):
+                self.buttons = None
+        self.pending = name
+        self.request("com.webos.service.networkinput/getPointerInputSocket", on_reply=self.open_buttons)
+
+    def key(self, k):
+        if k == "VOL_UP" or k == "VOL_DOWN":
+            self.request("audio/volumeUp" if k == "VOL_UP" else "audio/volumeDown")
+        elif k == "MUTE":
+            self.request("audio/setMute", {"mute": not (self.state or {}).get("muted", False)})
+        elif k == "PLAY_PAUSE":
+            self.playing = not self.playing
+            self.request("media.controls/play" if self.playing else "media.controls/pause")
+        elif k == "POWER":
+            self.request("system/turnOff")
+        elif k in WEBOS_BUTTONS:
+            self.button(WEBOS_BUTTONS[k])
+
+    def text(self, t):
+        self.request("com.webos.service.ime/insertText", {"text": t, "replace": 0})
+        self.request("com.webos.service.ime/sendEnterKey")
+
+    def inputs(self):
+        def got(p):
+            cur = (self.state or {}).get("app", "")
+            emit(ev="inputs", list=[{"id": d.get("id", ""), "label": d.get("label") or d.get("id", ""), "on": d.get("appId") == cur}
+                                    for d in p.get("devices", [])])
+        self.request("tv/getExternalInputList", on_reply=got)
+
+    def input(self, iid):
+        self.request("tv/switchInput", {"inputId": iid})
+
+    def apps(self):
+        def got(p):
+            cur = (self.state or {}).get("app", "")
+            pts = sorted(p.get("launchPoints", []), key=lambda a: (a.get("title") or "").lower())
+            emit(ev="apps", list=[{"id": a.get("id", ""), "label": a.get("title") or a.get("id", ""), "on": a.get("id") == cur} for a in pts])
+        self.request("com.webos.applicationManager/listLaunchPoints", on_reply=got)
+
+    def launch(self, aid):
+        self.request("system.launcher/launch", {"id": aid})
+
+
 # ── finding TVs: mDNS, the service every Google TV / Android TV announces ───────────────────────
 def dns_name(buf, i):
     """-> (name, index after it); follows compression pointers."""
@@ -351,49 +719,88 @@ def dns_name(buf, i):
     return ".".join(labels), end
 
 
+def parse_mdns(data, ip, found):
+    """Read one mDNS answer from `ip` into found[(ip, kind)]: Google TVs (_androidtvremote2) and LG webOS TVs (_display, "[LG] …",
+    with the MAC their TXT record carries, for Wake-on-LAN)."""
+    try:
+        qd, an, ns, ar = (int.from_bytes(data[k:k + 2], "big") for k in (4, 6, 8, 10))
+        i = 12
+        for _ in range(qd):
+            _, i = dns_name(data, i)
+            i += 4
+        for _ in range(an + ns + ar):
+            owner, i = dns_name(data, i)
+            rtype = int.from_bytes(data[i:i + 2], "big")
+            ln = int.from_bytes(data[i + 8:i + 10], "big")
+            rd = i + 10
+            if rtype == 12:                                              # PTR: the instance's name
+                inst, _ = dns_name(data, rd)
+                if "._androidtvremote2" in inst:
+                    found.setdefault((ip, "atv"), {"host": ip, "name": inst.split("._androidtvremote2")[0], "kind": "atv"})
+                elif "._display._tcp" in inst and inst.startswith("[LG]"):
+                    tv = found.setdefault((ip, "webos"), {"host": ip, "name": "", "kind": "webos", "mac": ""})
+                    tv["name"] = inst.split("._display")[0][4:].strip()
+            elif rtype == 16 and owner.startswith("[LG]"):              # TXT: "key=value" strings, the LG's MAC among them
+                tv = found.setdefault((ip, "webos"), {"host": ip, "name": owner.split("._display")[0][4:].strip(), "kind": "webos", "mac": ""})
+                k = rd
+                while k < rd + ln:
+                    n = data[k]
+                    kv = data[k + 1:k + 1 + n].decode(errors="replace")
+                    if kv.startswith("mac="):
+                        tv["mac"] = kv[4:].lower()
+                    k += 1 + n
+            i = rd + ln
+    except (IndexError, ValueError):
+        pass
+
+
 def scan(seconds=3.0):
-    """Ask the network for _androidtvremote2._tcp and return [{"host", "name"}] for what answers."""
-    q = b"".join(bytes([len(x)]) + x.encode() for x in ("_androidtvremote2", "_tcp", "local")) + b"\x00"
-    packet = bytes(12)[:4] + b"\x00\x01" + bytes(6) + q + b"\x00\x0c" + b"\x80\x01"     # PTR, class IN with the unicast-reply bit
+    """Ask the network for Google TVs and LG webOS TVs; return [{"host", "name", "kind", ("mac")}] for what answers."""
+    def question(service):                                              # PTR, class IN with the unicast-reply bit
+        return b"".join(bytes([len(x)]) + x.encode() for x in (service, "_tcp", "local")) + b"\x00" + b"\x00\x0c\x80\x01"
+    packet = bytes(4) + (2).to_bytes(2, "big") + bytes(6) + question("_androidtvremote2") + question("_display")
     found = {}
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # Many TVs (an onn Google TV box, for one) ignore the unicast-reply bit and answer by multicast to port 5353, and some (an LG)
+    # answer nothing that was not asked FROM 5353; a firewall such as ufw also lets only multicast mDNS in. So ask from 5353 and
+    # listen there too, beside avahi (shared); the socket on a port of its own is the fallback.
+    group = None
+    try:
+        group = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        group.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if hasattr(socket, "SO_REUSEPORT"):
+            group.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        group.bind(("", 5353))
+        group.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton("224.0.0.251") + socket.inet_aton("0.0.0.0"))
+        group.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 255)
+    except OSError:
+        if group is not None:
+            group.close()
+        group = None
     try:
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 255)
         sock.bind(("", 0))
+        listening = [sock] + ([group] if group else [])
         deadline = time.time() + seconds
         next_ask = 0
         while time.time() < deadline:
             if time.time() >= next_ask:
-                sock.sendto(packet, ("224.0.0.251", 5353))
+                (group or sock).sendto(packet, ("224.0.0.251", 5353))
                 next_ask = time.time() + 1.0
-            sock.settimeout(0.25)
             try:
-                data, (ip, _) = sock.recvfrom(9000)
-            except socket.timeout:
-                continue
+                ready, _, _ = select.select(listening, [], [], 0.25)
+                if not ready:
+                    continue
+                data, (ip, _) = ready[0].recvfrom(9000)
             except OSError:
                 break
-            try:
-                qd, an, ns, ar = (int.from_bytes(data[k:k + 2], "big") for k in (4, 6, 8, 10))
-                i = 12
-                for _ in range(qd):
-                    _, i = dns_name(data, i)
-                    i += 4
-                for _ in range(an + ns + ar):
-                    _, i = dns_name(data, i)
-                    rtype = int.from_bytes(data[i:i + 2], "big")
-                    ln = int.from_bytes(data[i + 8:i + 10], "big")
-                    rd = i + 10
-                    if rtype == 12:                                              # PTR: the instance's name
-                        inst, _ = dns_name(data, rd)
-                        if "_androidtvremote2" in inst:
-                            found[ip] = inst.split("._androidtvremote2")[0]
-                    i = rd + ln
-            except (IndexError, ValueError):
-                continue
+            if len(data) > 12 and data[2] & 0x80:                       # answers only (our own question comes back on 5353)
+                parse_mdns(data, ip, found)
     finally:
         sock.close()
-    return [{"host": h, "name": n} for h, n in sorted(found.items())]
+        if group:
+            group.close()
+    return [v for _, v in sorted(found.items())]
 
 
 CHARS = {" ": 62, ".": 56, ",": 55, "-": 69, "/": 76, "@": 77, "'": 75, ";": 74, "=": 70}
@@ -409,13 +816,19 @@ def main():
     host = ""
     want = {"on": False}
 
-    def start_remote(h):
+    def start_remote(h, kind="atv", mac=""):
         nonlocal remote
-        if remote is not None and remote.alive and remote.host == h and not remote.stale:
+        same = remote is not None and isinstance(remote, WebOS) == (kind == "webos")
+        if same and remote.alive and remote.host == h and not remote.stale:
+            # already connected: say so again, or a panel that asked is left on "Connecting" for good
+            if remote.state and remote.state.get("model"):
+                emit(ev="state", stage="ready", **remote.state)
+            else:
+                emit(ev="state", stage="connecting")
             return
         if remote is not None:
             remote.close()
-        remote = Remote(h)
+        remote = WebOS(h, mac) if kind == "webos" else Remote(h)
 
         def loop(r):
             backoff = 2
@@ -423,11 +836,18 @@ def main():
                 emit(ev="state", stage="connecting")
                 try:
                     r.run()
-                except ssl.SSLError as e:
-                    # a TV that does not know our certificate closes the handshake
+                except PairRefused as e:
                     if r is remote and not r.stale:
-                        emit(ev="state", stage="needs_pairing", msg=str(e))
+                        emit(ev="state", stage="pairing_failed", msg=str(e))
                     return
+                except ssl.SSLError as e:
+                    # a Google TV that does not know our certificate closes the handshake (an LG's TLS trouble is just trouble)
+                    if not isinstance(r, WebOS):
+                        if r is remote and not r.stale:
+                            emit(ev="state", stage="needs_pairing", msg=str(e))
+                        return
+                    if r is remote and not r.stale:
+                        emit(ev="state", stage="error", msg=str(e))
                 except (OSError, ConnectionError, ValueError) as e:
                     if r is remote and not r.stale:
                         emit(ev="state", stage="error", msg=str(e))
@@ -448,32 +868,47 @@ def main():
         try:
             if cmd == "connect":
                 host = c.get("host", host)
+                kind, mac = c.get("kind", "atv"), c.get("mac", "")
                 if remote is not None and remote.host != host:
                     remote.close()
-                if not is_paired(host):
+                if not (os.path.exists(webos_key_file(host)) if kind == "webos" else is_paired(host)):
                     want["on"] = False
                     emit(ev="state", stage="needs_pairing")
                     continue
                 want["on"] = True
-                start_remote(host)
+                start_remote(host, kind, mac)
             elif cmd == "reconnect":
                 host = c.get("host", host)
+                kind, mac = c.get("kind", "atv"), c.get("mac", "")
                 if remote is not None:
                     remote.close()
-                if is_paired(host):
+                if os.path.exists(webos_key_file(host)) if kind == "webos" else is_paired(host):
                     want["on"] = True
-                    start_remote(host)
+                    start_remote(host, kind, mac)
                 else:
                     emit(ev="state", stage="needs_pairing")
             elif cmd == "scan":
                 emit(ev="found", tvs=scan())
             elif cmd == "unpair":
                 try:
-                    os.remove(paired_file(c.get("host", "")))
+                    os.remove(webos_key_file(c.get("host", "")) if c.get("kind") == "webos" else paired_file(c.get("host", "")))
                 except OSError:
                     pass
             elif cmd == "pair":
                 host = c.get("host", host)
+                if c.get("kind") == "webos":            # an LG asks on its own screen: connecting without a key is the pairing
+                    try:
+                        os.remove(webos_key_file(host))
+                    except OSError:
+                        pass
+                    if pairing:
+                        pairing.close()
+                        pairing = None
+                    if remote is not None:
+                        remote.close()
+                    want["on"] = True
+                    start_remote(host, "webos", c.get("mac", ""))
+                    continue
                 want["on"] = False
                 if remote is not None:
                     remote.close()
@@ -500,7 +935,13 @@ def main():
             elif cmd == "key":
                 if remote and remote.alive:
                     k = c.get("key", "")
-                    remote.key(KEYS[k] if k in KEYS else int(k))
+                    if isinstance(remote, WebOS):
+                        remote.key(k)
+                    else:
+                        remote.key(KEYS[k] if k in KEYS else int(k))
+            elif cmd == "text" and isinstance(remote, WebOS):
+                if remote.alive:
+                    remote.text(c.get("text", ""))
             elif cmd == "text":
                 if remote and remote.alive:
                     for ch in c.get("text", "").lower():
@@ -510,11 +951,23 @@ def main():
             elif cmd == "app":
                 if remote and remote.alive:
                     remote.app(c.get("link", ""))
+            elif cmd in ("inputs", "apps"):              # an LG's lists: answered as `inputs` / `apps` events
+                if isinstance(remote, WebOS) and remote.alive:
+                    getattr(remote, cmd)()
+            elif cmd in ("input", "launch"):
+                if isinstance(remote, WebOS) and remote.alive:
+                    getattr(remote, cmd)(c.get("id", ""))
+            elif cmd == "wake":
+                ok = wake(c.get("host", host), c.get("mac", ""))
+                emit(ev="log", msg="wake-on-lan sent" if ok else "no MAC address for wake-on-lan")
             elif cmd == "stop":
                 want["on"] = False
                 break
-        except (ConnectionError, OSError, ssl.SSLError) as e:
-            if cmd == "pair":
+        except (ConnectionError, OSError, ssl.SSLError, PairRefused) as e:
+            if cmd == "pair" and c.get("kind", "atv") == "atv" and is_webos(host):
+                emit(ev="kind", host=host, kind="webos")      # a typed address that is an LG, not a Google TV
+                pairing = None
+            elif cmd == "pair":
                 emit(ev="state", stage="pairing_failed", msg=str(e))
                 pairing = None
             else:

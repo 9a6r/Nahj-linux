@@ -79,13 +79,28 @@ Item {
     }
 
     // ── the picture ──
-    Image {
+    Item {
+        id: picture
         anchors.fill: parent
-        source: config.background
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
+        Image {
+            anchors.fill: parent
+            source: config.background
+            fillMode: Image.PreserveAspectCrop
+            asynchronous: true
+        }
+        Rectangle { anchors.fill: parent; color: "#0b0e11"; opacity: root.stage >= 1 ? 0.30 : 0.10; Behavior on opacity { NumberAnimation { duration: 1600 } } }
     }
-    Rectangle { anchors.fill: parent; color: "#0b0e11"; opacity: root.stage >= 1 ? 0.30 : 0.10; Behavior on opacity { NumberAnimation { duration: 1600 } } }
+    // What the glass sees (GlassPane.qml): the picture, and a blurred copy of it for the frost, both made once and shared (the blurred one at half the size: the blur hides it).
+    ShaderEffectSource { id: pictureSrc; sourceItem: picture; hideSource: false; visible: false }
+    MultiEffect {
+        id: pictureBlur
+        width: root.width / 2; height: root.height / 2
+        source: pictureSrc
+        visible: false
+        blurEnabled: true; blur: 1; blurMax: 48
+        autoPaddingEnabled: false
+    }
+    ShaderEffectSource { id: frostSrc; sourceItem: pictureBlur; hideSource: true; visible: false }
     Rectangle { anchors.fill: parent; color: "black"; opacity: root.leaving ? 1 : 0; Behavior on opacity { NumberAnimation { duration: 500 } } z: 50 }
 
     MouseArea { anchors.fill: parent; onClicked: pw.forceActiveFocus() }
@@ -324,7 +339,8 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: subText.bottom
         anchors.topMargin: 22 * root.u
-        color: root.barColor
+        // glass when the shader loads, and then only a veil of the colour over it; else the plain translucent fill it always had
+        color: barGlass.ready ? Qt.rgba(root.barColor.r, root.barColor.g, root.barColor.b, 0.22) : root.barColor
         border.color: pw.activeFocus ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.7) : root.edge
         border.width: 1.5
         opacity: root.stage >= 4 ? 1 : 0
@@ -333,6 +349,18 @@ Item {
         Behavior on opacity { NumberAnimation { duration: 600 } }
         layer.enabled: true
         layer.effect: MultiEffect { shadowEnabled: true; shadowColor: "#44000000"; shadowBlur: 0.7; shadowVerticalOffset: 6 }
+
+        GlassPane {
+            id: barGlass
+            anchors.fill: parent
+            z: -1
+            radius: bar.radius
+            backdrop: picture
+            source: pictureSrc
+            frosted: frostSrc
+            bevel: 18 * root.u
+            refraction: 22 * root.u
+        }
 
         SequentialAnimation {
             id: shakeAnim

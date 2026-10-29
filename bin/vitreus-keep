@@ -64,7 +64,8 @@ while :; do
     if [ -n "$fonts" ]; then
         FONTCONFIG_FILE="$fonts" pleamar --scene "$P" --no-hud >> "$L" 2>&1 9>&-
     else
-        pleamar --scene "$P" --no-hud >> "$L" 2>&1 9>&-
+        # Not the font setup this keeper itself was started under (a theme change since): that one is no longer the shell's typeface.
+        env -u FONTCONFIG_FILE pleamar --scene "$P" --no-hud >> "$L" 2>&1 9>&-
     fi
     code=$?
     alive || exit 0

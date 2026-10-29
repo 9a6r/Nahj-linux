@@ -13,7 +13,7 @@ scene DesktopSysmon {
 
     permissions {
         services: "files", "files.write"
-        run: "vitreus-sysmon", "sh", "pleamar", "hyprctl"
+        run: "vitreus-sysmon", "sh", "pleamar", "hyprctl", "socat", "printenv"
     }
 
     fact where: top_left | top | top_right | left | center | right | bottom_left | bottom | bottom_right = bottom_right
@@ -69,10 +69,15 @@ scene DesktopSysmon {
     text aur_txt = ""      // "3 AUR updates", or "AUR up to date"
     model net_h max 120 { rx: number; tx: number }    // the last minute of the network, smoothed to two columns a second, each against the biggest in view
     fact net_step = 0                                  // one more with every sample: the graph slides by one sample
-    fact net_t0 = 0                                    // when the last one arrived (the scene's seconds)
-    prop time = 0                                      // our own seconds, which run only while the card is shown (a scene that names `time` otherwise never rests)
-    spin time by if(shown, 1, 0)
-    on change net_step { net_t0 = time }
+    //  How far the graph has slid, in samples: a slow spring chasing the count of samples. They arrive about once a second but never exactly,
+    //  and a slide that took exactly a second (on a clock of the scene's own) ended early or late and paused before each sample. A spring that takes
+    //  longer than the gap between two samples is still moving when the next one arrives, so it glides on at an even pace, and it only settles
+    //  (and the scene rests) when the samples stop. `net_lag` is what is still to slide (about 1.5 at rest, 1 of it under the clip's edge); more than four samples behind (the card shown again
+    //  after a while) it jumps instead of racing to catch up.
+    prop net_glide = 0 ~4000ms
+    let net_lag = net_step - net_glide
+    follow net_glide = net_step
+    on change net_step while net_lag > 4 { net_glide: net_step - 2 ~0ms }
 
     prop sh = 0 ~calm
     follow sh = if(shown, 1, 0)
@@ -172,14 +177,14 @@ scene DesktopSysmon {
     let tfh = clamp(ceil(230 / tgh), 1, gny)
     //  While it is dragged the zone is the whole surface: the card moves a cell at a time away from where the press was, and a pointer that leaves the zone's input region
     //  ends the drag (the compositor lets go of it), after about one cell.
-    zone box edz { from: if(dragging, 0, zx), if(dragging, 0, zy); size: if(dragging, scw, ow), if(dragging, sch, oh); corner: 16; cursor: pointer; active: edit and (here > 0.5 or dragging); label: "Move system" }
+    zone box edz { from: if(dragging, 0, zx), if(dragging, 0, zy); size: if(dragging, scw, ow), if(dragging, sch, oh); corner: 16; cursor: pointer; active: edit and shown and (here > 0.5 or dragging); label: "Move system" }
     on press edz { pcx = mox + gl + (ex0 + fw / 2) * gw; pcy = moy + gt + (ey0 + fh / 2) * gh; dcx = pcx; dcy = pcy; zpx = cx0; zpy = cy0; dragging = true }
     on drag edz { dcx = pcx + drag.dx; dcy = pcy + drag.dy }
     on change dcx { mon = tmon; gx = clamp(floor((dcx - tox - gl) / tgw - tfw / 2 + 0.5), 0, gnx - tfw); gy = clamp(floor((dcy - toy - gt) / tgh - tfh / 2 + 0.5), 0, gny - tfh) }
     on change dcy { mon = tmon; gx = clamp(floor((dcx - tox - gl) / tgw - tfw / 2 + 0.5), 0, gnx - tfw); gy = clamp(floor((dcy - toy - gt) / tgh - tfh / 2 + 0.5), 0, gny - tfh) }
     on release edz { dragging = false; mon = tmon; gx = clamp(floor((dcx - tox - gl) / tgw - tfw / 2 + 0.5), 0, gnx - tfw); gy = clamp(floor((dcy - toy - gt) / tgh - tfh / 2 + 0.5), 0, gny - tfh) }   // (the rules above read the frame before: once more, now that it is still)
     group {
-        show: edp > 0.01 and here > 0.5
+        show: edp > 0.01 and here > 0.5 and shown
         opacity: edp
         box { from: cx0 + ox, cy0 + oy; size: ow, oh; corner: 16; color: mint; opacity: 7% + 9% * dgp }
         box { from: cx0 + ox, cy0 + oy; size: ow, oh; corner: 16; stroke: 1.6; color: mint; opacity: 55% + 45% * dgp }
@@ -251,11 +256,12 @@ scene DesktopSysmon {
             text rx_txt { at: 140, 172; anchor: left center; size: 12.5; weight: 700; width: 112; lines: 1; color: tx; family: "Space Grotesk"; shadow: 0, 1, 5, 70% * (1 - pl) }
             text tx_txt { at: 370, 172; anchor: right center; size: 12.5; weight: 700; width: 112; lines: 1; color: mix(mint, tx, 0.4); family: "Space Grotesk"; align: right; shadow: 0, 1, 5, 70% * (1 - pl) }
             //  The columns are close enough (and smoothed in the logic) to read as one curve; the whole graph slides left as each sample arrives.
-            //  The slide is linear, a sample's width in a second, and the newest sample comes in from beyond the edge (clipped), so it never pops in.
+            //  It slides continuously (`net_glide`), and the newest sample comes in from beyond the edge (clipped), so it never pops in. (Not rounded to
+            //  part of a pixel to paint less often: at under 6 px a second that showed as steps.)
             group {
                 clip box { at: 200, 206; size: 344, 80 }
                 group {
-                    move: (1 - clamp(time - net_t0, 0, 1)) * 5.67, 0
+                    move: (clamp(net_lag, 0, 4) - 1) * 5.67, 0
                     repeat i in 0..120 {
                         let k = i + 120 - net_h.count
                         let dh = max(1.2, clamp(net_h.$i.rx, 0, 1) * 26)

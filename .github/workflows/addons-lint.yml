@@ -1,0 +1,11 @@
+name: Lint bundled add-ons
+on:
+  pull_request:
+    paths: ["addons/**", "bin/vitreus-sync-addons"]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check each bundled add-on against STYLE.md
+        run: bin/vitreus-sync-addons lint

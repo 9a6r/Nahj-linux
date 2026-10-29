@@ -1,0 +1,139 @@
+language 0.1
+import "addon-palette.plm"
+import "addon-pencil.plm"                          // the pencil components (see ../_template_drawer/STYLE.md)
+
+//  VPN quick toggles: a panel with one card per VPN profile NetworkManager holds (the same ones Settings > VPN lists: WireGuard and the ones a VPN plugin such as OpenVPN makes).
+//  A click on a card, or its switch, connects or disconnects that profile (`nmcli connection up|down`, in vpn.luau). The profiles are added and removed in Settings > VPN, not here.
+//  The panel, its title bar, the glass and the resizing are the shell's (see ../_template_drawer/addon.plm for what it tells this scene: the `slot_*` and `pal_*` facts below).
+
+scene VpnToggle {
+    surface { size: full, full; anchor: top_left; margin: 0; level: top, overlay while slot_open; screens: each max 4 }
+
+    permissions {
+        run: "nmcli"
+    }
+
+    fact pal_ink_r = 0.9608
+    fact pal_ink_g = 0.9686
+    fact pal_ink_b = 0.9608
+    fact pal_faint_r = 0.7608
+    fact pal_faint_g = 0.7804
+    fact pal_faint_b = 0.8000
+    fact pal_mint_r = 0.6196
+    fact pal_mint_g = 0.8392
+    fact pal_mint_b = 0.7412
+    fact pal_mintlo_r = 0.4235
+    fact pal_mintlo_g = 0.7373
+    fact pal_mintlo_b = 0.6118
+    fact pal_minthi_r = 0.8627
+    fact pal_minthi_g = 0.9725
+    fact pal_minthi_b = 0.9255
+    fact pal_onmint_r = 0.0627
+    fact pal_onmint_g = 0.0863
+    fact pal_onmint_b = 0.1020
+    fact pal_tint_r = 0.1059
+    fact pal_tint_g = 0.1294
+    fact pal_tint_b = 0.1529
+    fact pal_panel_r = 0.0863
+    fact pal_panel_g = 0.1020
+    fact pal_panel_b = 0.1216
+    fact pal_deep_r = 0.0431
+    fact pal_deep_g = 0.0549
+    fact pal_deep_b = 0.0667
+    fact pal_off_r = 0.2275
+    fact pal_off_g = 0.2510
+    fact pal_off_b = 0.2824
+    fact pal_alert_r = 0.9373
+    fact pal_alert_g = 0.2667
+    fact pal_alert_b = 0.2667
+
+
+    fact room_t = 0
+    fact room_r = 0
+    fact room_b = 0
+    fact room_l = 0
+    fact look = 0
+
+    fact slot_open = false
+    fact slot_sw = 0
+    fact slot_sh = 0
+    text slot_mon = ""
+    fact mon_known = false
+    fact mon_c0 = false
+    fact mon_c1 = false
+    fact mon_c2 = false
+    fact mon_c3 = false
+    fact slot_x = 0
+    fact slot_y = 0
+    fact slot_w = 0
+    fact slot_h = 0
+    let mon_here = if(screen.index == 0, if(mon_c0, 1, 0), if(screen.index == 1, if(mon_c1, 1, 0), if(screen.index == 2, if(mon_c2, 1, 0), if(mon_c3, 1, 0))))
+    let shown = if(slot_open and (if(mon_known, mon_here > 0.5, slot_sw == 0 or (screen.width == slot_sw and screen.height == slot_sh))), 1, 0)
+
+    let u = 1.1
+    let fr = if(shown > 0.5 and look < 4.5, floor(time * 8), 0)       // (the pencil holds still on the Proxy theme: its HUD is crisp)
+
+    prop wk = 0 ~700ms
+    prop en1 = 0 ~200ms
+    prop en2 = 0 ~380ms
+    prop en3 = 0 ~520ms
+    on change shown while shown > 0.5 { wk: 1; en1: 1 after 200ms; en2: 1 after 200ms; en3: 1 after 200ms }
+    on change shown while shown < 0.5 { wk: 0 ~80ms; en1: 0 ~80ms; en2: 0 ~80ms; en3: 0 ~80ms; en1: 0 ~80ms after 205ms; en2: 0 ~80ms after 205ms; en3: 0 ~80ms after 205ms }
+    every 500ms while shown > 0.5 and en1 < 0.002 { en1: 1 after 200ms; en2: 1 after 200ms; en3: 1 after 200ms }
+
+    //  What vpn.luau reports: the profiles (name, what kind, connected 0/1, working 0/1) and the line over them.
+    model profs max 8 { name: text; sub: text; act: number; busy: number }
+    text head = "VPN"
+    text headsub = ""
+    event vt_toggle ->
+
+    //  A key, as the Material "vpn_key" symbol draws it (a ring, and a shaft with two teeth), in pencil; the ring fills in while connected.
+    component PKey(cx: number, cy: number, lit: number, c: color, a: number, s: number, f: number, z: number) {
+        let iu = u * z
+        ellipse { at: cx - 4.5 * iu, cy; radius: 8.5 * iu; color: c; opacity: 14% * lit * a }
+        ellipse { at: cx - 4.5 * iu, cy; radius: 5.4 * iu; color: c; opacity: (38% + 40% * lit) * a }
+        ellipse { at: cx - 4.5 * iu, cy; radius: 2 * iu; color: tint; opacity: 85% * a }
+        PCir(cx: cx - 4.5 * iu, cy: cy, rad: 5.4 * iu, s: s + 1, wd: 2.5 * iu, c: c, a: a, gapk: -1, f: f)
+        PLn(ax: cx + 0.7 * iu, ay: cy, bx: cx + 10 * iu, by: cy, s: s + 2, wd: 2.8 * iu, c: c, a: a, f: f)
+        PLn(ax: cx + 5.5 * iu, ay: cy, bx: cx + 5.5 * iu, by: cy + 4.8 * iu, s: s + 3, wd: 2.8 * iu, c: c, a: a, f: f)
+        PLn(ax: cx + 9.8 * iu, ay: cy, bx: cx + 9.8 * iu, by: cy + 3.8 * iu, s: s + 4, wd: 2.8 * iu, c: c, a: a, f: f)
+    }
+
+    let left = slot_x - slot_w / 2
+    let top = slot_y - slot_h / 2
+    //  The cards share what room there is: 40 to 60 tall, so eight fit a panel of the first size.
+    let n = max(1, profs.count)
+    let gap = 8 * u
+    let ch = clamp((slot_h - 56 * u - gap * (n - 1)) / n, 40 * u, 60 * u)
+    group {
+        opacity: en1
+        move: 0, (1 - en1) * 12
+
+        text head { at: left + 24, top + 22; anchor: left center; size: 18; weight: 700; color: ink; opacity: shown; width: slot_w - 48; lines: 1; family: "Space Grotesk" }
+        text headsub { at: left + 24, top + 42; anchor: left center; size: 12.5; weight: 600; color: faint; opacity: shown; width: slot_w - 48; lines: 1; family: "Space Grotesk" }
+
+        text "No VPN profiles yet" { at: left + slot_w / 2, top + 110 * u; anchor: center; size: 15; weight: 700; color: ink; opacity: shown * if(profs.count == 0, 1, 0); family: "Space Grotesk" }
+        text "Add one in Settings > VPN" { at: left + slot_w / 2, top + 130 * u; anchor: center; size: 12.5; weight: 600; color: faint; opacity: shown * if(profs.count == 0, 1, 0); family: "Space Grotesk" }
+
+        repeat k in 0..8 {
+            let has = if(profs.count > k, 1, 0)
+            let cx0 = left + 24
+            let cy0 = top + 56 * u + k * (ch + gap)
+            let cw0 = slot_w - 48
+            let con = profs.$k.act
+            let chot = if(con > 0.5 or row.$k.hover > 0.5, 1, 0)
+            group {
+                show: has > 0.5
+                box { from: cx0, cy0; size: cw0, ch; corner: 12 * u; color: mint; opacity: 5% * row.$k.hover * shown }
+                PFill(tx: cx0, ty: cy0, tw: cw0, th: ch, sx: cx0 + cw0 - 35 * u, sy: cy0 + ch / 2, on: con, av: shown)
+                PRound(x: cx0 + 2.6 * u, y: cy0 + 2.6 * u, w: cw0 - 5.2 * u, h: ch - 5.2 * u, r: 9.7 * u, s: 1 + k, wd: 1.7 * u, c: mix(faint, mint, con), a: (0.5 + 0.45 * con) * shown, f: chot * fr)
+                PSwitch(sx: cx0 + cw0 - 35 * u, sy: cy0 + ch / 2, on: con, av: shown, s: 7 + k, f: chot * fr)
+                PKey(cx: cx0 + 32 * u, cy: cy0 + ch / 2, lit: con, c: mix(faint, mint, con), a: shown, s: 3 + 10 * k, f: chot * fr, z: 1.2)
+                text profs.$k.name { at: cx0 + 58 * u, cy0 + ch / 2 - 8 * u; anchor: left center; size: 13.5 * u; weight: 700; width: cw0 - 120 * u; lines: 1; color: ink; opacity: shown; family: "Space Grotesk" }
+                text profs.$k.sub { at: cx0 + 58 * u, cy0 + ch / 2 + 8 * u; anchor: left center; size: 11 * u; weight: 600; width: cw0 - 120 * u; lines: 1; color: mix(faint, mint, con); opacity: shown; family: "Space Grotesk" }
+            }
+            zone box row.$k { from: cx0, cy0; size: cw0, ch; corner: 12 * u; cursor: pointer; label: profs.$k.name; active: shown > 0.5 and has > 0.5 and profs.$k.busy < 0.5 }
+            on press row.$k { emit vt_toggle(k) }
+        }
+    }
+}

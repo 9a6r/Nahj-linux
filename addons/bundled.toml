@@ -1,0 +1,35 @@
+# Add-ons that ship with Vitreus but are developed in their own repositories, with their authors' permission.
+# `bin/vitreus-sync-addons sync` copies each one, at the pinned commit, into addons/<id>/ (the loader ignores this file: it only reads folders).
+# `bin/vitreus-sync-addons bump` moves the pin to the newest release tag; .github/workflows/addons-bump.yml runs it weekly and opens a PR to review.
+#
+# One table per add-on; the table name is the folder it lands in (lowercase letters, digits, dashes).
+#   repo     "owner/name" on GitHub
+#   path     folder inside that repo holding addon.toml ("" for the root)
+#   tag      the release the pin came from (bump looks for newer ones)
+#   sha      the full commit the tag points at; this is what is fetched, tags can move
+#   license  SPDX id of the add-on's licence; the licence file is kept in the folder
+#   api      the Vitreus add-on API the add-on targets (its addon.toml says the same: `vitreus_api`)
+#
+# [some-addon]
+# repo    = "someone/vitreus-some-addon"
+# path    = ""
+# tag     = "v1.2.0"
+# sha     = "0123456789abcdef0123456789abcdef01234567"
+# license = "MIT"
+# api     = 1
+
+[news-weather]
+repo    = "jaslrobinson/vitreus-news-weather"
+path    = ""
+tag     = "v0.2"
+sha     = "e4de5351aaef6ef0e0aa09c19b600c1fb7bfcaad"
+license = "MIT"
+api     = 1
+
+[homeassistant]
+repo    = "datingesp-hash/HomeAssistant-Vitreus-Addon"
+path    = ""
+tag     = "v0.2"
+sha     = "24a69460b29e30da6cceaff7a4324d65f9789a7e"
+license = "MIT"
+api     = 1

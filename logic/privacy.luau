@@ -1,12 +1,16 @@
 -- The privacy lights on the bar: which apps are using the microphone or the camera, and whether the screen is being shared.
 --
 -- Microphone: PipeWire's recording streams (`pactl -f json list source-outputs`), leaving out the ones that record an output's monitor
--- (that is how this shell's own spectrum, cava, listens) and the ones that are paused. Camera: who has a /dev/video* open (`fuser`), named
--- with `ps`. Both are read every two seconds. The screen: Hyprland says it itself (`screencast>>1,…` on its event socket), and vitreus.luau's
--- listener on that socket sets `priv_scr` itself; that one is at once.
+-- (that is how this shell's own spectrum, cava, listens) and the ones that are paused. They are read when `pactl subscribe` says a recording
+-- stream or a source changed (one process, no polling), and every half minute in case an event is missed; while `pactl subscribe` is not
+-- running they are read every two seconds, as before.
+-- Camera: who has a /dev/video* open (`fuser`), named with `ps`. `fuser` walks every process's open files (~40 ms a time), so every two seconds
+-- the camera's USB power state is read first (`power/runtime_status`, a file): a webcam nobody has open is "suspended", and then there is
+-- no one to look for. Only a camera that is awake (or one whose state cannot be read, or that never sleeps) is asked of `fuser`.
+-- The screen: Hyprland says it itself (`screencast>>1,…` on its event socket), and vitreus.luau's listener on that socket sets `priv_scr`
+-- itself; that one is at once.
 return function()
     local videos = {}                                  -- /dev/video0, /dev/video1, … (read once: a camera plugged in later shows after a restart)
-    local busy = false
 
     local function names(list)
         local seen, out = {}, {}
@@ -52,8 +56,11 @@ return function()
         end)
     end
 
-    local function check_cam(done)
-        if #videos == 0 then fact.priv_cam = false; text.priv_cam_who = ""; return done() end
+    local function cam_off()
+        fact.priv_cam = false
+        text.priv_cam_who = ""
+    end
+    local function ask_fuser(done)
         run("fuser", videos, function(out)
             local pids = {}
             for pid in (out or ""):gmatch("%d+") do pids[#pids + 1] = pid end
@@ -72,19 +79,65 @@ return function()
             end)
         end)
     end
-
-    local function tick()
-        if busy then return end
-        busy = true
-        check_mic(function() check_cam(function() busy = false end) end)
+    -- the power state of each camera's USB device (the parent of its interface), one line each: all "suspended" is nobody looking
+    local pm = {}
+    local function check_cam(done)
+        if #videos == 0 then cam_off(); return done() end
+        run("cat", pm, function(out)
+            local asleep = 0
+            for line in (out or ""):gmatch("[^\n]+") do
+                if line:match("^%s*suspended%s*$") then asleep = asleep + 1 end
+            end
+            if asleep == #pm then cam_off(); return done() end
+            ask_fuser(done)
+        end)
     end
+
+    local mic_busy, cam_busy = false, false
+    local function tick_mic()
+        if mic_busy then return end
+        mic_busy = true
+        check_mic(function() mic_busy = false end)
+    end
+    local function tick_cam()
+        if cam_busy then return end
+        cam_busy = true
+        check_cam(function() cam_busy = false end)
+    end
+
+    -- `pactl subscribe`: "Event 'new' on source-output #42" and the like. A burst of them (a call starting) is read once, 150 ms after the first.
+    local listening, pending, wait = false, false, 3000
+    local function listen()
+        local ok = pcall(spawn, "pactl", { "subscribe" }, function(line)
+            wait = 3000
+            if type(line) == "string" and (line:find("source-output", 1, true) or line:find("on source #", 1, true)) and not pending then
+                pending = true
+                after(150, function() pending = false; tick_mic() end)
+            end
+        end, function()
+            listening = false
+            after(wait, listen)
+            wait = math.min(60000, wait * 2)           -- (no sound server: try again less and less often)
+        end)
+        if ok then listening = true end
+    end
+    listen()
 
     run("ls", { "/dev" }, function(out)
         for n in (out or ""):gmatch("[^\n]+") do
-            if n:match("^video%d+$") then videos[#videos + 1] = "/dev/" .. n end
+            if n:match("^video%d+$") then
+                videos[#videos + 1] = "/dev/" .. n
+                pm[#pm + 1] = "/sys/class/video4linux/" .. n .. "/device/../power/runtime_status"
+            end
         end
-        tick()
+        tick_cam()
     end)
-    every(2000, tick)
+    tick_mic()
+    local ticks = 0
+    every(2000, function()
+        ticks = ticks + 1
+        tick_cam()
+        if not listening or ticks % 15 == 0 then tick_mic() end
+    end)
 
 end

@@ -3,6 +3,7 @@ language 0.1
 import "palette-live.plm"
 import "desktopclock/clockface.plm"
 import "desktopclock/clockface_styled.plm"
+import "pencil-glyphs.plm"
 
 //  Vitreus: a bar of liquid glass. The glass only blurs what is behind it (the
 //  compositor does it; `lens: false`, unless the Glass page turns bending on), and the panel is not stuck under the
@@ -73,9 +74,9 @@ scene Vitreus {
     //  search, the desk's inputs) still has it lent exclusively, to the copy it is on only. A loan ends only when this rule goes false, so the corner dock
     //  asks for the keyboard on an empty workspace while one of its icons is under the pointer or held (`cdk_hot`, `cdk_down`), not all the time:
     //  `cdk_on and ws_empty` held every loan on both copies, and the cursor stuck again.
-    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 62 while bar_anchor == top and not bar_frame and bar_size > 0.995; screens: each max 2; open: sb > 0.5 or bar_others; keyboard: on_demand while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or (((cdk_hot > 0.5 and cdk_ga > 0.5) or cdk_down > 0.5) and ws_empty) or dash_open or (axf_on and ax_open) }
+    surface { size: full, full; anchor: bar_anchor; margin: 0; reserve: 62 while bar_anchor == top and not bar_frame and bar_size > 0.995; rate: 480, 120 while bar_fps == 120; screens: each max 2; open: sb > 0.5 or bar_others; keyboard: on_demand while (panel != none and panel != volume and panel != notif) or wp_picker_open or ov_open or pk_open or desk_kb or (desk_open and ws_empty) or (((cdk_hot > 0.5 and cdk_ga > 0.5) or cdk_down > 0.5) and ws_empty) or dash_open or (axf_on and ax_open) }
     permissions { services: "files", "files.write", "auth", "clock", "clock.seconds", "thumbnails", "thumbnails.*", "audio", "audio.*", "window", "media", "media.*", "workspaces", "workspaces.focus", "brightness", "brightness.*", "battery", "network", "network.*", "bluetooth", "bluetooth.*", "apps", "tray", "tray.*", "notifications", "notifications.*"
-                  run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "mv", "niri", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "vitreus-themes", "claude", "ollama", "codex", "pacman", "paru", "yay", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "vitreus-addons", "vitreus-keep", "vitreus-inhibit", "pw-play", "ffmpeg", "tesseract", "cat", "date", "udevadm", "test", "wl-paste", "ffprobe" }
+                  run: "git", "env", "fc-list", "fc-match", "pleamar", "fuser", "ps", "pleamar-update", "cava", "playerctl", "curl", "notify-send", "which", "pgrep", "pkill", "systemctl", "hyprctl", "socat", "printenv", "awww", "iris", "cp", "ls", "xdg-user-dir", "mv", "niri", "magick", "grim", "mkdir", "bluetoothctl", "nmcli", "busctl", "chmod", "wl-copy", "find", "vitreus-term", "vitreus-themes", "claude", "ollama", "codex", "pacman", "paru", "yay", "gemini", "cliphist", "stat", "file", "vitreus-clipimg", "grep", "pactl", "sed", "setsid", "powerprofilesctl", "loginctl", "vitreus-polkit-agent", "vitreus-sysmon", "vitreus-addons", "vitreus-eq", "vitreus-keep", "vitreus-inhibit", "pw-play", "ffmpeg", "tesseract", "cat", "date", "udevadm", "test", "wl-paste", "ffprobe" }
 
     model wifi_nets max 16 { ssid: text; strength: number; secure: bool; known: bool; active: bool; band: number; bands: text; bandw: number; chan: number; rate: number; sec: text; busy: number }
     model bat_devs max 6 { name: text; level: number }
@@ -312,6 +313,8 @@ scene Vitreus {
     fact nt_size = 1                 // how big a notification's drawer is (Settings > Notifications, "Size": 0.7, 0.85 or 1; logic/notif_size.luau)
     event nt_size_set ->             // its chips: 0 small, 1 medium, 2 large
     fact osd_on = false                                     // the volume / notification drawer is out: set by the logic; it is not a value of `panel`, so it shows beside Settings, the search, the desk...
+    fact nt_left = false                                    // it comes out of the left edge this time: the Desk or the Control Center was open as it came out (`ol`)
+    on change osd_on while osd_on { nt_left = desk_open or panel == controls }       // as it opens only: kept while it closes
     //  The volume drawer holds up to two rows, one above the other: the volume and the brightness, each out for two seconds after it changes (the logic's
     //  timers). With both, the drawer is as tall as both, so neither covers the other.
     fact osd_v = false
@@ -331,7 +334,7 @@ scene Vitreus {
     text priv_mic_who = ""
     text priv_cam_who = ""
     text priv_scr_who = ""
-    fact osd_m = false                  // the microphone's row: out for two seconds after it is muted or unmuted, under the other two
+    fact osd_m = false                  // the lock keys' row (Caps Lock, Num Lock, a layout switch; it was the microphone's): out for two seconds, under the other two
     prop osd_mp = 0 ~calm
     follow osd_mp = if(osd_m, 1, 0)
     event mic_toggle ->                 // the microphone button in the controls' volume card
@@ -392,8 +395,9 @@ scene Vitreus {
     fact glass_dome = 0              // pleamar's `dome:` (magnifies what is behind, towards the middle), 0 to 150 %: a test knob
     fact glass_milk = 0              // pleamar's `milk:` (a milky veil inside the glass), 0 to 100 %: a test knob
     fact glass_bend = false           // the lens is on: X-Bend or Live bend (either one; the switches' own states are `glass_x` and `glass_live`)
+    fact files_bend = false           // whether Files bends its glass: `glass_bend`, but off while hyprglass is loaded (the compositor draws Files' glass then)
     fact glass_x = false              // the Glass page's "X-Bend" switch: the glass bends the wallpaper copy
-    fact lens_interval_ms = 300      // the least time between two captures of Live bend (pleamar reads this fact by name)
+    fact lens_interval_ms = 300      // the least time between two captures of Live bend (`lens every` below)
     fact glass_live = false           // the Glass page's "Live bend": the glass bends the live windows (a capture) instead of the wallpaper copy
     //  Which monitors bend (the Glass page's "Bend on"): `glass_b0` to `glass_b3` by copy number, all true while no monitor is picked (vitreus.luau). `glass_bm.i` lights the page's tile i.
     fact glass_b0 = true
@@ -412,7 +416,7 @@ scene Vitreus {
     //  Glass switched off (`glass_obs`): the same bar and drawers, but a flat, solid obsidian instead of glass. `obs` is 0 glass, 1 obsidian, and travels between them.
     fact glass_obs = false
     prop obs = 0 ~calm
-    follow obs = if(glass_obs or cas or uwu or milk, 1, 0)
+    follow obs = if(glass_obs or cas or uwu or milk or proxy_on or game_on, 1, 0)      // (Game Mode: no glass while it is on, see game_fx.glass)
     //  The Cassette theme (Settings > Theme): the same flat body as obsidian, but in the palette's own plastic (`obsidian` below stops being darkened), with a hard
     //  edge, a lit lip, a seam, a four-colour stripe across each drawer's head and a hard shadow. `cas_k` travels between glass and plastic; the drawers' liquid
     //  (necks, drips, the jelly) is switched off with it and their corners are cut square (`rc`, `bk`).
@@ -429,15 +433,19 @@ scene Vitreus {
     fact milk = false
     prop milk_k = 0 ~calm
     follow milk_k = if(milk, 1, 0)
-    let pk = max(max(cas_k, uwu_k), milk_k)
+    let pk = max(max(max(cas_k, uwu_k), milk_k), px_k)
     //  The Cyber theme: a neon HUD. The glass stays glass (the palette makes it near-black); on top of it each drawer gets a hairline neon outline, corner brackets and
     //  scan ticks (see bar_glass.plm). `cy_k` travels between glass and Cyber. `deep` is its second neon.
     fact cyber_on = false
     let cy_dark = 1.0                  // how far Cyber takes the glass's tint towards black (0 none, 1 black); the glass stays as see-through as it was
     prop cy_k = 0 ~calm
     follow cy_k = if(cyber_on, 1, 0)
+    //  The Proxy theme: a combat HUD (slanted black plates, green-to-yellow health bars, hazard stripes, round ability buttons). Near-black glass like Cyber's; the marks are in bar_glass.plm. `px_k` travels between glass and Proxy.
+    fact proxy_on = false
+    prop px_k = 0 ~calm
+    follow px_k = if(proxy_on, 1, 0)
     //  How square the corners are: Retro's plastic and Cyber's HUD both take the drawers' rounding down by the same 73 % (`corner: R * (1 - 0.73 * sq)`).
-    let sq = max(cas_k, cy_k)
+    let sq = max(max(cas_k, cy_k), px_k)
     event glass_obs_toggle ->
     let obsidian = mix(tint, #000000, 0.7 * (1 - pk))      // the theme's own tint, taken most of the way to black (the plastic's own colour on the Cassette): static themes and Iris both change it
     fact hy_blur = 3
@@ -612,6 +620,10 @@ scene Vitreus {
     }
     text bar_msg = ""
     event bar_pick_scr ->
+    event bar_pick_fps ->              // Settings > Bar: how many frames a second the bar paints (logic/bar_monitors.luau)
+    fact bar_fps = 480                 // 480 is `rate:`'s ceiling in the language, so it means "whatever the monitor does"
+                                       // Only one conditional `rate:` clause is honoured (measured: a second one is
+                                       // accepted by the compiler and then ignored), so the page offers two values.
     event bar_others_toggle ->       // Settings > Bar: the frame on the monitors without the bar, or nothing there (logic/bar_monitors.luau)
     event bar_dockroom_toggle ->     // Settings > Bar > "Corner docks overlap windows": windows keep clear of the docks, or go under them (logic/dock.luau)
     fact bar_dockroom = true
@@ -784,8 +796,11 @@ scene Vitreus {
     fact th_err = false
     event themes_refresh ->
     //  Settings > Add-ons: a row for each folder in ~/.config/pleamar/vitreus-addons (logic/addons.luau), with its switch.
-    model addons max 12 { name: text; desc: text; by: text; on: bool }
+    model addons max 12 { name: text; desc: text; by: text; has: bool; on: bool; need: bool; mine: bool; ask: bool }
     text ad_tpl = ""                 // ... and where the template is, to copy
+    text ad_hid = ""                 // ... and, when add-ons were removed from the page, the line that brings them back (`ad_hidn` of them)
+    fact ad_hidn = 0
+    event addons_unhide ->           // that line was pressed (logic/addons.luau)
     text ad_note = ""                // the line under the rows: what is wrong with an add-on, or where to put one
     fact ad_err = false
     fact ad_scroll_to = 0
@@ -793,6 +808,8 @@ scene Vitreus {
     follow ad_scroll = ad_scroll_to
     event addons_refresh ->
     event addon_toggle ->
+    event addon_del ->                // the bin on the card of one of the user's own add-ons (logic/addons.luau)
+    event addon_repo ->
     repeat i in 0..12 { prop ad_pill.$i = 0 ~pop }          // each add-on's switch
     repeat i in 0..12 { follow ad_pill.$i = if(addons.$i.on, 1, 0) }
     //  The cards are dragged to change the order of the add-on pill (logic/addons.luau; the same way as the Island layout's chips): the logic works out the slot each card stands in.
@@ -1032,6 +1049,24 @@ scene Vitreus {
     prop bt_fill = 0 ~700ms
     fact bt_rx = 0
     fact bt_ry = 0
+    prop nm_press = 0 ~pop
+    prop nm_rip = 1 ~700ms
+    prop nm_fill = 0 ~700ms
+    fact nm_rx = 0
+    fact nm_ry = 0
+    follow nm_fill = if(night_on, 1, 0)
+    prop gm_press = 0 ~pop
+    prop gm_rip = 1 ~700ms
+    prop gm_fill = 0 ~700ms
+    fact gm_rx = 0
+    fact gm_ry = 0
+    prop gm_pill = 0 ~pop
+    follow gm_fill = if(game_on, 1, 0)
+    follow gm_pill = if(game_on, 1, 0)
+    fact game_on = false                 // Game Mode is on (logic/gamemode.luau)
+    fact game_k = 1                      // 1 unless it cannot be started (on battery: 0.45, dimmed)
+    text game_status = "Off"
+    event game_toggle ->
     prop dnd_press = 0 ~pop
     prop dnd_rip = 1 ~700ms
     prop dnd_fill = 0 ~700ms
@@ -1155,8 +1190,6 @@ scene Vitreus {
     prop mshow = 0 ~calm          // the bar's player controls: there while a player exists, paused or not
 
     follow drop = if(panel != none, 1, 0)
-    prop lens_hold = 0                 // pleamar reads this one by name: above one half, Live bend takes no captures (a panel is moving)
-    follow lens_hold = if(drop > 0.01 and drop < 0.99, 1, 0)
     follow dtrav = if(panel != none, 1, 0)
     follow hot  = if(panel != none, 1, 0)
     follow dc   = if(panel == calendar, 1, 0)
@@ -1345,6 +1378,11 @@ scene Vitreus {
     on change panel while panel != player and panel != tray { f3: 0 ~80ms; f3: 0 ~80ms after 205ms }
     on change panel while panel == settings   { fs: 1 after 220ms }
     on change panel while panel == launch     { fl: 1 after 200ms; focus lq; emit launch_open }
+    //  …and again the moment the field is actually drawn: the `focus` above runs in the same frame as the
+    //  change, when this group is still `opacity: fl * pown` with `fl` at 0 (it only starts 200 ms later)
+    //  and the surface has only just asked for the keyboard, so nothing took it and the search would not
+    //  take a key until it was clicked.
+    on change fl > 0.05 while panel == launch { focus lq }
     on change panel while panel != launch     { fl: 0 ~80ms; fl: 0 ~80ms after 205ms }
     on change panel while panel != settings   { fs: 0 ~80ms; fs: 0 ~80ms after 225ms }
     on change osd_on while osd_on { fo: 1 after 140ms }
@@ -1563,7 +1601,19 @@ scene Vitreus {
     follow adk_ga = if(adk_pins.count > 0 and not (bv.ax and not bar_frame), 1, 0)       // (not while its icons are on the Island: `bs.ax`)
     follow rcn = if(rec_on, 1, 0)
     prop pvn = 0 ~calm                // the privacy lights' slots, the same way
-    follow pvn = if(priv_mic, 1, 0) + if(priv_cam, 1, 0) + if(priv_scr and not rec_on, 1, 0)
+    follow pvn = if(priv_mic, 1, 0) + if(priv_cam, 1, 0) + if(priv_scr and not rec_on, 1, 0) + if(kb_multi, 1, 0)
+    //  The keyboard layout (logic/lockkeys.luau, from Hyprland's `activelayout` event): a two-letter chip with the tray icons, only when more than one
+    //  layout is set up, so it takes no room otherwise. A press switches to the next layout.
+    fact kb_multi = false
+    text kb_code = ""
+    event kb_next ->
+    event lockkeys ->                // Caps Lock or Num Lock was pressed (hypr_vitreus.lua's binds)
+    event lockkeys_set ->            // the same from pleamar-wm, with the new state: 0 / 1 Caps off / on, 2 / 3 Num off / on (pleamar-wm/wm/session.luau)
+    //  Caps Lock and Num Lock: a row of the volume drawer for two seconds when either is pressed (`osd_m`, pages/osd_drawer.plm). `lk_kind`
+    //  0 Caps, 1 Num, 2 a layout switch (`kb_name`); `lk_state` on or off.
+    fact lk_kind = 0
+    fact lk_state = false
+    text kb_name = ""
     repeat i in 0..9 {
         prop bcx.$i = 0 ~quick
         prop bcy.$i = 4 ~quick
@@ -1673,6 +1723,8 @@ scene Vitreus {
     follow rec_sys_pill = if(rec_sys, 1, 0)
     prop night_auto_pill = 0 ~pop
     follow night_pill = if(night_on, 1, 0)
+    prop nm_pill = 0 ~pop
+    follow nm_pill = if(night_on, 1, 0)
     prop bar_oth_pill = 0 ~pop
     follow bar_oth_pill = if(bar_others, 1, 0)
     prop bar_dr_pill = 0 ~pop
@@ -3891,6 +3943,105 @@ scene Vitreus {
     }
 
     //  The power button in the bell's manner: the ring and its bar twice in pencil, an accent wash inside and two shading strokes on the left.
+    //  The Night mode tile's moon: the Power panel's Sleep icon (PSSleep), at the tile icons' size and with their opacity.
+    component PMoon(cx: number, cy: number, hot: number, o: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let kk = 0.9 * cu
+        group {
+            pivot: cx, cy
+            scale: 1 + 0.10 * a
+            path { at: cx, cy; color: mint; opacity: 28% * o; move 1 * kk, -9 * kk; curve 9 * kk, 5 * kk via -19 * kk, 2 * kk; curve 1 * kk, -9 * kk via -5 * kk, -1 * kk; close }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kk
+                let bj = (0.28 + 0.4 * a) * cu * sin(fr * 53 + bp * 137 + 171)
+                let bk = (0.28 + 0.4 * a) * cu * sin(fr * 61 + bp * 71 + 211)
+                path { at: cx + bo, cy + bo * 0.5; stroke: if(bp == 0, 1.8, 1.3) * kk; color: ink; opacity: if(bp == 0, 90%, 34%) * o
+                       move 1 * kk + bj, -9 * kk + bk
+                       curve 9 * kk + bk, 5 * kk + bj via -19 * kk, 2 * kk
+                       curve 1 * kk + bj, -9 * kk + bk via -5 * kk, -1 * kk
+                       close }
+            }
+            ellipse { at: cx + 4.6 * kk, cy + -4.2 * kk; radius: 1.2 * kk; color: mint; opacity: o }
+            ellipse { at: cx + 8 * kk, cy + -1.5 * kk; radius: 0.8 * kk; color: mint; opacity: o }
+            line { from: cx + -4.8 * kk, cy + -3 * kk + 0.3 * cu * sin(fr * 47 + 60); to: cx + -4.5 * kk, cy + 2.2 * kk + 0.3 * cu * sin(fr * 53 + 70); width: 1.1 * kk; color: mint; opacity: 65% * o }
+            line { from: cx + -3 * kk, cy + -3.4 * kk + 0.3 * cu * sin(fr * 53 + 70); to: cx + -2.8 * kk, cy + 0.8 * kk + 0.3 * cu * sin(fr * 59 + 80); width: 1.1 * kk; color: mint; opacity: 65% * o }
+        }
+    }
+
+    //  A game pad: the body, a cross on the left, two buttons on the right.
+    component PPad(cx: number, cy: number, hot: number, o: number) {
+        prop a = 0 ~calm
+        follow a = hot
+        let fr = if(a > 0.02, floor(time * 5), 0)
+        let kp = 0.8 * cu
+        group {
+            pivot: cx, cy
+            scale: 1 + 0.10 * a
+            box { at: cx, cy; size: 20 * kp, 12 * kp; corner: 6 * kp; color: mint; opacity: 24% * o }
+            repeat bp in 0..2 {
+                let bo = bp * 0.7 * kp
+                let bj = (0.18 + 0.25 * a) * cu * sin(fr * 53 + bp * 137 + 9)
+                let bk = (0.18 + 0.25 * a) * cu * sin(fr * 61 + bp * 71 + 49)
+                box { at: cx + bo + bj, cy + bo * 0.5 + bk; size: 20 * kp, 12 * kp; corner: 6 * kp; stroke: if(bp == 0, 1.8, 1.3) * kp; color: ink; opacity: if(bp == 0, 90%, 34%) * o }
+            }
+            line { from: cx - 6 * kp, cy; to: cx - 2 * kp, cy; width: 1.6 * kp; color: ink; opacity: o }
+            line { from: cx - 4 * kp, cy - 2 * kp; to: cx - 4 * kp, cy + 2 * kp; width: 1.6 * kp; color: ink; opacity: o }
+            ellipse { at: cx + 3 * kp, cy + 1.5 * kp; radius: 1.2 * kp; color: ink; opacity: o }
+            ellipse { at: cx + 6 * kp, cy - 1.5 * kp; radius: 1.2 * kp; color: ink; opacity: o }
+        }
+    }
+
+    //  The little marks on the Caffeine, Night mode and Game mode switch knobs: the tile's own icon (cup, Sleep crescent, game pad) drawn small in the knob's dark,
+    //  an outline when off and with a faint fill when on. `on` is 0 to 1, `o` how strong the marks are (`glyph_a`).
+    component PKnobCup(cx: number, cy: number, on: number, o: number) {
+        let kc = 0.5 * cu
+        let oa = o * (0.7 + 0.3 * on)
+        path { at: cx, cy; color: off; opacity: oa * on * 0.5; move -9 * kc, -6 * kc; line -8 * kc, 3 * kc; curve -4 * kc, 7 * kc via -7.5 * kc, 6.5 * kc; line 3 * kc, 7 * kc; curve 7 * kc, 3 * kc via 7.5 * kc, 6.5 * kc; line 8 * kc, -6 * kc; close }
+        path { at: cx, cy; stroke: 1.3 * cu; color: off; opacity: oa; move -9 * kc, -6 * kc; line -8 * kc, 3 * kc; curve -4 * kc, 7 * kc via -7.5 * kc, 6.5 * kc; line 3 * kc, 7 * kc; curve 7 * kc, 3 * kc via 7.5 * kc, 6.5 * kc; line 8 * kc, -6 * kc }
+        path { at: cx, cy; stroke: 1.3 * cu; color: off; opacity: oa; move 8 * kc, -3.5 * kc; curve 8 * kc, 2.5 * kc via 14 * kc, -3.5 * kc }
+        path { at: cx, cy; stroke: 1.1 * cu; color: off; opacity: oa; move -9 * kc, -6 * kc; curve 8 * kc, -6 * kc via -0.5 * kc, -8.5 * kc; curve -9 * kc, -6 * kc via -0.5 * kc, -3.5 * kc; close }
+        line { from: cx - 11.5 * kc, cy + 10 * kc; to: cx + 10.5 * kc, cy + 10 * kc; width: 1.1 * cu; color: off; opacity: oa }
+    }
+    component PKnobBell(cx: number, cy: number, on: number, o: number) {
+        let kb = 0.42 * cu
+        let oa = o * (0.7 + 0.3 * on)
+        path { at: cx, cy; color: off; opacity: oa * on * 0.5; move -10 * kb, 6 * kb; curve -5.5 * kb, -6 * kb via -6.5 * kb, 2 * kb; curve 5.5 * kb, -6 * kb via 0, -15 * kb; curve 10 * kb, 6 * kb via 6.5 * kb, 2 * kb; close }
+        path { at: cx, cy; stroke: 1.3 * cu; color: off; opacity: oa; move -10 * kb, 6 * kb; curve -5.5 * kb, -6 * kb via -6.5 * kb, 2 * kb; curve 5.5 * kb, -6 * kb via 0, -15 * kb; curve 10 * kb, 6 * kb via 6.5 * kb, 2 * kb; close }
+        ellipse { at: cx, cy - 12.3 * kb; radius: 1.1 * cu; color: off; opacity: oa }
+        ellipse { at: cx, cy + 10 * kb; radius: 1.3 * cu; color: off; opacity: oa }
+    }
+    //  Three signal bars, the Wi-Fi tile's icon: `s2` and `s3` how much of the second and third are lit (the signal).
+    component PKnobBars(cx: number, cy: number, on: number, o: number, s2: number, s3: number) {
+        let kw = 0.5 * cu
+        repeat br in 0..3 {
+            let bx = (br - 1) * 6.5 * kw
+            let bt = (1 - br * 5.5) * kw
+            let oa = o * (0.7 + 0.3 * on) * if(br == 0, 1, if(br == 1, s2, s3))
+            path { at: cx + bx, cy + 3 * kw; color: off; opacity: oa * on * 0.5; move -2.4 * kw, 6 * kw; line -2.4 * kw, bt + 2 * kw; curve 2.4 * kw, bt + 2 * kw via 0, bt - 1.6 * kw; line 2.4 * kw, 6 * kw; close }
+            path { at: cx + bx, cy + 3 * kw; stroke: 1.3 * cu; color: off; opacity: oa; move -2.4 * kw, 6 * kw; line -2.4 * kw, bt + 2 * kw; curve 2.4 * kw, bt + 2 * kw via 0, bt - 1.6 * kw; line 2.4 * kw, 6 * kw; close }
+        }
+    }
+    component PKnobMoon(cx: number, cy: number, on: number, o: number) {
+        let kk = 0.5 * cu
+        let oa = o * (0.7 + 0.3 * on)
+        path { at: cx, cy; color: off; opacity: oa * on * 0.5; move 1 * kk, -9 * kk; curve 9 * kk, 5 * kk via -19 * kk, 2 * kk; curve 1 * kk, -9 * kk via -5 * kk, -1 * kk; close }
+        path { at: cx, cy; stroke: 1.3 * cu; color: off; opacity: oa; move 1 * kk, -9 * kk; curve 9 * kk, 5 * kk via -19 * kk, 2 * kk; curve 1 * kk, -9 * kk via -5 * kk, -1 * kk; close }
+        ellipse { at: cx + 4.6 * kk, cy - 4.2 * kk; radius: 0.9 * cu; color: off; opacity: oa }
+        ellipse { at: cx + 8 * kk, cy - 1.5 * kk; radius: 0.6 * cu; color: off; opacity: oa }
+    }
+    component PKnobPad(cx: number, cy: number, on: number, o: number) {
+        let kp = 0.5 * cu
+        let oa = o * (0.7 + 0.3 * on)
+        box { at: cx, cy; size: 20 * kp, 12 * kp; corner: 6 * kp; color: off; opacity: oa * on * 0.5 }
+        box { at: cx, cy; size: 20 * kp, 12 * kp; corner: 6 * kp; stroke: 1.3 * cu; color: off; opacity: oa }
+        line { from: cx - 6 * kp, cy; to: cx - 2 * kp, cy; width: 1.1 * cu; color: off; opacity: oa }
+        line { from: cx - 4 * kp, cy - 2 * kp; to: cx - 4 * kp, cy + 2 * kp; width: 1.1 * cu; color: off; opacity: oa }
+        ellipse { at: cx + 3 * kp, cy + 1.5 * kp; radius: 0.8 * cu; color: off; opacity: oa }
+        ellipse { at: cx + 6 * kp, cy - 1.5 * kp; radius: 0.8 * cu; color: off; opacity: oa }
+    }
+
     component PPower(cx: number, cy: number, hot: number, o: number) {
         prop a = 0 ~calm
         follow a = hot
@@ -4163,6 +4314,13 @@ scene Vitreus {
     //  While a screen recording runs, a red dot rides the tray. Under the pointer it squares off into a stop button.
     //  A privacy light on the bar, while something uses the microphone (kind 0, amber), the camera (1, green) or shares the screen (2, blue):
     //  its icon on a soft glowing disc. Under the pointer, the apps doing it are named below it.
+    component BarKbd() {
+        size: floor(22 * bu + 0.5), floor(18 * bu + 0.5)
+        box { at: 11 * bu, 9 * bu; size: 22 * bu, 16 * bu; corner: 5 * bu; color: ink; opacity: 10% + 8% * kb_z.hover }
+        text kb_code { at: floor(11 * bu + 0.5), floor(9 * bu + 0.5); anchor: center; align: center; size: 10; weight: 700; color: ink; family: "Space Grotesk" }
+        zone box kb_z { at: 11 * bu, 9 * bu; size: 22 * bu, 18 * bu; cursor: pointer; label: "Keyboard layout" }
+        on press kb_z { emit kb_next }
+    }
     component BarPriv(kind: number) {
         size: floor(18 * bu + 0.5), floor(18 * bu + 0.5)
         let beat = 0.5 + 0.5 * sin(time * 160)
@@ -4774,7 +4932,9 @@ scene Vitreus {
     //  each offset is finally used. Wi-Fi and Bluetooth are tiles side by side
     //  now, at the very top, so they cost one row's height between them.
     let tiles_top  = 8
-    let tiles_h    = 72
+    let tiles_h    = 89                  // Wi-Fi and Bluetooth: two large tiles, as tall as the three small ones beside them
+    let st_h       = 58                  // Night mode .. Power: three small tiles to a column
+    let st_gap     = 4
     let tiles_bot  = tiles_top + tiles_h
     //  Do Not Disturb and Caffeine: a second row of tiles, the same size as the first.
     let tiles2_top = tiles_bot + 4
@@ -4782,8 +4942,10 @@ scene Vitreus {
     let bright_top = tiles2_bot + 4
     //  The three sliders (brightness, the microphone, the volume) are rows of ONE card, 132 tall: the rows' middles are 26, 66 and 106 from its top (`vol_top` is the volume row's top, 24
     //  above its middle), and the mixer grows the card at its foot.
-    let bright_bot = bright_top + 132
-    let vol_top    = bright_top + 82
+    //  On a machine with no backlight to move (a desktop, an external monitor) the brightness row is left out: the card is a row shorter and the other two close up.
+    let bri_cut    = if(brightness.present, 0, 40)
+    let bright_bot = bright_top + 132 - bri_cut
+    let vol_top    = bright_top + 82 - bri_cut
     let vol_bot    = bright_bot
     //  The player's plate is alone in its own panel now, at the top of it.
     let media_top  = 8
@@ -4821,7 +4983,7 @@ scene Vitreus {
     //  The mixer is part of the volume card: the card grows by `mix.m` while it is open (a row of 32 per app, or a line of
     //  words with none, and room for the dots at the foot).
     let mix.m = if(mixer.count > 0, mixer.count * 32 + 8, 40)
-    let vp.h = 132 + mix.m * clamp(vm, 0, 1)                // the volume card's height, unscaled
+    let vp.h = 132 - bri_cut + mix.m * clamp(vm, 0, 1)                // the volume card's height, unscaled
     let mix.extra = mix.m * max(0, vm)
     let content_bot = mix(vol_bot + max(dd.extra, mix.extra), sub_bot, expand0)
     let dk.hh = bar.h / 2 + (content_bot + 16) * cu * dk0 + 13 * cu * tm * dk0 + max(0, sag)      // (the 13 is `lp.dd`: along the top or bottom the margins are made 18.5 all round here too)
@@ -4887,7 +5049,7 @@ scene Vitreus {
     let vpn.ab = vpn.pb + vpn.pbh + 12
     let vpn.fh = if(vpn_mode == vpm_wg, 180, if(vpn_mode == vpm_ovpn, 144, 276))
     let wm.h = 946                     // the Pleamar-WM page: to the bottom of its last card
-    let ad.h = 36 + max(1, addons.count) * 92 + 52                 // the Add-ons page: a card each (92 apart), and the line under them
+    let ad.h = 36 + max(1, addons.count) * 74 + 52 + if(ad_hidn > 0.5, 22, 0)                 // the Add-ons page: a card each (74 apart), and the line under them
     let ck.h = 1208                    // the Widgets page: the clock's cards, then the system monitor's, to the bottom of the last
     let gl.h = 935                     // the Glass page: to the bottom of its last card
     let lk.h = 806                     // the Lock screen page: its cards, to the bottom of the last
@@ -4897,7 +5059,8 @@ scene Vitreus {
     //  A fixed height, whatever the page: the panel used to follow the page in view (262 to 456), so it resized, and moved what hangs from it, with
     //  every click in the sidebar. A page taller than this scrolls inside it (they have their scroll thumb and "More" cue); a shorter one has
     //  empty glass at its foot. It never goes below the sidebar's last row.
-    let set.h = max(side.ab + 40, 456)
+    let th_ex = max(0, floor((themes.count + 3) / 4) - 1)      // rows of theme cards beyond the first (Settings > Theme)
+    let set.h = max(side.ab + 40, 456 + 88 * th_ex * set_pgp)
     let ss.w = (120 + 500 * (min(1, ds0 * 1.6) + max(0, ds0 - 1) * 0.6)) * pu
     let ss.hh = bar.h / 2 + (8 + 36 + 8 + set.h + 16) * pu * ds0 + max(0, sag)
     //  The launcher: a drop that widens to the bar's width as it lands, like the calendar. The search field (40), the
@@ -5058,7 +5221,13 @@ scene Vitreus {
     //  The same two places in both layouts (the left layout's): the volume low and the notification high, out of the right edge of the screen. Along the top there
     //  is no frame there, so they come out of the edge of the screen itself. Content hangs from `os.ck`, centred on `os.px`.
     let os.stop = bar.y - bar.h / 2                           // the bar's top edge (the desk's island placement hangs from it)
-    let os.px = screen.width - th.r - 176.5 * u
+    //  Out of the other side (`nt_left`) when the Desk or the Control Center is open as it comes out, so it does not land on them: everything of the drawer
+    //  (its glass, its content, the corner it grows from) is placed where its mirror image falls, the left frame's thickness in place of the right's. Picked
+    //  as the drawer opens and kept until it has closed, so it never jumps while it is out.
+    let ol = if(nt_left, 1, 0)
+    let ol.d = th.l - th.r
+    let os.px0 = screen.width - th.r - 176.5 * u
+    let os.px = mix(os.px0, screen.width - os.px0 + ol.d, ol)
     let os.ck = os.cy - (8 + osd_h / 2) * u
     let do.lf = min(1, do0 * 1.6) + max(0, do0 - 1) * 0.6
     let do.rt = th.r + (26 + 353 * nk) * u
@@ -5067,10 +5236,14 @@ scene Vitreus {
     let do.gx = screen.width + 26 * u * do.lf - do.gw / 2
     let do.ew = do.gw
     let do.eh = do.gh
-    let do.ex = do.gx
+    let do.ex = mix(do.gx, screen.width - do.gx + ol.d, ol)
     let do.ey = os.cy
     let do.iw = max(0.1, 352 * u * nk * do.lf)                       // along the top the panel is wholly on screen (the right frame's 8 in from the edge), so its corners are all rounded
-    let do.ix = screen.width - th.r - do.iw / 2
+    let do.ix0 = screen.width - th.r - do.iw / 2
+    let do.ix = mix(do.ix0, screen.width - do.ix0 + ol.d, ol)
+    let do.edge0 = mix(screen.width - th.r, screen.width + 26 * u, fm)         // the edge it grows out of, and the corner a smaller notification is scaled about
+    let do.edge = mix(do.edge0, screen.width - do.edge0 + ol.d, ol)
+    let do.corner = mix(screen.width - th.r, th.l, ol)
     let do.bl = (26 + 20 * do.bell) * u * min(1, do0 * 4)         // how much the drawer melts into what it joins
     let do.stretch = clamp(vel(do) * 0.07, 0, 0.5)
     let dm.gl = mix(min(dtrav, dm0), dm0, att)
@@ -5328,6 +5501,98 @@ scene Vitreus {
     let dax.br = dax.k * dax.nr * max(0, screen.width - dax.ex - dax.ew / 2 + 26 * cu)
     let dax.bt = dax.k * dax.nt * max(0, dax.ey - dax.eh / 2 - yo + 26 * cu)
     let dax.bb = dax.k * dax.nb * max(0, vb - dax.ey - dax.eh / 2 + 26 * cu)
+    //  The Proxy's panels lean: each drawer is also drawn as a slanted slab (see the paths in bar_shapes.plm), its sides leaning by `sk` over the drawer's height, the way the Desk's selectors do.
+    let pxk_drawer_cx = dk.ex
+    let pxk_drawer_cy = dk.ey - sg.up / 2
+    let pxk_drawer_w = dk.ew * (1 + dj.stretch - 0.07 * dk.bell + 0.003 * wobble * (1 - sg)) * dk.tail
+    let pxk_drawer_h = (dk.eh * (1 - dj.stretch * 0.5 - 0.002 * wobble * (1 - sg)) + sg.up) * dk.tail
+    let pxk_drawer_r = max(0, min(mix(min(dk.ew, dk.eh) / 2, rc, clamp(dk0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_drawer_w, pxk_drawer_h))))
+    let pxk_drawer_sk = min(clamp(pxk_drawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_drawer_h))
+    let pxk_drawer_l = sqrt(pxk_drawer_sk * pxk_drawer_sk + pxk_drawer_h * pxk_drawer_h) + 0.01
+    let pxk_cdrawer_cx = dc.ex
+    let pxk_cdrawer_cy = dc.ey - sg.up / 2
+    let pxk_cdrawer_w = dc.ew * (1 + dj.stretch - 0.07 * dc.bell + 0.003 * wobble)
+    let pxk_cdrawer_h = dc.eh * (1 - dj.stretch * 0.5 - 0.002 * wobble) + sg.up
+    let pxk_cdrawer_r = max(0, min(mix(min(dc.ew, dc.eh) / 2, rc, clamp(dc0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_cdrawer_w, pxk_cdrawer_h))))
+    let pxk_cdrawer_sk = min(clamp(pxk_cdrawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_cdrawer_h))
+    let pxk_cdrawer_l = sqrt(pxk_cdrawer_sk * pxk_cdrawer_sk + pxk_cdrawer_h * pxk_cdrawer_h) + 0.01
+    let pxk_sdrawer_cx = ds.ex
+    let pxk_sdrawer_cy = ds.ey
+    let pxk_sdrawer_w = ds.ew * (1 + dj.stretch - 0.07 * ds.bell + 0.003 * wobble)
+    let pxk_sdrawer_h = ds.eh * (1 - dj.stretch * 0.5 - 0.002 * wobble)
+    let pxk_sdrawer_r = max(0, min(mix(min(ds.ew, ds.eh) / 2, rc, clamp(ds0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_sdrawer_w, pxk_sdrawer_h))))
+    let pxk_sdrawer_sk = min(clamp(pxk_sdrawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_sdrawer_h))
+    let pxk_sdrawer_l = sqrt(pxk_sdrawer_sk * pxk_sdrawer_sk + pxk_sdrawer_h * pxk_sdrawer_h) + 0.01
+    let pxk_ldrawer_cx = dl.ex
+    let pxk_ldrawer_cy = dl.ey
+    let pxk_ldrawer_w = dl.ew * (1 + dj.stretch - 0.07 * dl.bell + 0.003 * wobble)
+    let pxk_ldrawer_h = dl.eh * (1 - dj.stretch * 0.5 - 0.002 * wobble)
+    let pxk_ldrawer_r = max(0, min(mix(min(dl.ew, dl.eh) / 2, rc, clamp(dl0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_ldrawer_w, pxk_ldrawer_h))))
+    let pxk_ldrawer_sk = min(clamp(pxk_ldrawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_ldrawer_h))
+    let pxk_ldrawer_l = sqrt(pxk_ldrawer_sk * pxk_ldrawer_sk + pxk_ldrawer_h * pxk_ldrawer_h) + 0.01
+    let pxk_xdrawer_cx = dax.ex + (dax.br - dax.bl) / 2 + if(dax0 > 0.002, 0, 30000)
+    let pxk_xdrawer_cy = dax.ey + (dax.bb - dax.bt) / 2
+    let pxk_xdrawer_w = dax.ew * (1 + dj.stretch - 0.07 * dax.bell + 0.003 * wobble) + dax.bl + dax.br
+    let pxk_xdrawer_h = dax.eh * (1 - dj.stretch * 0.5 - 0.002 * wobble) + dax.bt + dax.bb
+    let pxk_xdrawer_r = max(0, min(mix(min(dax.ew, dax.eh) / 2, rc, clamp(dax0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_xdrawer_w, pxk_xdrawer_h))))
+    let pxk_xdrawer_sk = min(clamp(pxk_xdrawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_xdrawer_h))
+    let pxk_xdrawer_l = sqrt(pxk_xdrawer_sk * pxk_xdrawer_sk + pxk_xdrawer_h * pxk_xdrawer_h) + 0.01
+    let pxk_odrawer_cx = do.ex + if(fm > 0.5, 0, 30000)
+    let pxk_odrawer_cy = do.ey
+    let pxk_odrawer_w = do.ew * (1 + do.stretch - 0.07 * do.bell + 0.003 * wobble)
+    let pxk_odrawer_h = do.eh * (1 - do.stretch * 0.5 - 0.002 * wobble)
+    let pxk_odrawer_r = max(0, min(mix(min(do.ew, do.eh) / 2, rc, clamp(do0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_odrawer_w, pxk_odrawer_h))))
+    let pxk_odrawer_sk = min(clamp(pxk_odrawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_odrawer_h))
+    let pxk_odrawer_l = sqrt(pxk_odrawer_sk * pxk_odrawer_sk + pxk_odrawer_h * pxk_odrawer_h) + 0.01
+    let pxk_mdrawer_cx = dm.ex
+    let pxk_mdrawer_cy = dm.ey - sg.up / 2
+    let pxk_mdrawer_w = dm.ew * (1 + dj.stretch - 0.07 * dm.bell + 0.003 * wobble)
+    let pxk_mdrawer_h = dm.eh * (1 - dj.stretch * 0.5 - 0.002 * wobble) + sg.up
+    let pxk_mdrawer_r = max(0, min(mix(min(dm.ew, dm.eh) / 2, rc, clamp(dm0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_mdrawer_w, pxk_mdrawer_h))))
+    let pxk_mdrawer_sk = min(clamp(pxk_mdrawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_mdrawer_h))
+    let pxk_mdrawer_l = sqrt(pxk_mdrawer_sk * pxk_mdrawer_sk + pxk_mdrawer_h * pxk_mdrawer_h) + 0.01
+    let pxk_zdrawer_cx = dz.fx + if(fm > 0.5, 0, 30000)
+    let pxk_zdrawer_cy = dz.fcy
+    let pxk_zdrawer_w = dz.fw * (1 + dz.stretch - 0.07 * dz.bell)
+    let pxk_zdrawer_h = dz.fh * (1 - dz.stretch * 0.5)
+    let pxk_zdrawer_r = max(0, min(mix(min(dz.fw, dz.fh) / 2, 26 * u * desk_s * (1 - 0.73 * sq), clamp(dz0 * 1.6 - 0.1, 0, 1)), 0.45 * max(0.1, min(pxk_zdrawer_w, pxk_zdrawer_h))))
+    let pxk_zdrawer_sk = min(clamp(pxk_zdrawer_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_zdrawer_h))
+    let pxk_zdrawer_l = sqrt(pxk_zdrawer_sk * pxk_zdrawer_sk + pxk_zdrawer_h * pxk_zdrawer_h) + 0.01
+    let pxk_sgl_cx = (sg.lr - sg.r) / 2 + if(sg > 0.35, 0, 30000)
+    let pxk_sgl_cy = yo + (sg.hc - sg.r) / 2
+    let pxk_sgl_w = sg.lr + sg.r
+    let pxk_sgl_h = sg.hc + sg.r
+    let pxk_sgl_r = max(0, min((sg.hc + sg.r) * 0.34 * (1 - 0.73 * sq), 0.45 * max(0.1, min(pxk_sgl_w, pxk_sgl_h))))
+    let pxk_sgl_sk = min(clamp(pxk_sgl_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_sgl_h))
+    let pxk_sgl_l = sqrt(pxk_sgl_sk * pxk_sgl_sk + pxk_sgl_h * pxk_sgl_h) + 0.01
+    let pxk_sgc_cx = (sg.q0 + sg.q1) / 2 + if(sg > 0.35, 0, 30000)
+    let pxk_sgc_cy = yo + (sg.hc - sg.r) / 2
+    let pxk_sgc_w = sg.q1 - sg.q0
+    let pxk_sgc_h = sg.hc + sg.r
+    let pxk_sgc_r = max(0, min((sg.hc + sg.r) * 0.34 * (1 - 0.73 * sq), 0.45 * max(0.1, min(pxk_sgc_w, pxk_sgc_h))))
+    let pxk_sgc_sk = min(clamp(pxk_sgc_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_sgc_h))
+    let pxk_sgc_l = sqrt(pxk_sgc_sk * pxk_sgc_sk + pxk_sgc_h * pxk_sgc_h) + 0.01
+    let pxk_sgr_cx = (sg.rq + screen.width + sg.r) / 2 + if(sg > 0.35, 0, 30000)
+    let pxk_sgr_cy = yo + (sg.hc - sg.r) / 2
+    let pxk_sgr_w = screen.width + sg.r - sg.rq
+    let pxk_sgr_h = sg.hc + sg.r
+    let pxk_sgr_r = max(0, min((sg.hc + sg.r) * 0.34 * (1 - 0.73 * sq), 0.45 * max(0.1, min(pxk_sgr_w, pxk_sgr_h))))
+    let pxk_sgr_sk = min(clamp(pxk_sgr_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_sgr_h))
+    let pxk_sgr_l = sqrt(pxk_sgr_sk * pxk_sgr_sk + pxk_sgr_h * pxk_sgr_h) + 0.01
+    let pxk_cdk_cx = cdk.bx + if(cdk.g > 0.02, 0, 30000)
+    let pxk_cdk_cy = cdk.by
+    let pxk_cdk_w = max(0.3, cdk.bw)
+    let pxk_cdk_h = max(0.3, cdk.bh)
+    let pxk_cdk_r = max(0, min(cdk.cr, 0.45 * max(0.1, min(pxk_cdk_w, pxk_cdk_h))))
+    let pxk_cdk_sk = min(clamp(pxk_cdk_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_cdk_h))
+    let pxk_cdk_l = sqrt(pxk_cdk_sk * pxk_cdk_sk + pxk_cdk_h * pxk_cdk_h) + 0.01
+    let pxk_adk_cx = adk.bx + if(adk.g > 0.02, 0, 30000)
+    let pxk_adk_cy = adk.by
+    let pxk_adk_w = max(0.3, adk.bw)
+    let pxk_adk_h = max(0.3, adk.bh)
+    let pxk_adk_r = max(0, min(cdk.cr, 0.45 * max(0.1, min(pxk_adk_w, pxk_adk_h))))
+    let pxk_adk_sk = min(clamp(pxk_adk_h * 0.055, 7 * u, 20 * u), 0.3 * max(0, pxk_adk_h))
+    let pxk_adk_l = sqrt(pxk_adk_sk * pxk_adk_sk + pxk_adk_h * pxk_adk_h) + 0.01
     let axs.hh = 38 * cu                                   // the shell's title bar across the top of the panel (title, grip, X): the content is below it
     let axs.m = 14 * cu                                    // the margin all round the content: the rectangle an add-on is given is this much inside the glass on every side (below the title bar, and clear of the pill's strip)
     let axs.mt = 0 * cu                                    // the margin above the content, under the title bar: none (the add-ons keep a little room of their own at their tops)
@@ -5418,6 +5683,19 @@ scene Vitreus {
     fact ft_len = 30
     fact ft_state = 0                                       // 0 ready, 1 running, 2 paused, 3 done
     fact ft_prog = 1.0                                      // the fraction left
+    //  The Focus tab's three modes (`ft_mode`): 0 Focus (the timer above, which also silences alerts and keeps the machine awake), 1 Timer (the same
+    //  countdown, short presets, and nothing else touched), 2 Stopwatch (counts up, with laps). Not changed while a countdown or the stopwatch is going.
+    fact ft_mode = 0
+    prop ft_msel = 0 ~slide
+    follow ft_msel = ft_mode
+    event sw_toggle ->                                      // the stopwatch: start, pause or resume
+    event sw_lap ->
+    event sw_reset ->
+    fact sw_state = 0                                       // 0 ready, 1 running, 2 paused
+    fact sw_prog = 0.0                                      // how far round the current minute it is: the ring
+    text sw_time = "00:00"
+    text sw_laps = ""                                       // the last laps, newest first: "Lap 3 · 01:12   Lap 2 · 00:58"
+    fact sw_nlaps = 0
     fact desk_kb = false                                    // typing in the desk (the task field, the terminal): only then does it take the keyboard
     on change desk_tab { desk_kb = false; term_armed = false }
     on change desk_open while not desk_open { desk_kb = false; term_armed = false }
@@ -5605,7 +5883,8 @@ scene Vitreus {
     follow ft_caf_p = if(ft_caf, 1, 0)
     prop ft_sel = 1 ~slide
     follow ft_ring = ft_prog
-    follow ft_sel = if(ft_len == 15, 0, if(ft_len == 30, 1, if(ft_len == 45, 2, 3)))
+    let ft_idx = if(ft_mode == 1, if(ft_len == 1, 0, if(ft_len == 3, 1, if(ft_len == 5, 2, 3))), if(ft_len == 15, 0, if(ft_len == 30, 1, if(ft_len == 45, 2, 3))))
+    follow ft_sel = ft_idx
     on press ntn_t { panel_scr = screen.index; panel = if(panel == launch, none, launch) }
     on press ntn_l { panel_scr = screen.index; panel = if(bt > 0.5, if(panel == settings, none, settings), if(panel == launch, none, launch)) }
     on press ntn_b { panel_scr = screen.index; panel = if(bt > 0.5, if(panel == launch, none, launch), if(panel == settings, none, settings)) }
@@ -6319,6 +6598,42 @@ scene Vitreus {
         ellipse { at: gdo.l + 12, gdo.b - 12; radius: 3.6; stroke: 1.1; color: deep }
         line { from: gdo.l + 10, gdo.b - 10; to: gdo.l + 14, gdo.b - 14; width: 1.3; color: deep }
     }
+    //  The Proxy's hazard tape on the add-on panel, as on the other drawers (see bar_glass.plm).
+    group {
+        show: px_k > 0.01 and dax0 > 0.9
+        opacity: px_k * clamp(dax0 * 3 - 2, 0, 1)
+        let pxdxl = pxk_xdrawer_cx - pxk_xdrawer_w / 2
+        let pxdxr = pxk_xdrawer_cx + pxk_xdrawer_w / 2
+        let pxdxb = min(pxk_xdrawer_cy + pxk_xdrawer_h / 2, vb - lf.t - 1)
+        box { from: pxdxl + 20 * u + 34 * u, pxdxb - 11; size: pxdxr - pxdxl - 40 * u - 2 * 34 * u, 9; color: #0b0d10 }
+        repeat pxdxh in 0..130 {
+            path { at: pxdxl + 20 * u + 34 * u + pxdxh * 16 * u, pxdxb - 11; color: #ffd21f; opacity: if(pxdxl + 20 * u + 34 * u + pxdxh * 16 * u + 8 * u + 5 < pxdxr - 20 * u - 34 * u, 100%, 0); move 5, 0; line 8 * u + 5, 0; line 8 * u, 9; line 0, 9; close }
+        }
+        repeat pxdxc in 0..7 {
+            repeat pxdxw in 0..3 {
+                ellipse { at: pxdxl + 20 * u + pxdxc * 34 * u / 7, pxdxb - 9.5 + pxdxw * 3.6 + mod(pxdxc, 2) * 1.8; radius: 0.5 + pxdxc * 0.28; color: if(mod(pxdxc, 2) == 0, #ffd21f, #0b0d10) }
+                ellipse { at: pxdxr - 20 * u - pxdxc * 34 * u / 7, pxdxb - 9.5 + pxdxw * 3.6 + mod(pxdxc, 2) * 1.8; radius: 0.5 + pxdxc * 0.28; color: if(mod(pxdxc, 2) == 0, #ffd21f, #0b0d10) }
+            }
+        }
+    }
+    //  The Proxy's hazard tape on the volume / notification banner, as on the other drawers (see bar_glass.plm).
+    group {
+        show: px_k > 0.01 and do0 > 0.9
+        opacity: px_k * clamp(do0 * 3 - 2, 0, 1)
+        let pxdol = do.ix - do.iw / 2
+        let pxdor = do.ix + do.iw / 2
+        let pxdob = min(do.ey + do.eh / 2, vb - lf.t - 1)
+        box { from: pxdol + 20 * u + 34 * u, pxdob - 11; size: pxdor - pxdol - 40 * u - 2 * 34 * u, 9; color: #0b0d10 }
+        repeat pxdoh in 0..130 {
+            path { at: pxdol + 20 * u + 34 * u + pxdoh * 16 * u, pxdob - 11; color: #ffd21f; opacity: if(pxdol + 20 * u + 34 * u + pxdoh * 16 * u + 8 * u + 5 < pxdor - 20 * u - 34 * u, 100%, 0); move 5, 0; line 8 * u + 5, 0; line 8 * u, 9; line 0, 9; close }
+        }
+        repeat pxdoc in 0..7 {
+            repeat pxdow in 0..3 {
+                ellipse { at: pxdol + 20 * u + pxdoc * 34 * u / 7, pxdob - 9.5 + pxdow * 3.6 + mod(pxdoc, 2) * 1.8; radius: 0.5 + pxdoc * 0.28; color: if(mod(pxdoc, 2) == 0, #ffd21f, #0b0d10) }
+                ellipse { at: pxdor - 20 * u - pxdoc * 34 * u / 7, pxdob - 9.5 + pxdow * 3.6 + mod(pxdoc, 2) * 1.8; radius: 0.5 + pxdoc * 0.28; color: if(mod(pxdoc, 2) == 0, #ffd21f, #0b0d10) }
+            }
+        }
+    }
     //  The Cyber's HUD marks and digital rain on the volume / notification banner (see bar_glass.plm).
     group {
         show: cy_k > 0.01 and do0 > 0.9
@@ -6751,12 +7066,7 @@ scene Vitreus {
     group {
         show: wp_picker_show > 0.01
         opacity: wp_picker_show * wp_picker_veil
-        //  No sheet over the screen, on either page (the cards change the wallpaper live under them, and it has to be seen): only a soft shade rises from the foot, for the
-        //  words, the same on both.
-        //  (Each box runs to the foot and lies over the one before, so the dark rises in even steps of 3%; boxes side by side showed a line at each edge.)
-        repeat k in 0..24 {
-            box { from: 0, yo + vh - 420 + k * 17.5; size: screen.width, 420 - k * 17.5; color: #05070d; opacity: 0.03 / (1 - 0.03 * k) }
-        }
+        //  No sheet or shade over the screen, on either page (the cards change the wallpaper live under them, and it has to be seen).
         //  Where the pointer is on the hovered tile, for its tilt: a grid of invisible zones laid over it, 7 across and 8 down, each of which
         //  notes the pointer as it comes in. The tile's shader cannot be told (a group's shader is not given the pointer), and reading `cursor`
         //  instead made pleamar poll the mouse all the time. Declared before the tiles, so a press still goes to the tile under it.

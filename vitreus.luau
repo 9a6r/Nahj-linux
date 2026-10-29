@@ -339,7 +339,9 @@ end
 -- running in the Frame layout it kept the `pulse` spring moving for nothing, and so the whole scene painting at the
 -- monitor's rate for as long as music played. (Globals: this chunk is at Luau's limit of locals.)
 cava_playing = false
+game_fx = { on = false }          -- Game mode (logic/gamemode.luau) sets `on`: nothing listens to the music while it is
 function cava_want()
+    if game_fx.on then hush() return end
     if cava_playing and (fact.bar_anchor == "top" or fact.bar_anchor == "bottom" or watching or eq_float() or fw_on()) then listen() else hush() end
 end
 
@@ -701,6 +703,65 @@ on("togglednd", function()
     dnd_refresh()
 end)
 
+-- Game mode (logic/gamemode.luau) silences notifications for as long as it is on, as a manual Do Not Disturb. `start` says whether it did
+-- (false: something was silencing already, which is then left alone); `stop` lifts only what `start` set.
+game_fx.dnd_start = function()
+    if dnd then return false end
+    dnd_manual = true
+    dnd_save()
+    dnd_refresh()
+    return true
+end
+game_fx.dnd_stop = function()
+    if not dnd_manual then return end                    -- turned off by hand in the meantime: nothing to undo
+    dnd_manual, dnd_until, dnd_len = false, 0, 0
+    dnd_save()
+    dnd_refresh()
+end
+
+-- Game mode on niri: animations off, through the same vitreus.kdl the Hyprland page's switch writes (niri reads it again by itself).
+-- What was set is put back; nothing is saved to niri-set.json, so a restart of the shell ends it.
+game_fx.niri = function(on)
+    iris_fx.niri_load()
+    if on then
+        if game_fx.niri_prior == nil then game_fx.niri_prior = { niri_set.anim } end
+        niri_set.anim = false
+    else
+        local p = game_fx.niri_prior
+        if not p then return end
+        niri_set.anim = p[1]
+        game_fx.niri_prior = nil
+    end
+    iris_fx.apply_niri()
+end
+-- And on pleamar-wm: its windows go square, shadowless and fully opaque (the scene's own facts, as Settings > Pleamar-WM sets them).
+-- The values it had are asked first and sent back after.
+game_fx.wm = function(on)
+    local NAMES = { "rad", "shd", "wo_a", "wo_i" }
+    if on then
+        if game_fx.wm_prior then return end
+        local prior, n = {}, 0
+        for _, k in ipairs(NAMES) do
+            wm_get(k, function(v)
+                prior[k] = v
+                n = n + 1
+                if n == #NAMES then
+                    game_fx.wm_prior = prior
+                    wm_say("fact rad 0")
+                    wm_say("fact shd 0")
+                    wm_say("fact wo_a 100")
+                    wm_say("fact wo_i 100")
+                end
+            end)
+        end
+    else
+        local p = game_fx.wm_prior
+        if not p then return end
+        game_fx.wm_prior = nil
+        for _, k in ipairs(NAMES) do if p[k] then wm_say("fact " .. k .. " " .. p[k]) end end
+    end
+end
+
 -- The Notifications page's card: the schedule and the fullscreen switch, shown through facts (`nt_quiet`, `nt_fs`, and the two times as text).
 local function dq_sync()
     fact.nt_quiet = DQ.on
@@ -709,7 +770,7 @@ local function dq_sync()
     text.nt_qto_t = DQ.clock(DQ.to)
 end
 on("nt_q_toggle", function() DQ.on = not DQ.on; DQ.skip = false; dnd_save(); dq_sync(); dnd_refresh() end)
-on("nt_fs_toggle", function() DQ.fullscreen = not DQ.fullscreen; DQ.fs = false; DQ.skip = false; dnd_save(); dq_sync(); dnd_refresh() end)
+on("nt_fs_toggle", function() DQ.fullscreen = not DQ.fullscreen; DQ.fs = false; DQ.skip = false; dnd_save(); dq_sync(); dnd_refresh(); DQ.check() end)
 on("nt_q_step", function(k)        -- 0 start earlier, 1 start later, 2 end earlier, 3 end later: half an hour at a time
     k = math.floor((tonumber(k) or 0) + 0.5)
     if k == 0 then DQ.from = (DQ.from - 30) % 1440
@@ -721,14 +782,27 @@ on("nt_q_step", function(k)        -- 0 start earlier, 1 start later, 2 end earl
 end)
 dq_sync()
 every(20000, dnd_refresh)                                   -- quiet hours begin and end by the clock
--- A fullscreen window is asked of Hyprland (the `fullscreen` of the focused window is 2 for a real fullscreen), only while that switch is on.
-every(2500, function()
+-- A fullscreen window is asked of Hyprland (the `fullscreen` of the focused window is 2 for a real fullscreen), only while that switch is on:
+-- when Hyprland's event socket says a window went fullscreen or back, or the focus or the workspace moved (`DQ.poke`, from watch_urgent),
+-- and every half minute in case an event was missed. (It used to be asked every 2.5 s, and still is without Hyprland.)
+function DQ.check()
     if not DQ.fullscreen then return end
     run("hyprctl", { "activewindow", "-j" }, function(out)
         local ok, j = pcall(json.decode, out or "")
         local fs = ok and type(j) == "table" and (tonumber(j.fullscreen) or 0) >= 2
         if fs ~= DQ.fs then DQ.fs = fs; dnd_refresh() end
     end)
+end
+function DQ.poke()
+    if not DQ.fullscreen or DQ.poking then return end
+    DQ.poking = true
+    after(120, function() DQ.poking = false; DQ.check() end)      -- a burst of events (a workspace switch says several) is asked once
+end
+-- (Without Hyprland there are no such events, pleamar-wm's `hyprctl activewindow` is asked every 2.5 s, as before.)
+DQ.ticks = 0
+every(2500, function()
+    DQ.ticks = DQ.ticks + 1
+    if not on_hyprland or DQ.ticks % 12 == 0 then DQ.check() end
 end)
 -- A timer chip; pressing the one that is lit again cancels it.
 on("dnd_for", function(m)
@@ -1020,6 +1094,11 @@ local bt_list = {}
 local bt_last = nil                       -- the last thing the service said
 local bt_sig = nil                        -- what the list said last time it was handed over
 local bt_scanning = false                 -- a scan is running (see `bt_scan` below)
+-- Devices a scan found stay in the list (Nearby) for as long as the Bluetooth window is open, not just while the scan runs: BlueZ forgets an
+-- unpaired device some seconds after discovery stops, but the list used to drop them the moment the scan ended. `rows` keeps the last row of
+-- each by address; one BlueZ has dropped meanwhile is still listed (`gone`), and pressing it scans again for a few seconds before connecting.
+-- (A global: this chunk is at Luau's limit of locals.)
+BT_SEEN = { rows = {} }
 
 -- The list is built here: what is connected first, then what is paired, then the
 -- rest, named ones alphabetically and the anonymous ones (BLE beacons, mostly, which are dozens) last, by
@@ -1055,12 +1134,12 @@ local function pick_sec_name(sec) return sec == 1 and "CONNECTED" or (sec == 2 a
 local function bt_render()
     local b = bt_last
     if not b then return end
-    local name = ""
+    local name, name_bat = "", -1
     local rows = {}
     local seen = {}
     for _, d in ipairs(b.devices or {}) do
-        if d.connected then name = d.name end
-        if d.paired or d.connected or bt_scanning or bt_pending[d.address] then
+        if d.connected then name = d.name; name_bat = d.battery or -1 end
+        if d.paired or d.connected or bt_scanning or bt_pending[d.address] or BT_SEEN.rows[d.address] then
             local nm = (d.name ~= nil and d.name ~= "") and d.name or d.address
             local row = {
                 name = nm, address = d.address, paired = d.paired and true or false,
@@ -1078,6 +1157,17 @@ local function bt_render()
                 end
             end
             seen[d.address] = true
+            rows[#rows + 1] = row
+            if not row.paired and not row.connected then BT_SEEN.rows[d.address] = row end
+        end
+    end
+    -- found by a scan, then forgotten by BlueZ: still listed while the window is open
+    for addr, r in pairs(BT_SEEN.rows) do
+        if not seen[addr] and not bt_pending[addr] then
+            local row = {}
+            for k, v in pairs(r) do row[k] = v end
+            row.busy, row.gone = 0, true
+            seen[addr] = true
             rows[#rows + 1] = row
         end
     end
@@ -1126,7 +1216,8 @@ local function bt_render()
     end
     fact.bat_n = #bats
     model.bat_devs = bats
-    text.bt_name = name
+    -- the tile says the name and, when the device reports one, its charge: Headphones · 80 %
+    text.bt_name = (name ~= "" and name_bat >= 0) and (name .. " · " .. math.floor(name_bat * 100 + 0.5) .. "%") or name
     bt_list = rows
     local sig = {}
     for i, r in ipairs(rows) do
@@ -1339,7 +1430,9 @@ on("bt_disc_toggle", function()
 end)
 
 adapter_refresh()
-every(5000, adapter_refresh)
+-- The adapter's name and "discoverable" are only drawn in the Bluetooth window: read while it is open, not all day.
+on("fact:panel_sub", function(v) if tostring(v) == "btview" then adapter_refresh() end end)
+every(5000, function() if tostring(fact.panel) == "controls" and tostring(fact.panel_sub) == "btview" then adapter_refresh() end end)
 end
 
 -- Asks BlueZ for something slow, and shows that it was asked. `kind` 1 connecting, 2 disconnecting. If BlueZ has
@@ -1371,6 +1464,33 @@ on("bt_pick", function(i)
     if not d or d.hd > 0 or d.busy == 1 or d.busy == 2 then return end
     if d.connected then
         bt_ask(d, 2, "bluetooth.disconnect")
+    elseif d.gone then
+        -- BlueZ has forgotten it: look for it again (shown as connecting meanwhile), and connect once it is back; after ten seconds without it,
+        -- the row says it could not, as a connection that is not answered does
+        bt_pending[d.address] = { kind = 1, row = d, gen = -1 }
+        bt_render()
+        BT_SEEN.scan(10)
+        local tries = 0
+        local function look()
+            tries = tries + 1
+            for _, x in ipairs((bt_last and bt_last.devices) or {}) do
+                if x.address == d.address then
+                    bt_pending[d.address] = nil
+                    return bt_ask(d, 1, "bluetooth.connect")
+                end
+            end
+            if tries < 20 then return after(500, look) end
+            local p = bt_pending[d.address]
+            if p and p.gen == -1 then
+                p.kind = 3
+                bt_render()
+                after(3000, function()
+                    local q = bt_pending[d.address]
+                    if q and q.gen == -1 then bt_pending[d.address] = nil; bt_render() end
+                end)
+            end
+        end
+        after(500, look)
     else
         bt_ask(d, 1, "bluetooth.connect")
     end
@@ -1388,17 +1508,26 @@ end)
 -- `bluetoothctl --timeout 12 scan on`: pleamar's own `bluetooth.scan` answers
 -- without an error but BlueZ never starts discovering (`Discovering` stays "no"), while this does, and the
 -- service picks up what it finds. It ends by itself after twelve seconds.
-on("bt_scan", function()
+function BT_SEEN.scan(secs)
     if bt_scanning then return end
     bt_scanning = true
     fact.bt_scanning = true
     bt_render()
-    run("bluetoothctl", { "--timeout", "12", "scan", "on" }, function()
+    run("bluetoothctl", { "--timeout", tostring(secs), "scan", "on" }, function()
         bt_scanning = false
         fact.bt_scanning = false
         bt_render()
     end)
-end)
+end
+on("bt_scan", function() BT_SEEN.scan(12) end)
+-- The window closed: what the scans found is let go (BlueZ has forgotten most of it by now anyway).
+function BT_SEEN.clear()
+    if next(BT_SEEN.rows) == nil then return end
+    BT_SEEN.rows = {}
+    bt_render()
+end
+on("fact:panel_sub", function(v) if tostring(v) ~= "btview" then BT_SEEN.clear() end end)
+on("fact:panel", function(v) if tostring(v) ~= "controls" then BT_SEEN.clear() end end)
 end
 
 -- Wi-Fi asks NetworkManager once and the answer arrives within a few seconds, so its spinner is timed. As with
@@ -1635,8 +1764,12 @@ on("wifi_copy_ip", function()
     if ip and ip ~= "" then run("wl-copy", { ip }, function() end) end
 end)
 
-sys.watch("network", function() wf_refresh() end)
-every(6000, wf_refresh)
+-- The list is only drawn in the Controls drawer's Wi-Fi window, so it is only read while that is open (and once as it opens): `nmcli device wifi
+-- list` starts a scan of the air whenever the last one is older than half a minute, so asking it all day kept the radio scanning all day.
+function WF.shown() return tostring(fact.panel) == "controls" and tostring(fact.panel_sub) == "netview" end
+sys.watch("network", function() if WF.shown() then wf_refresh() end end)
+on("fact:panel_sub", function(v) if tostring(v) == "netview" then wf_refresh() end end)
+every(6000, function() if WF.shown() then wf_refresh() end end)
 on("wifi_scan_done", wf_refresh)
 end
 
@@ -2053,6 +2186,10 @@ function watch_urgent()
             rt, sig = (rt or ""):gsub("%s+$", ""), (sig or ""):gsub("%s+$", "")
             if rt == "" or sig == "" then return end
             spawn("socat", { "-u", "UNIX-CONNECT:" .. rt .. "/hypr/" .. sig .. "/.socket2.sock", "-" }, function(line)
+                -- what can change whether the focused window is fullscreen (Do Not Disturb's "while fullscreen")
+                if line:match("^configreloaded>>") and game_fx.hg_check then game_fx.hg_check() end      -- hyprglass loaded or unloaded
+                if line:match("^activelayout>>") and LOCKKEYS and LOCKKEYS.layout then LOCKKEYS.layout() end           -- the keyboard layout changed (logic/lockkeys.luau)
+                if line:match("^fullscreen>>") or line:match("^activewindowv2>>") or line:match("^workspacev2>>") or line:match("^closewindow>>") then DQ.poke() end
                 -- A special workspace (the scratchpads) shown or put away: `activespecial>>special:magic,<name>`, with no name when it is put away.
                 local spn = line:match("^activespecial>>([^,]*),")
                 if spn then
@@ -3277,9 +3414,10 @@ iris_fx.CASSETTE = 8
 iris_fx.UWU = 9
 iris_fx.CYBER = 10
 iris_fx.MILK = 11
+iris_fx.PROXY = 12
 iris_fx.CUSTOM = 100
 vtheme = { list = {}, by_id = {}, errors = {}, folder = "" }
-vtheme.look_id = { [8] = "retro", [9] = "uwu", [10] = "cyber", [11] = "milk" }
+vtheme.look_id = { [8] = "retro", [9] = "uwu", [10] = "cyber", [11] = "milk", [12] = "proxy" }
 function vtheme.load()
     local ok, f = pcall(sys.ask, "files.read", "themes.json", "json")
     if not ok or type(f) ~= "table" or type(f.themes) ~= "table" then return false end
@@ -3317,10 +3455,10 @@ do
     if ok and type(saved) == "table" then
         if saved.enabled ~= nil then iris_cfg.enabled = saved.enabled and true or false end
         local pr = tonumber(saved.preset)
-        if pr and (math.floor(pr) == iris_fx.CASSETTE or math.floor(pr) == iris_fx.UWU or math.floor(pr) == iris_fx.CYBER or math.floor(pr) == iris_fx.MILK or math.floor(pr) == iris_fx.CUSTOM) then iris_cfg.preset = math.floor(pr) end
+        if pr and (math.floor(pr) == iris_fx.CASSETTE or math.floor(pr) == iris_fx.UWU or math.floor(pr) == iris_fx.CYBER or math.floor(pr) == iris_fx.MILK or math.floor(pr) == iris_fx.PROXY or math.floor(pr) == iris_fx.CUSTOM) then iris_cfg.preset = math.floor(pr) end
         -- The look (the shape of the shell) is its own setting, apart from where the colours come from: Iris may colour a Retro or UwU shell and it stays one.
         local lk = tonumber(saved.look)
-        if lk and (math.floor(lk) == iris_fx.CASSETTE or math.floor(lk) == iris_fx.UWU or math.floor(lk) == iris_fx.CYBER or math.floor(lk) == iris_fx.MILK) then iris_cfg.look = math.floor(lk)
+        if lk and (math.floor(lk) == iris_fx.CASSETTE or math.floor(lk) == iris_fx.UWU or math.floor(lk) == iris_fx.CYBER or math.floor(lk) == iris_fx.MILK or math.floor(lk) == iris_fx.PROXY) then iris_cfg.look = math.floor(lk)
         elseif lk == nil then iris_cfg.look = iris_cfg.preset ~= iris_fx.CUSTOM and iris_cfg.preset or nil end      -- an older file: the look was the palette
         -- The theme itself. An older file has only the look, which names one of Vitreus's own; a theme whose file has gone leaves Glass.
         if type(saved.theme) == "string" then iris_cfg.theme = saved.theme
@@ -3335,15 +3473,16 @@ do
     local INTENSITIES = { "subtle", "medium", "bold" }
     -- The desktop clock and system monitor draw themselves as plastic with Retro and UwU: they are told the theme (0 Glass, 1 Retro, 2 UwU).
     local function push_look()
-        local v = iris_cfg.look == iris_fx.CASSETTE and 1 or iris_cfg.look == iris_fx.UWU and 2 or iris_cfg.look == iris_fx.CYBER and 3 or iris_cfg.look == iris_fx.MILK and 4 or 0
-        addon_look = v
+        local v = iris_cfg.look == iris_fx.CASSETTE and 1 or iris_cfg.look == iris_fx.UWU and 2 or iris_cfg.look == iris_fx.CYBER and 3 or iris_cfg.look == iris_fx.MILK and 4 or iris_cfg.look == iris_fx.PROXY and 3 or 0
+        local av = iris_cfg.look == iris_fx.PROXY and 5 or v             -- add-ons know Proxy as 5 (the desktop widgets below still take it as Cyber's 3)
+        addon_look = av
         run("pleamar", { "--say", "desktopclock", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopsysmon", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopcards", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "desktopnotes", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "files", "fact look " .. v }, function() end)
         run("pleamar", { "--say", "cursortrail", "fact look " .. v }, function() end)
-        for _, sk in ipairs(addon_scenes or {}) do run("pleamar", { "--say", sk, "fact look " .. v }, function() end) end      -- the sparkle trail behind the mouse: UwU only
+        for _, sk in ipairs(addon_scenes or {}) do run("pleamar", { "--say", sk, "fact look " .. av }, function() end) end      -- the sparkle trail behind the mouse: UwU only
     end
     local function show()
         push_look()
@@ -3354,6 +3493,7 @@ do
         fact.uwu = iris_cfg.look == iris_fx.UWU
         fact.cyber_on = iris_cfg.look == iris_fx.CYBER
         fact.milk = iris_cfg.look == iris_fx.MILK
+        fact.proxy_on = iris_cfg.look == iris_fx.PROXY
         if hy_theme_changed then hy_theme_changed(vtheme.current().id) end
         for k, name in ipairs(INTENSITIES) do if name == iris_cfg.intensity then fact.iris_int = k - 1 end end
     end
@@ -3675,7 +3815,7 @@ do
         -- The lock screen is drawn in the same typeface, so it starts again too, unless the session is locked right now (that would unlock it).
         after(500, function()
             run("pleamar", { "--say", "lockscreen", "get locked" }, function(locked)
-                local pat = tostring(locked):match("true") and "(vitreus\\.plm|desktop)" or "(vitreus\\.plm|desktop|lockscreen/lockscreen\\.plm)"
+                local pat = tostring(locked):match("true") and "(vitreus\\.plm|desktop|addons/)" or "(vitreus\\.plm|desktop|addons/|lockscreen/lockscreen\\.plm)"
                 run("pkill", { "-f", "pleamar --scene .*/vitreus/" .. pat }, function() end)
             end)
         end)
@@ -4226,7 +4366,8 @@ local function glass_refresh()
     fact.glass_disp = glass.disp
     fact.glass_dome = glass.dome
     fact.glass_milk = glass.milk
-    fact.glass_bend = glass.bend or glass.live      -- the lens: either switch turns it on (Live bend does not need X-Bend)
+    fact.glass_bend = (glass.bend or glass.live) and not glass.game      -- the lens: either switch turns it on (Live bend does not need X-Bend); never in Game Mode
+    fact.files_bend = (glass.bend or glass.live) and not glass.game and not glass.hg      -- Files asks for this one as it starts (files.luau)
     fact.glass_x = glass.bend
     fact.glass_live = glass.live
     fact.lens_interval_ms = glass.cap_ms             -- pleamar reads this one: the least time between two captures for Live bend
@@ -4243,13 +4384,40 @@ local function glass_refresh()
 end
 -- The desktop clock and system monitor are scenes of their own: they are told when the glass goes off or on (they ask for it themselves when they start).
 function glass.push_obs()
-    local v = glass.obsidian and "true" or "false"
+    local v = (glass.obsidian or glass.game) and "true" or "false"
     run("pleamar", { "--say", "desktopclock", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopsysmon", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopcards", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "files", "fact obs " .. v }, function() end)
     run("pleamar", { "--say", "desktopnotes", "fact obs " .. v }, function() end)
+    run("pleamar", { "--say", "files", "fact gop " .. glass.opacity, "fact gbend " .. tostring((glass.bend or glass.live) and not glass.game and not glass.hg), "fact grefr " .. glass.refr, "fact gdisp " .. glass.disp,
+        "fact gclear " .. glass.clear, "fact gdome " .. glass.dome, "fact gmilk " .. glass.milk, "fact grim " .. glass.rim }, function() end)     -- Files wears the same glass
 end
+-- Game Mode (logic/gamemode.luau) takes the glass away while it is on: the bar and the drawers go flat obsidian (`game_on` in the scene's `obs`) and
+-- nothing bends, so nothing is captured behind them, every frame of a game being "something behind that changed"; and with Hyprland's blur off
+-- (Game Mode turns it off too) the glass would only be a thin tint over the game. The desktop's own scenes and Files are told as for "glass off".
+-- The Glass page keeps showing the person's own settings; nothing is saved.
+function game_fx.glass(on)
+    glass.game = on and true or false
+    glass_refresh()
+    glass.push_obs()
+end
+-- hyprglass (on trial with Files only): when the plugin is loaded in Hyprland, the compositor draws the glass behind the Files window
+-- (hypr_vitreus.lua says how), so Files stops bending its own copy of the wallpaper (`gbend`, in glass.push_obs); the shell keeps its own. Looked at as the shell starts and whenever Hyprland's
+-- config is read again (a plugin is loaded or unloaded, then `hyprctl reload`: watch_urgent's listener calls this on `configreloaded`).
+function game_fx.hg_check()
+    if not on_hyprland then return end
+    run("hyprctl", { "plugin", "list" }, function(out, code)
+        if code ~= 0 then return end
+        local on = (out or ""):find("hyprglass", 1, true) ~= nil
+        if on ~= (glass.hg == true) then
+            glass.hg = on
+            glass_refresh()
+            glass.push_obs()
+        end
+    end)
+end
+after(3000, function() game_fx.hg_check() end)
 local function glass_save_soon()
     glass.push_obs()
     if glass_save_waiting then return end
@@ -6232,6 +6400,7 @@ end
         { "Settings: Glass", "open", open_settings("pg_glass"), "blur transparency frosted liquid look appearance theme" },
         { "Settings: Display", "open", open_settings("pg_disp"), "monitor screen resolution refresh rate scale arrangement vrr position" },
         { "Settings: Night mode", "open", open_settings("pg_night"), "nightlight blue light warm tint redshift filter schedule eyes" },
+        { "Game mode: toggle", "action", function() spawn('pleamar --say vitreus "emit game_toggle"') end, "game gaming play performance fullscreen tearing latency fps on off" },
         { "Night mode: toggle", "action", function() spawn('pleamar --say vitreus "emit night_toggle"') end, "nightlight blue light warm tint redshift filter on off" },
         { "Settings: Hyprland", "open", open_settings("pg_hypr"), "window manager gaps border layout animations tearing input keyboard mouse touchpad" },
         { "Settings: Pleamar-WM", "open", open_settings("pg_wm"), "pleamar wm window manager gaps layout columns rows grid leader floating free rain snow weather pointer mouse touchpad speed natural scroll tap idle screen off keybinds session" },
@@ -6941,6 +7110,8 @@ require("logic/tray")(set_panel)
 
 -- nightmode: see logic/nightmode.luau
 require("logic/nightmode")(with_dirs)
+-- game mode: see logic/gamemode.luau
+require("logic/gamemode")()
 
 -- the audio visualiser (the bottom edge rising into the music): see logic/visualizer.luau
 require("logic/visualizer")()
@@ -8318,6 +8489,9 @@ end)()
 
 -- focus: see logic/focus.luau
 require("logic/focus")()
+-- Caps Lock, Num Lock and the keyboard layout: see logic/lockkeys.luau (it fills LOCKKEYS.layout, called by watch_urgent's listener)
+LOCKKEYS = { show = show_level }     -- (the volume drawer's rows: the lock keys have the third, "m")
+require("logic/lockkeys")()
 
 -- ── A screenshot, as a card ───────────────────────────────────────────────────────────────────────────
 -- Capture (logic/capture_power.luau) says `text shot_path <file>` and `emit shot_done` once a picture is taken. It comes up in the volume's and the

@@ -89,11 +89,12 @@ part Dashboard {
         show: dsh_water > 0.004 or dsh_rise > 0.004
         let dsh.gap = 18
         let dsh.pw = 88                                               // a slider's width
+        let dsh.ns = if(brightness.present, 2, 1)                     // how many sliders: no backlight (a desktop, an external monitor) leaves the volume one alone
         let dsh.tw = min(1420, screen.width * 0.74)                   // the whole dashboard: the sliders, then the grid
-        let dsh.gw = dsh.tw - dsh.pw * 2 - dsh.gap * 2                // the grid of tiles, right of the sliders
+        let dsh.gw = dsh.tw - (dsh.pw + dsh.gap) * dsh.ns             // the grid of tiles, right of the sliders
         let dsh.gh = min(640, vh * 0.66)
         let dsh.sl = cx - dsh.tw / 2                                  // the sliders' left edge
-        let dsh.x0 = dsh.sl + dsh.pw * 2 + dsh.gap * 2                // the grid's
+        let dsh.x0 = dsh.sl + (dsh.pw + dsh.gap) * dsh.ns             // the grid's
         let dsh.y0 = yo + vh / 2 - dsh.gh / 2
         let dsh.sc = 0.95 + 0.05 * dsh_rise                           // a little smaller while further down
         let dsh.vis = clamp(dsh_rise * 1.5, 0, 1)
@@ -137,7 +138,7 @@ part Dashboard {
         let dC.h = dsh.gh * 0.52 - dsh.hg
         let dE.l = dsh.sl                                             // the two sliders, together
         let dE.t = dsh.y0
-        let dE.w = dsh.pw * 2 + dsh.gap
+        let dE.w = dsh.pw * dsh.ns + dsh.gap * (dsh.ns - 1)
         let dE.h = dsh.gh
 
         //  (No pool over the screen: the desktop is left as it is, not dimmed or deepened, while the dashboard is up.)
@@ -183,7 +184,7 @@ part Dashboard {
                     group {
                         show: cal_events.count > i
                         ellipse { at: dR.l + 9, dRi.y; radius: 9; color: if(cal_events.$i.done, mint, ink); opacity: if(cal_events.$i.done, 0.9, 0.12 + 0.1 * dsh_rem.$i.hover) }
-                        text "󰄬" { at: dR.l + 9, dRi.y; anchor: center; size: 11; family: "SpaceMono Nerd Font Propo"; color: onmint; show: cal_events.$i.done }
+                        group { show: cal_events.$i.done; GCheck(dR.l + 9, dRi.y, (11) / 24, onmint, 1, 0) }
                         text cal_events.$i.title { at: dR.l + 28, dRi.y; anchor: left center; size: 14; width: dR.w - 90; lines: 1; family: "Space Grotesk"; color: ink; opacity: if(cal_events.$i.done, 0.5, 1) }
                         text cal_events.$i.time { at: dR.l + dR.w, dRi.y; anchor: right center; size: 11.5; family: "Space Grotesk"; color: faint }
                         zone box dsh_rem.$i { from: dR.l - 6, dRi.y - 15; size: dR.w + 12, 30; cursor: pointer; active: dash_open; label: "Done"; role: toggle; checked: cal_events.$i.done }
@@ -317,12 +318,12 @@ part Dashboard {
                         }
                     }
                 }
-                text pick(wx_kind, "󰖙", "󰖕", "󰖐", "󰖑", "󰖗", "󰖘", "󰖓") { at: dW.l + 28, dW.t + dWo + 50; anchor: left center; size: 46; family: "SpaceMono Nerd Font Propo"; color: mint; show: wx_ok }
+                group { show: wx_ok; group { group { show: true; GWeather(dW.l + 28 + (46) / 2, dW.t + dWo + 50, wx_kind, (46) / 24, mint, 1, 0) } } }
                 //  The details, in the middle of the header: how it feels, the humidity, the wind and today's chance of rain.
                 repeat s in 0..4 {
                     let dWs.x = dW.l + 128 + (s - floor(s / 2) * 2) * 104
                     let dWs.y = dW.t + dWo + 36 + floor(s / 2) * 48
-                    text pick(s, "󰔏", "󰖎", "󰖝", "󰖗") { at: dWs.x, dWs.y; anchor: left center; size: 17; family: "SpaceMono Nerd Font Propo"; color: mint; show: wx_ok }
+                    group { show: wx_ok; group { group { show: s == 0; GThermo(dWs.x + (17) / 2, dWs.y, (17) / 24, mint, 1, 0) } group { show: s == 1; GDrop(dWs.x + (17) / 2, dWs.y, (17) / 24, mint, 1, 0) } group { show: s == 2; GWind(dWs.x + (17) / 2, dWs.y, (17) / 24, mint, 1, 0) } group { show: s == 3; GWeather(dWs.x + (17) / 2, dWs.y, 4, (17) / 24, mint, 1, 0) } } }
                     text pick(s, "Feels like", "Humidity", "Wind", "Rain today") { at: dWs.x + 26, dWs.y + 14; anchor: left center; size: 11; family: "Space Grotesk"; color: faint; show: wx_ok }
                 }
                 text wx_feels { at: dW.l + 128 + 26, dW.t + dWo + 36 - 6; anchor: left center; size: 15; weight: 600; width: 74; lines: 1; family: "Space Grotesk"; color: ink; show: wx_ok }
@@ -337,7 +338,7 @@ part Dashboard {
                     group {
                         show: wx_ok and wx_days.count > i
                         text wx_days.$i.label { at: dWi.x, dW.t + dWo + 156; anchor: center; size: 13; family: "Space Grotesk"; color: if(wx_days.$i.today, mint, faint) }
-                        text pick(wx_days.$i.kind, "󰖙", "󰖕", "󰖐", "󰖑", "󰖗", "󰖘", "󰖓") { at: dWi.x, dW.t + dWo + 186; anchor: center; size: 21; family: "SpaceMono Nerd Font Propo"; color: ink }
+                        group { group { show: true; GWeather(dWi.x, dW.t + dWo + 186, wx_days.$i.kind, (21) / 24, ink, 1, 0) } }
                         text wx_days.$i.hi { at: dWi.x, dW.t + dWo + 216; anchor: center; size: 13; weight: 600; family: "Space Grotesk"; color: ink }
                         text wx_days.$i.lo { at: dWi.x, dW.t + dWo + 236; anchor: center; size: 12; family: "Space Grotesk"; color: faint }
                     }
@@ -360,7 +361,7 @@ part Dashboard {
                     ellipse { at: dC.cx, dC.cy; radius: dC.ar + 4 + g * 9; color: mint; opacity: (0.05 + 0.26 * bass * playf) * (1 - g / 5) * 0.7; show: media_on }
                 }
                 ellipse { at: dC.cx, dC.cy; radius: dC.ar; color: ink; opacity: 0.07; show: media_on }
-                text "󰝚" { at: dC.cx, dC.cy; anchor: center; size: 40; family: "SpaceMono Nerd Font Propo"; color: faint; opacity: 0.6; show: media_on }
+                group { show: media_on; GNote(dC.cx, dC.cy, (40) / 24, faint, 0.6, 0) }
                 //  The cover itself, in the disc (the logic loads it into `art`, cropped to a square), over the glow and the disc.
                 group {
                     show: media_on
@@ -508,7 +509,7 @@ part Dashboard {
                     text "!" { at: dCw.hx, dCw.hy - 14 - 6 * (1 - dCh.pk); anchor: center; size: 20; weight: 700; family: "Space Grotesk"; color: mint; opacity: clamp(dCh.pk * 3 - 1, 0, 1) }
                     repeat n in 0..5 {
                         let dCn.p = 1 - dCh.pk
-                        text "󰝚" { at: dCw.hx + 20 + (n - 2) * 13 * (0.4 + dCn.p), dCw.hy - 10 - dCn.p * (24 + n * 6); anchor: center; size: 13 + mod(n, 2) * 4; family: "SpaceMono Nerd Font Propo"; color: mint; opacity: sin(clamp(dCn.p, 0, 1) * 180) * 0.8; show: dCh.pk > 0.02 }
+                        group { show: dCh.pk > 0.02; GNote(dCw.hx + 20 + (n - 2) * 13 * (0.4 + dCn.p), dCw.hy - 10 - dCn.p * (24 + n * 6), (13 + mod(n, 2) * 4) / 24, mint, sin(clamp(dCn.p, 0, 1) * 180) * 0.8, 0) }
                     }
                     zone box dsh_spk { from: dCd.x - 108, dCb.fl - 104; size: 84, 40; corner: 12; cursor: pointer; active: dash_open and not media_on; label: "Poke the cat" }
                     on press dsh_spk { dsh_poke: 1 ~0ms; dsh_poke: 0 ~1700ms after 60ms }
@@ -586,7 +587,7 @@ part Dashboard {
                     let dCb.x = dC.tx + dC.tw / 2 + (b - 1) * 60
                     let dCb.y = dC.t + 18 + dC.s - 28
                     ellipse { at: dCb.x, dCb.y; radius: if(b == 1, 26, 20); color: if(b == 1, mint, ink); opacity: if(b == 1, 0.9, 0.06 + 0.1 * dsh_mb.$b.hover); show: media_on }
-                    text pick(b + if(b > 1, 1, 0) + if(b == 1 and media.playing, 1, 0), "󰒮", "󰐊", "󰏤", "󰒭") { at: dCb.x, dCb.y; anchor: center; size: 22; family: "SpaceMono Nerd Font Propo"; color: if(b == 1, onmint, ink); show: media_on }
+                    group { show: media_on; group { group { show: (b + if(b > 1, 1, 0) + if(b == 1 and media.playing, 1, 0)) == 0; GSkip(dCb.x, dCb.y, 1, (22) / 24, if(b == 1, onmint, ink), 1, 0) } group { show: (b + if(b > 1, 1, 0) + if(b == 1 and media.playing, 1, 0)) == 1; GPlay(dCb.x, dCb.y, (22) / 24, if(b == 1, onmint, ink), 1, 0) } group { show: (b + if(b > 1, 1, 0) + if(b == 1 and media.playing, 1, 0)) == 2; GPause(dCb.x, dCb.y, (22) / 24, if(b == 1, onmint, ink), 1, 0) } group { show: (b + if(b > 1, 1, 0) + if(b == 1 and media.playing, 1, 0)) == 3; GSkip(dCb.x, dCb.y, -1, (22) / 24, if(b == 1, onmint, ink), 1, 0) } } }
                     zone ellipse dsh_mb.$b { at: dCb.x, dCb.y; radius: 26; cursor: pointer; active: dash_open and media_on; label: pick(b, "Previous", "Play or pause", "Next") }
                     on press dsh_mb.$b { emit mcmd(b) }
                 }
@@ -633,7 +634,7 @@ part Dashboard {
                 on scroll dsh_ntw { nt_to = clamp(nt_to - wheel * 48, 0, max(0, nt_hist.count * 64 - (dD.h - 72) + 4)) }
                 text "Notifications" { at: dD.l + 22, dD.t + 32; anchor: left center; size: 16; weight: 600; family: "Space Grotesk"; color: ink }
                 ellipse { at: dD.l + dD.w - 34, dD.t + 32; radius: 17; color: if(dnd_on, mint, ink); opacity: if(dnd_on, 0.9, 0.07 + 0.1 * dsh_dnd.hover) }
-                text pick(if(dnd_on, 1, 0), "󰂚", "󰂛") { at: dD.l + dD.w - 34, dD.t + 32; anchor: center; size: 17; family: "SpaceMono Nerd Font Propo"; color: if(dnd_on, onmint, ink) }
+                group { group { show: true; GBell(dD.l + dD.w - 34, dD.t + 32, if(dnd_on, 1, 0), (17) / 24, if(dnd_on, onmint, ink), 1, 0) } }
                 zone ellipse dsh_dnd { at: dD.l + dD.w - 34, dD.t + 32; radius: 18; cursor: pointer; active: dash_open; label: "Do Not Disturb" }
                 on press dsh_dnd { emit togglednd }
                 //  Clear: empties the history. It is there while there is something to clear.
@@ -725,7 +726,7 @@ part Dashboard {
                     }
                     repeat h in 0..2 {
                         let dNh.p = fract(time * 0.9 + h / 2)
-                        text "󰋑" { at: dNc.cx + dNc.u * (1 + h * 5) + 5 * sin(dNh.p * 360), dNc.gy - dNc.u * 7 - dNh.p * 38; anchor: center; size: 14; family: "SpaceMono Nerd Font Propo"; color: #ff9bb3; opacity: dNc.love * sin(dNh.p * 180) }
+                        GHeart(dNc.cx + dNc.u * (1 + h * 5) + 5 * sin(dNh.p * 360), dNc.gy - dNc.u * 7 - dNh.p * 38, (14) / 24, #ff9bb3, dNc.love * sin(dNh.p * 180), 0)
                     }
                     follow dsh_pet = dsh_cat.hover
                     follow dsh_hup = dsh_cathead.hover
@@ -766,9 +767,9 @@ part Dashboard {
                         box { from: dBy.x, dBy.y; size: dBy.w, dBy.h; corner: 13; stroke: 2.2; color: ink; opacity: 0.55; show: dBb.on }
                         box { from: dBy.x + dBy.w + 3, dBy.y + dBy.h / 2 - 9; size: 6, 18; corner: 3; color: ink; opacity: 0.55; show: dBb.on }
                         text number(dBb.pct, 0, "%") { at: dBy.x + dBy.w / 2, dBy.y + dBy.h / 2; anchor: center; size: 17; weight: 700; family: "Space Grotesk"; color: ink; show: dBb.on }
-                        text "󱐋" { at: dBy.x + 18, dBy.y + dBy.h / 2; anchor: center; size: 17; family: "SpaceMono Nerd Font Propo"; color: dBy.c; show: dBb.on and dBb.chg }
+                        group { show: dBb.on and dBb.chg; GBolt(dBy.x + 18, dBy.y + dBy.h / 2, (17) / 24, dBy.c, 1, 0) }
                         text pick(if(dBb.chg, 1, 0), "On battery", "Charging") { at: dBy.x + dBy.w + 18, dBy.y + dBy.h / 2; anchor: left center; size: 12.5; width: dB.w - 24 - dBy.w - 18 - 80; lines: 1; family: "Space Grotesk"; color: if(dBb.chg, mint, faint); show: dBb.on }
-                        text "󰚥" { at: dB.l + 24, dB.t + dB.h / 2; anchor: left center; size: 34; family: "SpaceMono Nerd Font Propo"; color: mint; show: not dBb.on }
+                        group { show: not dBb.on; GPlug(dB.l + 24 + (34) / 2, dB.t + dB.h / 2, (34) / 24, mint, 1, 0) }
                         text "Plugged in" { at: dB.l + 72, dB.t + dB.h / 2; anchor: left center; size: 16; weight: 600; family: "Space Grotesk"; color: ink; show: not dBb.on }
                     }
                     //  The options, sliding in from the right.
@@ -782,7 +783,16 @@ part Dashboard {
                             let dBo.h = if(dsh_pk == o, dsh_pp, 0)
                             ellipse { at: dBo.x, dBo.y; radius: 18; color: ink; opacity: 0.08 + 0.08 * dsh_po.$o.hover }
                             arc { at: dBo.x, dBo.y; radius: 21; span: dBo.h * 360deg; rotate: dBo.h * 180deg; width: 3; color: mint; show: dBo.h > 0.01 }
-                            text pick(o, "󰌾", "󰤄", "󰍃", "󰜉", "󰐥") { at: dBo.x, dBo.y; anchor: center; size: 18; family: "SpaceMono Nerd Font Propo"; color: mix(ink, mint, max(dsh_po.$o.hover, dBo.h)) }
+                            //  The Control Center's own power icons (PSLock, PSSleep, PSOut, PSRestart, PSOff), scaled down to fit the circle: they light and boil under the pointer as there.
+                            group {
+                                pivot: dBo.x, dBo.y
+                                scale: 0.6
+                                group { show: o == 0; PSLock(dBo.x, dBo.y, max(dsh_po.$o.hover, dBo.h)) }
+                                group { show: o == 1; PSSleep(dBo.x, dBo.y, max(dsh_po.$o.hover, dBo.h)) }
+                                group { show: o == 2; PSOut(dBo.x, dBo.y, max(dsh_po.$o.hover, dBo.h)) }
+                                group { show: o == 3; PSRestart(dBo.x, dBo.y, max(dsh_po.$o.hover, dBo.h)) }
+                                group { show: o == 4; PSOff(dBo.x, dBo.y, max(dsh_po.$o.hover, dBo.h)) }
+                            }
                             text pick(o, "Lock", "Sleep", "Log out", "Restart", "Shut down") { at: dBo.x, dBo.y + 30; anchor: center; align: center; size: 9.5; width: 56; lines: 1; family: "Space Grotesk"; color: faint }
                             zone ellipse dsh_po.$o { at: dBo.x, dBo.y; radius: 24; cursor: pointer; active: dash_open and dsh_pw; label: pick(o, "Lock", "Sleep", "Log out", "Restart", "Shut down") }
                             on press dsh_po.$o { dsh_ps = time; dsh_pk = o }
@@ -793,8 +803,8 @@ part Dashboard {
                 }
                 //  The power button itself: it turns into a cross while the options are out.
                 ellipse { at: dBp.x, dBp.y; radius: 22; color: if(dsh_pw, ink, mint); opacity: if(dsh_pw, 0.1 + 0.1 * dsh_pb.hover, 0.9 + 0.1 * dsh_pb.hover) }
-                text "󰐥" { at: dBp.x, dBp.y; anchor: center; size: 21; family: "SpaceMono Nerd Font Propo"; color: onmint; opacity: 1 - dsh_pwk }
-                text "󰅖" { at: dBp.x, dBp.y; anchor: center; size: 19; family: "SpaceMono Nerd Font Propo"; color: ink; opacity: dsh_pwk }
+                GPower(dBp.x, dBp.y, (21) / 24, onmint, 1 - dsh_pwk, 0)
+                GClose(dBp.x, dBp.y, (19) / 24, ink, dsh_pwk, 0)
                 zone ellipse dsh_pb { at: dBp.x, dBp.y; radius: 24; cursor: pointer; active: dash_open; label: "Power options" }
                 on press dsh_pb { dsh_pw = not dsh_pw }
             }
@@ -809,7 +819,7 @@ part Dashboard {
                 let dV.lv = if(dsh_sl.$v.pressed, clamp((dE.t + dE.h - pointer.y) / dE.h, 0, 1), clamp(if(v == 0, volume_level, bright_level), 0, 1))   // under the pointer while dragged, not waiting on the mixer
                 let dV.dim = if(v == 0, audio.muted, 1 - dV.on)               // its fill is grey: muted, or nothing to set
                 let dV.ly = clamp(dE.t + dE.h * (1 - dV.lv) - 21, dE.t + 9, dE.t + dE.h - 21)   // the line's top: it rides above the fill, 5 clear of it (the fill is 9 clear of the glass)
-                DshTile(dV.l, dE.t, dV.w, dE.h, pick(v, dsh_c4, dsh_c1), dV.k) {
+                DshTile(dV.l, dE.t, dV.w, dE.h, pick(v, dsh_c4, dsh_c1 * if(brightness.present, 1, 0)), dV.k) {
                     group {
                         clip inset 9 box { from: dV.l, dE.t; size: dV.w, dE.h; corner: dV.k }
                         box { from: dV.l, dV.ly + 21; size: dV.w, dE.t + dE.h - dV.ly - 21; color: if(dV.dim, faint, mint); opacity: if(dV.dim, 0.22, 0.85) }
@@ -872,8 +882,9 @@ part Dashboard {
                     }
                     text number(dV.lv * 100, 0, "%") { at: dV.l + dV.w / 2, dE.t + 30; anchor: center; size: 20; weight: 600; family: "Space Grotesk"; color: ink; opacity: 0.5 + 0.5 * dV.on; show: dV.on }
                     text "No backlight" { at: dV.l + dV.w / 2, dE.t + 30; anchor: center; size: 11.5; width: dV.w - 16; lines: 2; align: center; family: "Space Grotesk"; color: faint; show: not dV.on }
-                    text pick(if(v == 1, 4 + clamp(floor(dV.lv * 3), 0, 2), if(audio.muted, 3, clamp(floor(dV.lv * 3), 0, 2))), "󰕿", "󰖀", "󰕾", "󰖁", "󰃞", "󰃟", "󰃠") {
-                        at: dV.l + dV.w / 2, dE.t + dE.h - 32; anchor: center; size: 24; family: "SpaceMono Nerd Font Propo"; color: if(dV.lv > 0.18 and not dV.dim, onmint, ink); opacity: 0.45 + 0.55 * dV.on }
+                    //  The speaker (with one or two waves by the level, crossed out when muted) or the sun (its rays longer the brighter), in pencil.
+                    group { show: v == 0; GSpeaker(dV.l + dV.w / 2, dE.t + dE.h - 32, clamp(floor(dV.lv * 3), 0, 2), if(audio.muted, 1, 0), 1, if(dV.lv > 0.18 and not dV.dim, onmint, ink), 0.45 + 0.55 * dV.on, 0) }
+                    group { show: v == 1; GSun(dV.l + dV.w / 2, dE.t + dE.h - 32, clamp(dV.lv, 0, 1), 1, if(dV.lv > 0.18 and not dV.dim, onmint, ink), 0.45 + 0.55 * dV.on, 0) }
                 }
                 zone box dsh_sl.$v { from: dV.l, dE.t; size: dV.w, dE.h; corner: dV.k; cursor: ns_resize; active: dash_open and dV.on > 0.5; label: pick(v, "Volume", "Brightness"); role: slider; value: dV.lv }
             }
@@ -894,7 +905,7 @@ part Dashboard {
                 let dF.w2 = dF.l + dF.w - dF.tx - 18
                 ellipse { at: dF.cx, dF.cy; radius: dF.r + 6; stroke: 4; color: mint; opacity: 0.9 }
                 ellipse { at: dF.cx, dF.cy; radius: dF.r; color: ink; opacity: 0.07 }
-                text "󰀄" { at: dF.cx, dF.cy; anchor: center; size: 56; family: "SpaceMono Nerd Font Propo"; color: faint; opacity: 0.7; show: not sm_has_avatar }
+                group { show: not sm_has_avatar; GPerson(dF.cx, dF.cy, (56) / 24, faint, 0.7, 0) }
                 group {
                     show: sm_has_avatar
                     clip inset 0 box { from: dF.cx - dF.r, dF.cy - dF.r; size: dF.r * 2, dF.r * 2; corner: dF.r }
@@ -902,17 +913,17 @@ part Dashboard {
                 }
                 //  Pressing the picture chooses another (a pencil shows while the pointer is on it).
                 ellipse { at: dF.cx, dF.cy; radius: dF.r; color: #000000; opacity: 0.5 * dsh_face.hover }
-                text "󰏫" { at: dF.cx, dF.cy; anchor: center; size: 34; family: "SpaceMono Nerd Font Propo"; color: #ffffff; opacity: dsh_face.hover }
+                GPencil(dF.cx, dF.cy, (34) / 24, #ffffff, dsh_face.hover, 0)
                 zone ellipse dsh_face { at: dF.cx, dF.cy; radius: dF.r + 6; cursor: pointer; active: dash_open; label: "Change picture" }
                 on press dsh_face { face_open = true; emit face_list }
                 //  The name, big, with how long the machine has been up at the end of its line; under them three pills: host, distribution, kernel.
                 text sm_name { at: dF.tx, dF.cy - 54; anchor: left center; size: 28; weight: 600; width: dF.w2 - 90; lines: 1; family: "Space Grotesk"; color: ink; measure: dsh_nm }
-                text "󰔛" { at: dF.tx + dsh_nm.width + 18, dF.cy - 52; anchor: left center; size: 14; family: "SpaceMono Nerd Font Propo"; color: mint }
+                GTimer(dF.tx + dsh_nm.width + 18 + (14) / 2, dF.cy - 52, (14) / 24, mint, 1, 0)
                 text sm_uptime { at: dF.tx + dsh_nm.width + 38, dF.cy - 52; anchor: left center; size: 14; weight: 600; family: "Space Grotesk"; color: mint }
                 repeat q in 0..3 {
                     let dFq.y = dF.cy - 14 + q * 32
                     box { from: dF.tx, dFq.y - 14; size: dF.w2, 28; corner: 14; color: ink; opacity: 0.07 }
-                    text pick(q, "󰌢", "󰣇", "󰌽") { at: dF.tx + 14, dFq.y; anchor: left center; size: 15; family: "SpaceMono Nerd Font Propo"; color: mint }
+                    group { group { show: q == 0; GLaptop(dF.tx + 14 + (15) / 2, dFq.y, (15) / 24, mint, 1, 0) } group { show: q == 1; GPackage(dF.tx + 14 + (15) / 2, dFq.y, (15) / 24, mint, 1, 0) } group { show: q == 2; GChip(dF.tx + 14 + (15) / 2, dFq.y, (15) / 24, mint, 1, 0) } }
                 }
                 text sm_host { at: dF.tx + 40, dF.cy - 14; anchor: left center; size: 14.5; weight: 500; width: dF.w2 - 52; lines: 1; family: "Space Grotesk"; color: ink }
                 text sm_distro { at: dF.tx + 40, dF.cy + 18; anchor: left center; size: 14.5; weight: 500; width: dF.w2 - 52; lines: 1; family: "Space Grotesk"; color: ink }
@@ -940,7 +951,7 @@ part Dashboard {
                 repeat b in 0..4 {
                     box { from: dG.l + 26 + b * 6, dGn.y + 9 - (5 + b * 4); size: 4, 5 + b * 4; corner: 1.2; color: mint; opacity: if(net.online and dGn.sg > b * 0.25 + 0.05, 1, 0.16); show: net.wifi }
                 }
-                text "󰈀" { at: dG.l + 26, dGn.y; anchor: left center; size: 18; family: "SpaceMono Nerd Font Propo"; color: if(net.online, mint, faint); show: not net.wifi }
+                group { show: not net.wifi; GEthernet(dG.l + 26 + (18) / 2, dGn.y, (18) / 24, if(net.online, mint, faint), 1, 0) }
                 text net.name { at: dG.l + 58, dGn.y; anchor: left center; size: 15; weight: 600; width: if(net.wifi, dG.w - 290, dG.w - 250); lines: 1; family: "Space Grotesk"; color: ink; show: net.online }   // (a cable's line under the badge is only the address: the name gets what the signal's share would take)
                 //  Between the name and the badge: how strong the signal is, and the address.
                 text sm_netinfo { at: dG.l + dG.w - 24 - 70, dGn.y; anchor: right center; align: right; size: 12; width: 130; lines: 1; family: "Space Grotesk"; color: faint; show: net.online }
@@ -962,7 +973,7 @@ part Dashboard {
                             box { from: dGc.x + dGk.k * dGn.cw / 60, dGn.t + dGn.h - max(1.5, dGk.v * (dGn.h - 6)); size: max(1.5, dGn.cw / 60 - 0.6), max(1.5, dGk.v * (dGn.h - 6)); color: if(c == 0, mint, mix(mint, ink, 0.4)); opacity: 0.1 + 0.3 * dGk.k / 60; show: i < sm_hist.count }
                         }
                     }
-                    text pick(c, "󰇚", "󰕒") { at: dGc.x + 12, dGn.t + 14; anchor: left center; size: 13; family: "SpaceMono Nerd Font Propo"; color: mint }
+                    group { group { show: c == 0; GArrowTo(dGc.x + 12 + (13) / 2, dGn.t + 14, 90, (13) / 24, mint, 1, 0) } group { show: c == 1; GArrowTo(dGc.x + 12 + (13) / 2, dGn.t + 14, 270, (13) / 24, mint, 1, 0) } }
                     text sm_rx_txt { at: dGc.x + 32, dGn.t + 14; anchor: left center; size: 13.5; weight: 600; width: dGn.cw - 40; lines: 1; family: "Space Grotesk"; color: ink; show: c == 0 }
                     text sm_tx_txt { at: dGc.x + 32, dGn.t + 14; anchor: left center; size: 13.5; weight: 600; width: dGn.cw - 40; lines: 1; family: "Space Grotesk"; color: ink; show: c == 1 }
                 }
@@ -989,16 +1000,16 @@ part Dashboard {
                     on scroll dsh_fpbg { fp_to = clamp(fp_to - wheel * 54, 0, max(0, fp.ch - fp.vh + 4)) }
                     //  Up a folder, home, and where we are.
                     ellipse { at: fp.l + 36, fp.t + 32; radius: 16; color: ink; opacity: (0.07 + 0.1 * dsh_fpu.hover) * if(face_at_top, 0.4, 1) }
-                    text "󰁞" { at: fp.l + 36, fp.t + 32; anchor: center; size: 16; family: "SpaceMono Nerd Font Propo"; color: ink; opacity: if(face_at_top, 0.4, 1) }
+                    GArrowTo(fp.l + 36, fp.t + 32, 270, (16) / 24, ink, if(face_at_top, 0.4, 1), 0)
                     zone ellipse dsh_fpu { at: fp.l + 36, fp.t + 32; radius: 18; cursor: pointer; active: face_open and not face_at_top; label: "Up a folder" }
                     on press dsh_fpu { emit face_up }
                     ellipse { at: fp.l + 76, fp.t + 32; radius: 16; color: ink; opacity: 0.07 + 0.1 * dsh_fph.hover }
-                    text "󰋜" { at: fp.l + 76, fp.t + 32; anchor: center; size: 16; family: "SpaceMono Nerd Font Propo"; color: ink }
+                    GHome(fp.l + 76, fp.t + 32, (16) / 24, ink, 1, 0)
                     zone ellipse dsh_fph { at: fp.l + 76, fp.t + 32; radius: 18; cursor: pointer; active: face_open; label: "Home folder" }
                     on press dsh_fph { emit face_home }
                     text face_path { at: fp.l + 106, fp.t + 32; anchor: left center; size: 16; weight: 600; width: fp.w - 106 - 66; lines: 1; family: "Space Grotesk"; color: ink }
                     ellipse { at: fp.l + fp.w - 34, fp.t + 32; radius: 16; color: ink; opacity: 0.07 + 0.1 * dsh_fpx.hover }
-                    text "󰅖" { at: fp.l + fp.w - 34, fp.t + 32; anchor: center; size: 16; family: "SpaceMono Nerd Font Propo"; color: ink }
+                    GClose(fp.l + fp.w - 34, fp.t + 32, (16) / 24, ink, 1, 0)
                     zone ellipse dsh_fpx { at: fp.l + fp.w - 34, fp.t + 32; radius: 18; cursor: pointer; active: face_open; label: "Close" }
                     on press dsh_fpx { face_open = false }
                     text "Nothing here" { at: fp.l + fp.w / 2, fp.t + fp.h / 2 + 20; anchor: center; size: 14; family: "Space Grotesk"; color: faint; show: face_pics.count < 1 }
@@ -1010,7 +1021,7 @@ part Dashboard {
                             group {
                                 show: face_pics.count > i
                                 box { from: fpi.x, fpi.y; size: 100, 100; corner: 18; color: ink; opacity: 0.07 }
-                                text "󰉋" { at: fpi.x + 50, fpi.y + 40; anchor: center; size: 36; family: "SpaceMono Nerd Font Propo"; color: mint; show: face_pics.$i.dir }
+                                group { show: face_pics.$i.dir; GFolder(fpi.x + 50, fpi.y + 40, (36) / 24, mint, 1, 0) }
                                 text face_pics.$i.name { at: fpi.x + 50, fpi.y + 78; anchor: center; align: center; size: 12.5; width: 92; lines: 1; family: "Space Grotesk"; color: ink; show: face_pics.$i.dir }
                                 group {
                                     show: not face_pics.$i.dir
