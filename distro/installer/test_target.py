@@ -4,6 +4,8 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
 module_path = Path(__file__).parent / "nahjtarget/main.py"
 spec = importlib.util.spec_from_file_location("nahjtarget", module_path)
@@ -12,6 +14,35 @@ spec.loader.exec_module(module)
 
 
 class InstalledTargetTest(unittest.TestCase):
+    def run_with_commands(self, statuses):
+        call = Mock(side_effect=statuses)
+        calamares = SimpleNamespace(
+            globalstorage=SimpleNamespace(value=lambda key: str(self.root)),
+            utils=SimpleNamespace(target_env_call=call),
+        )
+        with patch.dict("sys.modules", libcalamares=calamares):
+            result = module.run()
+        return result, call
+
+    def test_installed_keyring_initialized_before_removing_installer(self):
+        result, call = self.run_with_commands([0, 0, 0])
+        self.assertIsNone(result)
+        self.assertEqual([c.args[0] for c in call.call_args_list], [
+            ["pacman-key", "--init"], ["pacman-key", "--populate", "archlinux"],
+            ["pacman", "-R", "--noconfirm", "nahj-installer"],
+        ])
+
+    def test_keyring_init_failure_stops_installation(self):
+        result, call = self.run_with_commands([1])
+        self.assertIn("package verification", result[0])
+        self.assertEqual(call.call_count, 1)
+
+    def test_keyring_population_failure_stops_installation(self):
+        result, call = self.run_with_commands([0, 2])
+        self.assertIn("package verification", result[0])
+        self.assertIn("status 2", result[1])
+        self.assertEqual(call.call_count, 2)
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="nahj-target-test-")
         self.root = Path(self.temporary.name)

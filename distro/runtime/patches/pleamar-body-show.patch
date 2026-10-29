@@ -1,0 +1,36 @@
+--- a/src/language/compiler.rs
++++ b/src/language/compiler.rs
+@@ -2102,7 +2102,7 @@
+             let name = &self.declare_zone(name);
+             self.candidates.push(Candidate { name: name.clone(), at: self.e.instrs.len(), zblock: self.zblock, shape: shape.clone(), active, visible: None, under: self.under.clone(), forced: carries.is_some() || handle.is_some(), cursor, cursor_when, carries, carry_icon, label, reach, within: None, told, handle });
+         }
+-        Ok(ParsedShape { shape, color, opacity, blend, size: extent, glass_spec })
++        Ok(ParsedShape { shape, color, opacity, visible, blend, size: extent, glass_spec })
+     }
+ 
+     // ── what gets painted ───────────────────────────────────────
+@@ -3165,7 +3165,16 @@
+                 if shapes == 0 {
+                     size = f.size;
+                 }
++                // A body merges geometry, so per-shape opacity is not a paint.
++                // Still honor `show:`: exclude hidden geometry from the union,
++                // including its shadow and rim, using a binary visibility group.
++                if let Some(v) = &f.visible {
++                    self.e.paint(Instr::Opacity(Some(v.clone().gt(Expr::K(0.0)))));
++                }
+                 self.e.paint(Instr::Shape { shape: f.shape, fusion: f.blend.unwrap_or(Expr::K(0.0)) });
++                if f.visible.is_some() {
++                    self.e.paint(Instr::Opacity(None));
++                }
+                 shapes += 1;
+             }
+         }
+@@ -7957,6 +7966,7 @@
+     shape: Shape,
+     color: Option<Color>,
+     opacity: Option<Expr>,
++    visible: Option<Expr>,
+     blend: Option<Expr>,
+     /// Loose, a shape can also be glass. Inside a `body`, the body says so.
+     glass_spec: Option<Glass>,

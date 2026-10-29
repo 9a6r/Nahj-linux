@@ -1,0 +1,16 @@
+[
+  {
+    "file": "mountains.jpg",
+    "source": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920&h=1080&q=90",
+    "license": "https://unsplash.com/license",
+    "sha256": "529f2e6f96a16a5884b54ddb6df6156a4d799d02849cb01f73538a210d793b75",
+    "bytes": 524144
+  },
+  {
+    "file": "landscape.jpg",
+    "source": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1920&h=1080&q=90",
+    "license": "https://unsplash.com/license",
+    "sha256": "9798451370b579333162af40fae5af356be167582f5cf4282403bbe692018bc8",
+    "bytes": 584819
+  }
+]

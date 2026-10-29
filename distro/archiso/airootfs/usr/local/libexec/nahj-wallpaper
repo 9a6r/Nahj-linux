@@ -1,19 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
-for _ in {1..300}; do
-    if awww query >/dev/null 2>&1; then
+deadline=$((SECONDS + 60))
+while (( SECONDS < deadline )); do
+    # The daemon socket can answer before Wayland outputs are registered.
+    # Retry failed image requests too; never mark a failed first setup complete.
+    outputs=$(timeout 5s awww query 2>/dev/null || true)
+    if [[ -n "$outputs" ]]; then
         # awww restore exits successfully even with no saved wallpaper. Keep our own
         # marker so the first desktop is never an empty compositor background.
         marker=${XDG_DATA_HOME:-$HOME/.local/share}/nahj/wallpaper-initialized
         if [[ -e "$marker" ]]; then
-            exec awww restore
+            if timeout 20s awww restore; then exit 0; fi
+        elif timeout 20s awww img /usr/share/nahj/vitreus/assets/greeter.jpeg --transition-type fade --transition-duration 1; then
+            mkdir -p "${marker%/*}"
+            touch "$marker"
+            exit 0
         fi
-        awww img /usr/share/nahj/vitreus/assets/greeter.jpeg --transition-type fade --transition-duration 1
-        mkdir -p "${marker%/*}"
-        touch "$marker"
-        exit 0
     fi
     sleep 0.2
 done
-printf '%s\n' 'Nahj: wallpaper daemon did not become ready' >&2
+printf '%s\n' 'Nahj: wallpaper output did not become ready or image request failed' >&2
 exit 1

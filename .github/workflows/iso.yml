@@ -1,9 +1,6 @@
 name: Build Nahj ISO
 on:
   workflow_dispatch:
-  push:
-    branches: [main, codex/nahj-archiso]
-    paths: ['distro/**', '.github/workflows/iso.yml', 'screenshots/boot/**']
 permissions:
   contents: read
 concurrency:
