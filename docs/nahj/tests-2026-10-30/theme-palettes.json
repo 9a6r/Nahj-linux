@@ -1,0 +1,71 @@
+[
+  {
+    "theme": "glass",
+    "saved": {
+      "enabled": true,
+      "intensity": "bold"
+    },
+    "palette_json": "{\n  \"alert\": \"#c8c57f\",\n  \"deep\": \"#152734\",\n  \"faint\": \"#e3eaef\",\n  \"ink\": \"#e9edeb\",\n  \"mint\": \"#efedc7\",\n  \"minthi\": \"#fcfbf3\",\n  \"mintlo\": \"#e4e09f\",\n  \"off\": \"#516b7d\",\n  \"onmint\": \"#10161a\",\n  \"panel\": \"#315978\",\n  \"tint\": \"#26465e\",\n  \"wink\": \"#e9edeb\"\n}\n",
+    "font": "Space Grotesk"
+  },
+  {
+    "theme": "retro",
+    "saved": {
+      "enabled": true,
+      "intensity": "bold",
+      "look": 8,
+      "preset": 8,
+      "theme": "retro"
+    },
+    "palette_json": "{\n  \"alert\": \"#d81b60\",\n  \"deep\": \"#2b2833\",\n  \"faint\": \"#6a665a\",\n  \"ink\": \"#2b2833\",\n  \"mint\": \"#e63a3a\",\n  \"minthi\": \"#ff7b5c\",\n  \"mintlo\": \"#a8242b\",\n  \"off\": \"#a39e8e\",\n  \"onmint\": \"#fff3dc\",\n  \"panel\": \"#bfb9a5\",\n  \"tint\": \"#d6d0bd\",\n  \"wink\": \"#f7f4fb\"\n}\n",
+    "font": "Audiowide"
+  },
+  {
+    "theme": "uwu",
+    "saved": {
+      "enabled": true,
+      "intensity": "bold",
+      "look": 9,
+      "preset": 9,
+      "theme": "uwu"
+    },
+    "palette_json": "{\n  \"alert\": \"#ff3d6e\",\n  \"deep\": \"#4a2b6b\",\n  \"faint\": \"#9a6bc4\",\n  \"ink\": \"#5a2a8c\",\n  \"mint\": \"#ff5fae\",\n  \"minthi\": \"#ff9ccf\",\n  \"mintlo\": \"#e03a93\",\n  \"off\": \"#e7c8f0\",\n  \"onmint\": \"#ffffff\",\n  \"panel\": \"#ffc9e6\",\n  \"tint\": \"#ffe3f2\",\n  \"wink\": \"#f7f4fb\"\n}\n",
+    "font": "Mochiy Pop One"
+  },
+  {
+    "theme": "cyber",
+    "saved": {
+      "enabled": true,
+      "intensity": "bold",
+      "look": 10,
+      "preset": 10,
+      "theme": "cyber"
+    },
+    "palette_json": "{\n  \"alert\": \"#ff3b5c\",\n  \"deep\": \"#ff2bd6\",\n  \"faint\": \"#6f93a8\",\n  \"ink\": \"#d6f7ff\",\n  \"mint\": \"#00e5ff\",\n  \"minthi\": \"#7df3ff\",\n  \"mintlo\": \"#00a9c4\",\n  \"off\": \"#26384a\",\n  \"onmint\": \"#001018\",\n  \"panel\": \"#0a1220\",\n  \"tint\": \"#04070d\",\n  \"wink\": \"#d6f7ff\"\n}\n",
+    "font": "Orbitron"
+  },
+  {
+    "theme": "milk",
+    "saved": {
+      "enabled": true,
+      "intensity": "bold",
+      "look": 11,
+      "preset": 11,
+      "theme": "milk"
+    },
+    "palette_json": "{\n  \"alert\": \"#ee6a86\",\n  \"deep\": \"#a3acc2\",\n  \"faint\": \"#9aa1b8\",\n  \"ink\": \"#6c7390\",\n  \"mint\": \"#7f8cff\",\n  \"minthi\": \"#aab3ff\",\n  \"mintlo\": \"#6672e6\",\n  \"off\": \"#d3d9e5\",\n  \"onmint\": \"#ffffff\",\n  \"panel\": \"#e6eaf2\",\n  \"tint\": \"#e0e5ee\",\n  \"wink\": \"#f7f4fb\"\n}\n",
+    "font": "Zen Kurenaido"
+  },
+  {
+    "theme": "proxy",
+    "saved": {
+      "enabled": true,
+      "intensity": "bold",
+      "look": 12,
+      "preset": 12,
+      "theme": "proxy"
+    },
+    "palette_json": "{\n  \"alert\": \"#ff4d6d\",\n  \"deep\": \"#2a8cff\",\n  \"faint\": \"#93a1ac\",\n  \"ink\": \"#f2f6f8\",\n  \"mint\": \"#ffd21f\",\n  \"minthi\": \"#fff07a\",\n  \"mintlo\": \"#d9a400\",\n  \"off\": \"#2a323b\",\n  \"onmint\": \"#0b0d10\",\n  \"panel\": \"#121920\",\n  \"tint\": \"#10161d\",\n  \"wink\": \"#f2f6f8\"\n}\n",
+    "font": "Titan One"
+  }
+]

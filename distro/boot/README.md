@@ -16,6 +16,16 @@ At 24 fps, the intro has 132 frames (5.5 seconds). The loop has 108 frames (4.5 
 
 Frames retain the original 1280×720 resolution and full RGB color. Generated PNGs are build outputs, not committed files. They increase initramfs size; the theme decodes one frame at a time to avoid preloading the entire sequence into RAM. Frame rate is a target, and slow software rendering can reduce it.
 
+PNGs now store lossless filtered RGB without inner DEFLATE compression; the
+initramfs and squashfs provide compression around them. This avoids repeating
+that decompression for every displayed frame. Native-size output also skips
+Plymouth's software resize. All 240 regenerated frames were checked against the
+previous frames byte-for-byte after RGB decoding: no pixel changed. In a local
+1280×720 X11 test under concurrent load, captured distinct frames increased
+from about 5.5/s to 18.7/s. This is diagnostic evidence, not a VirtualBox timing
+guarantee. A zstd level-3 theme archive decreased from 303 MiB to 227 MiB;
+uncompressed theme storage increased from 303 MiB to 633 MiB.
+
 The Plymouth script uses a one-way `intro` → `loop` state transition. Password and text prompts are still displayed. Boot completion is never delayed to finish the intro, so a sufficiently fast boot can exit the splash before its glow completes. Plymouth's text fallback remains available if graphics cannot initialize.
 
-`screenshots/boot/` contains rendered preview evidence, not a screenshot of a booted ISO. The clean `nahj-background.png` also supplies the installer artwork. An actual ISO boot remains a separate integration check.
+`screenshots/boot/` contains rendered preview evidence, not a screenshot of a booted ISO. The installer uses its own separate SVG artwork. An actual ISO boot remains a separate integration check.

@@ -103,3 +103,15 @@ The overlapping system-monitor ring reproduces with the untouched upstream scene
 The user reports a VirtualBox login loop in an RDP-hosted machine and choppy Plymouth animation. Keep linux-zen. The live password is already `nahj` (confirmed in the image setup script). Restrict SDDM to the one configured Nahj session and stop shipping the optional pleamar-wm executable (50 MiB uncompressed); preserve upstream source files. Login-loop reproduction, boot performance, the new runtime patch and the final desktop remain under local validation. ISO workflow is now manual-only: do not dispatch a GitHub build until local validation is satisfactory, per the user's instruction.
 
 Downloaded two 1920×1080 Unsplash photographs into the original wallpaper-gallery folder for the requested picker/transition tests; sources, license link and SHA256 hashes are in `wallpaper-sources.json`. Wallhaven returned HTTP 403. The first-wallpaper helper now retries empty daemon replies and failed image requests. A fault-injection test passed; nine installer target tests pass, including package-keyring failure handling. Actual wallpaper-picker switching is not yet verified.
+
+## 2026-10-30 — Local regression work; release remains blocked
+
+- Verified all 259 original upstream files remain exact and all 21 scenes compile.
+- Captured the hidden GPU-ring correction with the actual patched runtime.
+- Checked saved palettes for all six original themes; restored the missing Titan One font and added a packaging check for every original theme font.
+- Fixed repeat builds of Iris into an existing payload, and made Wayland compiler flags explicit for ShellCheck.
+- Avoided native-size Plymouth resampling and inner PNG compression. All 240 decoded frames remain pixel-identical; measured compressed theme size also decreased.
+- Built Calamares 3.3.14-2 locally; nine target tests and package checks pass.
+- Manually logged into the previous ISO with `nahj` under QEMU and confirmed linux-zen. This does not establish a VirtualBox fix; the old splash had a quit timeout under TCG.
+- Added honestly labeled native/ISO screenshots and detailed limitations under `screenshots/runtime-review-2026-10-30` and `docs/nahj/tests-2026-10-30`.
+- Started a fresh local ISO build with the new payload. No GitHub workflow dispatched.

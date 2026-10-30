@@ -1,0 +1,22 @@
+Vitreus health · 2026-10-30 00:05 · /build/health-source
+
+== Rig: a headless copy driven round the panels (3 rounds, then 30 s idle)
+  after start: 750 MB, 34 fds, 57 threads, 2 child processes
+  round 1: 854 MB, 28 fds, 56 threads, 2 child processes (47 s)
+  round 2: 856 MB, 32 fds, 55 threads, 1 child processes (47 s)
+  round 3: 865 MB, 30 fds, 57 threads, 3 child processes (47 s)
+  [WARN] memory over rounds 2..3: +9.1 MB a round (+9 MB): grows with every round, a leak?
+  [ ok ] open files steady (34 at start, 28 → 30 over the rounds)
+  [ ok ] threads steady (57 at start, 56 → 57 over the rounds)
+  [ ok ] child processes steady (2 at start, 2 → 3 over the rounds)
+  [ ok ] idle for 30 s: memory +0.35 MB a minute, 2 child processes
+
+== Rig: its log
+  [WARN] 1 error-like lines (1 different):
+           1×  render · llvmpipe (LLVM N.N, N bits): on OpenGL, through EGL (its Vulkan driver cannot take buffers by their layout)
+  [info] 185 slow frames after the start (worst 5123 ms); a headless rig draws on the CPU path, so only a sudden rise means much
+  [info] the rig's log: /build/health-state/vitreus/health/rig-20261030-0008.log
+
+== Summary (185 s): 0 failed, 2 warnings, 4 fine
+  WARN [rig] memory over rounds 2..3: +9.1 MB a round (+9 MB): grows with every round, a leak?
+  WARN [rig] 1 error-like lines (1 different):

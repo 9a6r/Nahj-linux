@@ -1,0 +1,12 @@
+{
+  "source_sha256": "7e62194861a2ce7f6c7e3fa56d66d4b26f827354d2fc3e656253f4dff7cdfa08",
+  "fps": 24,
+  "width": 1280,
+  "height": 720,
+  "intro_frames": 132,
+  "loop_frames": 108,
+  "quiet_source_start_frame": 108,
+  "crossfade_frames": 24,
+  "png_compress_level": 0,
+  "frame_bytes": 663958080
+}

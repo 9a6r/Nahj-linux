@@ -15,7 +15,10 @@ fun draw_frame() {
     local.width = Window.GetWidth();
     local.height = Window.GetHeight();
     local.scale = Math.Min(width / @WIDTH@, height / @HEIGHT@);
-    image = image.Scale(Math.Int(@WIDTH@ * scale), Math.Int(@HEIGHT@ * scale));
+    # Scaling an already native-size frame still performs a full software
+    # resample in Plymouth. Keep the source pixels when no resize is needed.
+    if (scale != 1)
+        image = image.Scale(Math.Int(@WIDTH@ * scale), Math.Int(@HEIGHT@ * scale));
     background.SetImage(image);
     background.SetX(Window.GetX() + (width - image.GetWidth()) / 2);
     background.SetY(Window.GetY() + (height - image.GetHeight()) / 2);

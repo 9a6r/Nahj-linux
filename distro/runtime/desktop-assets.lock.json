@@ -88,6 +88,18 @@
       "url": "https://raw.githubusercontent.com/google/material-design-icons/10ecc14790612ca8fd164e3f4ffe9c16fc50d5b7/LICENSE",
       "install": "usr/share/licenses/nahj-fonts/MaterialSymbols-LICENSE",
       "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd"
+    },
+    {
+      "file": "titanone-TitanOne-Regular.ttf",
+      "url": "https://raw.githubusercontent.com/google/fonts/a4c0b21f839d7ac65a7d8b49eb81bddd110774a3/ofl/titanone/TitanOne-Regular.ttf",
+      "install": "usr/share/fonts/TTF/TitanOne-Regular.ttf",
+      "sha256": "563ff6de179bbd44bcd7d2a6c448d6dc3bf935834237cf1250e506e65cd86ff1"
+    },
+    {
+      "file": "titanone-OFL.txt",
+      "url": "https://raw.githubusercontent.com/google/fonts/a4c0b21f839d7ac65a7d8b49eb81bddd110774a3/ofl/titanone/OFL.txt",
+      "install": "usr/share/licenses/nahj-fonts/titanone-OFL.txt",
+      "sha256": "61be7c29f4835e2be7243db12213d75d53ff028f29f4b493212a1688b1d3a1ba"
     }
   ]
 }

@@ -19,12 +19,12 @@ qt6-declarative
 qt6-svg
 xorg-server
 sddm
-xorg-server
 plymouth
 networkmanager
 bluez
 bluez-utils
 pipewire
+pipewire-audio
 pipewire-alsa
 pipewire-pulse
 wireplumber
@@ -36,6 +36,8 @@ python-pyte
 python-fonttools
 python-pillow
 python-numpy
+glib2
+file
 fontconfig
 noto-fonts
 noto-fonts-emoji

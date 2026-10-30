@@ -68,7 +68,8 @@ tar -xzf "$cache/downloads/mpvpaper.tar.gz" --strip-components=1 -C "$work/mpvpa
 # Build without contacting a Python package index. Dependencies come from the
 # verified Arch package database installed in the build image.
 python -m build --wheel --no-isolation --outdir "$work/wheels" "$work/iris"
-python -m installer --destdir "$payload" "$work"/wheels/iris_colors-*.whl
+python -m installer --destdir "$work/iris-root" "$work"/wheels/iris_colors-*.whl
+cp -a "$work/iris-root/." "$payload/"
 install -Dm644 "$work/iris/LICENSE" "$payload/usr/share/licenses/iris-colors/LICENSE"
 
 meson setup "$work/mpvpaper-build" "$work/mpvpaper" \
@@ -82,6 +83,31 @@ while IFS=$'\t' read -r filename destination; do
     install -Dm644 "$cache/downloads/$filename" "$payload/$destination"
 done < <(jq -r '.assets[] | select(.install) | [.file, .install] | @tsv' "$manifest")
 install -Dm644 "$manifest" "$payload/usr/share/doc/nahj/desktop-assets.lock.json"
+
+# Each original theme must resolve its own typeface from the image, including
+# themes added upstream after this packaging script was written.
+python - "$repo" "$payload" "$manifest" <<'PY_FONTS'
+import json
+from pathlib import Path
+import sys
+import tomllib
+from fontTools.ttLib import TTFont
+
+repo, payload, manifest = map(Path, sys.argv[1:])
+families = set()
+for asset in json.loads(manifest.read_text())["assets"]:
+    destination = asset.get("install", "")
+    if destination.endswith(".ttf"):
+        with TTFont(payload / destination) as font:
+            families.update(n.toUnicode() for n in font["name"].names if n.nameID in (1, 16))
+for path in sorted((repo / "themes").glob("*.toml")):
+    if path.name.startswith("_"):
+        continue
+    theme = tomllib.loads(path.read_text())
+    required = theme.get("font", "Space Grotesk")
+    assert required in families, f'{theme["name"]}: missing font {required}'
+    print(f'{theme["name"]}: packaged {required}')
+PY_FONTS
 
 # Exercise actual palette generation using the same options as Vitreus. Calling
 # the generator directly avoids Iris's per-user cache writes in a build job.
@@ -98,13 +124,14 @@ PY
 "$payload/usr/bin/mpvpaper" --help >/dev/null
 test -x "$payload/usr/bin/iris"
 test -x "$payload/usr/bin/mpvpaper-holder"
-echo 'Installed and checked Iris, mpvpaper, and six original font families in the payload.'
+echo 'Installed and checked Iris, mpvpaper, the six original theme fonts, and Material Symbols.'
 
 # Preserve the shell's Caffeine helper as built by its original installer.
 inhibit_proto=/usr/share/wayland-protocols/unstable/idle-inhibit/idle-inhibit-unstable-v1.xml
 mkdir -p "$work/inhibit"
 wayland-scanner client-header "$inhibit_proto" "$work/inhibit/idle-inhibit.h"
 wayland-scanner private-code "$inhibit_proto" "$work/inhibit/idle-inhibit.c"
+read -r -a wayland_flags <<< "$(pkg-config --cflags --libs wayland-client)"
 gcc -O2 -I"$work/inhibit" -o "$payload/usr/bin/vitreus-inhibit" \
     "$repo/bin/vitreus-inhibit.c" "$work/inhibit/idle-inhibit.c" \
-    $(pkg-config --cflags --libs wayland-client)
+    "${wayland_flags[@]}"

@@ -48,28 +48,28 @@ def read_frame(directory: Path, number: int) -> Image.Image:
 
 
 def generate_frames(decoded: Path, output: Path) -> None:
+    # initramfs/squashfs already compress these bytes. Store filtered RGB PNGs
+    # without an extra DEFLATE layer so Plymouth does less work per frame.
+    # This is lossless and still keeps only the displayed frame in memory.
     for number in range(INTRO_FRAMES):
-        shutil.copyfile(decoded / f"source-{number}.png", output / f"intro-{number}.png")
+        read_frame(decoded, number).save(output / f"intro-{number}.png", compress_level=0)
 
     # The first loop frame immediately follows the last intro frame. Following
     # the dissolve, the next cycle immediately follows the clean head segment.
     plain_frames = SOURCE_FRAMES - OVERLAP - INTRO_FRAMES
     for number in range(plain_frames):
-        shutil.copyfile(
-            decoded / f"source-{INTRO_FRAMES + number}.png",
-            output / f"loop-{number}.png",
-        )
+        read_frame(decoded, INTRO_FRAMES + number).save(output / f"loop-{number}.png", compress_level=0)
     for number in range(OVERLAP):
         tail = read_frame(decoded, SOURCE_FRAMES - OVERLAP + number)
         head = read_frame(decoded, QUIET_START + number)
         t = number / (OVERLAP - 1)
         weight = t * t * (3 - 2 * t)  # Smooth derivative at both dissolve ends.
-        Image.blend(tail, head, weight).save(output / f"loop-{plain_frames + number}.png")
+        Image.blend(tail, head, weight).save(output / f"loop-{plain_frames + number}.png", compress_level=0)
 
 
 def make_preview(output: Path, preview: Path) -> None:
     preview.mkdir(parents=True, exist_ok=True)
-    # Deliberately a clean still: this image is also used by the installer.
+    # A clean boot preview; the installer has its own separate artwork.
     shutil.copyfile(output / "loop-0.png", preview / "nahj-background.png")
     selected = [
         ("intro-0.png", "0.0s — intro begins"),
@@ -139,6 +139,7 @@ def main() -> None:
                 "source_sha256": SOURCE_SHA256, "fps": FPS, "width": SIZE[0], "height": SIZE[1],
                 "intro_frames": INTRO_FRAMES, "loop_frames": LOOP_FRAMES,
                 "quiet_source_start_frame": QUIET_START, "crossfade_frames": OVERLAP,
+                "png_compress_level": 0,
                 "frame_bytes": sum(frame.stat().st_size for frame in stage.glob("*.png")),
                 "frames": {frame.name: sha256(frame) for frame in sorted(stage.glob("*.png"))},
             }
