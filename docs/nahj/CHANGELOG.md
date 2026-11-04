@@ -115,3 +115,13 @@ Downloaded two 1920×1080 Unsplash photographs into the original wallpaper-galle
 - Manually logged into the previous ISO with `nahj` under QEMU and confirmed linux-zen. This does not establish a VirtualBox fix; the old splash had a quit timeout under TCG.
 - Added honestly labeled native/ISO screenshots and detailed limitations under `screenshots/runtime-review-2026-10-30` and `docs/nahj/tests-2026-10-30`.
 - Started a fresh local ISO build with the new payload. No GitHub workflow dispatched.
+
+## 2026-11-05 — Local ISO composed; runtime validation remains open
+
+Completed the previously blocked local ISO build from `11984ec`, retaining
+signed package verification. Captured the custom Plymouth intro and background
+from this actual ISO. Repeated the 259-file upstream comparison, nine installer
+tests and ShellCheck successfully. Recorded native boot timing and its capture
+limitations instead of claiming stutter-free playback. A long ldconfig startup
+job was observed under TCG and is being investigated. See
+`tests-2026-11-05/README.md`; no GitHub ISO workflow was dispatched.
