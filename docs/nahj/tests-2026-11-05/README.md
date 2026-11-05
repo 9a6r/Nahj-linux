@@ -24,6 +24,22 @@ service assertions passed, with no networkd dependency symlinks left enabled:
 [results](service-presets.txt). The test now runs after image composition.
 The fix still requires a fresh image and a cold live boot.
 
+## UEFI optical-media discovery
+
+The same UEFI boot produced `systemd-dissect: /dev/sr0: No suitable partitions
+found` and a failed `systemd-loop@...sr0.service`. The current systemd optical
+GPT fallback tried to discover a root partition on the hybrid ISO, although
+Archiso had already mounted its squashfs successfully. The medium's udev
+properties confirmed `ID_PART_GPT_AUTO_ROOT_DISK_NEEDS_LOOP=1`.
+
+Added `98-nahj-live-media.rules`, limited to optical `iso9660` media labelled
+`NAHJ_*` while `/etc/nahj/live-image` exists. It clears that fallback flag before
+systemd's rule, leaving normal installed disks untouched. `udevadm verify`
+passed, and `udevadm test --action=add /sys/class/block/sr0` in the actual UEFI
+guest produced `ID_PART_GPT_AUTO_ROOT_DISK_NEEDS_LOOP=0` with no systemd-loop
+start request. This was a rule simulation, not a cold-boot pass; the old failed
+unit was not erased to pretend the original boot had succeeded without errors.
+
 ## Image built successfully
 
 - Source: `11984ec` on `codex/nahj-archiso`.

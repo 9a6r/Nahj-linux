@@ -1,0 +1,5 @@
+# Archiso already mounts the hybrid ISO and its squashfs. There is no GPT root
+# partition for systemd-dissect to discover on this optical boot medium. Avoid
+# the newer systemd-loop fallback attempting (and failing) a second root scan.
+# This applies only to Nahj optical live media while the live marker exists.
+SUBSYSTEM=="block", ENV{ID_CDROM}=="1", ENV{ID_FS_TYPE}=="iso9660", ENV{ID_FS_LABEL}=="NAHJ_*", TEST=="/etc/nahj/live-image", ENV{ID_PART_GPT_AUTO_ROOT_DISK_NEEDS_LOOP}="0"
