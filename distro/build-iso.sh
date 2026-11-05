@@ -4,11 +4,13 @@ set -euo pipefail
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 releng=/usr/share/archiso/configs/releng
 work='' out='' payload='' packages=''
+# shellcheck disable=SC2016 # pacman, not the shell, expands these placeholders.
+mirror_url='https://geo.mirror.pkgbuild.com/$repo/os/$arch'
 prepare_only=false
 usage() {
     cat <<'EOF'
 Usage: distro/build-iso.sh --work-dir DIR --out-dir DIR --payload-dir DIR --package-dir DIR
-                          [--releng-dir DIR] [--prepare-only]
+                          [--releng-dir DIR] [--mirror-url URL] [--prepare-only]
 
 The work directory must not already contain a generated profile. The payload is
 an installed filesystem tree with pleamar, fonts, desktop helpers, and the Nahj
@@ -16,16 +18,19 @@ Plymouth theme. The package directory contains locally built nahj-installer.
 --prepare-only composes and validates the profile without installing packages,
 signing the build repository, mounting filesystems, or creating an ISO.
 The full build requires root in an Arch container with mount capabilities.
+--mirror-url selects an HTTPS mirror or a file:/// absolute local mirror.
+Package signature checking stays enabled, including for offline builds.
 EOF
 }
 die() { printf 'Nahj build: %s\n' "$*" >&2; exit 1; }
 while (($#)); do
     case "$1" in
-        --work-dir|--out-dir|--payload-dir|--package-dir|--releng-dir)
+        --work-dir|--out-dir|--payload-dir|--package-dir|--releng-dir|--mirror-url)
             (($# >= 2)) || die "missing value for $1"
             case "$1" in
                 --work-dir) work=$2;; --out-dir) out=$2;; --payload-dir) payload=$2;;
                 --package-dir) packages=$2;; --releng-dir) releng=$2;;
+                --mirror-url) mirror_url=$2;;
             esac
             shift 2;;
         --prepare-only) prepare_only=true; shift;;
@@ -33,6 +38,8 @@ while (($#)); do
         *) die "unknown argument: $1";;
     esac
 done
+[[ $mirror_url == https://* || $mirror_url == file:///* ]] || die 'mirror URL must use HTTPS or an absolute file:/// path'
+[[ $mirror_url != *$'\n'* && $mirror_url != *$'\r'* ]] || die 'mirror URL must be a single line'
 [[ -n $work && -n $out && -n $payload && -n $packages ]] || { usage >&2; exit 2; }
 work=$(realpath -m "$work"); out=$(realpath -m "$out")
 payload=$(realpath -e "$payload"); packages=$(realpath -e "$packages")
@@ -123,9 +130,16 @@ while IFS= read -r -d '' file; do
            -e 's/MENU TITLE Arch Linux/MENU TITLE Nahj Linux/g' "$file"
 done < <(find "$profile/syslinux" "$profile/efiboot" "$profile/grub" -type f \( -name '*.cfg' -o -name '*.conf' \) -print0)
 
-# Pin the network destination, while retaining the package signature policy.
-# shellcheck disable=SC2016 # pacman expands these repository placeholders.
-sed -i 's|^Include = /etc/pacman.d/mirrorlist$|Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch|' "$profile/pacman.conf"
+# Retain package signatures when selecting a network or offline mirror. Treat
+# the URL as data: pacman's $repo/$arch placeholders must not reach the shell.
+python3 - "$profile/pacman.conf" "$mirror_url" <<'PY_MIRROR'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+lines = path.read_text().splitlines()
+path.write_text("\n".join("Server = " + sys.argv[2] if line == "Include = /etc/pacman.d/mirrorlist"
+                          else line for line in lines) + "\n")
+PY_MIRROR
 local_repo=$work/local-repo
 mkdir -p "$local_repo"
 cp "${local_packages[@]}" "$local_repo/"

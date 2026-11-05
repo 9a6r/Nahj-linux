@@ -11,7 +11,7 @@ dialog = null;
 message = null;
 
 fun draw_frame() {
-    local.image = Image(phase + "-" + frame + ".png");
+    local.image = Image(phase + "-" + frame + ".bmp");
     local.width = Window.GetWidth();
     local.height = Window.GetHeight();
     local.scale = Math.Min(width / @WIDTH@, height / @HEIGHT@);

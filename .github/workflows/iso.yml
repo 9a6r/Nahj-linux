@@ -29,6 +29,7 @@ jobs:
           set -o pipefail
           docker run --rm --user builder -v "$GITHUB_WORKSPACE:/src:ro" -v "$RUNNER_TEMP/nahj:/build" nahj-builder bash -euo pipefail -c '
             python /src/distro/boot/generate.py --output /build/payload/usr/share/plymouth/themes/nahj --preview-dir /build/previews
+            python /src/distro/boot/check_frames.py /build/payload/usr/share/plymouth/themes/nahj
             /src/distro/runtime/build.sh /build/payload /build/runtime-cache
             /src/distro/runtime/desktop-assets.sh /build/payload /build/desktop-cache
             PYTHONDONTWRITEBYTECODE=1 python /src/distro/installer/test_target.py

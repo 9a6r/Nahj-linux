@@ -48,36 +48,37 @@ def read_frame(directory: Path, number: int) -> Image.Image:
 
 
 def generate_frames(decoded: Path, output: Path) -> None:
-    # initramfs/squashfs already compress these bytes. Store filtered RGB PNGs
-    # without an extra DEFLATE layer so Plymouth does less work per frame.
-    # This is lossless and still keeps only the displayed frame in memory.
+    # Plymouth reads 24-bit BMP directly, avoiding PNG's filter reconstruction
+    # on every refresh. Compression belongs to initramfs/squashfs. Pixels are
+    # unchanged and only the current frame is decoded in memory.
     for number in range(INTRO_FRAMES):
-        read_frame(decoded, number).save(output / f"intro-{number}.png", compress_level=0)
+        read_frame(decoded, number).save(output / f"intro-{number}.bmp")
 
     # The first loop frame immediately follows the last intro frame. Following
     # the dissolve, the next cycle immediately follows the clean head segment.
     plain_frames = SOURCE_FRAMES - OVERLAP - INTRO_FRAMES
     for number in range(plain_frames):
-        read_frame(decoded, INTRO_FRAMES + number).save(output / f"loop-{number}.png", compress_level=0)
+        read_frame(decoded, INTRO_FRAMES + number).save(output / f"loop-{number}.bmp")
     for number in range(OVERLAP):
         tail = read_frame(decoded, SOURCE_FRAMES - OVERLAP + number)
         head = read_frame(decoded, QUIET_START + number)
         t = number / (OVERLAP - 1)
         weight = t * t * (3 - 2 * t)  # Smooth derivative at both dissolve ends.
-        Image.blend(tail, head, weight).save(output / f"loop-{plain_frames + number}.png", compress_level=0)
+        Image.blend(tail, head, weight).save(output / f"loop-{plain_frames + number}.bmp")
 
 
 def make_preview(output: Path, preview: Path) -> None:
     preview.mkdir(parents=True, exist_ok=True)
     # A clean boot preview; the installer has its own separate artwork.
-    shutil.copyfile(output / "loop-0.png", preview / "nahj-background.png")
+    with Image.open(output / "loop-0.bmp") as frame:
+        frame.save(preview / "nahj-background.png")
     selected = [
-        ("intro-0.png", "0.0s — intro begins"),
-        ("intro-24.png", "1.0s — feather sweep"),
-        ("intro-84.png", "3.5s — full glow"),
-        ("intro-120.png", "5.0s — glow has settled"),
-        ("loop-0.png", "5.5s — background loop"),
-        ("loop-107.png", "10.0s — wrap to moving background"),
+        ("intro-0.bmp", "0.0s — intro begins"),
+        ("intro-24.bmp", "1.0s — feather sweep"),
+        ("intro-84.bmp", "3.5s — full glow"),
+        ("intro-120.bmp", "5.0s — glow has settled"),
+        ("loop-0.bmp", "5.5s — background loop"),
+        ("loop-107.bmp", "10.0s — wrap to moving background"),
     ]
     sheet = Image.new("RGB", (960, 3 * 300), "#0b1e28")
     draw = ImageDraw.Draw(sheet)
@@ -94,8 +95,8 @@ def make_preview(output: Path, preview: Path) -> None:
         concat = Path(temporary) / "frames.ffconcat"
         with concat.open("w", encoding="utf-8") as handle:
             handle.write("ffconcat version 1.0\n")
-            sequence = [output / f"intro-{n}.png" for n in range(INTRO_FRAMES)]
-            sequence += [output / f"loop-{n}.png" for _ in range(3) for n in range(LOOP_FRAMES)]
+            sequence = [output / f"intro-{n}.bmp" for n in range(INTRO_FRAMES)]
+            sequence += [output / f"loop-{n}.bmp" for _ in range(3) for n in range(LOOP_FRAMES)]
             for frame in sequence:
                 # ffconcat is a file format, not shell code. Quote its path syntax.
                 escaped = str(frame).replace("'", "'\\''")
@@ -139,9 +140,9 @@ def main() -> None:
                 "source_sha256": SOURCE_SHA256, "fps": FPS, "width": SIZE[0], "height": SIZE[1],
                 "intro_frames": INTRO_FRAMES, "loop_frames": LOOP_FRAMES,
                 "quiet_source_start_frame": QUIET_START, "crossfade_frames": OVERLAP,
-                "png_compress_level": 0,
-                "frame_bytes": sum(frame.stat().st_size for frame in stage.glob("*.png")),
-                "frames": {frame.name: sha256(frame) for frame in sorted(stage.glob("*.png"))},
+                "frame_format": "bmp-rgb24",
+                "frame_bytes": sum(frame.stat().st_size for frame in stage.glob("*.bmp")),
+                "frames": {frame.name: sha256(frame) for frame in sorted(stage.glob("*.bmp"))},
             }
             (stage / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
             (stage / MARKER).write_text(SOURCE_SHA256 + "\n")

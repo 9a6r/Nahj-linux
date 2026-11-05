@@ -134,3 +134,15 @@ before starting it. Verified its unit and injected one startup failure in the
 ISO guest: it recovered with NRestarts=1. The original wallpaper gallery,
 transitions and all upstream UI source remain unchanged. This fix still needs
 inclusion in a fresh ISO; software-rendered desktop performance is not approved.
+
+### Lossless boot BMP candidate
+
+Changed generated boot frames to Plymouth's native 24-bit BMP input. All 240
+frames remain pixel-identical through the real Plymouth decoder; median load
+time in the native comparison fell from 15.55 to 5.09 ms. A separate capture
+approached the 24 fps target but still contained a long interval, so zero-stall
+playback is not certified. Added a real decoder/checksum build check, tested
+invalid frames, and retained all original intro/loop frames. Documented the
+roughly 100 MiB larger compressed-theme tradeoff. Added an explicit signed
+offline-mirror option to support a fresh local image build and installation
+validation without dispatching GitHub Actions. Evidence: `tests-2026-11-05/boot-bmp`.
