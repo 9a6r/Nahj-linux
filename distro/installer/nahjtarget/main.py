@@ -114,10 +114,24 @@ def run():
     # The live keyring is a tmpfs mount; unpackfs copies the image, not that
     # initialized mount. The installed system needs its own persistent keyring
     # before the live-only pacman-init service is retired.
-    for command in (["pacman-key", "--init"], ["pacman-key", "--populate", "archlinux"]):
-        result = libcalamares.utils.target_env_call(command)
-        if result:
-            return ("Could not initialize package verification", f"{' '.join(command)} exited with status {result}.")
+    keyring_error = None
+    try:
+        for command in (["pacman-key", "--init"], ["pacman-key", "--populate", "archlinux"]):
+            result = libcalamares.utils.target_env_call(command)
+            if result:
+                keyring_error = ("Could not initialize package verification", f"{' '.join(command)} exited with status {result}.")
+                break
+    finally:
+        # pacman-key starts a target-root gpg-agent. Leaving it alive pins the
+        # target filesystem after Calamares' lazy unmount reports success.
+        # Shut down only this target keyring's daemons, including on failure.
+        cleanup = libcalamares.utils.target_env_call(
+            ["gpgconf", "--homedir", "/etc/pacman.d/gnupg", "--kill", "all"]
+        )
+    if cleanup:
+        return ("Could not finish package verification", f"Target keyring daemon cleanup exited with status {cleanup}.")
+    if keyring_error:
+        return keyring_error
     # Remove the live-only installer from the target's package database as well
     # as its files. Dependencies remain; the running installer is on live media.
     result = libcalamares.utils.target_env_call(["pacman", "-R", "--noconfirm", "nahj-installer"])

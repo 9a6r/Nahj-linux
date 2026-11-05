@@ -25,23 +25,43 @@ class InstalledTargetTest(unittest.TestCase):
         return result, call
 
     def test_installed_keyring_initialized_before_removing_installer(self):
-        result, call = self.run_with_commands([0, 0, 0])
+        result, call = self.run_with_commands([0, 0, 0, 0])
         self.assertIsNone(result)
         self.assertEqual([c.args[0] for c in call.call_args_list], [
             ["pacman-key", "--init"], ["pacman-key", "--populate", "archlinux"],
+            ["gpgconf", "--homedir", "/etc/pacman.d/gnupg", "--kill", "all"],
             ["pacman", "-R", "--noconfirm", "nahj-installer"],
         ])
 
     def test_keyring_init_failure_stops_installation(self):
-        result, call = self.run_with_commands([1])
+        result, call = self.run_with_commands([1, 0])
         self.assertIn("package verification", result[0])
-        self.assertEqual(call.call_count, 1)
+        self.assertEqual(call.call_count, 2)
+        self.assertEqual(call.call_args.args[0][0], "gpgconf")
 
     def test_keyring_population_failure_stops_installation(self):
-        result, call = self.run_with_commands([0, 2])
+        result, call = self.run_with_commands([0, 2, 0])
         self.assertIn("package verification", result[0])
         self.assertIn("status 2", result[1])
-        self.assertEqual(call.call_count, 2)
+        self.assertEqual(call.call_count, 3)
+        self.assertEqual(call.call_args.args[0][0], "gpgconf")
+
+    def test_keyring_cleanup_failure_stops_installation(self):
+        result, call = self.run_with_commands([0, 0, 3])
+        self.assertIn("daemon cleanup", result[1])
+        self.assertNotIn("pacman", [c.args[0][0] for c in call.call_args_list])
+
+    def test_keyring_exception_still_stops_daemons(self):
+        call = Mock(side_effect=[RuntimeError("target command failed"), 0])
+        calamares = SimpleNamespace(
+            globalstorage=SimpleNamespace(value=lambda key: str(self.root)),
+            utils=SimpleNamespace(target_env_call=call),
+        )
+        with patch.dict("sys.modules", libcalamares=calamares):
+            with self.assertRaisesRegex(RuntimeError, "target command failed"):
+                module.run()
+        self.assertEqual(call.call_args.args[0],
+                         ["gpgconf", "--homedir", "/etc/pacman.d/gnupg", "--kill", "all"])
 
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="nahj-target-test-")

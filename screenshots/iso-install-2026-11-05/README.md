@@ -18,10 +18,16 @@ This does not test the ordinary launcher or certify a final shipped ISO.
   the dark background; a subsequent installer patch is being tested.
 - [Empty password](empty-password-rejected.png): validation blocks progression.
 - [Mismatched confirmation](password-mismatch.png): validation blocks progression.
+- [Matching password](password-accepted.png): the same UI permits progression.
+- [Installation completion](installation-complete.png): Calamares completed all
+  32 jobs and displayed success. Post-install inspection then found a lingering
+  target gpg-agent; it had to be stopped before the filesystem was fully
+  unmounted. The subsequent read-only ext4 check passed with exit status 0.
 
 The test account shown is disposable. From the keyboard step onward, Pleamar
 processes were temporarily stopped to isolate installer testing from severe
 TCG/software-rendering overhead. No shell or animation code was removed from
 the image. These screenshots therefore **do not** prove shell visual parity,
-normal desktop performance, completed installation or installed-system login.
-Those checks remain open. See the [test report](../../docs/nahj/tests-2026-11-05/README.md).
+normal desktop performance or installed-system login. Automatic post-install
+daemon cleanup also needs a new full-install regression. See the
+[test report](../../docs/nahj/tests-2026-11-05/README.md).

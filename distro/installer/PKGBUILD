@@ -1,7 +1,7 @@
 # Calamares is built from an immutable upstream revision, with archive verification.
 pkgname=nahj-installer
 pkgver=3.3.14
-pkgrel=3
+pkgrel=5
 pkgdesc='Calamares installer and live-to-installed configuration for Nahj Linux'
 arch=('x86_64')
 url='https://github.com/9a6r/Nahj-linux'
@@ -18,6 +18,7 @@ sha256sums=('59de9c212472a0e80847e71db1c01c7d86d35b341f4cb0fad58a09724fcf3c77')
 
 prepare() {
     patch -d "$srcdir/calamares-$_commit" -p1 < "$startdir/patches/password-validation.patch"
+    patch -d "$srcdir/calamares-$_commit" -p1 < "$startdir/patches/partition-label-colors.patch"
 }
 
 build() {

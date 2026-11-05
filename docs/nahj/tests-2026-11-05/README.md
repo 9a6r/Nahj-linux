@@ -9,6 +9,46 @@ from the latest image. ISO 04's UEFI diagnostic boot reached userspace with
 `linux-zen` and detected the 40 GiB NVMe test disk. The earlier panic in the
 same VM configuration is unresolved. A full installed-system test is pending.
 
+## First completed UEFI/NVMe installation and cleanup defect
+
+ISO 04 with installer 3.3.14-3 injected completed all 32 Calamares jobs on the
+disposable 40 GiB NVMe disk: GPT, 1 GiB EFI, ext4 root, user `nahj` with a new
+password, linux-zen initramfs and GRUB. The UI rejected empty and mismatched
+passwords and accepted matching input. See [actual screenshots](../../../screenshots/iso-install-2026-11-05/).
+The original shell processes were temporarily stopped to isolate this
+installer test under TCG. This is not a desktop performance test.
+
+Post-install inspection found target gpg-agent PID 2612 retaining the root
+filesystem after Calamares' lazy unmount reported success. An initial read-only
+e2fsck therefore warned that the filesystem was still in use; its reported
+inconsistencies were not a valid offline filesystem check. Stopping that
+specific target daemon released the filesystem, and a fresh `e2fsck -fn`
+completed all five passes with **exit status 0**, without repairing anything.
+The EFI FAT check also returned 0. The live keyring daemon was not stopped.
+
+The target module now calls `gpgconf --homedir /etc/pacman.d/gnupg --kill all`
+before unmounting, in a finally block covering keyring initialization failures.
+A cleanup failure stops installation. Eleven target tests pass, including
+cleanup on command failure and exception. A full installation using this fix
+and an installed-system login remain pending.
+
+The workspace filled while the completed ISO build and installation outputs
+coexisted. Completed build caches were removed, retaining the ISO and logs;
+8.6 GiB was recovered. No guest I/O/ext4 error was found in the kernel log.
+The clean filesystem check above is the relevant post-event evidence.
+
+Installer 3.3.14-4 also built successfully with the password tests and a fix for
+hardcoded black partition labels on the dark installer. It now uses the widget
+text palette. Its SHA-256 is
+`7cd25e174c95a5d5130faf507403fd2a96b736b76bc2611ef234fb5edf056f8a`.
+Installer 3.3.14-5, adding daemon cleanup, is building locally.
+
+ISO 05 completed successfully with the service preset and optical-media fixes,
+including all thirteen service assertions. It contains installer 3.3.14-3,
+not the later contrast/cleanup fixes. SHA-256:
+`823e037c1a366b741b410dc55838918ae59a3ae3bef1e5c552ccb01c48a01aae`.
+Its cold boot has not yet been tested. No GitHub build was dispatched.
+
 ## First-boot service preset regression
 
 ISO 04's serial log showed first-boot systemd presets re-enabling networkd,
