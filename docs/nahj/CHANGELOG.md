@@ -162,3 +162,20 @@ unit files. UEFI reached userspace, but an earlier panic, installed-system
 login and boot animation timing remain release blockers. No GitHub ISO build
 was dispatched. Details: `tests-2026-11-05/installer-passwords.md` and the report
 index's first-boot preset section.
+
+### Completed installer run and target daemon cleanup
+
+The first UEFI/NVMe installer run completed all 32 jobs with a new user
+password. Post-install inspection found a gpg-agent retaining the target
+filesystem after lazy unmount. Added cleanup before unmount, including on
+initialization failure; eleven target tests pass. A real target-agent lifecycle
+test then passed normal unmount and read-only e2fsck. The installed password,
+live-account cleanup, linux-zen image and UEFI GRUB files passed a read-only
+audit. Actual installed-system boot/login remains pending. Published screenshots
+include password rejection/acceptance and installer completion, with TCG testing
+limitations explicitly recorded.
+
+Also corrected hardcoded black partition labels to use the installer widget's
+text palette. Installer 3.3.14-4 built with this fix; 3.3.14-5 adds daemon
+cleanup. Local ISO 05 built with earlier installer 3.3.14-3 and passed thirteen
+service-preset assertions. No GitHub workflow was dispatched.

@@ -1,0 +1,21 @@
+PASS chosen account recreated once with its own home
+PASS new chosen password matches installed hash
+PASS public live password no longer matches
+PASS root password remains locked
+PASS live-only configuration removed: etc/nahj/live-image
+PASS live-only configuration removed: etc/sddm.conf.d/10-nahj-live.conf
+PASS live-only configuration removed: etc/sudoers.d/10-nahj-live
+PASS live-only configuration removed: etc/mkinitcpio.conf.d/archiso.conf
+PASS installed file exists: boot/vmlinuz-linux-zen
+PASS installed file exists: boot/initramfs-linux-zen.img
+PASS installed file exists: boot/grub/grub.cfg
+PASS installed file exists: boot/efi/EFI/Nahj/grubx64.efi
+PASS installed file exists: boot/efi/EFI/BOOT/BOOTX64.EFI
+PASS installed file exists: etc/pacman.d/gnupg/pubring.gpg
+PASS installed file exists: home/nahj/.config/hypr/hyprland.lua
+PASS installed file exists: home/nahj/.config/pleamar/autostart
+PASS boot kernel matches installed linux-zen package
+PASS installed initramfs omits live hooks
+PASS fstab identifies installed partitions by UUID
+PASS GRUB references linux-zen
+PASS live installer removed from installed package database

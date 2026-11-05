@@ -1,0 +1,13 @@
+Target agent started: 9290
+PASS: gpgconf stopped the target agent before unmount
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+/dev/nvme0n1p2: 169853/2555904 files (0.3% non-contiguous), 1901038/10223095 blocks
+PASS: normal unmount and clean filesystem after target daemon cleanup
+gpg-connect-agent: no running gpg-agent - starting '/usr/bin/gpg-agent'
+gpg-connect-agent: waiting for the agent to come up ... (8s)
+gpg-connect-agent: connection to the agent established
+e2fsck 1.47.4 (6-Mar-2025)

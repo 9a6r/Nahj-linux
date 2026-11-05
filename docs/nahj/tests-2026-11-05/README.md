@@ -32,6 +32,19 @@ A cleanup failure stops installation. Eleven target tests pass, including
 cleanup on command failure and exception. A full installation using this fix
 and an installed-system login remain pending.
 
+The exact `gpgconf` cleanup was also tested with a newly started target
+gpg-agent while the target's `/dev` and `/run` were still mounted, as they are
+during the installer job. The agent exited, a normal (non-lazy) unmount
+succeeded, and e2fsck again passed: [integration evidence](target-agent-integration.txt).
+This verifies why cleanup must occur before Calamares tears down those mounts.
+
+A read-only audit of the installed disk verified the newly chosen password
+against its actual hash and rejected the public live password. Root remains
+locked, live autologin/passwordless sudo are absent, the home configuration
+exists, the boot kernel matches its installed package, and GRUB plus the UEFI
+fallback executable are present. [Audit results](uefi-installed-audit.txt).
+This is not yet a PAM/SDDM login after reboot.
+
 The workspace filled while the completed ISO build and installation outputs
 coexisted. Completed build caches were removed, retaining the ISO and logs;
 8.6 GiB was recovered. No guest I/O/ext4 error was found in the kernel log.
