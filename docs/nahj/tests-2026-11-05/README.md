@@ -60,3 +60,35 @@ Current screenshots: [ISO boot captures](../../../screenshots/iso-local-2026-11-
 The previous [runtime review](../tests-2026-10-30/README.md) documents theme
 palette checks and limitations. Current-image desktop/login, wallpaper
 transitions, installed-system boot and actual VirtualBox remain release gates.
+
+## Further runtime findings and wallpaper recovery fix
+
+The current image reached Hyprland with kernel `7.2.11-zen1-1-zen`. Its
+`plymouth-quit.service` completed with `Result=success`, `ExecMainStatus=0`;
+the earlier ISO's quit timeout did not recur in this boot. The system unit
+failure list was empty. This does **not** cover user units: portal startup
+failures and a two-second original Luau handler deadline were logged under
+TCG. The main shell took an extremely long time to render, so desktop
+responsiveness is still a failing release gate.
+
+The wallpaper daemon was running but displayed black: the initial helper had
+not completed successfully and its marker was absent. Retrying the same helper
+in the ready Wayland session restored the original `assets/greeter.jpeg` and
+created the marker. The original gallery and wallpaper-transition code were
+not changed.
+
+A new user `nahj-wallpaper.service` now retries helper failures after five
+seconds. Autostart imports the Wayland environment before starting this service
+asynchronously. It stays completed after success and is restarted for a new
+session; it does not continuously reset the user's chosen wallpaper. The
+service is part of the graphical session and does not alter the original
+shell scenes. An integration test copied this service into the disposable
+current ISO guest and injected one initial failure through a temporary systemd
+drop-in. `systemd-analyze --user verify` passed, and the service reached
+`active/exited`, `Result=success`, **`NRestarts=1`**, with awww reporting the
+original image. The fault-injection drop-in was removed afterward.
+
+This service change postdates the ISO's checksum above. It has been tested by
+injection into that guest but still requires a fresh complete image build and
+cold-session regression. The long ldconfig job eventually succeeded (44.5 CPU
+seconds under TCG); it has not been disabled or bypassed to hide the delay.

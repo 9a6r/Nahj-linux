@@ -125,3 +125,12 @@ tests and ShellCheck successfully. Recorded native boot timing and its capture
 limitations instead of claiming stutter-free playback. A long ldconfig startup
 job was observed under TCG and is being investigated. See
 `tests-2026-11-05/README.md`; no GitHub ISO workflow was dispatched.
+
+The new ISO completed Plymouth shutdown successfully and reached Hyprland on
+linux-zen. Its initial wallpaper setup failed during slow startup; retrying the
+unchanged helper after Wayland was ready restored the original image. Added a
+user service to retry failures automatically and import the session environment
+before starting it. Verified its unit and injected one startup failure in the
+ISO guest: it recovered with NRestarts=1. The original wallpaper gallery,
+transitions and all upstream UI source remain unchanged. This fix still needs
+inclusion in a fresh ISO; software-rendered desktop performance is not approved.

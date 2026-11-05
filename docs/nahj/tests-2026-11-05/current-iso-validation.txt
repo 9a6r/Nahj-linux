@@ -1,0 +1,12 @@
+7.2.11-zen1-1-zen
+ActiveState=active
+Result=success
+ExecMainStatus=0
+  UNIT LOAD ACTIVE SUB DESCRIPTION
+
+0 loaded units listed.
+ActiveState=active
+SubState=exited
+Result=success
+NRestarts=1
+: Virtual-1: 1280x720, scale: 1, currently displaying: image: /usr/share/nahj/vitreus/assets/greeter.jpeg

@@ -1,0 +1,12 @@
+[Unit]
+Description=Restore the Nahj session wallpaper when its output is ready
+PartOf=graphical-session.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/nahj-wallpaper
+RemainAfterExit=yes
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=90s
