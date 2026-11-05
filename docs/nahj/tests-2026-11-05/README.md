@@ -3,6 +3,27 @@
 **Release blocked: smooth boot and VirtualBox login are not certified.** No
 GitHub Actions build was dispatched. All tests below ran locally.
 
+Latest follow-up: [installer password fixes and ISO 04 provenance](installer-passwords.md).
+The sections below retain the earlier ISO 03 results; they are not all results
+from the latest image. ISO 04's UEFI diagnostic boot reached userspace with
+`linux-zen` and detected the 40 GiB NVMe test disk. The earlier panic in the
+same VM configuration is unresolved. A full installed-system test is pending.
+
+## First-boot service preset regression
+
+ISO 04's serial log showed first-boot systemd presets re-enabling networkd,
+its wait-online service and resolved. Removing releng's enablement symlinks
+does not override `90-systemd.preset`. Added an earlier `10-nahj.preset` that
+keeps NetworkManager as the desktop network owner, retains the intended
+desktop services, and disables the competing network stack and unsolicited
+SSH enablement. No original shell files changed.
+
+The real `systemctl --preset-mode=enable-only preset-all` was exercised on a
+temporary copy of the ISO's unit files and the candidate policy. All thirteen
+service assertions passed, with no networkd dependency symlinks left enabled:
+[results](service-presets.txt). The test now runs after image composition.
+The fix still requires a fresh image and a cold live boot.
+
 ## Image built successfully
 
 - Source: `11984ec` on `codex/nahj-archiso`.

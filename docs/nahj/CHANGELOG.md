@@ -146,3 +146,19 @@ invalid frames, and retained all original intro/loop frames. Documented the
 roughly 100 MiB larger compressed-theme tradeoff. Added an explicit signed
 offline-mirror option to support a fresh local image build and installation
 validation without dispatching GitHub Actions. Evidence: `tests-2026-11-05/boot-bmp`.
+
+### Account validation and first-boot service policy
+
+Built installer 3.3.14-3 with native regression tests for password confirmation,
+UTF-8 lengths and failed hashes. Empty or overlong passwords cannot silently
+create an unusable installed account. The public live password remains `nahj`.
+Nine target tests and three native account suites passed. ISO 04 built locally
+with the BMP animation; its installer predates this account fix.
+
+A UEFI/NVMe diagnostic boot exposed systemd first-boot presets re-enabling the
+competing network stack. Added an explicit desktop service preset and a real
+systemctl integration check, with thirteen assertions passing on the ISO's
+unit files. UEFI reached userspace, but an earlier panic, installed-system
+login and boot animation timing remain release blockers. No GitHub ISO build
+was dispatched. Details: `tests-2026-11-05/installer-passwords.md` and the report
+index's first-boot preset section.

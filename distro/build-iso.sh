@@ -188,6 +188,8 @@ for package in "$local_repo"/*.pkg.tar.zst; do
 done
 GNUPGHOME="$signing" repo-add --sign --key "$fingerprint" "$local_repo/nahj-build.db.tar.gz" "$local_repo"/*.pkg.tar.zst
 mkarchiso -v -w "$work/mkarchiso" -o "$out" "$profile"
+# Exercise systemd's real first-boot preset logic against this image's units.
+python3 "$repo/distro/test_service_presets.py" "$work/mkarchiso/x86_64/airootfs"
 (
     cd "$out"
     sha256sum nahj-*.iso > SHA256SUMS

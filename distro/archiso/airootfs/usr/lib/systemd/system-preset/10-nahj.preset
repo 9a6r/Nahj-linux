@@ -1,0 +1,15 @@
+# Preserve the desktop's service policy when systemd applies first-boot presets.
+# Removing releng symlinks alone is insufficient: 90-systemd.preset enables
+# networkd and resolved again on a fresh live system.
+enable NetworkManager.service
+enable bluetooth.service
+enable sddm.service
+enable power-profiles-daemon.service
+enable vboxservice.service
+enable systemd-timesyncd.service
+disable systemd-networkd*
+disable systemd-resolved.service
+disable iwd.service
+disable sshd.service
+disable sshd.socket
+disable systemd-time-wait-sync.service
