@@ -92,3 +92,27 @@ This service change postdates the ISO's checksum above. It has been tested by
 injection into that guest but still requires a fresh complete image build and
 cold-session regression. The long ldconfig job eventually succeeded (44.5 CPU
 seconds under TCG); it has not been disabled or bypassed to hide the delay.
+
+## Manual login in this image
+
+After moving the live autologin configuration outside SDDM's config directory,
+restarting SDDM, and typing the public password `nahj` through QEMU keyboard
+input, PAM authenticated `nahj` at 00:07:24 UTC on 5 November. The log reports
+`Session started true`; Hyprland PID 5003 remained running at the follow-up
+check. The private Nahj session directory is in use. This confirms current-image
+manual authentication and session startup under QEMU, not VirtualBox or a fully
+responsive rendered desktop.
+
+`manual-login-current.txt` preserves the relevant journal (excluding only the
+long stock Arch welcome banner). SDDM also reports a greeter error while
+stopping it after successful authentication; no corresponding greeter coredump
+was listed. That shutdown error is unresolved. The two listed coredumps,
+hypridle and awww-daemon, occurred at 00:04:46–48 during our deliberate
+`systemctl stop sddm` / `loginctl terminate-user nahj` test teardown. They are
+not evidence of a spontaneous crash before that intervention, and should not
+be silently counted as a clean shutdown either.
+
+Both disposable VMs are paused at the checkpoint to avoid consuming CPU between
+reviews. An additional VirGL/Venus diagnostic boot was started but has no
+validated desktop result and is not counted as a passed test. No alternate
+renderer or test instrumentation has been shipped in the source payload.

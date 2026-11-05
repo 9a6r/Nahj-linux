@@ -1,0 +1,23 @@
+Nov 05 00:07:21 nahj-live sddm[4778]: Message received from greeter: Login
+Nov 05 00:07:21 nahj-live sddm[4778]: Reading from "/usr/share/nahj/wayland-sessions/nahj.desktop"
+Nov 05 00:07:21 nahj-live sddm[4778]: Session "/usr/share/nahj/wayland-sessions/nahj.desktop" selected, command: "/usr/local/bin/nahj-session" for VT 3
+Nov 05 00:07:22 nahj-live sddm-helper[4983]: [PAM] Starting...
+Nov 05 00:07:22 nahj-live sddm-helper[4983]: [PAM] Authenticating...
+Nov 05 00:07:23 nahj-live sddm-helper[4983]: [PAM] Preparing to converse...
+Nov 05 00:07:23 nahj-live sddm-helper[4983]: [PAM] Conversation with 1 messages
+Nov 05 00:07:24 nahj-live sddm-helper[4983]: [PAM] returning.
+Nov 05 00:07:24 nahj-live sddm[4778]: Authentication for user  "nahj"  successful
+Nov 05 00:07:24 nahj-live sddm-helper[4983]: pam_unix(sddm:session): session opened for user nahj(uid=1000) by nahj(uid=0)
+Nov 05 00:07:24 nahj-live sddm-helper[4983]: [PAM] Preparing to converse...
+Nov 05 00:07:24 nahj-live sddm-helper[4983]: [PAM] Conversation with 1 messages
+Nov 05 00:07:36 nahj-live sddm[4778]: Session started true
+Nov 05 00:07:42 nahj-live sddm[4778]: Greeter stopping...
+Nov 05 00:07:47 nahj-live sddm[4778]: Error from greeter session: "Process crashed"
+Nov 05 00:07:47 nahj-live sddm[4778]: Auth: sddm-helper (--socket /tmp/sddm-auth-2c6e936d-46fe-41b9-be08-48de87069808 --id 2 --start /usr/bin/sddm-greeter-qt6 --socket /tmp/sddm-:0-cjNFIf --theme /usr/share/sddm/themes/vitreus --user sddm --greeter) crashed (exit code 1)
+Nov 05 00:07:47 nahj-live sddm[4778]: Error from greeter session: "Process crashed"
+Nov 05 00:07:47 nahj-live sddm[4778]: Auth: sddm-helper exited with 9
+Nov 05 00:07:47 nahj-live sddm[4778]: Greeter stopped. SDDM::Auth::HelperExitStatus(9)
+5003 Hyprland
+TIME                        PID  UID  GID SIG     COREFILE EXE                  SIZE
+Thu 2026-11-05 00:04:46 UTC 894 1000 1000 SIGABRT present  /usr/bin/hypridle    104K
+Thu 2026-11-05 00:04:48 UTC 895 1000 1000 SIGABRT present  /usr/bin/awww-daemon 3.6M
