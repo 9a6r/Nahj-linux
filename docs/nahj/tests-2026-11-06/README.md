@@ -60,3 +60,33 @@ documented manual daemon cleanup; it is not a full-install regression of -5.
 
 [Actual installed-system captures](../../../screenshots/installed-2026-11-06/)
 and [preceding installation evidence](../tests-2026-11-05/README.md).
+
+## Graphics investigation and unresolved kernel warnings
+
+The installed TCG guest logged repeated CPU soft lockups, including before the
+first desktop login. [Kernel warnings](kernel-warnings.txt) are retained rather
+than treating zero failed systemd units as a clean-kernel result. Their cause
+has not been established; no watchdog setting was disabled to hide them.
+
+The guest initially lacked the Virtio Vulkan ICD. An official, signature-verified
+`vulkan-virtio 1:26.2.5-1` package matching Mesa was installed only in the
+disposable installed guest. `vulkaninfo --summary` subsequently enumerated
+Venus, backed by host llvmpipe, alongside guest llvmpipe; see
+[enumeration evidence](venus-enumeration.txt). This is driver discovery, not a
+passing rendering or responsiveness test. The driver is not yet in the ISO
+package list. Virtio GPU response errors were also observed during the experiment.
+The root enumeration probe had no display/runtime environment and printed
+loader warnings; those warnings alone are not desktop crash evidence.
+`awww-daemon` and `hypridle` produced core dumps during compositor logout;
+their shutdown behavior remains under investigation.
+
+The original lock screen rendered with the installed account, but its large
+clock was missing in the captured frame. The [capture](../../../screenshots/installed-2026-11-06/lockscreen-incomplete.png)
+is explicitly incomplete and cannot establish visual parity. Logout through
+the original Lua dispatcher (`hyprctl dispatch 'hl.dsp.exit()'`) returned to
+SDDM. The old `hyprctl dispatch exit` syntax failed in the diagnostic helper;
+the original shell already uses the correct Lua dispatcher and was not changed.
+
+ISO 06 is being composed locally from source `7138882` with installer
+3.3.14-5 and the corrected full service preset. It does not include the
+experimental Virtio ICD. A completed build and cold boot are still pending.

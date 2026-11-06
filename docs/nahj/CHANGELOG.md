@@ -179,3 +179,21 @@ Also corrected hardcoded black partition labels to use the installer widget's
 text palette. Installer 3.3.14-4 built with this fix; 3.3.14-5 adds daemon
 cleanup. Local ISO 05 built with earlier installer 3.3.14-3 and passed thirteen
 service-preset assertions. No GitHub workflow was dispatched.
+
+## 2026-11-06 — Installed login and fresh image regression
+
+Booted the installed NVMe system with the ISO disconnected. The old public
+live password was rejected and the chosen new password authenticated through
+the original SDDM greeter. BIOS/SATA diagnostic boot also passed, but has not
+yet been followed by a complete BIOS installation.
+
+Actual boot exposed stale releng D-Bus service aliases; image setup now applies
+the full service policy, and its test retains the image's real enablement links.
+The extracted failing state reproduces the regression and passes after cleanup.
+A fresh local ISO 06 build is in progress with installer 3.3.14-5.
+
+Repeated kernel soft lockups and incomplete desktop rendering remain blockers.
+A Virtio Vulkan driver is being tested only in a disposable guest; enumeration
+alone does not qualify it for inclusion. Uploaded the incomplete original lock
+screen and the diagnostic evidence. No GitHub workflow was dispatched.
+See [the detailed report](tests-2026-11-06/README.md).

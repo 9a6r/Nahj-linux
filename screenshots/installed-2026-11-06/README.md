@@ -15,3 +15,7 @@ direct captures, not reconstructed mockups.
 
 These captures do not yet show a fully rendered desktop or certify animation
 performance. See the [runtime report](../../docs/nahj/tests-2026-11-06/README.md).
+
+- [Incomplete original lock screen](lockscreen-incomplete.png): actual installed
+  session after idle locking. The large clock is absent in this capture. This
+  records a visual issue under investigation, not a complete-desktop success.
