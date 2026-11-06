@@ -1,0 +1,13 @@
+PASS NetworkManager.service: enabled
+PASS sddm.service: enabled
+PASS bluetooth.service: enabled
+PASS power-profiles-daemon.service: enabled
+PASS vboxservice.service: enabled
+PASS systemd-timesyncd.service: enabled
+Traceback (most recent call last):
+  File "/src/distro/test_service_presets.py", line 57, in <module>
+    main()
+    ~~~~^^
+  File "/src/distro/test_service_presets.py", line 49, in main
+    raise RuntimeError(f"{unit}: expected {state}, got {actual!r}: {result.stderr}")
+RuntimeError: systemd-networkd.service: expected disabled, got 'enabled': 

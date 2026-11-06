@@ -1,0 +1,14 @@
+enabled
+enabled
+enabled
+enabled
+disabled
+active
+BIOS_CONFIRMED=0
+NAME  TYPE SIZE TRAN
+loop0 loop 2.4G 
+sda   disk  40G sata
+sr0   rom  3.3G sata
+  UNIT LOAD ACTIVE SUB DESCRIPTION
+
+0 loaded units listed.

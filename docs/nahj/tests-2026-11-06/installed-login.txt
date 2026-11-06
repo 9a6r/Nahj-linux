@@ -1,0 +1,24 @@
+Nov 06 04:49:45 naahj-uefi sddm-helper[1060]: [PAM] Ended.
+Nov 06 04:49:45 naahj-uefi sddm[444]: Auth: sddm-helper exited with 1
+Nov 06 04:50:52 naahj-uefi sddm[444]: Message received from greeter: Login
+Nov 06 04:50:52 naahj-uefi sddm[444]: Reading from "/usr/share/nahj/wayland-sessions/nahj.desktop"
+Nov 06 04:50:52 naahj-uefi sddm[444]: Session "/usr/share/nahj/wayland-sessions/nahj.desktop" selected, command: "/usr/local/bin/nahj-session" for VT 1
+Nov 06 04:50:53 naahj-uefi sddm-helper[1077]: [PAM] Starting...
+Nov 06 04:50:53 naahj-uefi sddm-helper[1077]: [PAM] Authenticating...
+Nov 06 04:50:54 naahj-uefi sddm-helper[1077]: [PAM] Preparing to converse...
+Nov 06 04:50:54 naahj-uefi sddm-helper[1077]: [PAM] Conversation with 1 messages
+Nov 06 04:50:55 naahj-uefi sddm-helper[1077]: [PAM] returning.
+Nov 06 04:50:55 naahj-uefi sddm[444]: Authentication for user  "nahj"  successful
+Nov 06 04:50:55 naahj-uefi sddm-helper[1077]: pam_unix(sddm:session): session opened for user nahj(uid=1000) by nahj(uid=0)
+Nov 06 04:50:56 naahj-uefi sddm-helper[1077]: [PAM] Preparing to converse...
+Nov 06 04:50:56 naahj-uefi sddm-helper[1077]: [PAM] Conversation with 1 messages
+Nov 06 04:50:56 naahj-uefi sddm[444]: Auth: sddm-helper exited successfully
+Nov 06 04:50:56 naahj-uefi sddm[444]: Greeter stopped. SDDM::Auth::HELPER_SUCCESS
+Nov 06 04:51:00 naahj-uefi sddm[444]: Session started true
+1101 Hyprland
+1333 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/cursortrail/cursortrail.plm --no-hud
+1337 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/vitreus.plm --no-hud
+1339 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/wptrans/wptrans.plm --no-hud
+1346 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/desktopsysmon/desktopsysmon.plm --no-hud
+1358 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/lockscreen/lockscreen.plm --no-hud
+1390 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/desktopclock/desktopclock.plm --no-hud

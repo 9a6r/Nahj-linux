@@ -19,9 +19,13 @@ def main():
         root = Path(directory)
         for relative in ("usr/lib/systemd/system", "usr/lib/systemd/system-preset"):
             shutil.copytree(image / relative, root / relative, symlinks=True)
-        (root / "etc/systemd/system").mkdir(parents=True)
+        # Preserve real image enablement, including aliases. Starting with an
+        # empty directory misses stale releng links that enable-only preserves.
+        shutil.copytree(image / "etc/systemd/system", root / "etc/systemd/system", symlinks=True)
         (root / "etc/os-release").write_text("ID=arch\n")
-        shutil.copyfile(policy, root / "usr/lib/systemd/system-preset/10-nahj.preset")
+        packaged_policy = root / "usr/lib/systemd/system-preset/10-nahj.preset"
+        if not packaged_policy.is_file() or packaged_policy.read_bytes() != policy.read_bytes():
+            raise RuntimeError("The image does not contain the current Nahj service preset")
         subprocess.run(["systemctl", f"--root={root}", "--preset-mode=enable-only", "preset-all"], check=True)
         expected = {
             "NetworkManager.service": "enabled",
