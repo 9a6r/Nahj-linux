@@ -197,3 +197,20 @@ A Virtio Vulkan driver is being tested only in a disposable guest; enumeration
 alone does not qualify it for inclusion. Uploaded the incomplete original lock
 screen and the diagnostic evidence. No GitHub workflow was dispatched.
 See [the detailed report](tests-2026-11-06/README.md).
+
+## 2026-11-11 — Remove unrequested compositor styling
+
+Removed the distribution's hardcoded Hyprland colors, gaps, decorations, cursor
+sizes and preference block. The original Vitreus settings imports remain in
+charge of the shell's appearance. All 259 original entries, including SDDM,
+remain unchanged. The installer keeps its separate branding. Lua syntax and
+all eleven installer target tests passed; graphical behavior and smooth boot
+playback are not yet certified. No ISO workflow was dispatched.
+See [scope and validation](tests-2026-11-11/README.md).
+
+ISO 06 had completed on November 6 after the preceding report was pushed.
+Its SHA256 is `309d19d3b862d793ab33f4571ea138fc98ad361047b0c5f1e557016427e0e437`.
+Thirteen service-policy assertions also passed on files extracted from the ISO,
+and the [source audit](tests-2026-11-06/iso06-source-audit.json) matched all 259
+original entries. That image predates this appearance cleanup; its cold graphical
+boot and complete installer -5 regression remain open.

@@ -1,0 +1,1819 @@
+{
+  "upstream_commit": "92cd90b0b3ff8bf88831b12f176051450da4a98a",
+  "iso_sha256": "309d19d3b862d793ab33f4571ea138fc98ad361047b0c5f1e557016427e0e437",
+  "files": [
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.md",
+      "mode": "100644",
+      "sha256": "44cd8467c65c914c1507af0b384e54640ad5c444c1448caffb8a571afe83eda9",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": ".github/workflows/addons-bump.yml",
+      "mode": "100644",
+      "sha256": "c07d34249e65b0807a3e887b813a7eca97de9332b7ec3070900a39074a62f006",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": ".github/workflows/addons-lint.yml",
+      "mode": "100644",
+      "sha256": "9485069d281d8631b9f015c59f21f912ca3c883b657fa37a2350ca7dd0530214",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "sha256": "30f9dc9ff13e9bce0e3d5dc8a96cb3237c546e898264c3e530b9e1615f8aaeab",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "BUNDLING.md",
+      "mode": "100644",
+      "sha256": "79a267e06f98e989285e6c590cca596583e892159abe5fbbd95e97c6b88d33ce",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "CLAUDE.md",
+      "mode": "100644",
+      "sha256": "b3b3bea1e4487c9772f83c42a0399425fa0ddecf30c025ccdb881f67e00f8f02",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "LICENSE",
+      "mode": "100644",
+      "sha256": "c11c16ec2163d85a3f75493f263a6b03678aa403a59e96359c9001f0aa5c7506",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "sha256": "1f4f20385839c0b03db6ed45ef7e9c48e973c91ea75373d98ce08a8bd4d98d7d",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/_template/addon-palette.plm",
+      "mode": "100644",
+      "sha256": "8301565a11fbc043f6abe6149e2d85e52c8149dc84a648309f96936b77b22795",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/_template/addon.plm",
+      "mode": "100644",
+      "sha256": "57d956c0cd9edf4a6ad28f653ce832b3060647dcddca2b1df84b0276d574fbd8",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/_template/addon.toml",
+      "mode": "100644",
+      "sha256": "f568847f9a8119cdfd9a3a12e3dca4fc769d6cfddc8b2d6d46a5a694240824d2",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/_template_drawer/STYLE.md",
+      "mode": "100644",
+      "sha256": "606e4131519c92c5b2f38444af02edabe94ef450e7f82a00b6b9fa9fd8551185",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/_template_drawer/addon-palette.plm",
+      "mode": "100644",
+      "sha256": "8301565a11fbc043f6abe6149e2d85e52c8149dc84a648309f96936b77b22795",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/_template_drawer/addon-pencil.plm",
+      "mode": "100644",
+      "sha256": "ccedacbde5e4cff6f10a96c448dbab1bf6d3442159605acdbcf76b8d9e312a27",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/_template_drawer/addon-theme.plm",
+      "mode": "100644",
+      "sha256": "3f66bdbab172f49233fad244ff005eb87d4cc0f529e506f570b660e50d9a5997",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/_template_drawer/addon.luau",
+      "mode": "100644",
+      "sha256": "8cb484531502327d3e1329f55b73da9f48466cfca6d17009c401e1ba4ee69e4f",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/_template_drawer/addon.plm",
+      "mode": "100644",
+      "sha256": "7042e4f7a27eac8b75ce549511dd7bb41d031bc2e6c853555e0468ac569bcf3d",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/_template_drawer/addon.toml",
+      "mode": "100644",
+      "sha256": "480bdc6b343612c2851d74797feb6dfc814385e30979fae8b2957ece9e9cab40",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/_template_drawer/icon.svg",
+      "mode": "100644",
+      "sha256": "b5fecbc9d3c98b076a880d5bdfc121d34732f4872dca16fd515b3fdfd9e37a3a",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/bundled.toml",
+      "mode": "100644",
+      "sha256": "23a38bb55c12740f6caf696d51638a99b6bbc5f3fd4ee09436f562f6e9eb741d",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/eq/addon-palette.plm",
+      "mode": "100644",
+      "sha256": "8301565a11fbc043f6abe6149e2d85e52c8149dc84a648309f96936b77b22795",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/eq/addon-pencil.plm",
+      "mode": "100644",
+      "sha256": "acf3b178759573129285616e3269b4c665b2e2a12f753541093815ee8ef1ed70",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/eq/addon-theme.plm",
+      "mode": "100644",
+      "sha256": "3f66bdbab172f49233fad244ff005eb87d4cc0f529e506f570b660e50d9a5997",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/eq/addon.toml",
+      "mode": "100644",
+      "sha256": "4572b48f69d706e18a4b2adf57323ce30a69efabe4c3ebe83b7161802411c936",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/eq/eq.luau",
+      "mode": "100644",
+      "sha256": "8dfffccce92aa91c061b0010ca18faa50572bc7694ad239ada864257b1fa0297",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/eq/eq.plm",
+      "mode": "100644",
+      "sha256": "e36f9610229981c86b00ea7591e9949cb52f029070a05c7829206f859e86d643",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/eq/glint.wgsl",
+      "mode": "100644",
+      "sha256": "c05ce82847e171ea4ae7531b0f952f90351b8d4ae1d9e086c3ba684cb6257c2d",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/eq/icon.svg",
+      "mode": "100644",
+      "sha256": "312352b95709723096a5908a0396a9059a542d2aee282a3dac6f6a824a614ddf",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/.github/workflows/lint.yml",
+      "mode": "100644",
+      "sha256": "cce738202fb90ae425c138c0fb5dc1b37779074368faef81b6fc8a4d4859aa54",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/LICENSE",
+      "mode": "100644",
+      "sha256": "e197746d230d93c0d5e4c3f425790142689c5c06ad611aa5a6e7566d41cad62e",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/README.md",
+      "mode": "100644",
+      "sha256": "71b141e0f919bbe3e848c5429714a95819d8ac3d8399be944a2594c884b2ecb3",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/addon-palette.plm",
+      "mode": "100644",
+      "sha256": "8301565a11fbc043f6abe6149e2d85e52c8149dc84a648309f96936b77b22795",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/addon-pencil.plm",
+      "mode": "100644",
+      "sha256": "ccedacbde5e4cff6f10a96c448dbab1bf6d3442159605acdbcf76b8d9e312a27",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/addon-theme.plm",
+      "mode": "100644",
+      "sha256": "3f66bdbab172f49233fad244ff005eb87d4cc0f529e506f570b660e50d9a5997",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/addon.toml",
+      "mode": "100644",
+      "sha256": "66a1c2490d183e2245ffeed832e5dc06096eb2aabaaef70f07c728dcc22586bc",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/config.example.json",
+      "mode": "100644",
+      "sha256": "343342a9807c7480d742d1d89f2c58d4933e6de0c4ef7afa11e27c4bf52e1564",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/docs/img/apple-tv.png",
+      "mode": "100644",
+      "sha256": "a6484013c68ece52ef8721e5f7d83fca0776101e622d55932ca641e2585c8d62",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/docs/img/demo.png",
+      "mode": "100644",
+      "sha256": "253b0b6fe54494290ac8216cf64af169f2fec84d5990995bd023a5badc735cc7",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/docs/img/edit-mode.png",
+      "mode": "100644",
+      "sha256": "196296aa64dae078db39189440527ddd59f16d94122455ca503d74e961a5e445",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/docs/img/light-card.png",
+      "mode": "100644",
+      "sha256": "6dc2d13666bbb1a44577c5cf5f993949a60c325fc07aa3d534d998d237112ba9",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/docs/img/panel.png",
+      "mode": "100644",
+      "sha256": "32b2b4511640a6bae4b13e1132b5b23fa876a8b5605b169003f72aef2102a03e",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/docs/img/printer.png",
+      "mode": "100644",
+      "sha256": "d13bf207f178c564494dd30e3eac2995415e6ad1a66d716b83d359e9d5df7ca7",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/docs/img/settings.png",
+      "mode": "100644",
+      "sha256": "0329855ed2e7f188176d49662b3ad558e49003db17ff1d65bbfc08e9cdb88496",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/ha-icons.plm",
+      "mode": "100644",
+      "sha256": "7c4317360c721eb6e184d186e158c3e69ef17b196fdab8ea06412b9787ff9bac",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/homeassistant.luau",
+      "mode": "100644",
+      "sha256": "196f78143c8947f9ca1d7f4ba7459848ef00a648c76dc9081184a45ec76d8dff",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/homeassistant.plm",
+      "mode": "100644",
+      "sha256": "98911b548eab7d1666d3af7cf4b6386ebfb6a655ec58a8524479c48e630ca884",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/icon.svg",
+      "mode": "100644",
+      "sha256": "d60649f6a831bdc2d6f4c2a306ce82b6d26a5358963e24d4054b4f213a573926",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/settings.luau",
+      "mode": "100644",
+      "sha256": "4b4b3de3c3b27d369ada723658404df637d35bc4e3ab2f09819f7e98e8385918",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/homeassistant/tools/icons.py",
+      "mode": "100644",
+      "sha256": "3df5214ae471a01af81ccc9982a32f072700e8b27e97a389f88c2f08c18d8ce6",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/news-weather/LICENSE",
+      "mode": "100644",
+      "sha256": "2e68e0ed91fa1b1f7f6e05904d17c9c1f7b7d382053e2b5bab4e876b3e3b59bd",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/news-weather/README.md",
+      "mode": "100644",
+      "sha256": "6661c9a7d1e7c346808d900dfd2f8eb253d7ff1e5aee842ace27109ac7c3e100",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/news-weather/addon-palette.plm",
+      "mode": "100644",
+      "sha256": "8301565a11fbc043f6abe6149e2d85e52c8149dc84a648309f96936b77b22795",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/news-weather/addon-pencil.plm",
+      "mode": "100644",
+      "sha256": "4d3d0dc310c60608a28ca4776ad5bed696d6dc09ac73b7a174134d6c9e4c5074",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/news-weather/addon-theme.plm",
+      "mode": "100644",
+      "sha256": "3f66bdbab172f49233fad244ff005eb87d4cc0f529e506f570b660e50d9a5997",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/news-weather/addon.toml",
+      "mode": "100644",
+      "sha256": "0e7a18846d866d87c1c914f48b0ade5fda4b73cc7f4382df533c59d5f0860432",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/news-weather/icon.svg",
+      "mode": "100644",
+      "sha256": "26113700a073b5656c56f7019173faebb514f98a19f30e6c900367c81aa86bb3",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/news-weather/news-weather.luau",
+      "mode": "100644",
+      "sha256": "3a65c00cd3bd041f8f4f34106730e79135b9cd400ee896c1d3f83a6165cf4fe1",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/news-weather/news-weather.plm",
+      "mode": "100644",
+      "sha256": "1a1f2e6920fad9349b5f91a593e194408583b0625e9497bb582cb584afe380e9",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/news-weather/pencil-glyphs.plm",
+      "mode": "100644",
+      "sha256": "6dd6bbcfd18ec6374f602ba5b7ee920d1d15e00de2e2ffe9ecb15db8092dc04b",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/news-weather/screenshots/feeds.jpg",
+      "mode": "100644",
+      "sha256": "200efe7777df7be6ecb5a9450df096d681b3fcc466e4dd432225051ba80e1b7d",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/news-weather/screenshots/news.jpg",
+      "mode": "100644",
+      "sha256": "b68bdb58c9d0a20d3dd2a40cb8c07a853eb9124c2af91dea10e9a872fa907eb5",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/news-weather/screenshots/weather.jpg",
+      "mode": "100644",
+      "sha256": "10f2c43a06b32bebf7820696c8d6ccdea1b501b321c353f159aa07e0c255c97a",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/tvremote/addon-palette.plm",
+      "mode": "100644",
+      "sha256": "8301565a11fbc043f6abe6149e2d85e52c8149dc84a648309f96936b77b22795",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/tvremote/addon.toml",
+      "mode": "100644",
+      "sha256": "961ce259ab60d182f13557066dc8af433351d61871e3c043a2476589106c7c2f",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/tvremote/remote.svg",
+      "mode": "100644",
+      "sha256": "8c698b8eddca1afb30b64fc82660d544eb4aeb0d0ceb2cf1eae5875beb17d25e",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/tvremote/tvremote.luau",
+      "mode": "100644",
+      "sha256": "4e2aa3aa9cb2c262e20b14f7b87ddcfdf25d7f67fbf57b0cdebe0e03870748fb",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/tvremote/tvremote.plm",
+      "mode": "100644",
+      "sha256": "8d3920452e7c4d7378e756a957b87d66f6a1744bfc5be4a10aa01775a3d0182f",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/vpn/addon-palette.plm",
+      "mode": "100644",
+      "sha256": "8301565a11fbc043f6abe6149e2d85e52c8149dc84a648309f96936b77b22795",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/vpn/addon-pencil.plm",
+      "mode": "100644",
+      "sha256": "4d3d0dc310c60608a28ca4776ad5bed696d6dc09ac73b7a174134d6c9e4c5074",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/vpn/addon.toml",
+      "mode": "100644",
+      "sha256": "56d50a7cab259fe5fc5387012a56f0bc282f3a11acee595f04a1dc2857e3f40c",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/vpn/icon.svg",
+      "mode": "100644",
+      "sha256": "1d39fbf60fc5621723a2214a0dda73e6676bcc3ada49f5eda5396ac2c4a20e32",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/vpn/vpn.luau",
+      "mode": "100644",
+      "sha256": "39868caaf8d092ca765ed572d3949b8bdde01c28f012e3278f3767dc41719d96",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "addons/vpn/vpn.plm",
+      "mode": "100644",
+      "sha256": "5b4ee2c244ebb6dbdf7f615147112171e072bd415375fd4d6ba02caae4c7b553",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/banner.jpeg",
+      "mode": "100644",
+      "sha256": "c54c278ca1ca09aae59adea321e1877bfc51ba93eb93961197ede673798413d5",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/emoji.json",
+      "mode": "100644",
+      "sha256": "c66f71431f2b3cf655e3afbfad3c9d1191e8e96847a05a5c082e341336ce9857",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/greeter.jpeg",
+      "mode": "100644",
+      "sha256": "7ab70e150cffcca1e0c9067e67e702b9dbd37be869bf5593e8bf047a8fa7c6ad",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/panel.wav",
+      "mode": "100644",
+      "sha256": "308f4a8c72933f24937807b62dfa2884bcc483d99b74c0de65d5ee0a1588d933",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/screenshots/calendar.webp",
+      "mode": "100644",
+      "sha256": "331ca0098c8ea50daf14f44df49b76bc23611cca08857977e266331ea54b33cd",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/screenshots/control-center.webp",
+      "mode": "100644",
+      "sha256": "9ae669e1e3b77eb522c239907df25fa88fd5b38d239150895b7cffcec05ea96d",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/screenshots/dashboard.webp",
+      "mode": "100644",
+      "sha256": "979ce84bd1fe938673fcf5b20ad362eaf50c8020b2d4cb6add090e03ea1f2dbb",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/screenshots/demo.webp",
+      "mode": "100644",
+      "sha256": "69d636103f35e1ab9c59faf79da29974e6a7734bf167c806a8e2e9a9e07b17bf",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/screenshots/desk.webp",
+      "mode": "100644",
+      "sha256": "f3a18852e836d3b842042afc8bcedf8464d917986c1e5689e70a40e6637010aa",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/screenshots/launcher.webp",
+      "mode": "100644",
+      "sha256": "d969e1e2cd93bfcec83a8ef832960af59595ee6ae073c459b85ca246d46ec2ff",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/screenshots/lockscreen.webp",
+      "mode": "100644",
+      "sha256": "cea60622dd9f5c30aaa2c7c39c617f13ef5235e9da0040445327036a9c6de820",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/screenshots/player-and-windows.webp",
+      "mode": "100644",
+      "sha256": "cd91c66768d8b5bde71aa029e72ebd9a164b099d956561b6b4b33a555fe10339",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/screenshots/settings-about.webp",
+      "mode": "100644",
+      "sha256": "431ad962ee523a6ec1699cb4da2353bba6c0b96bd7b40668b4da86500c90f167",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/screenshots/snap.webp",
+      "mode": "100644",
+      "sha256": "1653aea62f0475047f6ce58316aed0c5f55ebe3900defdb854c753ec1100f1c8",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/screenshots/system-tray.webp",
+      "mode": "100644",
+      "sha256": "198e93abbd1358fc7b7d89f7df76f69fecbd87f3dfd1046cb2fa8ef47130744a",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/screenshots/tour.webp",
+      "mode": "100644",
+      "sha256": "825e028949fc5b419ffdfed3c3db00065ea9e92a7408d7108c6c7443df004a70",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "assets/screenshots/wallpaper-demo.webp",
+      "mode": "100644",
+      "sha256": "587a390549a556d1e8dfef2b73ee4c11fe46c93acb26f707378d8262d327542e",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-addons",
+      "mode": "100755",
+      "sha256": "dc644ab7926c433f5fc96c53ec12ef38d55269312fdc87e0e426f93b26985c43",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-clipimg",
+      "mode": "100755",
+      "sha256": "d9e10b1321bbad17d11c6327bab18179ad3a1f5d1e126c3d3982d167fc935aeb",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-edit",
+      "mode": "100755",
+      "sha256": "46268ac4c6b28d3d4c73aba3e2e64435eec1f5f93baeff2bcdf72fbda0232591",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-eq",
+      "mode": "100755",
+      "sha256": "c4c560d1eb8feb2a98bf92648405b825975d634bb3bb0d10e92ce3af04b495ea",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-feedfetch",
+      "mode": "100755",
+      "sha256": "e8123ed1c19b4b5c1aa58227c7cfa25cb33b947d4ad4a7ff714e728edea37608",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-files",
+      "mode": "100755",
+      "sha256": "cc21abffc8a8b3109d331904e93308d6fb1e1e817c5a64406b043976b31f72b0",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-fonts",
+      "mode": "100755",
+      "sha256": "86a2d04a56ebb10308ad6c18cba22fda32e174987994bd304ddc373175fa6b25",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-inhibit.c",
+      "mode": "100644",
+      "sha256": "9f2e6e476b05c321d5a7acfdb2af31cb0c1a3b6e2fe87513c9293e498c3ce1e3",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-keep",
+      "mode": "100755",
+      "sha256": "c1be0da7af49374c45d04f26846c94c922eb9928c5b5d59bb3e76556391aeffb",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-polkit-agent",
+      "mode": "100755",
+      "sha256": "c64f4b674abaebe6f7c553994ab71d16107ec897bdf07c157b39231b82b10434",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-report",
+      "mode": "100755",
+      "sha256": "49b6a32761bd6b5f72917ad3cf97ba744f7f727072f334f7ccb0237913625659",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-sync-addons",
+      "mode": "100755",
+      "sha256": "f1e89c4df6518b70167799ba00cf4de7bacf56b1ffb4b79193bd5583dfb133d9",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-sysmon",
+      "mode": "100755",
+      "sha256": "0f44b48e114b0f51d82e13070120029f7002d7e1b4ce4a0067ff86666099807e",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-term",
+      "mode": "100755",
+      "sha256": "acfead5fc4897aa8b7359f8c2c9bb1b3e2ce60f64a9bb266ceb41a9c8aaee0ac",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-themes",
+      "mode": "100755",
+      "sha256": "029e683f02fcf39a47d7af87ae44001482345f37e27351f4142ea9dd97d4cbaa",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "bin/vitreus-tvremote",
+      "mode": "100755",
+      "sha256": "528c053e133956739ad013b349d667d8aece8418689df97ffc98b7fd3bbb42c0",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "blur.wgsl",
+      "mode": "100644",
+      "sha256": "1714a5d21c1cc0479f130e44fc31ce8158dfa4df0e8b9a55b4c36ace68e2ae28",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "cardrip.wgsl",
+      "mode": "100644",
+      "sha256": "3e79e18e84c9f33fc2b7fbcefd87773ea5aa547526c557d4d0d4c8a44b0f9779",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "cursortrail/cursortrail.plm",
+      "mode": "100644",
+      "sha256": "523f8749d5a16c3442294ae878e13976b107bfac78658262c6cf263a366cbbf3",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "cursortrail/goo.wgsl",
+      "mode": "100644",
+      "sha256": "a87389d0d06d9280215b3e1cbe5ef4bac25949c9f2f90e3b0afe15394e2eecf7",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "dashboard/underwater.wgsl",
+      "mode": "100644",
+      "sha256": "f0dd87200afdaadb64f26a6a81403613f9f09d1bff54dfcd84be2294b6265cba",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "dashboard/water.wgsl",
+      "mode": "100644",
+      "sha256": "eb86e2ab31ee6e7f509277f4f65929a5c1cc8dca10d92ce3159e234dbf11ada8",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopcards/desktopcards.luau",
+      "mode": "100644",
+      "sha256": "bec86c12f6d9abdef11f0523835e690d1d22d1c75265414b91fe12eeeaa3a522",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopcards/desktopcards.plm",
+      "mode": "100644",
+      "sha256": "3ecb9cfb76ee948beaca0afa161814b63547ab48c664d7be2a59fccaa29afecc",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopcards/gen.py",
+      "mode": "100644",
+      "sha256": "a3ac4ab380e2480ff39fe823176c811f692bfe987984ca57f36b4a472461c3c9",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopclock/clockface.plm",
+      "mode": "100644",
+      "sha256": "6f1c52020e377a340441977956d59bdd11a6fa7b8075c53c7ff277193ad625d4",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopclock/clockface_styled.plm",
+      "mode": "100644",
+      "sha256": "cb18d813e6db2afa6788c1576e2f1f72ac03933fa84b3cf6929c035a1aaadf8d",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopclock/desktopclock.luau",
+      "mode": "100644",
+      "sha256": "af3fd704eeec6646624c6d5d53951895cdfb9cf0068422ebdddbcbd53b1f35c5",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopclock/desktopclock.plm",
+      "mode": "100644",
+      "sha256": "63e00abd3f09976d62e35ef66df15f981d4a8c0804b6eb3721e36cf4038e4ce1",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopedit/desktopedit.luau",
+      "mode": "100644",
+      "sha256": "a7c1ffb6d98fb7714bc0f9f33e59afada48baa5ea3073bd6c6ae93005e15c3d3",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopedit/desktopedit.plm",
+      "mode": "100644",
+      "sha256": "462be5d449f3b23f9878d1e5d1374a3ed5f46bc144cb6ab3b49ac57180596d62",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopmenu/desktopmenu.luau",
+      "mode": "100644",
+      "sha256": "45b3ac7e0b9aec17aac6bcf8da6281711fc75d9a45b8e2a8b5201bbd6210f495",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopmenu/desktopmenu_hypr.luau",
+      "mode": "120000",
+      "sha256": "c9bc9ae37c1ce120ace4682139a8720476794f79f42bba66d9f4cbdd9d7af037",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopmenu/desktopmenu_hypr.plm",
+      "mode": "100644",
+      "sha256": "2e0e6c633f24b6e3f396b9685231b8493743a16416478cfd6c60c38ec53fdf17",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopnotes/desktopnotes.luau",
+      "mode": "100644",
+      "sha256": "e469e5f7673306333a366200c709cfefa6d0a79a571c213bba87a0f5112e8772",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopnotes/desktopnotes.plm",
+      "mode": "100644",
+      "sha256": "6ff4b54688cc99bb7a3b59719f4b36006047341774202a1453ac75b7a6dacaa1",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopsysmon/desktopsysmon.luau",
+      "mode": "100644",
+      "sha256": "66cb03db3cbe60da4d255e640fe257c6b545c715a0000d417b1c5d8b9a63d752",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "desktopsysmon/desktopsysmon.plm",
+      "mode": "100644",
+      "sha256": "9cfb298f75db12aa24266593cfe633468e3136fef0e8b9d013afd641d903f839",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "dev/eq-boost-test.py",
+      "mode": "100644",
+      "sha256": "e3a05db2c69acbd50c9c164b44062e8edc5b55b97d0ca7a642f00b4d441d41c9",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "dev/fixtures/lg-display-mdns.bin",
+      "mode": "100644",
+      "sha256": "0107da1f7cf4f1f3e85c60b046ee341be0bd9360e402b2959689b7d569bc12f7",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "dev/health",
+      "mode": "100755",
+      "sha256": "a8e409f501d15f3a9236d8ab3ed1abeae096a6347013e167b26d6f4ff313afb6",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "dev/rig",
+      "mode": "100755",
+      "sha256": "092a0eb4578af08488178cb841cbe75dead5fadc55b1ab45b4a66eda69263c24",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "dev/tvremote-webos-test.py",
+      "mode": "100755",
+      "sha256": "ea42fe7cea7c3a9eb8af7c5758541b36e4750b1c653c0d47205b1203297a0424",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "files/actions.example.json",
+      "mode": "100644",
+      "sha256": "26e8c9c90eb1b57571a834bf602f2dae671caa39fc7225fe3603ec814bb19cca",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "files/files.luau",
+      "mode": "100644",
+      "sha256": "2c095b5e0826cf63065c6cc74dc2e3ee612e9299dcf57fff2bb2ad2e1a7cbb30",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "files/files.plm",
+      "mode": "100644",
+      "sha256": "1e0a25f35731962daf909871c931127e3bfdac0ddb0ffa35f415bcb4329a9b50",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "files/gen_icons.py",
+      "mode": "100644",
+      "sha256": "b0fbc008a7529decedc57a38510487c2a921f783756a52cab39a5cdb4e47475c",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "hypr_vitreus.lua",
+      "mode": "100644",
+      "sha256": "20068e5fd8900f782a5817b79df33a5b27b8d9b27d2e30fefabde25b874029e0",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "install.sh",
+      "mode": "100755",
+      "sha256": "112b5f48b058a09bc2a28483342284aa5a8a9136f7db1f1f8115fa109c2c154c",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "liquid.wgsl",
+      "mode": "100644",
+      "sha256": "d411365c3df90a86c05d46af9fd090f237be2cf191db865c07e90fa7a0a1590c",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "lockscreen/README.md",
+      "mode": "100644",
+      "sha256": "9a1989a2f9cbd9906917407a0800187d7d25daa490fdca3e699e60c85f40ce5c",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "lockscreen/blob.wgsl",
+      "mode": "100644",
+      "sha256": "9eb6a1ced549cc79f946a369282ea3d7dbcd7fa17921fb03fcd81b96f855796f",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "lockscreen/glow.wgsl",
+      "mode": "100644",
+      "sha256": "0592907335842802f915e720c54fc41189187839fdd6fd896dd48aa9b3dbe1d0",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "lockscreen/lockscreen.luau",
+      "mode": "100644",
+      "sha256": "85681fc231968b2550f1c88e5fc7aca6d38ed5d70a3376493ff9440d1ae793ac",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "lockscreen/lockscreen.plm",
+      "mode": "100644",
+      "sha256": "54396a2c850bc6d682174fec536437357459a2b02c550be7676f429a0d3b77d3",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "lockscreen/lockwave.wgsl",
+      "mode": "100644",
+      "sha256": "d6bc833843b827d2f4087c530fe830916a3dbd62ef5c5133188f42c9c174e919",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "lockscreen/shapes.svg",
+      "mode": "100644",
+      "sha256": "1bcafc75f5355009dce5733d52d3b79419750f48d2be9a8774d1dcc10af7973e",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/addons.luau",
+      "mode": "100644",
+      "sha256": "a401bb991e5f0d5b2ef25f97f31377e4c66d7d9dcde78509fdcbed85cc04e1c7",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/ask.luau",
+      "mode": "100644",
+      "sha256": "aad528c03c8fc24aca35b5a7b333ccfce234237a07bf4b73930863f52a8f5953",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/bar_layout.luau",
+      "mode": "100644",
+      "sha256": "5cc6e12ac3e95ac515b252b248fc985edec5da3e71f4228be0450461e487d904",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/bar_monitors.luau",
+      "mode": "100644",
+      "sha256": "4fcb501648fb71e8d94956ab28d5b713b9ae58567e5e79ed581c88261b313b5b",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/bar_position.luau",
+      "mode": "100644",
+      "sha256": "fd6f68e1fc93b4bdda5b727e1ef8d51ab0a9d12268a1fd5a911cec2f7f4cccc9",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/bar_size.luau",
+      "mode": "100644",
+      "sha256": "af71e01c2e1842037150e45fe2e850218a46290c6167f9a28a26d72b5b5053d8",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/capture_power.luau",
+      "mode": "100644",
+      "sha256": "2c41b3fe71bcf455f506cb19625ed3b367e7930fcf4c13f3f11529825e31817e",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/charger.luau",
+      "mode": "100644",
+      "sha256": "83913c2b75d2663d5dc163d914b39e805aa873f3cd940b6a134e48a991ee43e2",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/clipboard.luau",
+      "mode": "100644",
+      "sha256": "556e748c2501cd23fb2cedd69857fea078369fb68b711da8e2a42b1af0e06cbc",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/clock.luau",
+      "mode": "100644",
+      "sha256": "1f31ea8633568d369083a12948b0abed3628c9bae280dc6c12ce417f39aab789",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/dock.luau",
+      "mode": "100644",
+      "sha256": "efcaf19f486028387507d42603af4cbb15cdf80c667442ec79a30be415274676",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/draw.luau",
+      "mode": "100644",
+      "sha256": "5d0e9bcc47b8e5346f220d1a7057a2aa623cdcade0155df2ac36f84340c09d9e",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/focus.luau",
+      "mode": "100644",
+      "sha256": "70a80edb93a607f30117438be726ec862a794acd1f27a7726dc7db4e704de6d0",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/gamemode.luau",
+      "mode": "100644",
+      "sha256": "997da959ee0a659633801153377dabee7aa9d11da7a218204bc3ee5a3c459edd",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/gtk_skin.luau",
+      "mode": "100644",
+      "sha256": "daec31291e3599a65e9c9d85b65fcd3c25b8b86f0e6522f06517b73a173c5982",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/keybinds.luau",
+      "mode": "100644",
+      "sha256": "ed9dc6cf7b662c05328d26f7dd7209067826a9c7a5805279bc627d0a008c2378",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/lockkeys.luau",
+      "mode": "100644",
+      "sha256": "e69a3a5a032542f3c851a52043086e5b7adf24881d7ee9fd968615f12b3510c5",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/lockscreen.luau",
+      "mode": "100644",
+      "sha256": "575c0e5737ab10170c0c62f6616bd9b8b98c982515ae7480b090d07ac20e2bdd",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/monitor_height.luau",
+      "mode": "100644",
+      "sha256": "70fdec94a466547c0d237a7e03df94d393caff281529d592cf01fd49ab7cec1b",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/nightmode.luau",
+      "mode": "100644",
+      "sha256": "c52abf21ebd9672cfbac61bafb362c0bf518e9170ed633cda7b5cf1327b3624f",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/notif_size.luau",
+      "mode": "100644",
+      "sha256": "3efa4898bfae11db2a651371d209a67b8c3af5db1c8679da1436195f07d709fe",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/pad.luau",
+      "mode": "100644",
+      "sha256": "5bbba6f2503fe40935bff4979f31bc5f99b90ccb873266faa7a17b35d4d97015",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/panel_monitor.luau",
+      "mode": "100644",
+      "sha256": "fbfce78d11a707064311ae56dc16c5402cfaf1cf5ab0e92a57dbfedac21611c4",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/privacy.luau",
+      "mode": "100644",
+      "sha256": "3c0d3928e959cefa42a86d89acedef54f565ffd9a8b4c438e22833786232a7ef",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/shelf.luau",
+      "mode": "100644",
+      "sha256": "83b76fb230f57e06eaa771a21d11503a32a5f0277763cef9bf10b7ae17a161cb",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/term.luau",
+      "mode": "100644",
+      "sha256": "0649c1a9106e2299cfa74a26392376b08d44f2e73ba976b6b703b0bcb2c43b69",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/tray.luau",
+      "mode": "100644",
+      "sha256": "1b004fbf55f603b4a6dc7a451b8e7343f9f3b3c57db2a3b751d0ba4175b7d2e2",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/updates.luau",
+      "mode": "100644",
+      "sha256": "786985a9851961a53ef7218382d6319e9907093bb615adf9e67471738a515560",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/visualizer.luau",
+      "mode": "100644",
+      "sha256": "497f874ea8400299a513e23e0d5c1957c6471d6f48548a8de73a3f402d169f22",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "logic/wallpaper_hook.luau",
+      "mode": "100644",
+      "sha256": "f4c0e8227f2a38bf7d39a39131e235def4f16cfcaaf049aad033c0cf461e3f42",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "matrix.wgsl",
+      "mode": "100644",
+      "sha256": "2d9f0fa36c33733dff572c0ae30f7978496401ee489074e5e93bf50f17e1a5ff",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "niri_vitreus.kdl",
+      "mode": "100644",
+      "sha256": "5f7722d4e0a943ea2312d867193d1d629ef5c7492fe6c205b1635138b8982df2",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/addon_dock.plm",
+      "mode": "100644",
+      "sha256": "310e7785467378d742c522acc68c01a0259f6d8bd7076fe75db09da5cf15ff8c",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/addons.plm",
+      "mode": "100644",
+      "sha256": "0095381465abcb5d0fcbe4b4a71cc8aff046f534964207dfae036a08d4177403",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/bar.plm",
+      "mode": "100644",
+      "sha256": "bd6fe1bc04183ccb30df61e905adf22e9b506f9a3583a249cfdd495a2297c23a",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/bar_glass.plm",
+      "mode": "100644",
+      "sha256": "381659cc6dc37e4bfc544a99c3ddcc98d67ac4fc1826f90a8800820efff0583e",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/bar_icons.plm",
+      "mode": "100644",
+      "sha256": "3dd4a88b3336300d6098f13bc221680576e23d27b2042da04ed02fd83fa6a11f",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/bar_shapes.plm",
+      "mode": "100644",
+      "sha256": "a15d6ffb0ea546f32e6c8c3fafac6d284bfa849532875a7f59394fa085acfb43",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/bar_waves.plm",
+      "mode": "100644",
+      "sha256": "af1ab77c642ed09e4adac5a4d407fdedfd3a44efa3da9fa5c90885eba7d5f82a",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/bar_waves_12.plm",
+      "mode": "100644",
+      "sha256": "ad2a41d88b7b149e6fbf25f01fb640cd335746b3423085e3382e3fce237be5d3",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/bar_waves_24.plm",
+      "mode": "100644",
+      "sha256": "806cb58e6feab1bfd99c2d990b8654d88889bc708591c4c9dc1b5758ba23d33f",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/clock.plm",
+      "mode": "100644",
+      "sha256": "307abb49ce833ca88603f8cf36548064d861cfc9e66ce786a5bbf175b2f01ee8",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/controls_drawer.plm",
+      "mode": "100644",
+      "sha256": "0df2835985faf31fbd23d6d9bcdd08ab484acf4031ae91933ded93f3453b3b21",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/corner_dock.plm",
+      "mode": "100644",
+      "sha256": "0e52796e53aeaed7ce407f3f3f8f6922c9a54565059f385f65f65d706993fc8d",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/dashboard.plm",
+      "mode": "100644",
+      "sha256": "affb79923a968622b3eb4d5cf790dde88031d34b5f572a5e061c60bf88841e64",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/desk.plm",
+      "mode": "100644",
+      "sha256": "75417b8d122ba912a66403a1e176a66bdf40bacd749b03954c367cb77a78cab2",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/display.plm",
+      "mode": "100644",
+      "sha256": "3eef27860c975d4f053990839a0552e9ed9ed40e98baee7e3c8a8f84831f154e",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/glass.plm",
+      "mode": "100644",
+      "sha256": "b937e69b314f9b99f539cc3b4101f60726f25e3145254553051171c65bd3f6d9",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/hyprland.plm",
+      "mode": "100644",
+      "sha256": "329dcdcd8bb85f36ed031654fe9fe6274cf317e7d92baa5316b6f804457f138b",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/keybinds.plm",
+      "mode": "100644",
+      "sha256": "7eb4d450c0047cc41c8ff2ac15de66966f5b02fc7ac13fbe2b5d211d2ad0b893",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/keybinds_keys.plm",
+      "mode": "100644",
+      "sha256": "ee72f6b8847785ac1e3373dd4b3ad3cab5df7e9c548663f8e078f7503b26f936",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/lockscreen.plm",
+      "mode": "100644",
+      "sha256": "4ad70851bc84a1e0e81d8fc532847fcf555bd2965807e7621c871ab35bedadc0",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/media_float.plm",
+      "mode": "100644",
+      "sha256": "af015156a28bbd5bb74987863fe238b8db14ae72573d9cd2ab3367df9c5c0d1c",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/nightmode.plm",
+      "mode": "100644",
+      "sha256": "5bf0abb04710f3709242142211fb86ccdcd83ab37ec87053a2f8ec6ede6a3aa1",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/niri.plm",
+      "mode": "100644",
+      "sha256": "401cae777d4ee04a3e15347d01af7400b5d62fb39395a3bdf71bc8228eea4df6",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/notifications.plm",
+      "mode": "100644",
+      "sha256": "577221089b4c8bba0d4cb8c160420a65bd9f2e48b3deb1b9ec138959d4b28a2d",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/osd_drawer.plm",
+      "mode": "100644",
+      "sha256": "bf0cdc5aa23d68402fba8f61edaa80d96d1613a1e69de3e767c2f865fbaab1aa",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/overview.plm",
+      "mode": "100644",
+      "sha256": "1cedcbf7905677297a3ccebc8c419cce84e70bd0414bbadfc616af0544ec95f7",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/panel_frame.plm",
+      "mode": "100644",
+      "sha256": "c69a33fdebcc84b66ee1ddd432a5316ce1d3630d092270c3b079c4c1e379d569",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/player.plm",
+      "mode": "100644",
+      "sha256": "83b9669833e0cabddf92f35c7a53d847f29eb7559968d61a642bfde9ae5c36c1",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/pleamar_wm.plm",
+      "mode": "100644",
+      "sha256": "7aff93ba8934d02b71f0aa4f1220596029d556d0b8d5ae7a77963c71a103bc3e",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/settings_panel.plm",
+      "mode": "100644",
+      "sha256": "ac2d5a2d3ae426072706f0f93242e7c8e8cadee852159960670d154852ecd185",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/sysmon.plm",
+      "mode": "100644",
+      "sha256": "927f5664b5ca155628668171da2c4da86ab6eb321eaecdc282f7cdaae6d24549",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/theme.plm",
+      "mode": "100644",
+      "sha256": "013d9a0d84cd4cabc6c6ebeb674d42ed0396ba50cce2e575f990c255e66ab74b",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/vpn.plm",
+      "mode": "100644",
+      "sha256": "27e1eeee5aa36032547ff98b63b3575ed0ad8dbff49ef1aaf551c9b0cc70ce03",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pages/wallpaper.plm",
+      "mode": "100644",
+      "sha256": "6338d21f8fb40280791fbdecc7974ec2db937e79b962e6ef17d53393dd6b73e2",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "palette-live.plm",
+      "mode": "100644",
+      "sha256": "fe07bde23ebe3cc009d656cd42cda59949a927cc62ac28aff1394add53540444",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "palette.default.plm",
+      "mode": "100644",
+      "sha256": "440380fe9a6801dd8d823c50bb1f75e1954b62fca2723fc1a8976d775bb1cb74",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pencil-glyphs.plm",
+      "mode": "100644",
+      "sha256": "6dd6bbcfd18ec6374f602ba5b7ee920d1d15e00de2e2ffe9ecb15db8092dc04b",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pixelate.wgsl",
+      "mode": "100644",
+      "sha256": "82e2f531471d8d9f7c809e124fd5327a572c67f37141db77f05c66fc75271342",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pleamar-wm/README.md",
+      "mode": "100644",
+      "sha256": "31e0d2a266dc08de7177749ca4288d59d1217d7f8e237a09a424b31cc957bc01",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pleamar-wm/build-session.py",
+      "mode": "100755",
+      "sha256": "e631bb9b8ec00c672116c054789ae7de3ed9cf1535fe7f84fa25a532cabdc2ac",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pleamar-wm/hyprctl",
+      "mode": "100755",
+      "sha256": "b577e707f111e2704dac4466359f4d293bec50d82e73f3b50abf35b882393fcf",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pleamar-wm/hyprctl-niri",
+      "mode": "100755",
+      "sha256": "4235e90d15aeb5593eba05061e249f539d052443cd8b8eb420764ca8a63cf806",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pleamar-wm/hypridle.conf",
+      "mode": "100644",
+      "sha256": "7d3482dc91ff9041ee0273540858ea4c230af60617847dabf301458aceb0fc7a",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pleamar-wm/install-session.sh",
+      "mode": "100644",
+      "sha256": "b770a21f1b282d5592fe6cc0b75fc4c0fc262abe6a15d6736c2be97f4126d4b7",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pleamar-wm/keys.conf",
+      "mode": "100644",
+      "sha256": "f5ac0d07f160cd2702c1829478d861ec9240ca1ae71795d3a2eedc6256fdc860",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pleamar-wm/wm/LICENSE-pleamar-wm",
+      "mode": "100644",
+      "sha256": "ce27026d54ea34d25a4b9be7abfffb87f6615a8e4c5ddfa7a767eb8209653b17",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pleamar-wm/wm/session.luau",
+      "mode": "100644",
+      "sha256": "39fac09bc9b7b97b3f16c90cc4252ccb955e15c7ef73a301480c7f301be95e20",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pleamar-wm/wm/session.plm",
+      "mode": "100644",
+      "sha256": "90ed3a44c9644636739aaa092acfae5c9caac5c63f7a630dcc5840850378a828",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pleamar-wm/wm/session.plm.pre-rebase",
+      "mode": "100644",
+      "sha256": "a41f8db1bff20e3eb20fe14e865a8cb9b0b6393a3a0866d836f99bc1a742c53c",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pleamar-wm/wm/shaders/rain.wgsl",
+      "mode": "100644",
+      "sha256": "56eae819436d7b6797ef9ab264bbdec74ce61baf2520fbd6a75980054893e4ef",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pleamar-wm/wm/shaders/snow.wgsl",
+      "mode": "100644",
+      "sha256": "fdbd8e215beeb8fd8c3415d2fe276efb24e5297b7aa8b9ae08d07ce36efda403",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "pleamar-wm/wm/shaders/tide.wgsl",
+      "mode": "100644",
+      "sha256": "303c9a874d9ffdac1b0f496026baf9871afc1b8d195ca7af6d8060f1bf614db5",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "sddm/README.md",
+      "mode": "100644",
+      "sha256": "a7d1d87410c80e51968639e602415fbceb22e3321b96977852d5bdc7c20d5293",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "sddm/build-assets.sh",
+      "mode": "100755",
+      "sha256": "7de348d0367fe8b052e3794894b67c1398c09b906643172431703e35f4939fc5",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "sddm/install.sh",
+      "mode": "100755",
+      "sha256": "a66fdb1709d3e2d06be3c52d1169c809a80c06355a8a93b8bb46fcd4d406bfa7",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "sddm/refresh-avatar.sh",
+      "mode": "100755",
+      "sha256": "819e4010b74191fd4e4762d57866cca87771937857df6cd4f1b0926e58640d62",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "sddm/vitreus/GlassPane.qml",
+      "mode": "100644",
+      "sha256": "51b6eb9432240c2aeb0813c753020fcfcd5d511267b6f90b8d29acb6652eff26",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "sddm/vitreus/Main.qml",
+      "mode": "100644",
+      "sha256": "c107b5400cc6f9372597cd379f51b2192e63cdb0f2e33aff7f71f0f69134bb93",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "sddm/vitreus/glass.frag",
+      "mode": "100644",
+      "sha256": "46301f13ed4a5e181c1331f66b8cedfa477c53a25a7ecb4a47452d2b964276ab",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "sddm/vitreus/glass.frag.qsb",
+      "mode": "100644",
+      "sha256": "c4367a8d40e68f32ca05f5b48ee4ef4578de05996ee2994eef0fbc137815e7d7",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "sddm/vitreus/metadata.desktop",
+      "mode": "100644",
+      "sha256": "1ba36e31c756470f951c1bf560b290ad1eeb59d2ff1be50ccc2b26381f4606e9",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "sddm/vitreus/theme.conf",
+      "mode": "100644",
+      "sha256": "95e863de04a33c9531e151b8e512914611d8d262cd3fa1e60c966feae7eac9f1",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "snap/snap.luau",
+      "mode": "100644",
+      "sha256": "d816ed970eb8abdbf1bdeaa880770c4a71b6af35f28c4df78c34a9de1bf8b0cc",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "snap/snap.plm",
+      "mode": "100644",
+      "sha256": "2a6c882aa8290cb6cf03f4f07e090d4df8c29582eab412ca53d41de701a62692",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "themes/_template.toml",
+      "mode": "100644",
+      "sha256": "afef38c569fc9e5a7f65dfe7882a8486fee2f0742d443efc08c99920b796f5b5",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "themes/cyber.toml",
+      "mode": "100644",
+      "sha256": "0795097ca36fbeff4f12e515baf808656faad75d28c99f53bf03a71f01027c73",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "themes/glass.toml",
+      "mode": "100644",
+      "sha256": "60f82de1ee2dc0584e55feffddf8ce16c952db24def2d7d1374383a95dec5bfe",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "themes/milk.toml",
+      "mode": "100644",
+      "sha256": "04f079efb1a164e72f5ca732121762472be359f098c59d4fb5786edd09558e13",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "themes/proxy.toml",
+      "mode": "100644",
+      "sha256": "8539eacade3f840513438e23e9af4a653de8a7656f060cb208fa719132a2f422",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "themes/retro.toml",
+      "mode": "100644",
+      "sha256": "64b86d62c20375a28c1574d4d6c675a44b770b52ea2cc2f027380a167e512ab0",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "themes/uwu.toml",
+      "mode": "100644",
+      "sha256": "96713768f8e1a95a53453c2dc4e116a8078296f88983577c96040301cb2f49d6",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "vitreus.luau",
+      "mode": "100644",
+      "sha256": "9c556db0ffcea7967eb079fc329a4d3a42836db19b54fe1ec7fecafaa5e12f35",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "vitreus.plm",
+      "mode": "100644",
+      "sha256": "7e39026c26d0f50c4f9ffc0a08242a30497ed3dff9bc9bb8f4ac1fe034f0d40f",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "wave.wgsl",
+      "mode": "100644",
+      "sha256": "86e1514a490a3c70be52cf6c42506aee1fe15aed16267797617f046879144dd0",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "webcam/webcam.luau",
+      "mode": "100644",
+      "sha256": "af7a31941d0592b3d856e8ae32af65979fa7e9774c7d6a36031445cc52448dab",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "webcam/webcam.plm",
+      "mode": "100644",
+      "sha256": "e3a38dc4ad32b936ee3c8ec7d5f78d53aa7eec632e04e5428a53572003102c0a",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "wm-palette.default.plm",
+      "mode": "100644",
+      "sha256": "fcc728ca09c1ac258811688b45fd249becea1a6126b6efc667f34f2729d6470e",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "wptrans/hexreveal.wgsl",
+      "mode": "100644",
+      "sha256": "c61a61deb460e68007313a2989e77408b9d368a4b0a98c58175e61b2e6fa5d79",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "wptrans/wptrans.luau",
+      "mode": "100644",
+      "sha256": "463cb59e17db4d24066c8644ab1731d27b335df4134a5a970737115e56efb432",
+      "checkout_matches": true,
+      "iso_matches": true
+    },
+    {
+      "path": "wptrans/wptrans.plm",
+      "mode": "100644",
+      "sha256": "47dfc2c45837a7aaa2fc8f980abc68efbcb72a50f6f0bb534d178b3eb85e9e5a",
+      "checkout_matches": true,
+      "iso_matches": true
+    }
+  ]
+}

@@ -1,28 +1,8 @@
 -- Nahj's session config. Vitreus remains the owner of its scenes and key binds.
 -- This uses the Lua configuration API required by the existing hypr_vitreus.lua.
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
-hl.env("XCURSOR_SIZE", "24")
-hl.env("HYPRCURSOR_SIZE", "24")
-hl.config({
-    general = {
-        gaps_in = 5,
-        gaps_out = 10,
-        border_size = 2,
-        col = {
-            active_border = "rgba(9ed6bdff)",
-            inactive_border = "rgba(3a4048aa)",
-        },
-        layout = "dwindle",
-    },
-    decoration = {
-        rounding = 14,
-        blur = { enabled = true, size = 6, passes = 3 },
-        shadow = { enabled = true, range = 12, render_power = 3, color = 0x660b0e11 },
-    },
-    animations = { enabled = true },
-    input = { kb_layout = "us", follow_mouse = 1, touchpad = { natural_scroll = true } },
-    misc = { disable_hyprland_logo = true, force_default_wallpaper = 0 },
-})
+-- Use compositor defaults until the original Vitreus settings below are loaded.
+-- Do not impose a distribution palette, decoration, cursor size or input policy.
 hl.bind("SUPER + Return", hl.dsp.exec_cmd("kitty"))
 hl.bind("SUPER + Q", hl.dsp.window.close())
 hl.bind("SUPER + V", hl.dsp.window.float({ action = "toggle" }))
