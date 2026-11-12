@@ -160,6 +160,7 @@ if grep -REq 'vmlinuz-linux([[:space:]]|$)|initramfs-linux\.img' "$profile/sysli
 fi
 test -f "$profile/airootfs/etc/skel/.config/hypr/hyprland.lua"
 test -f "$profile/airootfs/etc/skel/.config/pleamar/autostart"
+test -r "$profile/airootfs/usr/local/libexec/nahj-vulkan-env"
 test -f "$profile/airootfs/usr/share/sddm/themes/vitreus/background.jpg"
 test -f "$profile/airootfs/usr/share/plymouth/themes/nahj/nahj.plymouth"
 printf 'Profile prepared: %s\n' "$profile"

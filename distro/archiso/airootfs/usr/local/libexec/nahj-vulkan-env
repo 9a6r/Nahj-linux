@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Sourced by nahj-session. Presentation selection never changes the Vulkan ICD,
+# scene files, animations or the user's explicit PLEAMAR_SWAPCHAIN setting.
+if [[ -z ${PLEAMAR_SWAPCHAIN+x} ]]; then
+    # A failed/empty/timed-out probe is inconclusive, not evidence of a GPU.
+    # Bound termination too: a wedged probe must not hold the login indefinitely.
+    if ! renderers=$(set -o pipefail; timeout --kill-after=2s 15s vulkaninfo --summary 2>/dev/null \
+        | sed -n 's/.*deviceType[[:space:]]*=[[:space:]]*//p'); then
+        export PLEAMAR_SWAPCHAIN=1
+    elif [[ -z $renderers ]] || ! grep -qv '^PHYSICAL_DEVICE_TYPE_CPU$' <<< "$renderers"; then
+        export PLEAMAR_SWAPCHAIN=1
+    fi
+    unset renderers
+fi

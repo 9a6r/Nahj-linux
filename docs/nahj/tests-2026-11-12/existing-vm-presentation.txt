@@ -1,0 +1,3 @@
+Hyprland PLEAMAR_SWAPCHAIN= 1
+	deviceType         = PHYSICAL_DEVICE_TYPE_CPU
+diagnostic_pipeline_status=0

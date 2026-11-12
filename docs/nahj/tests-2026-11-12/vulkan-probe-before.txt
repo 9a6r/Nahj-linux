@@ -1,0 +1,41 @@
+test_empty_success_is_inconclusive (vulkan_tests.PresentationTest.test_empty_success_is_inconclusive) ... FAIL
+test_failed_probe_uses_portable_presentation (vulkan_tests.PresentationTest.test_failed_probe_uses_portable_presentation) ... FAIL
+test_partial_hardware_output_followed_by_failure (vulkan_tests.PresentationTest.test_partial_hardware_output_followed_by_failure) ... FAIL
+
+======================================================================
+FAIL: test_empty_success_is_inconclusive (vulkan_tests.PresentationTest.test_empty_success_is_inconclusive)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/Nahj-linux/distro/test_vulkan_env.py", line 42, in test_empty_success_is_inconclusive
+    self.assertEqual(self.probe("exit 0"), "1")
+AssertionError: '<unset>' != '1'
+- <unset>
++ 1
+
+
+======================================================================
+FAIL: test_failed_probe_uses_portable_presentation (vulkan_tests.PresentationTest.test_failed_probe_uses_portable_presentation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/Nahj-linux/distro/test_vulkan_env.py", line 45, in test_failed_probe_uses_portable_presentation
+    self.assertEqual(self.probe("exit 1"), "1")
+AssertionError: '<unset>' != '1'
+- <unset>
++ 1
+
+
+======================================================================
+FAIL: test_partial_hardware_output_followed_by_failure (vulkan_tests.PresentationTest.test_partial_hardware_output_followed_by_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/Nahj-linux/distro/test_vulkan_env.py", line 48, in test_partial_hardware_output_followed_by_failure
+    self.assertEqual(self.probe("echo 'deviceType = PHYSICAL_DEVICE_TYPE_DISCRETE_GPU'; exit 1"), "1")
+AssertionError: '<unset>' != '1'
+- <unset>
++ 1
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.048s
+
+FAILED (failures=3)

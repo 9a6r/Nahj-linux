@@ -232,3 +232,17 @@ Keep ISO building and source-updating add-on automation manual. Removing the
 upstream add-on updater's schedule is a CI-only exception to source equality;
 all original Vitreus and SDDM UI files remain unchanged.
 See [checks and unresolved failures](tests-2026-11-12/README.md).
+
+### Inconclusive Vulkan probes and isolated native timing
+
+Reproduced three failure cases in the session renderer probe and corrected the
+selection of portable presentation when probing fails, times out or returns no
+devices. Added bounded termination and eight regression tests; hardware results
+and explicit user settings retain their existing behavior. The actual slow TCG
+session already had portable presentation enabled, so this is not presented as
+its complete fix.
+
+An isolated 16-second native Plymouth capture showed 364 correctly ordered
+image changes with no skipped frames, a 41.60 ms mean and 66.67 ms maximum interval.
+This is a renderer measurement, not proof of zero-stutter ISO/hardware boot.
+See [diagnosis, patch validation and limits](tests-2026-11-12/graphics-follow-up.md).

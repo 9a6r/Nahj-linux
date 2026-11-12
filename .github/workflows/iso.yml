@@ -33,6 +33,7 @@ jobs:
             /src/distro/runtime/build.sh /build/payload /build/runtime-cache
             /src/distro/runtime/desktop-assets.sh /build/payload /build/desktop-cache
             PYTHONDONTWRITEBYTECODE=1 python /src/distro/installer/test_target.py
+            PYTHONDONTWRITEBYTECODE=1 python /src/distro/test_vulkan_env.py
             /src/distro/installer/build.sh /build/packages
           ' 2>&1 | tee "$RUNNER_TEMP/nahj/logs/payload.log"
       - name: Compose and build live ISO

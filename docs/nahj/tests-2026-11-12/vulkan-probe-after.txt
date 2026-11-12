@@ -1,0 +1,13 @@
+test_cpu_uses_portable_presentation (__main__.PresentationTest.test_cpu_uses_portable_presentation) ... ok
+test_empty_success_is_inconclusive (__main__.PresentationTest.test_empty_success_is_inconclusive) ... ok
+test_explicit_user_setting_skips_probe (__main__.PresentationTest.test_explicit_user_setting_skips_probe) ... ok
+test_failed_probe_uses_portable_presentation (__main__.PresentationTest.test_failed_probe_uses_portable_presentation) ... ok
+test_hardware_keeps_original_path (__main__.PresentationTest.test_hardware_keeps_original_path) ... ok
+test_hung_probe_ignoring_termination_is_bounded (__main__.PresentationTest.test_hung_probe_ignoring_termination_is_bounded) ... ok
+test_mixed_devices_keep_hardware_path (__main__.PresentationTest.test_mixed_devices_keep_hardware_path) ... ok
+test_partial_hardware_output_followed_by_failure (__main__.PresentationTest.test_partial_hardware_output_followed_by_failure) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 17.152s
+
+OK
