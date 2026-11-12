@@ -1,0 +1,16 @@
+test_installed_keyring_initialized_before_removing_installer (__main__.InstalledTargetTest.test_installed_keyring_initialized_before_removing_installer) ... ok
+test_keyring_cleanup_failure_stops_installation (__main__.InstalledTargetTest.test_keyring_cleanup_failure_stops_installation) ... ok
+test_keyring_exception_still_stops_daemons (__main__.InstalledTargetTest.test_keyring_exception_still_stops_daemons) ... ok
+test_keyring_init_failure_stops_installation (__main__.InstalledTargetTest.test_keyring_init_failure_stops_installation) ... ok
+test_keyring_population_failure_stops_installation (__main__.InstalledTargetTest.test_keyring_population_failure_stops_installation) ... ok
+test_missing_kernel_stops_before_account_changes (__main__.InstalledTargetTest.test_missing_kernel_stops_before_account_changes) ... ok
+test_refuses_account_symlink (__main__.InstalledTargetTest.test_refuses_account_symlink) ... ok
+test_refuses_unmarked_or_host_root (__main__.InstalledTargetTest.test_refuses_unmarked_or_host_root) ... ok
+test_rejects_parent_symlink_escape (__main__.InstalledTargetTest.test_rejects_parent_symlink_escape) ... ok
+test_removes_live_credentials_and_keeps_desktop (__main__.InstalledTargetTest.test_removes_live_credentials_and_keeps_desktop) ... ok
+test_restores_kernel_missing_from_live_squashfs (__main__.InstalledTargetTest.test_restores_kernel_missing_from_live_squashfs) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.062s
+
+OK

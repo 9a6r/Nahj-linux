@@ -214,3 +214,21 @@ Thirteen service-policy assertions also passed on files extracted from the ISO,
 and the [source audit](tests-2026-11-06/iso06-source-audit.json) matched all 259
 original entries. That image predates this appearance cleanup; its cold graphical
 boot and complete installer -5 regression remain open.
+
+## 2026-11-12 — Validate and publish accumulated work to main
+
+The current Hyprland seed passed the actual compositor's configuration loader
+in an extracted ISO root. Three native account suites, eleven target tests,
+thirteen service-policy assertions and all 240 boot frames passed their checks.
+Independent source-video comparison also passed the documented loop construction.
+
+A fresh default UEFI ISO06 boot confirmed linux-zen and the corrected network
+policy. Its graphical session still timed out under software-rendered TCG;
+recorded startup/slow-frame durations remain unacceptable as a desktop test.
+No claim of smooth boot, complete graphical stability or release readiness is made.
+
+Publish accumulated source and evidence onto main by fast-forward, as requested.
+Keep ISO building and source-updating add-on automation manual. Removing the
+upstream add-on updater's schedule is a CI-only exception to source equality;
+all original Vitreus and SDDM UI files remain unchanged.
+See [checks and unresolved failures](tests-2026-11-12/README.md).

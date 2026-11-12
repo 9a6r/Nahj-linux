@@ -1,0 +1,13 @@
+PASS NetworkManager.service: enabled
+PASS sddm.service: enabled
+PASS bluetooth.service: enabled
+PASS power-profiles-daemon.service: enabled
+PASS vboxservice.service: enabled
+PASS systemd-timesyncd.service: enabled
+PASS systemd-networkd.service: disabled
+PASS systemd-networkd.socket: disabled
+PASS systemd-networkd-wait-online.service: disabled
+PASS systemd-resolved.service: disabled
+PASS iwd.service: disabled
+PASS sshd.service: disabled
+PASS systemd-time-wait-sync.service: disabled

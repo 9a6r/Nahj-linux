@@ -1,6 +1,6 @@
 name: Bump bundled add-ons
 on:
-  schedule: [{ cron: "0 6 * * 1" }]
+  # Keep source-updating automation manual in the Nahj distribution fork.
   workflow_dispatch:
 permissions:
   contents: write

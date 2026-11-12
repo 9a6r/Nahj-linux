@@ -1,0 +1,32 @@
+Hyprland IPC didn't respond in time
+
+Couldn't read (6)
+active
+inactive
+inactive
+Nov 11 19:49:01 nahj-live kernel: virt/tdx: TDX not supported by the host platform
+pleamar · decoupled (independent render) mode · the logic blocks 600 ms after every decision
+text   · 727 system fonts in 1495 ms
+render · scene: 31320 properties, 110890 instructions, 11944 facts, 0 layers, 0 gestures, 9616 rules, 5868 zones
+logic  · the previous one stays as it was:
+runtime error: a handler has been running for more than 2 s: cut off
+logic  · the 'bluetooth' service is not available here: 'bt' stays as the scene left it
+keyboard · repeats after 600 ms, then every 40 ms
+MESA: info: could not get caps: Function not implemented
+MESA: error: vdrm_device_connect failed
+radv/amdgpu: failed to initialize device.
+MESA: info: could not get caps: Function not implemented
+MESA: info: could not get caps: Function not implemented
+MESA: error: vdrm_device_connect failed
+radv/amdgpu: failed to initialize device.
+MESA: info: could not get caps: Function not implemented
+MESA: error: vdrm_device_connect failed
+radv/amdgpu: failed to initialize device.
+MESA: info: could not get caps: Function not implemented
+MESA: error: vdrm_device_connect failed
+radv/amdgpu: failed to initialize device.
+render · llvmpipe (LLVM 23.1.3, 256 bits) (Vulkan) · Bgra8Unorm · PreMultiplied
+render · surface 0 on Virtual-1 · 1280×720 · scale 1 · 75 Hz
+render · the scene has grown: now 3276 shapes and 1024 elements fit
+render · first frame 949175 ms after starting
+render · slow frame: 157978 ms at 728.79 s

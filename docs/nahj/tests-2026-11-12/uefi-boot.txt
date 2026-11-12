@@ -1,0 +1,15 @@
+7.2.11-zen1-1-zen
+  UNIT LOAD ACTIVE SUB DESCRIPTION
+
+0 loaded units listed.
+enabled
+disabled
+disabled
+805 Hyprland
+1058 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/desktopsysmon/desktopsysmon.plm --no-hud
+1063 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/wptrans/wptrans.plm --no-hud
+1065 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/cursortrail/cursortrail.plm --no-hud
+1068 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/vitreus.plm --no-hud
+1121 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/desktopclock/desktopclock.plm --no-hud
+1126 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/lockscreen/lockscreen.plm --no-hud
+Nov 11 19:49:01 nahj-live kernel: virt/tdx: TDX not supported by the host platform

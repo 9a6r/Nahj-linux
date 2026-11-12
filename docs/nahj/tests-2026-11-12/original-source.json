@@ -1,0 +1,9 @@
+{
+  "baseline": "92cd90b0b3ff8bf88831b12f176051450da4a98a",
+  "baseline_entries": 259,
+  "unchanged_entries": 258,
+  "intentional_ci_only_exceptions": [
+    ".github/workflows/addons-bump.yml"
+  ],
+  "all_original_shell_and_sddm_files_unchanged": true
+}
