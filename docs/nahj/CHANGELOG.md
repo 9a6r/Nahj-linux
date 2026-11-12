@@ -246,3 +246,13 @@ An isolated 16-second native Plymouth capture showed 364 correctly ordered
 image changes with no skipped frames, a 41.60 ms mean and 66.67 ms maximum interval.
 This is a renderer measurement, not proof of zero-stutter ISO/hardware boot.
 See [diagnosis, patch validation and limits](tests-2026-11-12/graphics-follow-up.md).
+
+### Prevent stale cached signatures from blocking repeated image builds
+
+ISO07 exposed a stale detached installer-package signature in the shared pacman
+cache. Prioritize each build's freshly signed local repository in the generated
+cache order, retaining the official caches and signature verification. Actual
+download-only pacman transactions reproduce the original failure and pass with
+the corrected order; a deliberately damaged signature is still rejected.
+ShellCheck and shell syntax pass. Full image integration remains pending.
+See [evidence](tests-2026-11-12/package-cache.md).

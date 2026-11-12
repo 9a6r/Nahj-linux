@@ -1,0 +1,8 @@
+
+Packages (1) nahj-installer-3.3.14-5
+
+Total Download Size:  0.00 MiB
+
+:: Proceed with download? [Y/n] 
+checking keyring...
+checking package integrity...

@@ -166,9 +166,33 @@ test -f "$profile/airootfs/usr/share/plymouth/themes/nahj/nahj.plymouth"
 printf 'Profile prepared: %s\n' "$profile"
 $prepare_only && exit 0
 ((EUID == 0)) || die 'the ISO build needs root inside the Arch build container'
-for command in mkarchiso repo-add pacman-key gpg bsdtar; do
+for command in mkarchiso repo-add pacman-key pacman-conf gpg bsdtar; do
     command -v "$command" >/dev/null || die "required command missing: $command"
 done
+
+# A cached copy of our unchanged package can carry an older build key's expired
+# detached signature. Prefer this build's package/signature pair, while keeping
+# the normal caches available for official packages. Never weaken SigLevel or
+# remove another build's cached signatures to make verification pass.
+cache_dirs=$(pacman-conf --config "$profile/pacman.conf" CacheDir)
+python3 - "$profile/pacman.conf" "$local_repo" "$cache_dirs" <<'PY_CACHE'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+caches = list(dict.fromkeys([sys.argv[2], *sys.argv[3].splitlines()]))
+lines = []
+options = False
+for line in path.read_text().splitlines():
+    stripped = line.strip()
+    if stripped.startswith("["):
+        options = stripped == "[options]"
+    if options and stripped.split("=", 1)[0].strip() == "CacheDir":
+        continue
+    lines.append(line)
+    if stripped == "[options]":
+        lines.extend("CacheDir = " + cache for cache in caches)
+path.write_text("\n".join(lines) + "\n")
+PY_CACHE
 
 # A dedicated local signing key authenticates our own freshly built packages.
 # Official Arch repositories continue to require their normal trusted signatures.

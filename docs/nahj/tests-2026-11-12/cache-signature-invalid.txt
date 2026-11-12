@@ -1,0 +1,13 @@
+
+Packages (1) nahj-installer-3.3.14-5
+
+Total Download Size:  0.00 MiB
+
+:: Proceed with download? [Y/n] 
+checking keyring...
+checking package integrity...
+:: File /build/cache-signature-invalid/nahj-installer-3.3.14-5-x86_64.pkg.tar.zst is corrupted (invalid or corrupted package (PGP signature)).
+Do you want to delete it? [Y/n] error: nahj-installer: signature from "Nahj local image build <build@nahj.invalid>" is invalid
+error: failed to commit transaction (invalid or corrupted package (PGP signature))
+
+Errors occurred, no packages were upgraded.

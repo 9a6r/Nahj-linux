@@ -1,0 +1,13 @@
+
+Packages (1) nahj-installer-3.3.14-5
+
+Total Download Size:  0.00 MiB
+
+:: Proceed with download? [Y/n] 
+checking keyring...
+downloading required keys...
+:: Import PGP key 9D954A8F75CBDE7E, "Unknown Packager"? [Y/n] error: key "9D954A8F75CBDE7E" could not be looked up remotely
+error: required key missing from keyring
+error: failed to commit transaction (unexpected error)
+
+Errors occurred, no packages were upgraded.
