@@ -1,0 +1,20 @@
+WAYLAND_DISPLAY=wayland-1
+XDG_RUNTIME_DIR=/run/user/1000
+PLEAMAR_SWAPCHAIN=1
+/run/user/1000/wayland-1-awww-daemon.sock
+/run/user/1000/pleamar/lockscreen.sock
+/run/user/1000/pleamar/desktopsysmon.sock
+/run/user/1000/pleamar/desktopclock.sock
+/run/user/1000/pleamar/wptrans.sock
+/run/user/1000/pleamar/cursortrail.sock
+/run/user/1000/hypr/efb50993780079460b0cbed1363e2166a2de1d9f_1794560316_781618982/.socket.sock
+/run/user/1000/hypr/efb50993780079460b0cbed1363e2166a2de1d9f_1794560316_781618982/.socket2.sock
+    PID     ELAPSED STAT %CPU
+   1249       06:30 Sl   21.1
+   1264       06:27 R    26.5
+   1265       06:27 Sl   23.4
+   1269       06:26 Sl   22.1
+   1270       06:26 Sl   24.5
+   1276       06:25 Sl   23.3
+find: ‘/run/user/1000/doc’: Permission denied
+find: ‘/run/user/1000/gvfs’: Permission denied

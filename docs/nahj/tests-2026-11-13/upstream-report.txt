@@ -1,0 +1,168 @@
+report_exit=0
+Vitreus report, Fri Nov 13 09:08:38 AM UTC 2026
+
+==== What happened (in the person's words) ====
+(not given)
+
+==== System ====
+Arch Linux
+Linux 7.2.11-zen1-1-zen x86_64
+session: wayland / Hyprland / Hyprland
+compositors running: Hyprland
+00:01.0 VGA compatible controller [0300]: Red Hat, Inc. Virtio 1.0 GPU [1af4:1050] (rev 01)
+	Subsystem: Red Hat, Inc. QEMU [1af4:1100]
+	Kernel driver in use: virtio-pci
+	Kernel modules: virtio_pci
+AQ_DRM_DEVICES=  PLEAMAR_GPU=
+memory: 7923 MB
+
+==== Vulkan (the shell draws with it: it needs a driver for the card) ====
+driver files (a card with none of its own cannot be drawn on):
+  /usr/share/vulkan/icd.d:
+  intel_hasvk_icd.json
+  intel_icd.json
+  lvp_icd.json
+  radeon_icd.json
+  package: mesa 1:26.2.5-1
+  package: vulkan-icd-loader <ip>-1
+  package: vulkan-radeon 1:26.2.5-1
+  package: vulkan-intel 1:26.2.5-1
+what Vulkan can see:
+  MESA: error: vdrm_device_connect failed
+  WARNING: [../mesa-26.2.5/src/amd/vulkan/radv_physical_device.c:2597] Code 0 : failed to query GPU info (VK_ERROR_INITIALIZATION_FAILED)
+  ERROR: [Loader Message] Code 0 : setup_loader_term_phys_devs: Call to 'vkEnumeratePhysicalDevices' in ICD /usr/lib/libvulkan_radeon.so failed with error code -3
+  MESA: error: vdrm_device_connect failed
+  WARNING: [../mesa-26.2.5/src/amd/vulkan/radv_physical_device.c:2597] Code 0 : failed to query GPU info (VK_ERROR_INITIALIZATION_FAILED)
+  ERROR: [Loader Message] Code 0 : setup_loader_term_phys_devs: Call to 'vkEnumeratePhysicalDevices' in ICD /usr/lib/libvulkan_radeon.so failed with error code -3
+
+==== Monitors ====
+Monitor <output> (ID 0):
+	1280x720@74.99800 at 0x0
+	physical size (mm): 320x180
+	scale: 1
+	transform: 0
+	focused: yes
+	dpmsStatus: 0
+	vrr: false
+	disabled: false
+	currentFormat: XRGB8888
+	mirrorOf: none
+
+==== Versions ====
+pleamar 0.4.31 · language 0.4
+Vitreus: the folder is there but is not a git checkout
+Hyprland 0.56.2 built from branch v0.56.2 at commit efb50993780079460b0cbed1363e2166a2de1d9f clean ([gha] Nix: update inputs).
+Date: Wed Aug 5 14:13:21 2026
+Tag: v0.56.2, commits: 7661
+
+
+==== Programs it uses ====
+  ok       pleamar
+  ok       hyprctl
+  ok       git
+  ok       curl
+  ok       jq
+  ok       python3
+  ok       socat
+  ok       magick
+  ok       cava
+  ok       playerctl
+  ok       nmcli
+  ok       bluetoothctl
+  ok       brightnessctl
+  ok       hypridle
+  ok       hyprsunset
+  ok       awww
+  ok       iris
+  ok       notify-send
+  ok       xdg-open
+  ok       wl-copy
+  ok       cliphist
+  ok       pactl
+  ok       ffmpeg
+
+==== Files in place ====
+  ok       ~/.local/bin/vitreus-keep
+  ok       ~/.local/bin/vitreus-sysmon
+  ok       ~/.local/bin/vitreus-polkit-agent
+  ok       ~/.local/bin/vitreus-clipimg
+  ok       ~/.local/bin/vitreus-term
+  ok       ~/.local/bin/vitreus-files
+autostart lines that mention vitreus:
+1:# The same scenes and keep-alive wrappers used by Vitreus's installer.
+3:vitreus-keep "$HOME/.config/pleamar/shells/vitreus/vitreus.plm" "$HOME/.local/share/pleamar/vitreus/vitreus.log"
+4:PLEAMAR_SWAPCHAIN=1 vitreus-keep "$HOME/.config/pleamar/shells/vitreus/lockscreen/lockscreen.plm"
+5:vitreus-keep "$HOME/.config/pleamar/shells/vitreus/wptrans/wptrans.plm"
+6:vitreus-keep "$HOME/.config/pleamar/shells/vitreus/desktopclock/desktopclock.plm"
+7:vitreus-keep "$HOME/.config/pleamar/shells/vitreus/desktopsysmon/desktopsysmon.plm"
+8:vitreus-keep "$HOME/.config/pleamar/shells/vitreus/cursortrail/cursortrail.plm"
+compositor config lines that mention vitreus:
+~/.config/hypr/hyprland.lua:1:-- Nahj's session config. Vitreus remains the owner of its scenes and key binds.
+~/.config/hypr/hyprland.lua:2:-- This uses the Lua configuration API required by the existing hypr_vitreus.lua.
+~/.config/hypr/hyprland.lua:4:-- Use compositor defaults until the original Vitreus settings below are loaded.
+~/.config/hypr/hyprland.lua:23:require("hypr_vitreus")
+~/.config/hypr/hyprland.lua:24:pcall(require, "vitreus_monitors")
+~/.config/hypr/hyprland.lua:25:pcall(require, "vitreus_hypr")
+~/.config/hypr/hyprland.lua:26:pcall(require, "vitreus_colors")
+Vitreus files in the compositor folder: hypr_vitreus.lua 
+login-screen entry: none
+
+==== Does each scene load? ====
+~/.config/pleamar/shells/vitreus/lockscreen/lockscreen.plm: ok · 704 properties, 5089 instructions, 0 layers, 25 rules, 10 zones, 0 gestures
+~/.config/pleamar/shells/vitreus/wptrans/wptrans.plm: ok · 2 properties, 3 instructions, 0 layers, 1 rules, 0 zones, 0 gestures
+~/.config/pleamar/shells/vitreus/desktopclock/desktopclock.plm: ok · 177 properties, 216 instructions, 0 layers, 20 rules, 4 zones, 0 gestures
+~/.config/pleamar/shells/vitreus/desktopsysmon/desktopsysmon.plm: ok · 329 properties, 1248 instructions, 0 layers, 24 rules, 4 zones, 0 gestures
+
+==== What is running ====
+1249 pleamar --scene ~/.config/pleamar/shells/vitreus/wptrans/wptrans.plm --no-hud
+1264 pleamar --scene ~/.config/pleamar/shells/vitreus/vitreus.plm --no-hud
+1265 pleamar --scene ~/.config/pleamar/shells/vitreus/lockscreen/lockscreen.plm --no-hud
+1269 pleamar --scene ~/.config/pleamar/shells/vitreus/desktopclock/desktopclock.plm --no-hud
+1270 pleamar --scene ~/.config/pleamar/shells/vitreus/cursortrail/cursortrail.plm --no-hud
+1276 pleamar --scene ~/.config/pleamar/shells/vitreus/desktopsysmon/desktopsysmon.plm --no-hud
+943 /bin/sh ~/.local/bin/vitreus-keep ~/.config/pleamar/shells/vitreus/vitreus.plm ~/.local/share/pleamar/vitreus/vitreus.log
+944 /bin/sh ~/.local/bin/vitreus-keep ~/.config/pleamar/shells/vitreus/lockscreen/lockscreen.plm
+945 /bin/sh ~/.local/bin/vitreus-keep ~/.config/pleamar/shells/vitreus/wptrans/wptrans.plm
+946 /bin/sh ~/.local/bin/vitreus-keep ~/.config/pleamar/shells/vitreus/desktopclock/desktopclock.plm
+947 /bin/sh ~/.local/bin/vitreus-keep ~/.config/pleamar/shells/vitreus/desktopsysmon/desktopsysmon.plm
+948 /bin/sh ~/.local/bin/vitreus-keep ~/.config/pleamar/shells/vitreus/cursortrail/cursortrail.plm
+surfaces on screen, by pleamar process:
+  pid 1249: 1
+  pid 1265: 1
+  pid 1269: 1
+  pid 1270: 1
+  pid 1276: 1
+
+==== How long the shell has been running ====
+running for 09:11 (a short time means it restarted lately)
+
+==== Problems in Vitreus's log, since it last started (each different line once, with how many times) ====
+
+no slow frames in this run
+
+==== Vitreus log, the last lines (without slow frames, notes, timings and the long permission lists) ====
+
+==== Earlier runs: the kinds of errors, with how many times ====
+(none)
+
+==== The compositor's own log: its errors ====
+   1x WARN ]: WARNING: Hyprland is being launched without start-hyprland. This is highly advised against.
+   1x ERR from aquamarine ]: Wayland backend cannot start: wl_display_connect failed (is a wayland compositor running?)
+   1x ERR from aquamarine ]: Requested backend (wayland) could not start, enabling fallbacks
+   1x ERR from aquamarine ]: Implementation wayland failed, erasing.
+   2x ERR from aquamarine ]: [EGL] Command eglInitialize errored out with EGL_NOT_INITIALIZED (0x12289): DRI2: failed to create screen
+   1x ERR from aquamarine ]: Couldn't get the gamma_size prop
+   2x ERR from aquamarine ]: drm: Cannot commit when a page-flip is awaiting
+   8x ERR from aquamarine ]: [libseat] [libseat/backend/logind.c:70] Ping failed: org.freedesktop.DBus.Error.NoReply: Method call timed out
+
+==== The installer's log (the end) ====
+(no install.log)
+
+==== pleamar's last build ====
+(none: pleamar was not built here)
+
+==== The system's warnings about it, this boot ====
+crashes (pleamar or the compositor, last 7 days):
+  (none)
+
+==== End of report ====

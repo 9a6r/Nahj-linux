@@ -1,0 +1,12 @@
+
+
+configerrors_exit=0
+0 bytes: /home/nahj/.local/share/pleamar/vitreus/vitreus.log
+    PID     ELAPSED STAT %CPU WCHAN
+   1249       03:56 Sl   15.1 poll_schedule_timeout.constprop.0
+   1264       03:52 R    26.7 -
+   1265       03:52 Sl   18.7 poll_schedule_timeout.constprop.0
+   1269       03:52 Sl   16.6 poll_schedule_timeout.constprop.0
+   1270       03:52 Sl   17.0 poll_schedule_timeout.constprop.0
+   1276       03:51 Sl   18.3 poll_schedule_timeout.constprop.0
+Nov 13 08:54:38 nahj-live kernel: virt/tdx: TDX not supported by the host platform

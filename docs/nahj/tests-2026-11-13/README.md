@@ -45,6 +45,9 @@ output, not committed as a multi-gigabyte Git object or published as a release.
 - Current Hyprland seed, session wrapper, Vulkan helper and SDDM session
   configuration match the fixed source. SDDM exposes only the Nahj/Hyprland
   session. All 40 original pacman requirements are installed.
+- [Five runtime/helper executables](helper-checks.json) match the validated
+  payload byte-for-byte and retain execute permission. Both session launchers
+  are also executable.
 - The live account's stored password verifies as `nahj`; root stays locked.
 - [All thirteen service assertions](service-presets.txt) pass after simulating
   first-boot enable-only presets using the image's actual units and links.
@@ -60,13 +63,44 @@ A fresh QEMU q35/TCG VM uses this exact ISO, OVMF UEFI, two virtual CPUs, 8 GiB
 RAM, Virtio VGA at 1280×720 and a blank disposable 40 GiB NVMe disk. The default
 entry reached the supplied-video Plymouth screen; its [actual capture](../../../screenshots/iso09-2026-11-13/)
 is not a desktop screenshot or a frame-timing test. Escape was later pressed
-only to inspect startup jobs. No guest files or boot arguments were changed.
+only to inspect startup jobs. No desktop source, settings or boot arguments
+were changed; diagnostic output was later written in the disposable user home.
 The guest agent confirms kernel `7.2.11-zen1-1-zen` and UEFI. SDDM accepted the
 live autologin and started the configured session. At the initial sample,
 NetworkManager and SDDM were active, no system units were failed and package
 keyring initialization was still in progress. The sampled kernel-error log
 reported only unsupported host TDX. This early sample is not a clean-kernel
 or complete-desktop certification.
+
+The [later sample](desktop-followup.txt) reached system state `running`, with
+no failed system units and all six Pleamar scene processes. The real running
+Hyprland IPC returned no configuration errors with exit 0
+([result](hypr-runtime-check.txt)). Its instance signature must be passed when
+calling from the guest agent, outside the graphical user's environment.
+
+The [desktop capture](../../../screenshots/iso09-2026-11-13/desktop-incomplete.png)
+is **incomplete**: the wallpaper and cursor appeared, but the original Frame and
+widgets did not. Main-scene IPC was still absent; five other scene sockets
+existed, and the actual environment contained `PLEAMAR_SWAPCHAIN=1`
+([environment](shell-environment.txt), [IPC failure](shell-ipc.txt)). This is a
+failed readiness check, not an acceptable startup or a successful full-desktop
+test. The main process was still present after nine minutes without producing
+its startup log. Software rendering and CPU emulation are observed constraints;
+they do not establish that every problem is environmental or fixed on hardware.
+
+The unchanged upstream `vitreus-report --stdout` was also run inside the guest
+([report](upstream-report.txt)). It finds all programs it checks and reports four
+successful scene checks, but no main-scene check result. Its automatic "no slow
+frames" line comes from an empty main-scene log and is **not** timing evidence.
+Its "login-screen entry: none" checks only the optional pleamar-wm session;
+the actual Nahj/Hyprland session is configured and had already started. Vulkan
+enumeration emitted driver errors; the report's bounded probe does not certify
+the graphics stack. These results remain available rather than hiding failures.
+
+The display later became inactive during the original idle policy's seven-minute
+DPMS interval. That observation alone is not classified as a crash. The VM was
+paused after the active investigation to avoid unattended resource use; no
+frame timing across that pause is claimed.
 
 Full graphical responsiveness, visual parity, zero-stutter end-to-end boot and
 a complete installer -5 run remain unverified. This host has no KVM or DRM GPU;

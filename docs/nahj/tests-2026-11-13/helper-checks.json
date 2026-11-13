@@ -1,0 +1,32 @@
+[
+  {
+    "name": "pleamar",
+    "sha256": "63ab6e3c5dbf6d89db6cd7b99a30f97ff3624c29872409b10c6d08d92f303303",
+    "matches_validated_payload": true,
+    "executable": true
+  },
+  {
+    "name": "iris",
+    "sha256": "222014a98002df7f5f59250782fc0755b713861802a43cdf39e2451efb2d5752",
+    "matches_validated_payload": true,
+    "executable": true
+  },
+  {
+    "name": "mpvpaper",
+    "sha256": "0ff25b5407e4e2b38a4405aebb92bb0f14b1ab6a75c28e261c275b6f6f933374",
+    "matches_validated_payload": true,
+    "executable": true
+  },
+  {
+    "name": "mpvpaper-holder",
+    "sha256": "8b5f9f3eb461b7d69887a8ee05ab079b510c83a51cca28b2e37aeb941195760c",
+    "matches_validated_payload": true,
+    "executable": true
+  },
+  {
+    "name": "vitreus-inhibit",
+    "sha256": "9ef1d8927cb1e459c243f2868fa63c9a916099b5f2a685a9eba079d49503c998",
+    "matches_validated_payload": true,
+    "executable": true
+  }
+]

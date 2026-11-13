@@ -1,0 +1,13 @@
+1249 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/wptrans/wptrans.plm --no-hud
+1264 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/vitreus.plm --no-hud
+1265 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/lockscreen/lockscreen.plm --no-hud
+1269 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/desktopclock/desktopclock.plm --no-hud
+1270 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/cursortrail/cursortrail.plm --no-hud
+1276 pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/desktopsysmon/desktopsysmon.plm --no-hud
+/home/nahj/.local/share/pleamar/vitreus/vitreus.log
+/home/nahj/.local/share/sddm/wayland-session.log
+running
+  UNIT LOAD ACTIVE SUB DESCRIPTION
+
+0 loaded units listed.
+Nov 13 08:54:38 nahj-live kernel: virt/tdx: TDX not supported by the host platform

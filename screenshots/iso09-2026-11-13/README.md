@@ -11,4 +11,13 @@ OVMF UEFI, q35/TCG, 2 vCPUs, 8 GiB RAM, plain Virtio VGA, 1280×720 and a blank
 not a generated preview. A still image does not prove smooth animation, and
 it is not a successful desktop or installer screenshot.
 
+## Incomplete desktop observation
+
+![Wallpaper visible, shell not yet visible](desktop-incomplete.png)
+
+This later capture shows the actual live session's wallpaper and cursor. The
+Frame and widgets are missing in this capture; it is retained as failure
+evidence, not proof of parity with the original desktop. The main shell process
+had not provided its IPC socket or startup log during the readiness checks.
+
 [Build and validation evidence](../../docs/nahj/tests-2026-11-13/README.md).

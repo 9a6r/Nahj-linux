@@ -272,3 +272,10 @@ the custom splash and kernel `7.2.11-zen1-1-zen`; SDDM accepted live autologin.
 This is not a complete graphical or installer regression pass. No GitHub ISO
 workflow was run. [Evidence and limitations](tests-2026-11-13/README.md),
 [actual boot capture](../../screenshots/iso09-2026-11-13/README.md).
+
+The same cold boot later reached `running` with no failed system units, and
+running Hyprland reported no configuration errors. The graphical readiness
+check did not pass: the wallpaper appeared but the main shell's IPC/log and
+visible Frame were still absent after prolonged TCG startup. Kept the incomplete
+capture and the original upstream diagnostic report, and paused the VM. A clean
+systemd state is not presented as proof of graphical stability or smoothness.
