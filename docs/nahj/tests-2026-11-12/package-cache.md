@@ -26,6 +26,6 @@ checks package integrity without installing into the builder or host system.
 
 Retained outputs: [before](cache-signature-before.txt),
 [after](cache-signature-after.txt), [invalid signature](cache-signature-invalid.txt).
-The failed ISO07 build produced no ISO. A complete fresh build is still required
-to validate integration beyond this package transaction. These checks do not
-establish desktop performance or boot animation smoothness.
+The failed ISO07 build produced no ISO. A later fresh ISO09 build completed with
+this correction; see the [artifact checks](../tests-2026-11-13/README.md).
+These checks do not establish desktop performance or boot animation smoothness.

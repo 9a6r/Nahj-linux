@@ -1,0 +1,44 @@
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sysinit.target.wants/systemd-boot-update.service' → '/usr/lib/systemd/system/systemd-boot-update.service'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sockets.target.wants/systemd-report-cgroup.socket' → '/usr/lib/systemd/system/systemd-report-cgroup.socket'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sockets.target.wants/systemd-journalctl-metrics.socket' → '/usr/lib/systemd/system/systemd-journalctl-metrics.socket'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/systemd-homed.service.wants/systemd-homed-activate.service' → '/usr/lib/systemd/system/systemd-homed-activate.service'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/dbus-org.freedesktop.home1.service' → '/usr/lib/systemd/system/systemd-homed.service'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/multi-user.target.wants/systemd-homed.service' → '/usr/lib/systemd/system/systemd-homed.service'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/multi-user.target.wants/remote-veritysetup.target' → '/usr/lib/systemd/system/remote-veritysetup.target'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sysinit.target.wants/systemd-sysext.service' → '/usr/lib/systemd/system/systemd-sysext.service'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sockets.target.wants/systemd-mountfsd.socket' → '/usr/lib/systemd/system/systemd-mountfsd.socket'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sockets.target.wants/systemd-journald-audit.socket' → '/usr/lib/systemd/system/systemd-journald-audit.socket'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/systemd-journald.service.wants/systemd-journald-audit.socket' → '/usr/lib/systemd/system/systemd-journald-audit.socket'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/ctrl-alt-del.target' → '/usr/lib/systemd/system/reboot.target'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sockets.target.wants/systemd-sysupdate-notify-bootctl.socket' → '/usr/lib/systemd/system/systemd-sysupdate-notify-bootctl.socket'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/multi-user.target.wants/remote-cryptsetup.target' → '/usr/lib/systemd/system/remote-cryptsetup.target'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sockets.target.wants/systemd-sysupdate-notify-sysext.socket' → '/usr/lib/systemd/system/systemd-sysupdate-notify-sysext.socket'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/multi-user.target.wants/remote-integritysetup.target' → '/usr/lib/systemd/system/remote-integritysetup.target'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/factory-reset.target.wants/systemd-tpm2-clear.service' → '/usr/lib/systemd/system/systemd-tpm2-clear.service'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sockets.target.wants/systemd-report-sign-tsm.socket' → '/usr/lib/systemd/system/systemd-report-sign-tsm.socket'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sysinit.target.wants/systemd-pstore.service' → '/usr/lib/systemd/system/systemd-pstore.service'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sockets.target.wants/systemd-sysupdate-notify-pcrlock.socket' → '/usr/lib/systemd/system/systemd-sysupdate-notify-pcrlock.socket'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sockets.target.wants/systemd-report-sign-tpm2.socket' → '/usr/lib/systemd/system/systemd-report-sign-tpm2.socket'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sockets.target.wants/systemd-report-sign-plain.socket' → '/usr/lib/systemd/system/systemd-report-sign-plain.socket'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/multi-user.target.wants/machines.target' → '/usr/lib/systemd/system/machines.target'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sysinit.target.wants/systemd-boot-clear-sysfail.service' → '/usr/lib/systemd/system/systemd-boot-clear-sysfail.service'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sysinit.target.wants/systemd-confext.service' → '/usr/lib/systemd/system/systemd-confext.service'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sockets.target.wants/systemd-nsresourced.socket' → '/usr/lib/systemd/system/systemd-nsresourced.socket'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sockets.target.wants/systemd-report-basic.socket' → '/usr/lib/systemd/system/systemd-report-basic.socket'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sysinit.target.wants/systemd-coredumpd.service' → '/usr/lib/systemd/system/systemd-coredumpd.service'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sockets.target.wants/systemd-report-files.socket' → '/usr/lib/systemd/system/systemd-report-files.socket'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sysinit.target.wants/systemd-network-generator.service' → '/usr/lib/systemd/system/systemd-network-generator.service'.
+Created symlink '/tmp/nahj-presets-5sesho35/etc/systemd/system/sockets.target.wants/systemd-report.socket' → '/usr/lib/systemd/system/systemd-report.socket'.
+PASS NetworkManager.service: enabled
+PASS sddm.service: enabled
+PASS bluetooth.service: enabled
+PASS power-profiles-daemon.service: enabled
+PASS vboxservice.service: enabled
+PASS systemd-timesyncd.service: enabled
+PASS systemd-networkd.service: disabled
+PASS systemd-networkd.socket: disabled
+PASS systemd-networkd-wait-online.service: disabled
+PASS systemd-resolved.service: disabled
+PASS iwd.service: disabled
+PASS sshd.service: disabled
+PASS systemd-time-wait-sync.service: disabled

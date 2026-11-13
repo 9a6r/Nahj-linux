@@ -1,0 +1,2 @@
+==> WARNING: /build/iso-local-08/mkarchiso/x86_64/airootfs is not a mountpoint. This may have undesirable side effects.
+install: cannot stat '/dev/stdin': No such file or directory

@@ -256,3 +256,19 @@ download-only pacman transactions reproduce the original failure and pass with
 the corrected order; a deliberately damaged signature is still rejected.
 ShellCheck and shell syntax pass. Full image integration remains pending.
 See [evidence](tests-2026-11-12/package-cache.md).
+
+## 2026-11-13 — Complete and inspect the current local ISO
+
+ISO09 completed from `943607c` after restoring the cloud build machine's missing
+standard devtmpfs links. The prior initramfs failure was reproduced and the
+same operation passed after that environment repair. A fresh build then produced
+the linux-zen initramfs and final ISO with package verification enabled.
+
+The ISO checksum passes. Checks on its extracted contents confirm all original
+shell/greeter sources, current integration fixes, all 40 upstream package
+requirements, live password `nahj`, installer 3.3.14-5, all 240 Plymouth frames
+and thirteen first-boot service assertions. A fresh default UEFI boot reached
+the custom splash and kernel `7.2.11-zen1-1-zen`; SDDM accepted live autologin.
+This is not a complete graphical or installer regression pass. No GitHub ISO
+workflow was run. [Evidence and limitations](tests-2026-11-13/README.md),
+[actual boot capture](../../screenshots/iso09-2026-11-13/README.md).

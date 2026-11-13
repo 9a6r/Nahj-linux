@@ -1,0 +1,10 @@
+7.2.11-zen1-1-zen
+UEFI
+initrd=\arch\boot\x86_64\initramfs-linux-zen.img archisobasedir=arch archisosearchuuid=2026-11-12-17-11-33-00 quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0
+starting
+  UNIT LOAD ACTIVE SUB DESCRIPTION
+
+0 loaded units listed.
+active
+active
+Nov 13 08:54:38 nahj-live kernel: virt/tdx: TDX not supported by the host platform

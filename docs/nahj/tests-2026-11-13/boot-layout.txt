@@ -1,0 +1,57 @@
+xorriso 1.5.8.pl02 : RockRidge filesystem manipulator, libburnia project.
+
+xorriso : NOTE : ISO image bears MBR with  -boot_image any partition_offset=16
+xorriso : NOTE : Loading ISO image tree from LBA 0
+xorriso : UPDATE :     107 nodes read in 1 seconds
+libisofs: NOTE : Found hidden El-Torito image for EFI.
+libisofs: NOTE : EFI image start and load size: 1512560 * 2048 , 0 * 512
+libisofs: NOTE : Roughly estimated EFI image size: 486539264 bytes
+xorriso : NOTE : Detected El-Torito boot information which currently is set to be discarded
+Drive current: -indev '/build/out-local-09/nahj-2026.11.12-x86_64.iso'
+Media current: stdio file, overwriteable
+Media status : is written , is appendable
+Boot record  : El Torito , MBR isohybrid cyl-align-off GPT
+Media summary: 1 session, 1750144 data blocks, 3418m data, 30.7g free
+Volume id    : 'NAHJ_20261112'
+El Torito catalog  : 114  1
+El Torito cat path : /boot/syslinux/boot.cat
+El Torito images   :   N  Pltf  B   Emul  Ld_seg  Hdpt  Ldsiz         LBA
+El Torito boot img :   1  BIOS  y   none  0x0000  0x00      4         115
+El Torito boot img :   2  UEFI  y   none  0x0000  0x00      0     1512560
+El Torito img path :   1  /boot/syslinux/isolinux.bin
+El Torito img opts :   1  boot-info-table isohybrid-suitable
+El Torito img blks :   2  237568
+System area options: 0x00000202
+System area summary: MBR isohybrid cyl-align-off GPT
+ISO image size/512 : 7000576
+Partition offset   : 16
+MBR heads per cyl  : 0
+MBR secs per head  : 0
+MBR partition table:   N Status  Type        Start       Blocks
+MBR partition      :   1   0x80  0x00           64      6050176
+MBR partition      :   2   0x00  0xef      6050240       950272
+GPT                :   N  Info
+GPT disk GUID      :      3230323631313142b130303731313333
+GPT entry array    :      2  248  overlapping
+GPT lba range      :      64  7000512  7000575
+GPT partition name :   1  490053004f00480079006200720069006400
+GPT partname local :   1  ISOHybrid
+GPT partition GUID :   1  3230323631313142b131303731313333
+GPT type GUID      :   1  a2a0d0ebe5b9334487c068b6b72699c7
+GPT partition flags:   1  0x1000000000000001
+GPT start and size :   1  64  6050176
+GPT partition name :   2  490053004f004800790062007200690064003100
+GPT partname local :   2  ISOHybrid1
+GPT partition GUID :   2  3230323631313142b132303731313333
+GPT type GUID      :   2  a2a0d0ebe5b9334487c068b6b72699c7
+GPT partition flags:   2  0x1000000000000001
+GPT start and size :   2  460  76
+GPT partition path :   2  /boot/syslinux/isolinux.bin
+GPT partition name :   3  41007000700065006e006400650064003200
+GPT partname local :   3  Appended2
+GPT partition GUID :   3  3230323631313142b133303731313333
+GPT type GUID      :   3  28732ac11ff8d211ba4b00a0c93ec93b
+GPT partition flags:   3  0x0000000000000000
+GPT start and size :   3  6050240  950272
+Report layout: xt , Startlba ,   Blocks , Filesize , ISO image path
+File data lba:  0 ,   232642 ,  1277744 , 2616819712 , '/arch/x86_64/airootfs.sfs'

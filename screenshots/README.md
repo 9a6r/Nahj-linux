@@ -8,3 +8,6 @@ Actual desktop or VM screenshots belong here after running the image. Record the
 # Actual ISO captures
 
 [Live ISO boot captures and exact build identity](iso-runtime/README.md). These are separate from the source reference images and rendered animation previews below.
+
+[November 13 ISO09 cold-boot capture](iso09-2026-11-13/README.md) is from the latest
+locally rebuilt image. It shows Plymouth, not a completed desktop session.

@@ -1,0 +1,1629 @@
+{
+  "iso": "nahj-2026.11.12-x86_64.iso",
+  "iso_sha256": "6d9afb542e979cca330ee29498a601f561cd941f830d1f8fa06351369e628e3b",
+  "build_source": "943607c58dc2211a99cdb55eb04cf54572674ca8",
+  "upstream_commit": "92cd90b0b3ff8bf88831b12f176051450da4a98a",
+  "original_entries": 259,
+  "baseline_exact_entries": 258,
+  "ci_only_exceptions": [
+    ".github/workflows/addons-bump.yml"
+  ],
+  "all_original_shell_and_greeter_sources_match": true,
+  "installed_greeter_files_verified": [
+    "usr/share/sddm/themes/vitreus/GlassPane.qml",
+    "usr/share/sddm/themes/vitreus/Main.qml",
+    "usr/share/sddm/themes/vitreus/glass.frag",
+    "usr/share/sddm/themes/vitreus/glass.frag.qsb",
+    "usr/share/sddm/themes/vitreus/metadata.desktop",
+    "usr/share/sddm/themes/vitreus/theme.conf"
+  ],
+  "current_integration_files_verified": [
+    "etc/skel/.config/hypr/hyprland.lua",
+    "usr/local/bin/nahj-session",
+    "usr/local/libexec/nahj-vulkan-env",
+    "etc/sddm.conf.d/20-nahj-theme.conf"
+  ],
+  "upstream_required_packages": {
+    "gcc": "16.2.1+r23+gd564253eb6c8-1",
+    "pkgconf": "3.0.10-1",
+    "wayland": "1.26.0-1",
+    "wayland-protocols": "1.49-1",
+    "git": "2.56.0-1",
+    "curl": "8.23.0-1",
+    "jq": "1.8.2-1",
+    "python": "3.14.8-1",
+    "fontconfig": "2:2.18.3-2",
+    "socat": "1.8.1.3-1",
+    "glib2": "2.90.1-1",
+    "file": "5.48-1",
+    "imagemagick": "7.1.2.34-2",
+    "cava": "1.0.0-1",
+    "playerctl": "2.4.1-5",
+    "networkmanager": "1.58.1-2",
+    "bluez": "5.87-2",
+    "bluez-utils": "5.87-2",
+    "brightnessctl": "0.5.1-3",
+    "hypridle": "0.1.8-2",
+    "hyprsunset": "0.4.0-3",
+    "libnotify": "0.8.9-1",
+    "xdg-user-dirs": "0.20-1",
+    "xdg-utils": "1.2.1-2",
+    "wl-clipboard": "1:2.3.0-1",
+    "cliphist": "1:0.7.0-2",
+    "awww": "0.12.1-1",
+    "ffmpeg": "2:9.0.2-2",
+    "grim": "1.5.0-2",
+    "slurp": "1.5.0-2",
+    "wf-recorder": "0.6.0-2",
+    "power-profiles-daemon": "0.30-1",
+    "polkit": "128-1",
+    "python-gobject": "3.58.1-1",
+    "python-pyte": "0.8.2-5",
+    "ttf-space-mono-nerd": "3.5.1-2",
+    "pipewire-audio": "1:1.6.10-1",
+    "sound-theme-freedesktop": "0.8-6",
+    "tesseract": "5.5.3-1",
+    "tesseract-data-eng": "2:4.1.0-5"
+  },
+  "linux_zen": "7.2.11.zen1-1",
+  "installer": "3.3.14-5",
+  "sddm_exposes_only_nahj_hyprland_session": true,
+  "live_password_nahj_verified": true,
+  "root_password_locked": true,
+  "entries": [
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.md",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": ".github/workflows/addons-bump.yml",
+      "baseline_match": false,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": ".github/workflows/addons-lint.yml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": ".gitignore",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "BUNDLING.md",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "CLAUDE.md",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "LICENSE",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "README.md",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/_template/addon-palette.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/_template/addon.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/_template/addon.toml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/_template_drawer/STYLE.md",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/_template_drawer/addon-palette.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/_template_drawer/addon-pencil.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/_template_drawer/addon-theme.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/_template_drawer/addon.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/_template_drawer/addon.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/_template_drawer/addon.toml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/_template_drawer/icon.svg",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/bundled.toml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/eq/addon-palette.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/eq/addon-pencil.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/eq/addon-theme.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/eq/addon.toml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/eq/eq.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/eq/eq.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/eq/glint.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/eq/icon.svg",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/.github/workflows/lint.yml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/LICENSE",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/README.md",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/addon-palette.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/addon-pencil.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/addon-theme.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/addon.toml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/config.example.json",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/docs/img/apple-tv.png",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/docs/img/demo.png",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/docs/img/edit-mode.png",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/docs/img/light-card.png",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/docs/img/panel.png",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/docs/img/printer.png",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/docs/img/settings.png",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/ha-icons.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/homeassistant.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/homeassistant.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/icon.svg",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/settings.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/homeassistant/tools/icons.py",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/news-weather/LICENSE",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/news-weather/README.md",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/news-weather/addon-palette.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/news-weather/addon-pencil.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/news-weather/addon-theme.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/news-weather/addon.toml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/news-weather/icon.svg",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/news-weather/news-weather.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/news-weather/news-weather.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/news-weather/pencil-glyphs.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/news-weather/screenshots/feeds.jpg",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/news-weather/screenshots/news.jpg",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/news-weather/screenshots/weather.jpg",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/tvremote/addon-palette.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/tvremote/addon.toml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/tvremote/remote.svg",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/tvremote/tvremote.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/tvremote/tvremote.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/vpn/addon-palette.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/vpn/addon-pencil.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/vpn/addon.toml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/vpn/icon.svg",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/vpn/vpn.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "addons/vpn/vpn.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/banner.jpeg",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/emoji.json",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/greeter.jpeg",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/panel.wav",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/screenshots/calendar.webp",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/screenshots/control-center.webp",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/screenshots/dashboard.webp",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/screenshots/demo.webp",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/screenshots/desk.webp",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/screenshots/launcher.webp",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/screenshots/lockscreen.webp",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/screenshots/player-and-windows.webp",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/screenshots/settings-about.webp",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/screenshots/snap.webp",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/screenshots/system-tray.webp",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/screenshots/tour.webp",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "assets/screenshots/wallpaper-demo.webp",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-addons",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-clipimg",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-edit",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-eq",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-feedfetch",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-files",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-fonts",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-inhibit.c",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-keep",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-polkit-agent",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-report",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-sync-addons",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-sysmon",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-term",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-themes",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "bin/vitreus-tvremote",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "blur.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "cardrip.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "cursortrail/cursortrail.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "cursortrail/goo.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "dashboard/underwater.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "dashboard/water.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopcards/desktopcards.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopcards/desktopcards.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopcards/gen.py",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopclock/clockface.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopclock/clockface_styled.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopclock/desktopclock.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopclock/desktopclock.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopedit/desktopedit.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopedit/desktopedit.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopmenu/desktopmenu.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopmenu/desktopmenu_hypr.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopmenu/desktopmenu_hypr.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopnotes/desktopnotes.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopnotes/desktopnotes.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopsysmon/desktopsysmon.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "desktopsysmon/desktopsysmon.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "dev/eq-boost-test.py",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "dev/fixtures/lg-display-mdns.bin",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "dev/health",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "dev/rig",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "dev/tvremote-webos-test.py",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "files/actions.example.json",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "files/files.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "files/files.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "files/gen_icons.py",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "hypr_vitreus.lua",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "install.sh",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "liquid.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "lockscreen/README.md",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "lockscreen/blob.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "lockscreen/glow.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "lockscreen/lockscreen.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "lockscreen/lockscreen.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "lockscreen/lockwave.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "lockscreen/shapes.svg",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/addons.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/ask.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/bar_layout.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/bar_monitors.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/bar_position.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/bar_size.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/capture_power.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/charger.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/clipboard.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/clock.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/dock.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/draw.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/focus.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/gamemode.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/gtk_skin.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/keybinds.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/lockkeys.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/lockscreen.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/monitor_height.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/nightmode.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/notif_size.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/pad.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/panel_monitor.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/privacy.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/shelf.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/term.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/tray.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/updates.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/visualizer.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "logic/wallpaper_hook.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "matrix.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "niri_vitreus.kdl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/addon_dock.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/addons.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/bar.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/bar_glass.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/bar_icons.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/bar_shapes.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/bar_waves.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/bar_waves_12.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/bar_waves_24.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/clock.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/controls_drawer.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/corner_dock.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/dashboard.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/desk.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/display.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/glass.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/hyprland.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/keybinds.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/keybinds_keys.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/lockscreen.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/media_float.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/nightmode.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/niri.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/notifications.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/osd_drawer.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/overview.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/panel_frame.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/player.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/pleamar_wm.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/settings_panel.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/sysmon.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/theme.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/vpn.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pages/wallpaper.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "palette-live.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "palette.default.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pencil-glyphs.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pixelate.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pleamar-wm/README.md",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pleamar-wm/build-session.py",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pleamar-wm/hyprctl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pleamar-wm/hyprctl-niri",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pleamar-wm/hypridle.conf",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pleamar-wm/install-session.sh",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pleamar-wm/keys.conf",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pleamar-wm/wm/LICENSE-pleamar-wm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pleamar-wm/wm/session.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pleamar-wm/wm/session.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pleamar-wm/wm/session.plm.pre-rebase",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pleamar-wm/wm/shaders/rain.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pleamar-wm/wm/shaders/snow.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "pleamar-wm/wm/shaders/tide.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "sddm/README.md",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "sddm/build-assets.sh",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "sddm/install.sh",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "sddm/refresh-avatar.sh",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "sddm/vitreus/GlassPane.qml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "sddm/vitreus/Main.qml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "sddm/vitreus/glass.frag",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "sddm/vitreus/glass.frag.qsb",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "sddm/vitreus/metadata.desktop",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "sddm/vitreus/theme.conf",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "snap/snap.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "snap/snap.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "themes/_template.toml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "themes/cyber.toml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "themes/glass.toml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "themes/milk.toml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "themes/proxy.toml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "themes/retro.toml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "themes/uwu.toml",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "vitreus.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "vitreus.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "wave.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "webcam/webcam.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "webcam/webcam.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "wm-palette.default.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "wptrans/hexreveal.wgsl",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "wptrans/wptrans.luau",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    },
+    {
+      "path": "wptrans/wptrans.plm",
+      "baseline_match": true,
+      "current_source_match": true,
+      "kind_and_executable_mode_match": true
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+Restored fd -> /proc/self/fd
+Restored stdin -> /proc/self/fd/0
+Restored stdout -> /proc/self/fd/1
+Restored stderr -> /proc/self/fd/2

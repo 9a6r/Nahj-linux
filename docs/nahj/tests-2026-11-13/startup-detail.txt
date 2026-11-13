@@ -1,0 +1,31 @@
+JOB UNIT                          TYPE  STATE
+1   graphical.target              start waiting
+2   multi-user.target             start waiting
+189 power-profiles-daemon.service start waiting
+180 pacman-init.service           start running
+
+4 jobs listed.
+Nov 13 08:57:37 nahj-live sddm[759]: Starting...
+Nov 13 08:57:37 nahj-live sddm[759]: Logind interface found
+Nov 13 08:57:37 nahj-live sddm[759]: Adding new display...
+Nov 13 08:57:37 nahj-live sddm[759]: Loaded empty theme configuration
+Nov 13 08:57:37 nahj-live sddm[759]: Xauthority path: "/run/sddm/xauth_YrRnwQ"
+Nov 13 08:57:37 nahj-live sddm[759]: Using VT 2
+Nov 13 08:57:37 nahj-live sddm[759]: Display server starting...
+Nov 13 08:57:37 nahj-live sddm[759]: Writing cookie to "/run/sddm/xauth_YrRnwQ"
+Nov 13 08:57:37 nahj-live sddm[759]: Running: /usr/bin/X -nolisten tcp -background none -seat seat0 vt2 -auth /run/sddm/xauth_YrRnwQ -noreset -displayfd 16
+Nov 13 08:58:00 nahj-live sddm[759]: Setting default cursor
+Nov 13 08:58:00 nahj-live sddm[759]: Could not setup default cursor
+Nov 13 08:58:00 nahj-live sddm[759]: Running display setup script  "/usr/share/sddm/scripts/Xsetup"
+Nov 13 08:58:00 nahj-live sddm[759]: Display server started.
+Nov 13 08:58:00 nahj-live sddm[759]: Reading from "/usr/share/nahj/wayland-sessions/nahj.desktop"
+Nov 13 08:58:01 nahj-live sddm[759]: Session "/usr/share/nahj/wayland-sessions/nahj.desktop" selected, command: "/usr/local/bin/nahj-session" for VT 1
+Nov 13 08:58:01 nahj-live sddm-helper[795]: [PAM] Starting...
+Nov 13 08:58:01 nahj-live sddm-helper[795]: [PAM] Authenticating...
+Nov 13 08:58:01 nahj-live sddm-helper[795]: [PAM] returning.
+Nov 13 08:58:01 nahj-live sddm[759]: Authentication for user  "nahj"  successful
+Nov 13 08:58:02 nahj-live sddm-helper[795]: pam_unix(sddm-autologin:session): session opened for user nahj(uid=1000) by nahj(uid=0)
+Nov 13 08:58:02 nahj-live sddm-helper[795]: [PAM] Preparing to converse...
+Nov 13 08:58:02 nahj-live sddm-helper[795]: [PAM] Conversation with 1 messages
+Nov 13 08:58:02 nahj-live sddm[759]: Authentication information: SDDM::Auth::INFO_UNKNOWN "To install \u001B[38;2;23;147;209mArch Linux\u001B[0m follow the installation guide:\nhttps://wiki.archlinux.org/title/Installation_guide\n\nFor Wi-Fi, authenticate to the wireless network using the \u001B[35miwctl\u001B[0m utility.\nFor mobile broadband (WWAN) modems, connect with the \u001B[35mmmcli\u001B[0m utility.\nEthernet, WLAN and WWAN interfaces using DHCP should work automatically.\n\nAfter connecting to the internet, the installation guide can be accessed\nvia the convenience script \u001B[35mInstallation_guide\u001B[0m.\n\n\u001B[41m \u001B[41m \u001B[41m \u001B[40m \u001B[44m \u001B[40m \u001B[41m \u001B[46m \u001B[45m \u001B[41m \u001B[46m \u001B[43m \u001B[41m \u001B[44m \u001B[45m \u001B[40m \u001B[44m \u001B[40m \u001B[41m \u001B[44m \u001B[41m \u001B[41m \u001B[46m \u001B[42m \u001B[41m \u001B[44m \u001B[43m \u001B[41m \u001B[45m \u001B[40m \u001B[40m \u001B[44m \u001B[40m \u001B[41m \u001B[44m \u001B[42m \u001B[41m \u001B[46m \u001B[44m \u001B[41m \u001B[46m \u001B[47m \u001B[0m"
+Nov 13 08:58:07 nahj-live sddm[759]: Session started true
