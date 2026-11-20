@@ -1,0 +1,22 @@
+addons/_template/addon.plm: 0
+addons/_template_drawer/addon.plm: 0
+addons/eq/eq.plm: 0
+addons/homeassistant/homeassistant.plm: 0
+addons/news-weather/news-weather.plm: 0
+addons/tvremote/tvremote.plm: 0
+addons/vpn/vpn.plm: 0
+cursortrail/cursortrail.plm: 0
+desktopcards/desktopcards.plm: 0
+desktopclock/desktopclock.plm: 0
+desktopedit/desktopedit.plm: 0
+desktopmenu/desktopmenu_hypr.plm: 0
+desktopnotes/desktopnotes.plm: 0
+desktopsysmon/desktopsysmon.plm: 0
+files/files.plm: 0
+lockscreen/lockscreen.plm: 0
+pleamar-wm/wm/session.plm: 0
+snap/snap.plm: 0
+vitreus.plm: 0
+webcam/webcam.plm: 0
+wptrans/wptrans.plm: 0
+259 exact ISO source matches; 21 scenes passed

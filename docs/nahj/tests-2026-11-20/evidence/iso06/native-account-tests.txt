@@ -1,0 +1,43 @@
+Test project /build/calamares-validation/src/modules/users
+    Start 1: usersgroupstest
+1/3 Test #1: usersgroupstest ..................   Passed    0.18 sec
+    Start 2: usershostnametest
+2/3 Test #2: usershostnametest ................***Failed    0.02 sec
+********* Start testing of UsersTests *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.2.1 20260810), arch 20261018.0.612668
+10:59:36 [6]: void UsersTests::initTestCase()
+    Users test started. 
+10:59:36 [6]: void UsersTests::initTestCase()
+    Test dir "/tmp/calamares-usertest.oBSKmN" 
+10:59:36 [1]: static Calamares::System* Calamares::System::instance()
+    ERROR: No Calamares system-object has been created. 
+    .. using a bogus instance instead. 
+10:59:36 [2]: static Calamares::JobQueue* Calamares::JobQueue::instance()
+    WARNING: Getting nullptr JobQueue instance. 
+10:59:36 [6]: void UsersTests::initTestCase()
+    Creating new JobQueue 
+PASS   : UsersTests::initTestCase()
+10:59:36 [6]: void UsersTests::testEtcHostname()
+    Test dir "/tmp/calamares-usertest.oBSKmN" 
+10:59:36 [2]: Calamares::CreationResult Calamares::System::createTargetFile(const QString&, const QByteArray&, WriteMode) const
+    WARNING: Could not open target file "/tmp/calamares-usertest.oBSKmN/etc/hostname" 
+PASS   : UsersTests::testEtcHostname()
+PASS   : UsersTests::testEtcHosts()
+10:59:36 [2]: bool setSystemdHostname(const QString&)
+    WARNING: Interface "org.freedesktop.hostname1" is not valid. 
+FAIL!  : UsersTests::testHostnamed() 'setSystemdHostname( QStringLiteral( "tubophone.calamares.io" ) )' returned FALSE. ()
+   Loc: [/build/installer-review/calamares-21ea803527735cfaf54fa6059e71d1ef65004864/src/modules/users/TestSetHostNameJob.cpp(139)]
+PASS   : UsersTests::cleanupTestCase()
+Totals: 4 passed, 1 failed, 0 skipped, 0 blacklisted, 2ms
+********* Finished testing of UsersTests *********
+
+    Start 3: userstest
+3/3 Test #3: userstest ........................   Passed    0.04 sec
+
+67% tests passed, 1 tests failed out of 3
+
+Total Test time (real) =   0.24 sec
+
+The following tests FAILED:
+	  2 - usershostnametest (Failed)
+Errors while running CTest

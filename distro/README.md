@@ -6,6 +6,14 @@ The intended stack is Wayland + Hyprland + Vitreus/pleamar, `linux-zen`, the exi
 
 Development decisions and validation evidence: [development log](../docs/nahj/CHANGELOG.md). Visual evidence is kept separately in [screenshots](../screenshots/README.md).
 
+**November 20 status:** [consolidated verification](../docs/nahj/tests-2026-11-20/README.md)
+records approximately 24 fps at 720p and 12 fps at 1080p in isolated native
+Plymouth captures. Latest documented ISO09 still lacks a successful graphical
+readiness check. Earlier ISO06 lockscreen failure remains unresolved. See the
+[login and original-reference gallery](../screenshots/README.md); original shell
+and SDDM UI files remain unchanged. This evidence update is not a release or a
+new image build.
+
 VirtualBox must use VMSVGA with 3D acceleration, sufficient graphics memory and RAM. Software rendering is a fallback, not a guarantee of native animation performance. Full visual parity and hardware behavior must be checked on the target machine.
 
 Installer integration tests use disposable virtual disks. Do not execute disk-partitioning tests against a host disk.

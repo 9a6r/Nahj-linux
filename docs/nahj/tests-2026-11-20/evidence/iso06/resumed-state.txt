@@ -1,0 +1,9 @@
+    PID ELAPSED     TIME %CPU   RSS STAT COMMAND
+   1089     326 00:01:22 25.2 243396 Sl  pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/cursortrail/cursortrail.plm --no-hud
+   1090     326 00:01:17 23.8 307440 Sl  pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/lockscreen/lockscreen.plm --no-hud
+   1093     326 00:01:12 22.1 247156 Sl  pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/wptrans/wptrans.plm --no-hud
+   1094     326 00:04:53 89.8 250220 Sl  pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/desktopclock/desktopclock.plm --no-hud
+   1127     324 00:03:06 57.4 299352 Sl  pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/desktopsysmon/desktopsysmon.plm --no-hud
+   1128     324 00:02:08 39.5 692016 R   pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/vitreus.plm --no-hud
+Nov 14 11:03:26 nahj-live kernel: ..MP-BIOS bug: 8254 timer not connected to IO-APIC
+Nov 14 11:03:26 nahj-live kernel: virt/tdx: TDX not supported by the host platform

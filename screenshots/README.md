@@ -1,13 +1,26 @@
-# Screenshots and visual evidence
+# تسجيل الدخول والديسكتوب الأصلي
 
-`boot/` contains clearly labelled frames/previews rendered from the supplied boot video. These are design and animation previews, not photographs of a booted ISO.
+## شاشة تسجيل الدخول — لقطة فعلية
 
-Actual desktop or VM screenshots belong here after running the image. Record the ISO commit, renderer/VM settings, and what was tested. Never present source artwork as proof of a successful boot.
+لقطة 6 نوفمبر 2026 من نظام مثبت داخل QEMU، بعد فصل ISO، باستخدام شاشة SDDM الأصلية. نجحت المصادقة بكلمة المرور المختارة أثناء التثبيت. هذه لقطة تاريخية؛ لا تثبت اكتمال سطح المكتب أو سلاسة أحدث ISO.
 
-[Shell and desktop reference gallery](shell-reference/README.md) contains 13 unchanged images/animations copied from the original project. These are not captures from the new ISO; source paths and checksums are in `shell-reference/sources.json`.
-# Actual ISO captures
+![شاشة تسجيل الدخول الأصلية من النظام المثبت](installed-2026-11-06/greeter.png)
 
-[Live ISO boot captures and exact build identity](iso-runtime/README.md). These are separate from the source reference images and rendered animation previews below.
+[تفاصيل اختبار تسجيل الدخول](installed-2026-11-06/README.md).
 
-[November 13 ISO09 cold-boot capture](iso09-2026-11-13/README.md) is from the latest
-locally rebuilt image. It shows Plymouth, not a completed desktop session.
+## الديسكتوب شيل — صورة مرجعية من المشروع الأصلي
+
+الصورة التالية من ملفات المشروع الأصلي، بدون تعديل أو إعادة رسم. **ليست لقطة من ISO Nahj الحالية**؛ لا توجد لقطة مكتملة مقبولة تثبت تطابق الجلسة الحالية مع هذا المرجع.
+
+![مرجع الديسكتوب ولوحة المعلومات من المشروع الأصلي](shell-reference/dashboard.webp)
+
+[المعرض الأصلي الكامل](shell-reference/README.md) · [المصادر والبصمات](shell-reference/sources.json).
+
+## نتائج الفحص ولقطات الإقلاع
+
+- [تقرير 20 نوفمبر: القياسات وحدودها](../docs/nahj/tests-2026-11-20/README.md).
+- [أحدث بناء موثّق ISO09: الإقلاع وفشل اكتمال الواجهة](iso09-2026-11-13/README.md).
+- [لقطات قوائم وإقلاع ISO القديمة](iso-runtime/README.md).
+- [معاينات فيديو الإقلاع](boot/): معاينات مولّدة من الفيديو، وليست لقطات من ISO تعمل.
+
+أُزيلت لقطات جلسة الديسكتوب التشخيصية القديمة المرفوضة ومراجعها من الملفات الحالية. لقطة ثابتة أو نجاح البناء وحده لا يثبت سلاسة الحركة.

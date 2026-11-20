@@ -1,0 +1,230 @@
+{
+  "scope": "Retained November 14 and November 20 checks; ISO06 and isolated native tests, not an ISO09 retest",
+  "files": [
+    {
+      "path": "health/font-fixture.json",
+      "bytes": 341,
+      "sha256": "979f820cb2ad0c2a4d714b06f91cb82a3d45386cdd73068f22abaff9c6e7a945"
+    },
+    {
+      "path": "health/health-runner.txt",
+      "bytes": 1755,
+      "sha256": "8fc00b92bc78f7969c609364c1f81b5f46cb4fcf3e6ba8457963216399e6014b"
+    },
+    {
+      "path": "health/health.txt",
+      "bytes": 1396,
+      "sha256": "a7e3b1decfab3023804b76af4eddf6758b7fa6d8c21f23d77bbc52d04309c359"
+    },
+    {
+      "path": "health/health_with_fonts.py",
+      "bytes": 2478,
+      "sha256": "5214fbfb1109a1ee28a52e24b2981611d008153ddcad5575288d1cd23cc8e685"
+    },
+    {
+      "path": "iso06/actual-password-policy.txt",
+      "bytes": 10973,
+      "sha256": "071b5c7173844d7cd545c89b62caa3a10931200dd6eb13a8d621cab9157b2cc2"
+    },
+    {
+      "path": "iso06/boot-decoder.txt",
+      "bytes": 117,
+      "sha256": "72d724d5a18517f616fb29e797d7b7ea39642fa3193442759dd2e638223b90e0"
+    },
+    {
+      "path": "iso06/final-guest-health.txt",
+      "bytes": 921,
+      "sha256": "c48e19c351157ec5544634197f2bc044384b6d01cd62de5cccd44b27de267860"
+    },
+    {
+      "path": "iso06/fresh-iso-services.txt",
+      "bytes": 5841,
+      "sha256": "464736057eedbe05a3ae23aba14081394aee7cd5dd1f441ceae61b3eb3a21080"
+    },
+    {
+      "path": "iso06/fresh-iso-source-and-scenes.txt",
+      "bytes": 655,
+      "sha256": "8efedbbf56e2299e584502c90674e24fcd020c0e8ce62a4524e62beefecbb4eb"
+    },
+    {
+      "path": "iso06/installer-tests.txt",
+      "bytes": 1501,
+      "sha256": "300ec16f7d53a75a6cd13ee0924985b34e5cae6dc0fd6e42a0a7ed0563df98a2"
+    },
+    {
+      "path": "iso06/iso-checksum.txt",
+      "bytes": 31,
+      "sha256": "95eb98cf6e6e0833883a1b2e2adf714c88df451c25c7515cc552ba0259f0821f"
+    },
+    {
+      "path": "iso06/iso-source-audit.json",
+      "bytes": 42747,
+      "sha256": "1d40fa87606950395327e4a3d70ff37f74abaec4f6e754b495eed1877c57554a"
+    },
+    {
+      "path": "iso06/lockscreen-failure.png",
+      "bytes": 133089,
+      "sha256": "1fa66f441a07dd22b48abcd4c99c93da635488b844324b920d78e5d2e8bb54b8"
+    },
+    {
+      "path": "iso06/native-account-tests-user.txt",
+      "bytes": 15102,
+      "sha256": "54f8426ce6ed58f6ec2094d3b67cd1f9edb2e9096c97e7fe13fd69d0c045bc63"
+    },
+    {
+      "path": "iso06/native-account-tests.txt",
+      "bytes": 2193,
+      "sha256": "0fdb62f6e8567aefa2b3a165f824e273ae556b5c5f2de53175e153940e4486db"
+    },
+    {
+      "path": "iso06/native-artifact-audit.json",
+      "bytes": 125,
+      "sha256": "e4265cd743da130941841f5cde1a0b6b2fbe9d057cb942b2fc3277c41003151c"
+    },
+    {
+      "path": "iso06/pixel-provenance.json",
+      "bytes": 241,
+      "sha256": "94d9d241f8ad2cb98d36e39c4e0ba593b3f61973a5aa1ea6fb285dac8f70ef56"
+    },
+    {
+      "path": "iso06/pixel_provenance.py",
+      "bytes": 1823,
+      "sha256": "c0f2be842f8a4e750c7d753c2eb801a253239460e0eed58e48cf233d4c2e7b19"
+    },
+    {
+      "path": "iso06/renderer-state.txt",
+      "bytes": 4158,
+      "sha256": "ae6a8b8d67bac162da26f7f74803bcad06e5a8430892a913c2ffb79cc9a43cdc"
+    },
+    {
+      "path": "iso06/resumed-shell-probe.txt",
+      "bytes": 403,
+      "sha256": "5cd96d16c5172bc8e5f26d5775a01fd1d0eed9bbbea7a2f899151ecd0cfeb96d"
+    },
+    {
+      "path": "iso06/resumed-state.txt",
+      "bytes": 1013,
+      "sha256": "732dc0577799f91d8a360f889f01be81a5021ae8aada7d086a3869a13f0265e8"
+    },
+    {
+      "path": "iso06/scene-audit.json",
+      "bytes": 5258,
+      "sha256": "587924e54d1a8f0012239079a538ac705ec043cea7c4a5dd519fc57717ff2025"
+    },
+    {
+      "path": "iso06/shellcheck.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "iso06/source_and_scenes.py",
+      "bytes": 2122,
+      "sha256": "6c6902e7a288e652f89fff41b959d59c7c6e8664958551a2d6de63d411ad3d95"
+    },
+    {
+      "path": "native/1080p/native-1.json",
+      "bytes": 16351,
+      "sha256": "63f19aeb4e7f21ca7c7dfec7700b9d2d2aa2201e233995714123546d23fdfd39"
+    },
+    {
+      "path": "native/1080p/native-1.md5",
+      "bytes": 96216,
+      "sha256": "e5aa4047b0815c02b71347a428131b822504cb7667525b13dfdb22e067edb0bb"
+    },
+    {
+      "path": "native/1080p/native-2.json",
+      "bytes": 16969,
+      "sha256": "3948725653352cfc024f81d44c20a58186bc0ea56f29da12fbb538cd23dd454d"
+    },
+    {
+      "path": "native/1080p/native-2.md5",
+      "bytes": 96056,
+      "sha256": "966ddb7ef7c502f84fce2d06c6ffca0d8ba9381d50eee8215c9a417c37d1c082"
+    },
+    {
+      "path": "native/1080p/native-3.json",
+      "bytes": 16583,
+      "sha256": "fcc4d438647b5468a034ad081b9a4e12da8859e7ab0e37b6aca3664473ec47dd"
+    },
+    {
+      "path": "native/1080p/native-3.md5",
+      "bytes": 96216,
+      "sha256": "8eb698a8e810164d48a553b6250fe5a49b874e260fc405390974b0a18aa7220b"
+    },
+    {
+      "path": "native/1080p/native_timing.py",
+      "bytes": 4246,
+      "sha256": "a28a06da91c6afb8a362eb9f30e44520db7860ed3aea29a22b86d48b05fa6ac6"
+    },
+    {
+      "path": "native/720p/native-1.json",
+      "bytes": 31951,
+      "sha256": "7e60c27b4640a0d306f62c2e67e5fc1e51d8f9211bd25a6e61aabf498131eb8b"
+    },
+    {
+      "path": "native/720p/native-1.md5",
+      "bytes": 96215,
+      "sha256": "5b21662d863f291f3b1cd728d215b6885af5d52b126d4a0da318469b0b98e54c"
+    },
+    {
+      "path": "native/720p/native-2.json",
+      "bytes": 32028,
+      "sha256": "d1e185a6faf123dad109b65552f886d9642e7affbde7eac8dce53c38a4d30b02"
+    },
+    {
+      "path": "native/720p/native-2.md5",
+      "bytes": 96215,
+      "sha256": "bac124a644ffa313f804b5c0ee9362e8db2bba63ade53cea1ee9ea0955e99dac"
+    },
+    {
+      "path": "native/720p/native-3.json",
+      "bytes": 31937,
+      "sha256": "c65ccde09de68906e0607b8ef6369eea6bd925cbfc6fdc2db6076199c767ab3c"
+    },
+    {
+      "path": "native/720p/native-3.md5",
+      "bytes": 96215,
+      "sha256": "3e5a5a1b71e7710e12378e2eef2a985e17ca8acb8bb4dfdd01567fdc63d05f3d"
+    },
+    {
+      "path": "native/720p/native_timing.py",
+      "bytes": 3303,
+      "sha256": "0d207cb3b148ec3acdecfe2c43d6abf826d3383ecd8ef378488b63232b01af44"
+    },
+    {
+      "path": "native/boot-comparison.json",
+      "bytes": 5894,
+      "sha256": "3383770040963598ece43fd51dcc997d2a4be06a9bd18da3c3503bf627560814"
+    },
+    {
+      "path": "native/without-recorder/frame-requests-1280x720.tsv",
+      "bytes": 10176,
+      "sha256": "6c6e7207c0bdded3788328f4bab1297838d90874d229463890820015a7b61ccb"
+    },
+    {
+      "path": "native/without-recorder/frame-requests-1920x1080.tsv",
+      "bytes": 5734,
+      "sha256": "828142b1cc66524877dc34f81d71971e25d458cd1f13c59edbaf16ee21d0cbc7"
+    },
+    {
+      "path": "native/without-recorder/frame_trace.c",
+      "bytes": 989,
+      "sha256": "ecd38b2b1a018ed462fce44143d473992d58d71ef380fcc02aae011e210eb01a"
+    },
+    {
+      "path": "native/without-recorder/timing-without-recorder.json",
+      "bytes": 597,
+      "sha256": "743e9ae6c337a60db5bd556d0324fca4939abdc3cf302afa8e33acbaa8202e51"
+    },
+    {
+      "path": "native/without-recorder/timing_without_recorder.py",
+      "bytes": 1943,
+      "sha256": "3ce1dd552cf6628b99c690643c72c17a0f3c6efc6e8fc3df39137688434e3c79"
+    },
+    {
+      "path": "verification-summary-before-publication.json",
+      "bytes": 9025,
+      "sha256": "cef9103a8a6cf97eff9a89a2a64497f9c867a33540b038c57e8d4ec2b72d8353"
+    }
+  ]
+}

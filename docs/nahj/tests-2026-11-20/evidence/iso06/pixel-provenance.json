@@ -1,0 +1,12 @@
+{
+  "original_video_unchanged": true,
+  "frames_verified": 240,
+  "exact_source_frames": 216,
+  "prescribed_smooth_crossfade_frames": 24,
+  "dimensions": [
+    1280,
+    720
+  ],
+  "fps": 24,
+  "artifact": "ISO 06 freshly extracted theme"
+}

@@ -279,3 +279,24 @@ check did not pass: the wallpaper appeared but the main shell's IPC/log and
 visible Frame were still absent after prolonged TCG startup. Kept the incomplete
 capture and the original upstream diagnostic report, and paused the VM. A clean
 systemd state is not presented as proof of graphical stability or smoothness.
+
+## 2026-11-20 — Publish retained verification and correct the screenshot gallery
+
+Preserved remote changes through `f4caa52` before publishing the additional
+measurements. The report distinguishes the older ISO06 guest from the newest
+documented ISO09 build; ISO09 still has no complete graphical readiness pass.
+
+Three native captures per resolution measured about 24 fps at 720p and 12 fps
+at 1080p. Separate frame-load tracing without a recorder also remained slow at
+1080p. Archived frame hashes, request timestamps, source/scene audits, installer
+and service checks, and corrected headless health results. The ISO06 lockscreen
+application failure remains unresolved; no runtime fix or smoothness guarantee
+is claimed. All original shell and SDDM sources remain unchanged, with only the
+previously documented add-on CI schedule exception among 259 upstream entries.
+
+Removed the rejected old diagnostic desktop image, the related desktop-session
+captures and their current gallery references at the user's request. The gallery
+now leads with the real installed login capture and a clearly labelled original
+project desktop reference. No new ISO was built or GitHub workflow dispatched.
+See [the complete report](tests-2026-11-20/README.md) and
+[the revised gallery](../../screenshots/README.md).

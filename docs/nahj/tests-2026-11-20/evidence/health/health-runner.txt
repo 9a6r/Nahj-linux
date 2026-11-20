@@ -1,0 +1,27 @@
+{"old_target": "/root/.local/share/fonts", "prior_exit": 1, "prior_stderr": "ln: failed to create symbolic link '/build/work/qa-2026-11-20/rig/home/.local/share/fonts': File exists\n", "new_target": "/build/payload-next/usr/share/fonts", "modification": "Only the disposable rig font symlink; no script or shell source changed"}
+Original health exit code: 1
+Vitreus health · 2026-11-20 07:36 · /build/work/qa-2026-11-15/source
+
+== Rig: a headless copy driven round the panels (4 rounds, then 60 s idle)
+  after start: 1266 MB, 32 fds, 54 threads, 2 child processes
+  round 1: 1311 MB, 32 fds, 54 threads, 2 child processes (46 s)
+  round 2: 1322 MB, 32 fds, 54 threads, 2 child processes (45 s)
+  round 3: 1323 MB, 34 fds, 55 threads, 3 child processes (46 s)
+  round 4: 1323 MB, 32 fds, 54 threads, 2 child processes (46 s)
+  [ ok ] memory over rounds 2..4: +0.4 MB a round (+1 MB)
+  [ ok ] open files steady (32 at start, 32 → 32 over the rounds)
+  [ ok ] threads steady (54 at start, 54 → 54 over the rounds)
+  [ ok ] child processes steady (2 at start, 2 → 2 over the rounds)
+  [ ok ] idle for 60 s: memory +0.01 MB a minute, 2 child processes
+
+== Rig: its log
+  [WARN] 1 error-like lines (1 different):
+           1×  render · llvmpipe (LLVM N.N, N bits): on OpenGL, through EGL (its Vulkan driver cannot take buffers by their layout)
+  [info] 1847 slow frames after the start (worst 3890 ms); a headless rig draws on the CPU path, so only a sudden rise means much
+  [info] the rig's log: /build/work/qa-2026-11-20/state/vitreus/health/rig-20261120-0740.log
+
+== Summary (267 s): 0 failed, 1 warnings, 5 fine
+  WARN [rig] 1 error-like lines (1 different):
+
+written to /build/work/qa-2026-11-20/state/vitreus/health/report-20261120-0740.txt
+

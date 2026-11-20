@@ -1,0 +1,20 @@
+[
+  {
+    "resolution": "1280x720",
+    "frame_requests": 385,
+    "mean_ms": 41.70921989322925,
+    "median_ms": 41.66972600000918,
+    "max_ms": 52.83979700004693,
+    "request_fps": 23.975514348143733,
+    "meaning": "Frame load requests, not completed display scanout; no screen recorder"
+  },
+  {
+    "resolution": "1920x1080",
+    "frame_requests": 214,
+    "mean_ms": 76.72157636619738,
+    "median_ms": 75.29510599999867,
+    "max_ms": 173.55527400002302,
+    "request_fps": 13.034143032032228,
+    "meaning": "Frame load requests, not completed display scanout; no screen recorder"
+  }
+]

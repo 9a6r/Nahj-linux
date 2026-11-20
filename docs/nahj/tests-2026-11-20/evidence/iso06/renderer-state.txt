@@ -1,0 +1,57 @@
+XDG_SESSION_TYPE=wayland
+PLEAMAR_SWAPCHAIN=1
+XDG_SESSION_TYPE=wayland
+PLEAMAR_SWAPCHAIN=1
+    PID ELAPSED %CPU   RSS STAT
+   1089     176 41.5 234200 Sl
+   1090     176 41.8 296896 Sl
+   1093     176 39.2 232892 Sl
+   1094     176 52.7 238664 Sl
+   1127     174 50.7 265704 Sl
+   1128     174 38.5 408204 R
+Nov 14 11:06:00 nahj-live /usr/lib/xdg-desktop-portal[1162]: Failed to load RealtimeKit property: GDBus.Error:org.freedesktop.DBus.Error.ServiceUnknown: The name is not activatable
+Nov 14 11:06:00 nahj-live /usr/lib/xdg-desktop-portal[1162]: Failed to load RealtimeKit property: GDBus.Error:org.freedesktop.DBus.Error.ServiceUnknown: The name is not activatable
+Nov 14 11:06:00 nahj-live /usr/lib/xdg-desktop-portal[1162]: Failed to load RealtimeKit property: GDBus.Error:org.freedesktop.DBus.Error.ServiceUnknown: The name is not activatable
+Nov 14 11:06:02 nahj-live wireplumber[1459]: mod.rt: RTKit error: org.freedesktop.DBus.Error.ServiceUnknown
+Nov 14 11:06:02 nahj-live wireplumber[1459]: mod.rt: RTKit does not give us MaxRealtimePriority, using 1
+Nov 14 11:06:02 nahj-live wireplumber[1459]: mod.rt: RTKit error: org.freedesktop.DBus.Error.ServiceUnknown
+Nov 14 11:06:02 nahj-live wireplumber[1459]: mod.rt: RTKit does not give us MinNiceLevel, using 0
+Nov 14 11:06:02 nahj-live wireplumber[1459]: mod.rt: RTKit error: org.freedesktop.DBus.Error.ServiceUnknown
+Nov 14 11:06:02 nahj-live wireplumber[1459]: mod.rt: RTKit does not give us RTTimeUSecMax, using -1
+Nov 14 11:06:02 nahj-live pipewire[1458]: mod.rt: RTKit error: org.freedesktop.DBus.Error.ServiceUnknown
+Nov 14 11:06:02 nahj-live pipewire[1458]: mod.rt: RTKit does not give us MaxRealtimePriority, using 1
+Nov 14 11:06:02 nahj-live pipewire[1458]: mod.rt: RTKit error: org.freedesktop.DBus.Error.ServiceUnknown
+Nov 14 11:06:02 nahj-live pipewire[1458]: mod.rt: RTKit does not give us MinNiceLevel, using 0
+Nov 14 11:06:02 nahj-live pipewire[1458]: mod.rt: RTKit error: org.freedesktop.DBus.Error.ServiceUnknown
+Nov 14 11:06:02 nahj-live pipewire[1458]: mod.rt: RTKit does not give us RTTimeUSecMax, using -1
+Nov 14 11:06:05 nahj-live wireplumber[1459]: mod.rt: RTKit error: org.freedesktop.DBus.Error.ServiceUnknown
+Nov 14 11:06:05 nahj-live wireplumber[1459]: mod.rt: RTKit does not give us MaxRealtimePriority, using 1
+Nov 14 11:06:05 nahj-live wireplumber[1459]: mod.rt: RTKit error: org.freedesktop.DBus.Error.ServiceUnknown
+Nov 14 11:06:05 nahj-live wireplumber[1459]: mod.rt: RTKit does not give us MinNiceLevel, using 0
+Nov 14 11:06:05 nahj-live wireplumber[1459]: mod.rt: RTKit error: org.freedesktop.DBus.Error.ServiceUnknown
+Nov 14 11:06:05 nahj-live wireplumber[1459]: mod.rt: RTKit does not give us RTTimeUSecMax, using -1
+Nov 14 11:06:07 nahj-live wireplumber[1459]: default: Failed to get percentage from UPower: org.freedesktop.DBus.Error.NameHasNoOwner
+Nov 14 11:06:07 nahj-live wireplumber[1459]: spa.bluez5: BlueZ system service is not available
+MESA-EGL: warning: egl: failed to create dri2 screen
+MESA-EGL: warning: egl: failed to create dri2 screen
+MESA-EGL: warning: NEEDS EXTENSION: falling back to kms_swrast
+Refusing to try glamor on llvmpipe
+XWAYLAND: Disabling GLAMOR support
+EGL setup failed, disabling glamor
+Failed to initialize glamor, falling back to sw
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Multiple symbols for level 1/group 1 on key <FK23>
+>                   Using F23, ignoring XF86TouchpadOff
+> Warning:          Symbol map for key <FK23> redefined
+>                   Using last definition for conflicting fields
+> Warning:          Symbol map for key <FK24> redefined
+>                   Using last definition for conflicting fields
+Errors from xkbcomp are not fatal to the X server
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Unsupported maximum keycode 709, clipping.
+>                   X11 cannot support keycodes above 255.
+> Warning:          Virtual modifier Hyper multiply defined
+>                   Using 0, ignoring 0
+> Warning:          Virtual modifier ScrollLock multiply defined
+>                   Using 0, ignoring 0
+Errors from xkbcomp are not fatal to the X server

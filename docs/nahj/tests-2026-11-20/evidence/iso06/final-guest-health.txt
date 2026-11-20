@@ -1,0 +1,16 @@
+running
+  UNIT LOAD ACTIVE SUB DESCRIPTION
+
+0 loaded units listed.
+  UNIT LOAD ACTIVE SUB DESCRIPTION
+
+0 loaded units listed.
+    PID ELAPSED %CPU STAT COMMAND
+    816     327 58.6 Ssl+ Hyprland
+   1089     299 27.4 Sl   pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/cursortrail/cursortrail.plm --no-hud
+   1090     299 25.8 Sl   pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/lockscreen/lockscreen.plm --no-hud
+   1093     299 24.1 Sl   pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/wptrans/wptrans.plm --no-hud
+   1094     299 93.1 Sl   pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/desktopclock/desktopclock.plm --no-hud
+   1127     296 56.0 Sl   pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/desktopsysmon/desktopsysmon.plm --no-hud
+   1128     296 38.2 R    pleamar --scene /home/nahj/.config/pleamar/shells/vitreus/vitreus.plm --no-hud
+No coredumps found.

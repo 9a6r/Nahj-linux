@@ -1,0 +1,7 @@
+{
+  "old_target": "/root/.local/share/fonts",
+  "prior_exit": 1,
+  "prior_stderr": "ln: failed to create symbolic link '/build/work/qa-2026-11-20/rig/home/.local/share/fonts': File exists\n",
+  "new_target": "/build/payload-next/usr/share/fonts",
+  "modification": "Only the disposable rig font symlink; no script or shell source changed"
+}

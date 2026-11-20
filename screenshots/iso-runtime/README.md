@@ -17,23 +17,3 @@
 قائمة UEFI باستخدام OVMF:
 
 ![UEFI boot menu](uefi-menu.png)
-
-نافذة المثبّت والشريط الزجاجي داخل جلسة Hyprland الحقيقية:
-
-![Calamares welcome and Vitreus bar inside the live ISO](installer-welcome.png)
-
-هذه اللقطة من جلسة تشخيص لنفس ISO: أُعيد تشغيل الشيل باستخدام خيار Pleamar الأصلي `PLEAMAR_SWAPCHAIN=1` بعد أن رفض Virtio/llvmpipe إطارات DMA-BUF، وشُغّل مساعد الخلفية يدويًا بعد تأخر بدء الخدمة. لم تتغير ملفات تصميم الشيل أو الأنيميشن. تم تعطيل قفل الخمول مؤقتًا أثناء الاختبار فقط. الاستجابة تحت TCG بطيئة؛ اللقطة لا تثبت اكتمال التثبيت أو سلاسة VirtualBox، والتعديلات الدائمة ما زالت قيد التحقق.
-
-سطح المكتب والشريط بعد الانتقال لمساحة عمل فارغة في نفس جلسة الاختبار:
-
-![Actual live desktop with original Vitreus bar and wallpaper](desktop-software-rendering.png)
-
-اختيار المنطقة الزمنية داخل المثبّت:
-
-![Installer location page](installer-location.png)
-
-خطة التثبيت على القرص الافتراضي الفارغ (40 GiB، BIOS). هذه معاينة قبل تنفيذ التثبيت، وليست دليلًا على اكتماله:
-
-![Installer disk plan before applying changes](installer-disk-plan.png)
-
-أثناء متابعة الاختبارات الوظيفية للمثبّت، أُوقفت عمليات رسم الشيل مؤقتًا لتخفيف حمل محاكاة TCG؛ إعدادات النظام الأصلية لم تتغير. الشريط الظاهر في هذه المرحلة لا يثبت تشغيل الأنيميشن أثناء اختبار التثبيت.

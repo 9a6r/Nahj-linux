@@ -1,0 +1,107 @@
+[
+  {
+    "scene": "addons/_template/addon.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/addons/_template/addon.plm: ok \u00b7 0 properties, 4 instructions, 0 layers, 0 rules, 0 zones, 0 gestures\n"
+  },
+  {
+    "scene": "addons/_template_drawer/addon.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/addons/_template_drawer/addon.plm: ok \u00b7 199 properties, 512 instructions, 0 layers, 28 rules, 12 zones, 0 gestures\n"
+  },
+  {
+    "scene": "addons/eq/eq.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/addons/eq/eq.plm: ok \u00b7 321 properties, 648 instructions, 0 layers, 216 rules, 68 zones, 0 gestures\n"
+  },
+  {
+    "scene": "addons/homeassistant/homeassistant.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/addons/homeassistant/homeassistant.plm: ok \u00b7 29796 properties, 76464 instructions, 0 layers, 2552 rules, 1360 zones, 0 gestures\n"
+  },
+  {
+    "scene": "addons/news-weather/news-weather.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/addons/news-weather/news-weather.plm: ok \u00b7 1786 properties, 25280 instructions, 0 layers, 904 rules, 696 zones, 0 gestures\n"
+  },
+  {
+    "scene": "addons/tvremote/tvremote.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/addons/tvremote/tvremote.plm: ok \u00b7 818 properties, 796 instructions, 0 layers, 276 rules, 176 zones, 0 gestures\n"
+  },
+  {
+    "scene": "addons/vpn/vpn.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/addons/vpn/vpn.plm: ok \u00b7 1285 properties, 1576 instructions, 0 layers, 44 rules, 32 zones, 0 gestures\n"
+  },
+  {
+    "scene": "cursortrail/cursortrail.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/cursortrail/cursortrail.plm: ok \u00b7 45 properties, 188 instructions, 0 layers, 0 rules, 0 zones, 0 gestures\n"
+  },
+  {
+    "scene": "desktopcards/desktopcards.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/desktopcards/desktopcards.plm: ok \u00b7 421 properties, 1392 instructions, 0 layers, 116 rules, 84 zones, 0 gestures\n"
+  },
+  {
+    "scene": "desktopclock/desktopclock.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/desktopclock/desktopclock.plm: ok \u00b7 177 properties, 216 instructions, 0 layers, 20 rules, 4 zones, 0 gestures\n"
+  },
+  {
+    "scene": "desktopedit/desktopedit.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/desktopedit/desktopedit.plm: ok \u00b7 60 properties, 4108 instructions, 0 layers, 116 rules, 36 zones, 0 gestures\n"
+  },
+  {
+    "scene": "desktopmenu/desktopmenu_hypr.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/desktopmenu/desktopmenu_hypr.plm: ok \u00b7 0 properties, 8 instructions, 0 layers, 4 rules, 4 zones, 0 gestures\n"
+  },
+  {
+    "scene": "desktopnotes/desktopnotes.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/desktopnotes/desktopnotes.plm: ok \u00b7 236 properties, 3408 instructions, 0 layers, 328 rules, 132 zones, 0 gestures\n"
+  },
+  {
+    "scene": "desktopsysmon/desktopsysmon.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/desktopsysmon/desktopsysmon.plm: ok \u00b7 329 properties, 1248 instructions, 0 layers, 24 rules, 4 zones, 0 gestures\n"
+  },
+  {
+    "scene": "files/files.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/files/files.plm: ok \u00b7 2520 properties, 31715 instructions, 0 layers, 1722 rules, 375 zones, 0 gestures\n"
+  },
+  {
+    "scene": "lockscreen/lockscreen.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/lockscreen/lockscreen.plm: ok \u00b7 704 properties, 5089 instructions, 0 layers, 25 rules, 10 zones, 0 gestures\n"
+  },
+  {
+    "scene": "pleamar-wm/wm/session.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/pleamar-wm/wm/session.plm: ok \u00b7 8815 properties, 36516 instructions, 0 layers, 12224 rules, 2624 zones, 0 gestures\n"
+  },
+  {
+    "scene": "snap/snap.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/snap/snap.plm: ok \u00b7 468 properties, 10252 instructions, 0 layers, 255 rules, 73 zones, 0 gestures\n"
+  },
+  {
+    "scene": "vitreus.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/vitreus.plm: ok \u00b7 31320 properties, 110890 instructions, 0 layers, 9616 rules, 5868 zones, 0 gestures\n"
+  },
+  {
+    "scene": "webcam/webcam.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/webcam/webcam.plm: ok \u00b7 29 properties, 52 instructions, 0 layers, 104 rules, 36 zones, 0 gestures\n"
+  },
+  {
+    "scene": "wptrans/wptrans.plm",
+    "exit_code": 0,
+    "output": "/build/work/qa-2026-11-14/fresh-iso-scene-check/wptrans/wptrans.plm: ok \u00b7 2 properties, 3 instructions, 0 layers, 1 rules, 0 zones, 0 gestures\n"
+  }
+]

@@ -1,0 +1,9 @@
+    PID ELAPSED     TIME %CPU   RSS STAT
+   1089     427 00:01:23 19.5 253404 Sl
+   1090     427 00:01:54 26.8 324576 Sl
+   1093     426 00:01:13 17.1 268096 Sl
+   1094     426 00:05:55 83.2 250228 Sl
+   1127     424 00:04:26 62.7 299440 Sl
+   1128     424 00:03:15 45.9 818284 Sl
+-rw-r--r-- 1 nahj nahj 1196 Nov 14 11:12 /home/nahj/.local/share/pleamar/vitreus/vitreus.log
+? the render does not answer

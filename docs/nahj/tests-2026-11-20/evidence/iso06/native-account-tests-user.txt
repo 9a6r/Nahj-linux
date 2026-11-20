@@ -1,0 +1,223 @@
+********* Start testing of GroupTests *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.2.1 20260810), arch 20261018.0.612668
+11:00:33 [6]: void GroupTests::initTestCase()
+    Users test started. 
+11:00:33 [2]: static Calamares::JobQueue* Calamares::JobQueue::instance()
+    WARNING: Getting nullptr JobQueue instance. 
+PASS   : GroupTests::initTestCase()
+PASS   : GroupTests::testReadGroup()
+11:00:33 [2]: bool ensureGroupsExistInTarget(const QList<GroupDescription>&, const QStringList&, QStringList&)
+    WARNING: Missing groups in target system (* for groupadd failure): 
+     "bar" 
+PASS   : GroupTests::testCreateGroup()
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+11:00:33 [2]: Calamares::ModuleSystem::Config::ApplyPresets& Calamares::ModuleSystem::Config::ApplyPresets::apply(const char*)
+    WARNING: Applying duplicate property fullName 
+11:00:33 [2]: Calamares::ModuleSystem::Config::ApplyPresets& Calamares::ModuleSystem::Config::ApplyPresets::apply(const char*)
+    WARNING: Applying duplicate property loginName 
+PASS   : GroupTests::testSudoGroup()
+11:00:33 [2]: bool Calamares::ModuleSystem::Config::isEditable(const QString&) const
+    WARNING: Checking isEditable, but no presets are configured. 
+11:00:33 [2]: bool Calamares::ModuleSystem::Config::isEditable(const QString&) const
+    WARNING: Checking isEditable, but no presets are configured. 
+11:00:33 [2]: bool Calamares::ModuleSystem::Config::isEditable(const QString&) const
+    WARNING: Checking isEditable, but no presets are configured. 
+PASS   : GroupTests::testJobCreation()
+PASS   : GroupTests::cleanupTestCase()
+Totals: 6 passed, 0 failed, 0 skipped, 0 blacklisted, 13ms
+********* Finished testing of GroupTests *********
+********* Start testing of UsersTests *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.2.1 20260810), arch 20261018.0.612668
+11:00:33 [6]: void UsersTests::initTestCase()
+    Users test started. 
+11:00:33 [6]: void UsersTests::initTestCase()
+    Test dir "/tmp/calamares-usertest.aNByxp" 
+11:00:33 [1]: static Calamares::System* Calamares::System::instance()
+    ERROR: No Calamares system-object has been created. 
+    .. using a bogus instance instead. 
+11:00:33 [2]: static Calamares::JobQueue* Calamares::JobQueue::instance()
+    WARNING: Getting nullptr JobQueue instance. 
+11:00:33 [6]: void UsersTests::initTestCase()
+    Creating new JobQueue 
+PASS   : UsersTests::initTestCase()
+11:00:33 [6]: void UsersTests::testEtcHostname()
+    Test dir "/tmp/calamares-usertest.aNByxp" 
+11:00:33 [2]: Calamares::CreationResult Calamares::System::createTargetFile(const QString&, const QByteArray&, WriteMode) const
+    WARNING: Could not open target file "/tmp/calamares-usertest.aNByxp/etc/hostname" 
+PASS   : UsersTests::testEtcHostname()
+PASS   : UsersTests::testEtcHosts()
+11:00:33 [2]: bool setSystemdHostname(const QString&)
+    WARNING: Interface "org.freedesktop.hostname1" is not valid. 
+11:00:33 [2]: bool setSystemdHostname(const QString&)
+    WARNING: Interface "org.freedesktop.hostname1" is not valid. 
+XFAIL  : UsersTests::testHostnamed() Hostname changes are access-controlled
+   Loc: [/build/installer-review/calamares-21ea803527735cfaf54fa6059e71d1ef65004864/src/modules/users/TestSetHostNameJob.cpp(139)]
+11:00:33 [2]: bool setSystemdHostname(const QString&)
+    WARNING: Interface "org.freedesktop.hostname1" is not valid. 
+PASS   : UsersTests::testHostnamed()
+PASS   : UsersTests::cleanupTestCase()
+Totals: 5 passed, 0 failed, 0 skipped, 0 blacklisted, 2ms
+********* Finished testing of UsersTests *********
+********* Start testing of UserTests *********
+Config: Using QtTest library 6.12.0, Qt 6.12.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 16.2.1 20260810), arch 20261018.0.612668
+11:00:33 [6]: void UserTests::initTestCase()
+    Users test started. 
+11:00:33 [2]: static Calamares::JobQueue* Calamares::JobQueue::instance()
+    WARNING: Getting nullptr JobQueue instance. 
+PASS   : UserTests::initTestCase()
+11:00:33 [2]: void Config::setUserShell(const QString&)
+    WARNING: User shell "bash" is not an absolute path. 
+11:00:33 [2]: bool Calamares::ModuleSystem::Config::isEditable(const QString&) const
+    WARNING: Checking isEditable, but no presets are configured. 
+11:00:33 [2]: bool Calamares::ModuleSystem::Config::isEditable(const QString&) const
+    WARNING: Checking isEditable, but no presets are configured. 
+11:00:33 [2]: bool Calamares::ModuleSystem::Config::isEditable(const QString&) const
+    WARNING: Checking isEditable, but no presets are configured. 
+PASS   : UserTests::testGetSet()
+11:00:33 [6]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    "defaultGroups" has explicit empty value. 
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testDefaultGroups()
+    .. libpwquality setting "minlen=0" 
+    .. libpwquality setting "minclass=0" 
+11:00:33 [2]: add_check_libpwquality(PasswordCheckList&, const QVariant&)::<lambda(const QString&)>
+    WARNING: libpwquality error -20 No password supplied 
+11:00:33 [2]: add_check_libpwquality(PasswordCheckList&, const QVariant&)::<lambda(const QString&)>
+    WARNING: libpwquality error -20 No password supplied 
+PASS   : UserTests::testDefaultGroupsYAML(users.conf)
+PASS   : UserTests::testDefaultGroupsYAML(dashed list)
+PASS   : UserTests::testDefaultGroupsYAML(blocked list)
+PASS   : UserTests::testDefaultGroupsYAML(issue 1523)
+PASS   : UserTests::testHostActions(unset  )
+PASS   : UserTests::testHostActions(empty  )
+PASS   : UserTests::testHostActions(bad    )
+PASS   : UserTests::testHostActions(none   )
+PASS   : UserTests::testHostActions(systemd)
+PASS   : UserTests::testHostActions(etc(1) )
+PASS   : UserTests::testHostActions(etc(2) )
+PASS   : UserTests::testHostActions(etc-bad)
+PASS   : UserTests::testHostActions(ci-sysd)
+PASS   : UserTests::testHostActions(trbs   )
+PASS   : UserTests::testHostActions(ci-trns)
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+11:00:33 [2]: Calamares::ModuleSystem::Config::ApplyPresets& Calamares::ModuleSystem::Config::ApplyPresets::apply(const char*)
+    WARNING: Applying duplicate property fullName 
+11:00:33 [2]: Calamares::ModuleSystem::Config::ApplyPresets& Calamares::ModuleSystem::Config::ApplyPresets::apply(const char*)
+    WARNING: Applying duplicate property loginName 
+PASS   : UserTests::testHostActions2()
+PASS   : UserTests::testHostSuggestions(unset  )
+PASS   : UserTests::testHostSuggestions(const  )
+PASS   : UserTests::testHostSuggestions(escaped)
+PASS   : UserTests::testHostSuggestions(default)
+PASS   : UserTests::testHostSuggestions(full   )
+PASS   : UserTests::testHostSuggestions(login+ )
+PASS   : UserTests::testHostSuggestions( cpu   )
+    .. Next test "X${product}X" -> "XpcX" 
+XFAIL  : UserTests::testHostSuggestions(@prod  ) Test is too host-specific
+   Loc: [/build/installer-review/calamares-21ea803527735cfaf54fa6059e71d1ef65004864/src/modules/users/Tests.cpp(339)]
+PASS   : UserTests::testHostSuggestions(@prod  )
+    .. Next test "X${product2}X" -> "XarchlinuxX" 
+XFAIL  : UserTests::testHostSuggestions(@prod2 ) Test is too host-specific
+   Loc: [/build/installer-review/calamares-21ea803527735cfaf54fa6059e71d1ef65004864/src/modules/users/Tests.cpp(339)]
+PASS   : UserTests::testHostSuggestions(@prod2 )
+    .. Next test "X${host}X" -> "X7acb147f84e2X" 
+XFAIL  : UserTests::testHostSuggestions(@host  ) Test is too host-specific
+   Loc: [/build/installer-review/calamares-21ea803527735cfaf54fa6059e71d1ef65004864/src/modules/users/Tests.cpp(339)]
+PASS   : UserTests::testHostSuggestions(@host  )
+11:00:33 [2]: bool addPasswordCheck(const QString&, const QVariant&, PasswordCheckList&)
+    WARNING: nonempty check is ignored; use minLength: 1 
+11:00:33 [2]: bool addPasswordCheck(const QString&, const QVariant&, PasswordCheckList&)
+    WARNING: nonempty check is ignored; use minLength: 1 
+PASS   : UserTests::testPasswordChecks()
+    .. minLength set to 6 
+11:00:33 [2]: bool addPasswordCheck(const QString&, const QVariant&, PasswordCheckList&)
+    WARNING: nonempty check is ignored; use minLength: 1 
+PASS   : UserTests::testUserPassword()
+SKIP   : UserTests::testNahjPasswordPolicy() Set NAHJ_USERS_CONFIG to test the actual Nahj installer policy.
+   Loc: [/build/installer-review/calamares-21ea803527735cfaf54fa6059e71d1ef65004864/src/modules/users/Tests.cpp(441)]
+PASS   : UserTests::testRejectedPasswordHash()
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testAutoLogin(old, old)
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testAutoLogin(old, new)
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testAutoLogin(new, old)
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testAutoLogin(new, new)
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testAutoLogin(default)
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserYAML(old, unset   )
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserYAML(old, empty   )
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserYAML(old, relative)
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserYAML(old, invalid )
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserYAML(old, absolute)
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserYAML(new, unset   )
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserYAML(new, empty   )
+11:00:33 [2]: void Config::setUserShell(const QString&)
+    WARNING: User shell "dash" is not an absolute path. 
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserYAML(new, relative)
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserYAML(new, invalid )
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserYAML(new, absolute)
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserUmask(good )
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserUmask(open )
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserUmask(weird)
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserUmask(rwxx )
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserUmask(-wrd )
+11:00:33 [2]: virtual void Config::setConfigurationMap(const QVariantMap&)
+    WARNING: Setting for "home_permissions" ( "Bogus" QVariant(QString, "Bogus") ) is invalid. 
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserUmask(bogus)
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserUmask(good2)
+11:00:33 [2]: void setConfigurationDefaultGroups(const QVariantMap&, QList<GroupDescription>&)
+    WARNING: Using fallback groups. Please check *defaultGroups* value in users.conf 
+PASS   : UserTests::testUserUmask(numrc)
+PASS   : UserTests::cleanupTestCase()
+Totals: 56 passed, 0 failed, 1 skipped, 0 blacklisted, 25ms
+********* Finished testing of UserTests *********
